@@ -1,21 +1,24 @@
 import 'package:festenao_admin_base_app/admin_app/menu.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
+import 'package:festenao_admin_base_app/sembast/sembast.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
 import 'package:tkcms_admin_app/auth/auth.dart';
 import 'package:tkcms_admin_app/screen/login_screen.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
-import 'package:tkcms_common/tkcms_firebase.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
+
+import 'firebase/firebase_local.dart';
 
 Future<void> main() async {
   var packageName = 'festenao.admin_base_app';
+  await initLocalSembastFactory();
   var prefsFactory = getPrefsFactory(packageName: packageName);
   var prefs = await prefsFactory.openPreferences('${packageName}_prefs.db');
-  var context =
-      initFirebaseSim(projectId: 'festenao', packageName: packageName);
+  var context = await initFestenaoFirebaseServicesLocal();
+  //initFirebaseSim(projectId: 'festenao', packageName: packageName);
   globalAdminAppFirebaseContext = context;
   var fsDatabase = FestenaoFirestoreDatabase(
       firebaseContext: context, flavorContext: AppFlavorContext.testLocal);

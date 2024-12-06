@@ -73,3 +73,7 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
 
 /// Global entity database
 late FestenaoFirestoreDatabase globalEntityDatabase;
+
+/// Global notelio firestore database
+FestenaoFirestoreDatabase get globalNotelioFirestoreDatabase =>
+    globalEntityDatabase;

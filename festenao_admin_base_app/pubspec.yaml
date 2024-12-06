@@ -31,10 +31,10 @@ dependencies:
   flutter:
     sdk: flutter
 
-
+  sembast: ">=3.0.0"
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
-  cupertino_icons: ^1.0.8
+  cupertino_icons: ">=1.0.8"
   tkcms_common:
     git:
       url: https://github.com/tekartikprj/tkcms.git
@@ -80,6 +80,30 @@ dependencies:
       url: https://github.com/tekartik/app_flutter_utils.dart
       ref: dart3a
       path: app_prefs
+  tekartik_app_sembast_firestore_type_adapters:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_sembast_firestore_type_adapters
+  tekartik_app_flutter_sembast:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      ref: dart3a
+      path: app_sembast
+  tekaly_sembast_synced:
+    git:
+      url: https://github.com/tekartikprj/tekaly
+      ref: dart3a
+      path: packages/sembast_synced
+  tekartik_common_utils:
+    git:
+      url: https://github.com/tekartik/common_utils.dart
+      ref: dart3a
+  tekartik_app_cv_sembast:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_cv_sembast
 
 dev_dependencies:
   flutter_test:
@@ -90,7 +114,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ">=5.0.0"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
