@@ -13,7 +13,7 @@ class FsBooklet extends TkCmsFsEntity {
   CvFields get fields => [...super.fields];
 }
 
-/// <entity>_user/<user_id>/entity/<entity> ... prv info
+/// `<entity>`_user/`<user_id>`/entity/`<entity>` ... prv info
 class FsUserPrv extends TkCmsFsEntity {
   /// Use access
   final access = CvModelField<TkCmsCvUserAccess>('access');

@@ -16,6 +16,6 @@ late final DatabaseFactory globalSembastDatabaseFactory;
 
 /// Initialize the local sembast factory
 Future<void> initLocalSembastFactory() async {
-  globalSembastDatabaseFactory = getDatabaseFactory(
-      rootPath: join('.dart_tool', 'tekartik_notelio_local'));
+  globalSembastDatabaseFactory =
+      getDatabaseFactory(rootPath: join('.dart_tool', 'festenao_local'));
 }

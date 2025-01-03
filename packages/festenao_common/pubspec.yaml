@@ -1,0 +1,92 @@
+name: festenao_common
+description: A starting point for Dart libraries or applications.
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+# Add regular dependencies here.
+dependencies:
+  path: ">=1.9.0"
+  sembast: ">=3.7.4+3"
+  meta: ">=1.15.0"
+  cv: ">=1.1.0+4"
+  # http: '>=1.0.0'
+  fs_shim: ">=2.3.3+1"
+  tekartik_app_bloc:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_bloc
+    version: '>=0.1.0'
+  rxdart:
+  tekartik_app_cv_firestore:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_cv_firestore
+    version: '>=0.1.0'
+  tekartik_firebase_storage:
+    git:
+      url: https://github.com/tekartik/firebase_storage.dart
+      path: storage
+      ref: dart3a
+    version: '>=0.1.2'
+  tekartik_firebase_auth:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth
+      ref: dart3a
+    version: '>=0.7.2'
+  tekartik_firebase_auth_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      path: auth_rest
+      ref: dart3a
+    version: '>=0.7.2'
+  tekartik_app_cv_sembast:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_cv_sembast
+    version: '>=0.5.3'
+  tekaly_sembast_synced:
+    git:
+      url: https://github.com/tekartikprj/tekaly
+      path: packages/sembast_synced
+      ref: dart3a
+  tkcms_common:
+    git:
+      url: https://github.com/tekartikprj/tkcms.git
+      ref: dart3a
+      path: packages/tkcms_common
+  tekartik_firebase_storage_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      ref: dart3a
+      path: storage_rest
+  tekartik_common_utils:
+    git:
+      url: https://github.com/tekartik/common_utils.dart
+      ref: dart3a
+  tekartik_firebase_firestore_sembast:
+    git:
+      url: https://github.com/tekartik/firebase_firestore.dart
+      ref: dart3a
+      path: firestore_sembast
+  tekartik_firebase_firestore:
+    git:
+      url: https://github.com/tekartik/firebase_firestore.dart
+      ref: dart3a
+      path: firestore
+  tekartik_firebase_local:
+    git:
+      url: https://github.com/tekartik/firebase.dart
+      ref: dart3a
+      path: firebase_local
+  # path: ^1.8.0
+
+dev_dependencies:
+  lints: ">=5.0.0"
+  test: ">=1.24.0"

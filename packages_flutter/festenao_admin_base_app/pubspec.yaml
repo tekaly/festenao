@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-  sembast: ">=3.0.0"
+  sembast: ">=3.7.4+3"
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ">=1.0.8"
@@ -104,7 +104,14 @@ dependencies:
       url: https://github.com/tekartik/app_common_utils.dart
       ref: dart3a
       path: app_cv_sembast
-
+  festenao_common:
+    git:
+      url: https://github.com/tekaly/festenao
+      ref: dart3a
+      path: packages/festenao_common
+dependency_overrides:
+  festenao_common:
+    path: ../../packages/festenao_common
 dev_dependencies:
   flutter_test:
     sdk: flutter
