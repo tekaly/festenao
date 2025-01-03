@@ -109,9 +109,7 @@ dependencies:
       url: https://github.com/tekaly/festenao
       ref: dart3a
       path: packages/festenao_common
-dependency_overrides:
-  festenao_common:
-    path: ../../packages/festenao_common
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -133,6 +131,7 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+resolution: workspace
 
   # To add assets to your application, add an assets section, like this:
   # assets:
