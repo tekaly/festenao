@@ -30,7 +30,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  image:
+  festenao_blur_hash:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages/festenao_blur_hash
+      ref: dart3a
+  flutter_markdown:
+  file_picker:
+  file_selector:
+  flutter_blurhash:
+  path:
+  extended_image:
+  rxdart:
+  festenao_audio_player:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages/festenao_audio_player
+      ref: dart3a
   sembast: ">=3.7.4+3"
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -109,6 +126,46 @@ dependencies:
       url: https://github.com/tekaly/festenao
       ref: dart3a
       path: packages/festenao_common
+  sembast_db_explorer:
+    git:
+      url: https://github.com/tekartik/sembast_flutter_more.dart
+      ref: dart3a
+      path: sembast_db_explorer
+  tekartik_app_platform:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      ref: dart3a
+      path: app_platform
+  tekartik_app_pick_crop_image_flutter:
+    git:
+      url: https://github.com/tekartik/app_image.dart
+      ref: dart3a
+      path: packages/app_pick_crop_image_flutter
+  tekaly_file_download:
+    git:
+      url: https://github.com/tekartikprj/tekaly
+      ref: dart3a
+      path: flutter_packages/file_download
+  tekartik_app_http:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_http
+  tekartik_app_flutter_bloc:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      ref: dart3a
+      path: app_bloc
+  tekartik_app_rx_utils:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      ref: dart3a
+      path: app_rx_utils
+  tekartik_app_rx_bloc:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_rx_bloc
 
 dev_dependencies:
   flutter_test:
@@ -121,6 +178,13 @@ dev_dependencies:
   # rules and activating additional ones.
   flutter_lints: ">=5.0.0"
 
+dependency_overrides:
+  festenao_blur_hash:
+    path: ../../packages/festenao_blur_hash
+  festenao_common:
+    path: ../../packages/festenao_common
+  festenao_audio_player:
+    path:  ../festenao_audio_player
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
 
@@ -131,7 +195,7 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
-resolution: workspace
+
 
   # To add assets to your application, add an assets section, like this:
   # assets:

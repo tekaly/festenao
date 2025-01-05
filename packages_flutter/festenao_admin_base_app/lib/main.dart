@@ -10,6 +10,7 @@ import 'package:tkcms_admin_app/screen/login_screen.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
 
+import 'admin_app/festenao_admin_app.dart';
 import 'firebase/firebase_local.dart';
 
 Future<void> main() async {
@@ -24,7 +25,9 @@ Future<void> main() async {
       firebaseContext: context, flavorContext: AppFlavorContext.testLocal);
   globalEntityDatabase = fsDatabase;
   gAuthBloc = TkCmsAuthBloc.local(db: fsDatabase, prefs: prefs);
-
+  globalPackageName = 'tekaly.festenao';
+  globalFestenaoFirebaseContext = FestenaoFirebaseContext(
+      storageRootPath: 'festenao', firestoreRootPath: 'festenao');
   gDebugUsername = 'admin';
   gDebugPassword = '__admin__'; // irrelevant
 
