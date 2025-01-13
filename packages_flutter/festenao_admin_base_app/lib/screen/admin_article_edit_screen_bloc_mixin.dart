@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
-import 'package:festenao_admin_base_app/sembast/booklets_db.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_blur_hash/blur_hash.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:image/image.dart' as img;
@@ -18,7 +18,7 @@ class AdminArticleEditData {
 }
 
 mixin AdminArticleEditScreenBlocMixin<T extends DbArticle> {
-  final db = globalBookletsDb.db;
+  final db = globalProjectsDb.db;
   CvStoreRef<String, T> get articleStore;
 
   Future<void> save(AdminArticleEditData data) async {

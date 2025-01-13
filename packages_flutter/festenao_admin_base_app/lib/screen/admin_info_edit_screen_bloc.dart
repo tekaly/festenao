@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:festenao_admin_base_app/sembast/booklets_db.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
@@ -38,7 +38,7 @@ class AdminInfoEditScreenBloc extends BaseBloc
       _state.add(AdminInfoEditScreenBlocState(info: info));
     } else {
       () async {
-        var db = globalBookletsDb.db;
+        var db = globalProjectsDb.db;
         this.info = info ??= (await dbInfoStoreRef.record(infoId!).get(db));
 
         _state.add(AdminInfoEditScreenBlocState(info: info, infoId: infoId));
@@ -47,7 +47,7 @@ class AdminInfoEditScreenBloc extends BaseBloc
   }
 
   Future<void> delete() async {
-    var db = globalBookletsDb.db;
+    var db = globalProjectsDb.db;
     await dbInfoStoreRef.record(infoId!).delete(db);
   }
 

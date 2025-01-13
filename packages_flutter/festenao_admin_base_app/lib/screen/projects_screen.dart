@@ -4,28 +4,29 @@ import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
-import 'booklets_screen_bloc.dart';
 
-/// Booklets screen
-class BookletsScreen extends StatefulWidget {
-  /// Booklets screen
-  const BookletsScreen({super.key});
+import 'projects_screen_bloc.dart';
+
+/// Projects screen
+class ProjectsScreen extends StatefulWidget {
+  /// Projects screen
+  const ProjectsScreen({super.key});
 
   @override
-  State<BookletsScreen> createState() => _BookletsScreenState();
+  State<ProjectsScreen> createState() => _ProjectsScreenState();
 }
 
-class _BookletsScreenState extends State<BookletsScreen> {
+class _ProjectsScreenState extends State<ProjectsScreen> {
   @override
   Widget build(BuildContext context) {
-    var bloc = BlocProvider.of<BookletsScreenBloc>(context);
+    var bloc = BlocProvider.of<ProjectsScreenBloc>(context);
     return ValueStreamBuilder(
         stream: bloc.state,
         builder: (context, snapshot) {
           var state = snapshot.data;
           return Scaffold(
             appBar: AppBar(
-                title: const Text('Booklet') // appIntl(context).bookletsTitle),
+                title: const Text('Project') // appIntl(context).ProjectsTitle),
                 /*actions: [
                 IconButton(
                     onPressed: () {
@@ -42,7 +43,7 @@ class _BookletsScreenState extends State<BookletsScreen> {
                   child: CircularProgressIndicator(),
                 );
               }
-              var booklets = state.booklets;
+              var projects = state.projects;
               return WithHeaderFooterListView.builder(
                   footer: state.user == null
                       ? const BodyContainer(
@@ -70,30 +71,30 @@ class _BookletsScreenState extends State<BookletsScreen> {
                           ],
                         ))))
                       : null,
-                  itemCount: booklets.length,
+                  itemCount: projects.length,
                   itemBuilder: (context, index) {
-                    var booklet = booklets[index];
+                    var project = projects[index];
                     return BodyContainer(
                       child: ListTile(
-                        leading: BookletLeading(booklet: booklet),
+                        leading: ProjectLeading(project: project),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
                                 onPressed: () {
-                                  //goToNotesScreen(context, booklet.ref);
+                                  //goToNotesScreen(context, Project.ref);
                                 },
                                 icon: const Icon(Icons.arrow_forward_ios)),
                             /*  IconButton(
                                 onPressed: () {
-                                  //_goToNotes(context, booklet.id);
+                                  //_goToNotes(context, Project.id);
                                 },
                                 icon: Icon(Icons.edit))*/
                           ],
                         ),
-                        title: Text(booklet.name.v ?? booklet.uid.v ?? ''),
+                        title: Text(project.name.v ?? project.uid.v ?? ''),
                         onTap: () async {
-                          //  await goToNotesScreen(context, booklet.ref);
+                          //  await goToNotesScreen(context, Project.ref);
                         },
                       ),
                     );
@@ -101,7 +102,7 @@ class _BookletsScreenState extends State<BookletsScreen> {
             }),
             floatingActionButton: FloatingActionButton(
               onPressed: () async {
-                //await goToCreateBookletScreen(context);
+                //await goToCreateProjectScreen(context);
               },
               child: const Icon(Icons.add),
             ),
@@ -110,12 +111,12 @@ class _BookletsScreenState extends State<BookletsScreen> {
   }
 }
 
-/// Go to booklets screen
-Future<Object?> goToBookletsScreen(
+/// Go to Projects screen
+Future<Object?> goToProjectsScreen(
   BuildContext context,
 ) async {
   return await Navigator.of(context).push<Object?>(MaterialPageRoute(
       builder: (_) => BlocProvider(
-          blocBuilder: () => BookletsScreenBloc(),
-          child: const BookletsScreen())));
+          blocBuilder: () => ProjectsScreenBloc(),
+          child: const ProjectsScreen())));
 }

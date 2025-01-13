@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:festenao_admin_base_app/admin_app/festenao_admin_app.dart';
 import 'package:festenao_admin_base_app/file_picker/file_picker.dart';
-import 'package:festenao_admin_base_app/sembast/booklets_db.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/view/attributes_tile.dart';
 import 'package:festenao_admin_base_app/view/image_preview.dart';
 import 'package:festenao_admin_base_app/view/text_field.dart';
@@ -292,7 +292,7 @@ mixin AdminArticleEditScreenMixin {
                 var squareImage = article?.squareImage.v;
                 if (squareImage != null) {
                   () async {
-                    var db = globalBookletsDb.db;
+                    var db = globalProjectsDb.db;
                     var image =
                         await dbImageStoreRef.record(squareImage).get(db);
                     if (image != null) {
@@ -337,7 +337,7 @@ mixin AdminArticleEditScreenMixin {
                 var thumbnailImage = article?.thumbnail.v;
                 if (thumbnailImage != null) {
                   () async {
-                    var db = globalBookletsDb.db;
+                    var db = globalProjectsDb.db;
                     var image =
                         await dbImageStoreRef.record(thumbnailImage).get(db);
                     if (image != null) {
@@ -368,7 +368,7 @@ mixin AdminArticleEditScreenMixin {
                 var imageId = article?.image.v;
                 if (imageId != null) {
                   () async {
-                    var db = globalBookletsDb.db;
+                    var db = globalProjectsDb.db;
                     var image = await dbImageStoreRef.record(imageId).get(db);
                     if (image != null) {
                       var bytes = await httpClientFactory
@@ -552,7 +552,7 @@ class ArticleImageHolder {
         var imageId = _articleImageId;
         if (imageId != null) {
           if (_imageData.value == null || _imageDataId != imageId) {
-            var db = globalBookletsDb.db;
+            var db = globalProjectsDb.db;
             var image = await dbImageStoreRef.record(imageId).get(db);
             if (image != null) {
               var bytes = await httpClientFactory

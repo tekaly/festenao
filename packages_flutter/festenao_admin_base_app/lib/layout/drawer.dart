@@ -1,4 +1,4 @@
-import 'package:festenao_admin_base_app/sembast/booklets_db.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:flutter/material.dart';
 import 'package:sembast_db_explorer/sembast_db_explorer.dart';
 
@@ -112,7 +112,7 @@ class _ListDrawerState extends State<ListDrawer> {
           ListTile(
             title: const Text('Sembast db explorer'),
             onTap: () async {
-              var db = globalBookletsDb.db;
+              var db = globalProjectsDb.db;
               if (context.mounted) {
                 await showDatabaseExplorer(context, db);
               }

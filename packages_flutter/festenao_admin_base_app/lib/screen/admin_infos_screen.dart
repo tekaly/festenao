@@ -1,6 +1,6 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
-import 'package:festenao_admin_base_app/sembast/booklets_db.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 
 import 'admin_info_edit_screen.dart';
@@ -27,7 +27,7 @@ class AdminInfoScreenResult {
 
 class AdminInfosScreenBloc extends BaseBloc {
   final _state = BehaviorSubject<AdminInfosScreenBlocState>();
-  late var db = globalBookletsDb.db;
+  late var db = globalProjectsDb.db;
   ValueStream<AdminInfosScreenBlocState> get state => _state;
   late StreamSubscription _infoSubscription;
 

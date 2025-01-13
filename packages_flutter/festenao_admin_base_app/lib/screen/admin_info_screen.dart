@@ -1,5 +1,5 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
-import 'package:festenao_admin_base_app/sembast/booklets_db.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/view/action_tile.dart';
 import 'package:festenao_admin_base_app/view/attributes_tile.dart';
 import 'package:festenao_admin_base_app/view/info_tile.dart';
@@ -31,7 +31,7 @@ class AdminInfoScreenBloc extends BaseBloc {
 
   AdminInfoScreenBloc({required this.infoId}) {
     () async {
-      var db = globalBookletsDb.db;
+      var db = globalProjectsDb.db;
       _infoSubscription =
           dbInfoStoreRef.record(infoId!).onRecord(db).listen((info) {
         _state.add(AdminInfoScreenBlocState(infoId: infoId, info: info));

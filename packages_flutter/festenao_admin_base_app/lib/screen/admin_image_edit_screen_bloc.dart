@@ -43,7 +43,7 @@ class AdminImageEditScreenBloc extends BaseBloc {
   final String? imageId;
   final AdminImageEditScreenParam? param;
   final _state = BehaviorSubject<AdminImageEditScreenBlocState>();
-  late var db = globalBookletsDb.db;
+  late var db = globalProjectsDb.db;
   ValueStream<AdminImageEditScreenBlocState> get state => _state;
 
   AdminImageEditScreenBloc({required this.imageId, required this.param}) {

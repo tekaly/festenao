@@ -21,7 +21,7 @@ class AdminImagesScreenBloc extends BaseBloc {
 
   ValueStream<AdminImagesScreenBlocState> get state => _state;
   late StreamSubscription _imageSubscription;
-  late var db = globalBookletsDb.db;
+  late var db = globalProjectsDb.db;
   AdminImagesScreenBloc() {
     () async {
       _imageSubscription =

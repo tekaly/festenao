@@ -1,28 +1,28 @@
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
-import 'package:festenao_admin_base_app/sembast/booklets_db.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
-/// Extension for [DbBooklet]
-extension DbBookletUtils on DbBooklet {
-  /// Update the [DbBooklet] from a [FsBooklet]
+/// Extension for [DbProject]
+extension DbProjectUtils on DbProject {
+  /// Update the [DbProject] from a [FsProject]
   void fromFirestore(
-      {required FsBooklet fsBooklet,
-      required TkCmsFsUserAccess bookletAccess,
+      {required FsProject fsProject,
+      required TkCmsFsUserAccess projectAccess,
       required String userId}) {
-    name.v = fsBooklet.name.v;
-    uid.v = fsBooklet.id;
+    name.v = fsProject.name.v;
+    uid.v = fsProject.id;
     this.userId.v = userId;
-    userAccessFields.fromCvFields(bookletAccess.userAccessFields);
+    userAccessFields.fromCvFields(projectAccess.userAccessFields);
   }
 
-  /// Check if the [DbBooklet] need to be updated from another [DbBooklet]
-  bool needUpdate(DbBooklet booklet) {
-    return name.v != booklet.name.v ||
-        uid.v != booklet.uid.v ||
-        userId.v != booklet.userId.v ||
-        admin.v != booklet.admin.v ||
-        write.v != booklet.write.v ||
-        read.v != booklet.read.v ||
-        role.v != booklet.role.v;
+  /// Check if the [DbProject] need to be updated from another [DbProject]
+  bool needUpdate(DbProject project) {
+    return name.v != project.name.v ||
+        uid.v != project.uid.v ||
+        userId.v != project.userId.v ||
+        admin.v != project.admin.v ||
+        write.v != project.write.v ||
+        read.v != project.read.v ||
+        role.v != project.role.v;
   }
 }

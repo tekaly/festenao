@@ -22,15 +22,15 @@ class _FsEntityListScreenState extends State<FsEntityListScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('All entities')),
       body: FirestoreListView(
-        query: globalEntityDatabase.bookletDb.fsEntityCollectionRef
+        query: globalEntityDatabase.projectDb.fsEntityCollectionRef
             .raw(globalEntityDatabase.firestore),
         itemBuilder: (BuildContext context, DocumentSnapshot doc) {
           return ListTile(title: Text(doc.ref.id));
         },
       ),
       floatingActionButton: FloatingActionButton(onPressed: () {
-        globalEntityDatabase.bookletDb
-            .createEntity(userId: userId, entity: FsBooklet()..name.v = 'test');
+        globalEntityDatabase.projectDb
+            .createEntity(userId: userId, entity: FsProject()..name.v = 'test');
       }),
     );
   }

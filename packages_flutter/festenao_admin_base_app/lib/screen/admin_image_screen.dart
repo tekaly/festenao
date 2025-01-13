@@ -27,7 +27,7 @@ class AdminImageScreenBloc extends BaseBloc {
 
   ValueStream<AdminImageScreenBlocState> get state => _state;
   StreamSubscription? _imageSubscription;
-  var db = globalBookletsDb.db;
+  var db = globalProjectsDb.db;
   AdminImageScreenBloc({required this.imageId}) {
     () async {
       if (imageId != null) {

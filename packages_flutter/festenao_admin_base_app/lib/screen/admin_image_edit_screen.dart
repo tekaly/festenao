@@ -286,7 +286,7 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
 
                 if (imageId != null) {
                   () async {
-                    var db = globalBookletsDb.db;
+                    var db = globalProjectsDb.db;
                     var image = await dbImageStoreRef.record(imageId).get(db);
                     if (image != null) {
                       var bytes = await httpClientFactory

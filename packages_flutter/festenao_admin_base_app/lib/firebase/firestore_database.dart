@@ -3,12 +3,12 @@ import 'package:tkcms_common/tkcms_firestore.dart';
 /// Initialize notelio firestore builders
 void initNotelioFsBuilders() {
   cvAddConstructors([
-    FsBooklet.new,
+    FsProject.new,
   ]);
 }
 
 /// Main entity database
-class FsBooklet extends TkCmsFsEntity {
+class FsProject extends TkCmsFsEntity {
   @override
   CvFields get fields => [...super.fields];
 }
@@ -21,11 +21,11 @@ class FsUserPrv extends TkCmsFsEntity {
   CvFields get fields => [access, ...super.fields];
 }
 
-/// Booklet collection info
-final bookletCollectionInfo =
-    TkCmsFirestoreDatabaseEntityCollectionInfo<FsBooklet>(
+/// Project collection info
+final projectCollectionInfo =
+    TkCmsFirestoreDatabaseEntityCollectionInfo<FsProject>(
         id: 'project',
-        name: 'Booklet',
+        name: 'Project',
         treeDef: TkCmsCollectionsTreeDef(map: {
           'data': {'data': null, 'meta': null}
         }));
@@ -33,7 +33,7 @@ final bookletCollectionInfo =
 /// User private collection info
 final userPrvCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsUserPrv>(
-        id: 'booklet_user',
+        id: 'Project_user',
         name: 'User private',
         treeDef: TkCmsCollectionsTreeDef(map: {
           'data': {'data': null, 'meta': null}
@@ -41,8 +41,8 @@ final userPrvCollectionInfo =
 
 /// Main entity database
 class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
-  /// Booklet database
-  late TkCmsFirestoreDatabaseServiceEntityAccess<FsBooklet> bookletDb;
+  /// Project database
+  late TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> projectDb;
 
   /// User private database
   late TkCmsFirestoreDatabaseServiceEntityAccess<FsUserPrv> userPrvDb;
@@ -56,8 +56,8 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   // ignore: unused_element
   void _init() {
     initNotelioFsBuilders();
-    bookletDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsBooklet>(
-        entityCollectionInfo: bookletCollectionInfo,
+    projectDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
+        entityCollectionInfo: projectCollectionInfo,
         firestore: firestore,
         rootDocument: fsAppRoot(app));
     userPrvDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsUserPrv>(
@@ -66,9 +66,9 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
         rootDocument: fsAppRoot(app));
   }
 
-  /// Booklet collection reference
-  CvCollectionReference<FsBooklet> get fsBookletCollection =>
-      bookletDb.fsEntityCollectionRef;
+  /// Project collection reference
+  CvCollectionReference<FsProject> get fsProjectCollection =>
+      projectDb.fsEntityCollectionRef;
 }
 
 /// Global entity database
