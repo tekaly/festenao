@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
@@ -30,7 +31,7 @@ class AdminExportViewScreenBloc extends BaseBloc {
   }
 
   Future<void> refresh() async {
-    var path = url.join(globalFestenaoFirebaseContext.firestoreRootPath,
+    var path = url.join(globalFestenaoAppFirebaseContext.firestoreRootPath,
         getExportPath(exportId));
     if (!firestore.service.supportsTrackChanges) {
       _exportSubscription = null;
@@ -132,7 +133,9 @@ class _AdminExportViewScreenState extends State<AdminExportViewScreen> {
   Future<void> _onEdit(BuildContext context, String exportId) async {
     var bloc = BlocProvider.of<AdminExportViewScreenBloc>(context);
     await goToAdminExportEditScreen(context,
-        projectId: bloc.projectId, exportId: exportId);
+        projectContext:
+            ByProjectIdAdminAppProjectContext(projectId: bloc.projectId),
+        exportId: exportId);
     if (context.mounted) {
       await bloc.refresh();
     }

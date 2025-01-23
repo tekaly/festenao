@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 
@@ -64,7 +65,9 @@ class _AdminExportsScreenState extends State<AdminExportsScreen> {
         onPressed: () async {
           var bloc = BlocProvider.of<AdminExportsScreenBloc>(context);
           await goToAdminExportEditScreen(context,
-              projectId: bloc.projectId, exportId: null);
+              projectContext:
+                  ByProjectIdAdminAppProjectContext(projectId: bloc.projectId),
+              exportId: null);
           await bloc.refresh();
         },
         child: const Icon(Icons.add),

@@ -10,3 +10,15 @@ String getUserAccessPath(String userId) =>
 String _exportPath = 'export'; // root
 String getExportsPath() => _exportPath;
 String getExportPath(String exportId) => url.join(getExportsPath(), exportId);
+
+/// Storage/Firestore path
+const appPathPart = 'app';
+
+/// Storage/Firestore path
+const projectPathPart = 'project';
+
+/// Storage/Firestore path
+const exportPathPart = 'export';
+
+/// Storage/Firestore path
+const compatExportPathPart = 'data';

@@ -10,21 +10,26 @@ late FirebaseContext globalAdminAppFirebaseContext;
 /// To keep?
 FirebaseContext get globalFirebaseContext => globalAdminAppFirebaseContext;
 
-late FestenaoFirebaseContext globalFestenaoFirebaseContext;
+late FestenaoAppFirebaseContext globalFestenaoAppFirebaseContext;
 
 /// Festenao Firebase context
-class FestenaoFirebaseContext {
+class FestenaoAppFirebaseContext {
+  /// App path
   final String storageRootPath;
+
+  /// App path
   final String firestoreRootPath;
 
-  FestenaoFirebaseContext(
+  FestenaoAppFirebaseContext(
       {required this.storageRootPath, required this.firestoreRootPath});
 }
 
+// TODO fix path
 String getImageDirPath(String imageName) =>
     url.join(storageImageDirPart, imageName);
 
-extension FestenaoFirebaseContextExt on FestenaoFirebaseContext {
+// TODO fix path
+extension FestenaoFirebaseContextExt on FestenaoAppFirebaseContext {
   String getImageDirStoragePath(String imageName) =>
       url.join(storageRootPath, storageImageDirPart, imageName);
 

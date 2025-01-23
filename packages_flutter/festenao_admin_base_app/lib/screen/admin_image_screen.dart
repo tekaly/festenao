@@ -130,7 +130,7 @@ class _AdminImageScreenState extends State<AdminImageScreen>
                       child: Image.network(getUnauthenticatedStorageApi(
                               projectId: globalFirebaseContext.projectId)
                           .getMediaUrl(url.join(
-                              globalFestenaoFirebaseContext.storageRootPath,
+                              globalFestenaoAppFirebaseContext.storageRootPath,
                               'image',
                               image.name.v!))),
                     ),

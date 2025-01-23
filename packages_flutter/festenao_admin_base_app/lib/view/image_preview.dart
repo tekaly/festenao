@@ -7,7 +7,7 @@ import 'package:path/path.dart';
 
 /// Image path in storage
 String getImageStoragePath(String imageName) {
-  return globalFestenaoFirebaseContext.getImageDirStoragePath(imageName);
+  return globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
 }
 
 String getImageUrl(String imageName) {

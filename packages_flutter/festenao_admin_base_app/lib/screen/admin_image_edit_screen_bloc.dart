@@ -95,7 +95,7 @@ class AdminImageEditScreenBloc extends BaseBloc {
         ..copyright.v = dbImage.copyright.v;
 
       var path =
-          globalFestenaoFirebaseContext.getImageDirStoragePath(imageName);
+          globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
       // devPrint('sending to $path ${imageData.length}');
       await globalFirebaseContext.storage
           .bucket()
@@ -107,7 +107,7 @@ class AdminImageEditScreenBloc extends BaseBloc {
         // Read it from network
         var imageName = dbImage.name.v!;
         var path =
-            globalFestenaoFirebaseContext.getImageDirStoragePath(imageName);
+            globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
         var bytes = await globalFirebaseContext.storage
             .bucket()
             .file(path)

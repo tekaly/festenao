@@ -1,6 +1,7 @@
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
+import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:tekartik_app_cv_sembast/app_cv_sembast.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
@@ -108,7 +109,7 @@ final dbProjectUserStore =
     cvStringStoreFactory.store<DbProjectUser>('ProjectUser');
 @Deprecated('Do not use')
 CvCollectionReference<FsProject> fsAppProjectCollection(String app) =>
-    fsAppRoot(app).collection<FsProject>('project');
+    fsAppRoot(app).collection<FsProject>(projectPathPart);
 @Deprecated('Do not use')
 CvDocumentReference<CvFirestoreDocument> fsAppBookletDataSyncedDocument(
         String app, String bookletId) =>

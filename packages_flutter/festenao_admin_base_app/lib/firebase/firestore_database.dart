@@ -1,3 +1,4 @@
+import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// Initialize notelio firestore builders
@@ -24,7 +25,7 @@ class FsUserPrv extends TkCmsFsEntity {
 /// Project collection info
 final projectCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsProject>(
-        id: 'project',
+        id: projectPathPart,
         name: 'Project',
         treeDef: TkCmsCollectionsTreeDef(map: {
           'data': {'data': null, 'meta': null}

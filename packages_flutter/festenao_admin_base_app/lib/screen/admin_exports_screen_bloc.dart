@@ -33,13 +33,15 @@ class AdminExportsScreenBloc extends BaseBloc {
       FestenaoExportMeta? metaProd;
 
       var metaDevSnapshot = await firestore
-          .doc(globalFestenaoFirebaseContext.getMetaExportFirestorePath(true))
+          .doc(
+              globalFestenaoAppFirebaseContext.getMetaExportFirestorePath(true))
           .get();
       if (metaDevSnapshot.exists) {
         metaDev = metaDevSnapshot.data.cv<FestenaoExportMeta>();
       }
       var metaProdSnapshot = await firestore
-          .doc(globalFestenaoFirebaseContext.getMetaExportFirestorePath(false))
+          .doc(globalFestenaoAppFirebaseContext
+              .getMetaExportFirestorePath(false))
           .get();
       if (metaProdSnapshot.exists) {
         metaProd = metaProdSnapshot.data.cv<FestenaoExportMeta>();
@@ -49,7 +51,7 @@ class AdminExportsScreenBloc extends BaseBloc {
     }
 
     var query = firestore.collection(url.join(
-        globalFestenaoFirebaseContext.firestoreRootPath, getExportsPath()));
+        globalFestenaoAppFirebaseContext.firestoreRootPath, getExportsPath()));
     if (firestore.service.supportsTrackChanges) {
       _artistSubscription ??= query.onSnapshotSupport().listen((event) async {
         await add(event.docs.cv<FsExport>());

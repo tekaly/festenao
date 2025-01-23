@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/info_tile.dart';
@@ -52,7 +53,7 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
           }
           return AdminScreenLayout(
             appBar: AppBar(
-              title: const Text('Export'),
+              title: const Text('Export v2'),
             ),
             body: Stack(
               children: [
@@ -191,11 +192,12 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
 }
 
 Future<void> goToAdminExportEditScreen(BuildContext context,
-    {required String projectId, required String? exportId}) async {
+    {required FestenaoAdminAppProjectContext projectContext,
+    required String? exportId}) async {
   await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () =>
-            AdminExportEditScreenBloc(projectId: projectId, exportId: exportId),
+        blocBuilder: () => AdminExportEditScreenBloc(
+            projectContext: projectContext, exportId: exportId),
         child: const AdminExportEditScreen());
   }));
 }

@@ -46,7 +46,7 @@ dependencies:
   festenao_audio_player:
     git:
       url: https://github.com/tekaly/festenao
-      path: packages/festenao_audio_player
+      path: packages_flutter/festenao_audio_player
       ref: dart3a
   sembast: ">=3.7.4+3"
   # The following adds the Cupertino Icons font to your application.

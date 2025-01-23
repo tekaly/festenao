@@ -41,7 +41,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle> {
         ..blurHash.v = blurHash;
 
       var path =
-          globalFestenaoFirebaseContext.getImageDirStoragePath(imageName);
+          globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
       await globalFirebaseContext.storage
           .bucket()
           .file(path)
@@ -65,7 +65,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle> {
         ..blurHash.v = blurHash;
 
       var path = url.join(
-          globalFestenaoFirebaseContext.storageRootPath, 'image', imageName);
+          globalFestenaoAppFirebaseContext.storageRootPath, 'image', imageName);
       await globalFirebaseContext.storage
           .bucket()
           .file(path)

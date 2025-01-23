@@ -1,9 +1,11 @@
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_firestore.dart' as fs;
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/data/festenao_storage.dart';
 import 'package:festenao_common/data/src/import.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
 import 'package:tekaly_sembast_synced/synced_db_internals.dart';
@@ -32,28 +34,41 @@ class AdminExportEditData {
 }
 
 class AdminExportEditScreenBloc extends BaseBloc {
-  final String projectId;
+  final FestenaoAdminAppProjectContext projectContext;
+
+  ByProjectIdAdminAppProjectContext get byIdProjectContext =>
+      (projectContext as ByProjectIdAdminAppProjectContext);
+
+  String get projectId => byIdProjectContext.projectId;
   final String? exportId;
   final _state = BehaviorSubject<AdminExportEditScreenBlocState>();
-  late var firestore = globalFirebaseContext.firestore;
+  Firestore get firestore => projectContext.firestore;
   late var storage = globalFirebaseContext.storage;
-  late var firestoreRootPath = globalFestenaoFirebaseContext.firestoreRootPath;
+  late var firestoreRootPath =
+      globalFestenaoAppFirebaseContext.firestoreRootPath;
   late var exportFirestoreRootPath =
       url.join(firestoreRootPath, projectId, getExportsPath());
   late var exportStorageRootPath = url.join(
-      globalFestenaoFirebaseContext.storageRootPath,
+      globalFestenaoAppFirebaseContext.storageRootPath,
       projectId,
       getExportsPath());
   late ContentDb festenaoDb;
 
   ValueStream<AdminExportEditScreenBlocState> get state => _state;
 
-  AdminExportEditScreenBloc({required this.projectId, required this.exportId}) {
+  AdminExportEditScreenBloc(
+      {required this.projectContext, required this.exportId}) {
+    var projectContext = this.projectContext;
     () async {
       try {
-        festenaoDb = await globalContentBloc.grabContentDb(projectId);
-
-        var metaInfo = (await festenaoDb.syncedDb.getSyncMetaInfo())!;
+        DbSyncMetaInfo metaInfo;
+        if (projectContext is SingleFestenaoAdminAppProjectContext) {
+          var festenaoDb = projectContext.syncedDb;
+          metaInfo = (await festenaoDb.getSyncMetaInfo())!;
+        } else {
+          festenaoDb = await globalContentBloc.grabContentDb(projectId);
+          metaInfo = (await festenaoDb.syncedDb.getSyncMetaInfo())!;
+        }
         if (exportId == null) {
           // Creation
 
@@ -75,7 +90,11 @@ class AdminExportEditScreenBloc extends BaseBloc {
           _state.add(AdminExportEditScreenBlocState(
               fsExport: export, metaInfo: metaInfo));
         }
-      } catch (e) {
+      } catch (e, st) {
+        if (kDebugMode) {
+          print(e);
+          print(st);
+        }
         _state.addError(e);
         return;
       }
