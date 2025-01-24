@@ -76,11 +76,12 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
                       Form(
                         key: formKey,
                         child: Column(children: [
-                          if (canSave && exportId != null)
-                            const ListTile(
-                              title: Text('Not found'),
-                            )
-                          else ...[
+                          if (canSave && exportId != null) ...[
+                            if (!export.exists)
+                              const ListTile(
+                                title: Text('Not found'),
+                              )
+                          ] else ...[
                             ListTile(
                               title: Text(exportId ?? 'New export'),
                             ),

@@ -17,8 +17,14 @@ const appPathPart = 'app';
 /// Storage/Firestore path
 const projectPathPart = 'project';
 
-/// Storage/Firestore path
-const exportPathPart = 'export';
+/// Firestore path
+const firestoreExportPathPart = 'export';
+
+/// Firestore path
+const firestoreExportMetaPathPart = 'info';
+
+/// Storage data/export path
+const storageDataPathPart = 'data';
 
 /// Storage/Firestore path
-const compatExportPathPart = 'data';
+// const compatExportPathPart = 'data';

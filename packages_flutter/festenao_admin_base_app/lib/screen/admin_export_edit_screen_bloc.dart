@@ -3,13 +3,12 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_firestore.dart' as fs;
 import 'package:festenao_common/data/festenao_firestore.dart';
-import 'package:festenao_common/data/festenao_storage.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
 import 'package:tekaly_sembast_synced/synced_db_internals.dart';
-import 'package:tekartik_common_utils/byte_utils.dart';
+import 'package:tekaly_sembast_synced/synced_db_storage.dart';
 import 'package:tkcms_admin_app/sembast/content_db_bloc.dart';
 import 'package:tkcms_common/tkcms_content.dart';
 
@@ -42,16 +41,22 @@ class AdminExportEditScreenBloc extends BaseBloc {
   String get projectId => byIdProjectContext.projectId;
   final String? exportId;
   final _state = BehaviorSubject<AdminExportEditScreenBlocState>();
+
   Firestore get firestore => projectContext.firestore;
   late var storage = globalFirebaseContext.storage;
-  late var firestoreRootPath =
-      globalFestenaoAppFirebaseContext.firestoreRootPath;
-  late var exportFirestoreRootPath =
-      url.join(firestoreRootPath, projectId, getExportsPath());
-  late var exportStorageRootPath = url.join(
-      globalFestenaoAppFirebaseContext.storageRootPath,
-      projectId,
-      getExportsPath());
+
+  String get firestoreExportCollectionPath =>
+      join(_firestoreRootPath, firestoreExportPathPart);
+
+  String get firestoreMetaCollectionPath =>
+      join(_firestoreRootPath, firestoreExportMetaPathPart);
+
+  String get _firestoreRootPath => projectContext.firestorePath;
+
+  //late var exportFirestoreRootPath = projectContext.firestorePath;
+
+  String get exportStorageDirPath =>
+      join(projectContext.storagePath, storageDataPathPart);
   late ContentDb festenaoDb;
 
   ValueStream<AdminExportEditScreenBlocState> get state => _state;
@@ -62,6 +67,11 @@ class AdminExportEditScreenBloc extends BaseBloc {
     () async {
       try {
         DbSyncMetaInfo metaInfo;
+        if (kDebugMode) {
+          print(
+              'firestoreExportCollectionPath: $firestoreExportCollectionPath');
+          print('storageRootPath: $exportStorageDirPath');
+        }
         if (projectContext is SingleFestenaoAdminAppProjectContext) {
           var festenaoDb = projectContext.syncedDb;
           metaInfo = (await festenaoDb.getSyncMetaInfo())!;
@@ -75,7 +85,7 @@ class AdminExportEditScreenBloc extends BaseBloc {
           var changeId = metaInfo.lastChangeId.v!;
           // Find existing export
           var fsExport = (await firestore
-                  .collection(exportFirestoreRootPath)
+                  .collection(firestoreExportCollectionPath)
                   .where(fsExportModel.changeId.name, isEqualTo: changeId)
                   .cvGet<FsExport>())
               .firstOrNull;
@@ -85,8 +95,8 @@ class AdminExportEditScreenBloc extends BaseBloc {
           _state.add(AdminExportEditScreenBlocState(
               fsExport: fsExport, metaInfo: metaInfo));
         } else {
-          var export = await firestore
-              .cvGet<FsExport>(url.join(exportFirestoreRootPath, exportId));
+          var export = await firestore.cvGet<FsExport>(
+              url.join(firestoreExportCollectionPath, exportId));
           _state.add(AdminExportEditScreenBlocState(
               fsExport: export, metaInfo: metaInfo));
         }
@@ -102,20 +112,35 @@ class AdminExportEditScreenBloc extends BaseBloc {
   }
 
   Future<void> save(AdminExportEditData data) async {
+    var projectContext = this.projectContext;
     var fsExport = data.fsExport;
     var exportId = fsExport.idOrNull;
     var changeId = fsExport.changeId.v!;
 
     var export = data.export;
-    exportId ??= (await firestore.cvAdd(exportFirestoreRootPath, fsExport)).id;
+    exportId ??=
+        (await firestore.cvAdd(firestoreExportCollectionPath, fsExport)).id;
 
-    var exportInfo = await festenaoDb.syncedDb.exportInMemory();
+    if (kDebugMode) {
+      print('firestoreExportCollectionPath: $firestoreExportCollectionPath');
+      print('storageRootPath: $exportStorageDirPath');
+    }
+
+    SyncedDb syncedDb;
+    if (projectContext is SingleFestenaoAdminAppProjectContext) {
+      syncedDb = projectContext.syncedDb;
+    } else {
+      festenaoDb = await globalContentBloc.grabContentDb(projectId);
+      syncedDb = festenaoDb.syncedDb;
+    }
+    // var exportInfo = await syncedDb.exportInMemory();
     if (export) {
-      var path = url.join(exportStorageRootPath,
-          getStoragePublishDataFileBasename(fsExport.changeId.v!));
-      var bytes = asUint8List(utf8.encode(jsonEncode(exportInfo.data)));
-      fsExport.size.v = bytes.length;
-      await storage.bucket().file(path).writeAsBytes(bytes);
+      fsExport.size.v = (await syncedDb.exportDatabaseToStorage(
+              exportContext: SyncedDbStorageExportContext(
+                  storage: projectContext.storage,
+                  rootPath: exportStorageDirPath),
+              noMeta: true))
+          .exportSize;
     }
     var meta = FestenaoExportMeta()
       ..lastChangeId.fromCvField(fsExport.changeId)
@@ -126,27 +151,24 @@ class AdminExportEditScreenBloc extends BaseBloc {
       await firestore.doc(path).set(meta.toMap());
     }
 
-    Future<void> writeMeta(String path) async {
-      var bytes = asUint8List(utf8.encode(jsonEncode(meta.toMap())));
-      await storage.bucket().file(path).writeAsBytes(bytes);
-    }
-
-    var firestoreInfoPath = url.join(firestoreRootPath, getInfosPath());
+    var firestoreInfoPath = firestoreMetaCollectionPath;
     if (data.publishDev) {
-      var path = url.join(
-          exportStorageRootPath, getStoragePublishMetaFileBasename(true));
-
       await writeFirestoreMeta(url.join(
           firestoreInfoPath, getFirestorePublishMetaDocumentName(true)));
-      await writeMeta(path);
+      await syncedDb.exportDatabaseToStorage(
+          exportContext: SyncedDbStorageExportContext(
+              storage: projectContext.storage,
+              rootPath: exportStorageDirPath,
+              metaBasenameSuffix: '_dev'),
+          metaOnly: true);
     }
     if (data.publish) {
-      var path = url.join(
-          exportStorageRootPath, getStoragePublishMetaFileBasename(false));
-
       await writeFirestoreMeta(url.join(
           firestoreInfoPath, getFirestorePublishMetaDocumentName(false)));
-      await writeMeta(path);
+      await syncedDb.exportDatabaseToStorage(
+          exportContext: SyncedDbStorageExportContext(
+              storage: projectContext.storage, rootPath: exportStorageDirPath),
+          metaOnly: true);
     }
     var map = fsExport.toMap();
     // Set timestamp
@@ -155,7 +177,7 @@ class AdminExportEditScreenBloc extends BaseBloc {
     // Delete other
     var toDelete = <String?>[];
     var existingExports = await firestore
-        .collection(exportFirestoreRootPath)
+        .collection(firestoreExportCollectionPath)
         .where(fsExportModel.changeId.name, isEqualTo: changeId)
         .cvGet<FsExport>();
     for (var export in existingExports) {
@@ -166,11 +188,11 @@ class AdminExportEditScreenBloc extends BaseBloc {
     await firestore.cvRunTransaction((transaction) {
       for (var id in toDelete) {
         transaction.delete(
-          firestore.doc(url.join(exportFirestoreRootPath, id!)),
+          firestore.doc(url.join(firestoreExportCollectionPath, id!)),
         );
       }
       transaction.set(
-          firestore.doc(url.join(exportFirestoreRootPath, exportId!)),
+          firestore.doc(url.join(firestoreExportCollectionPath, exportId!)),
           map,
           SetOptions(merge: true));
     });
