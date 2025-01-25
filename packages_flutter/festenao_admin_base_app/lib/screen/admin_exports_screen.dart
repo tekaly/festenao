@@ -19,7 +19,7 @@ class _AdminExportsScreenState extends State<AdminExportsScreen> {
     var bloc = BlocProvider.of<AdminExportsScreenBloc>(context);
     return AdminScreenLayout(
       appBar: AppBar(
-        title: const Text('Exports'),
+        title: const Text('Exports V2'),
       ),
       body: ValueStreamBuilder<AdminExportsScreenBlocState>(
         stream: bloc.state,
@@ -38,6 +38,7 @@ class _AdminExportsScreenState extends State<AdminExportsScreen> {
                   title: Text(export.changeId.v?.toString() ?? '?'),
                   subtitle: Text(export.timestamp.v?.toIso8601String() ?? '?'),
                   trailing: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       if (snapshot.data?.metaDev?.lastChangeId.v ==
                               export.changeId.v &&
@@ -53,8 +54,7 @@ class _AdminExportsScreenState extends State<AdminExportsScreen> {
                   ),
                   onTap: () async {
                     await goToAdminExportViewScreen(context,
-                        projectContext: ByProjectIdAdminAppProjectContext(
-                            projectId: bloc.projectId),
+                        projectContext: bloc.projectContext,
                         exportId: export.id);
 
                     await bloc.refresh();
@@ -67,9 +67,7 @@ class _AdminExportsScreenState extends State<AdminExportsScreen> {
         onPressed: () async {
           var bloc = BlocProvider.of<AdminExportsScreenBloc>(context);
           await goToAdminExportEditScreen(context,
-              projectContext:
-                  ByProjectIdAdminAppProjectContext(projectId: bloc.projectId),
-              exportId: null);
+              projectContext: bloc.projectContext, exportId: null);
           await bloc.refresh();
         },
         child: const Icon(Icons.add),
@@ -79,10 +77,11 @@ class _AdminExportsScreenState extends State<AdminExportsScreen> {
 }
 
 Future<void> goToAdminExportsScreen(BuildContext context,
-    {required String projectId}) async {
+    {required FestenaoAdminAppProjectContext projectContext}) async {
   await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () => AdminExportsScreenBloc(projectId: projectId),
+        blocBuilder: () =>
+            AdminExportsScreenBloc(projectContext: projectContext),
         child: const AdminExportsScreen());
   }));
 }

@@ -5,6 +5,8 @@ import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:path/path.dart';
 
+import '../admin_app/admin_app_project_context.dart';
+
 class AdminExportsScreenBlocState {
   final List<FsExport> list;
   FestenaoExportMeta? metaDev;
@@ -20,9 +22,9 @@ class AdminExportsScreenBloc extends BaseBloc {
   ValueStream<AdminExportsScreenBlocState> get state => _state;
   StreamSubscription? _artistSubscription;
 
-  final String projectId;
+  final FestenaoAdminAppProjectContext projectContext;
 
-  AdminExportsScreenBloc({required this.projectId}) {
+  AdminExportsScreenBloc({required this.projectContext}) {
     refresh();
   }
 
