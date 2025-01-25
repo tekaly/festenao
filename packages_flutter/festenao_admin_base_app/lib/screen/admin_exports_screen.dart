@@ -53,7 +53,9 @@ class _AdminExportsScreenState extends State<AdminExportsScreen> {
                   ),
                   onTap: () async {
                     await goToAdminExportViewScreen(context,
-                        projectId: bloc.projectId, exportId: export.id);
+                        projectContext: ByProjectIdAdminAppProjectContext(
+                            projectId: bloc.projectId),
+                        exportId: export.id);
 
                     await bloc.refresh();
                   },

@@ -1,5 +1,4 @@
 import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
-import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_firestore.dart' as fs;
 import 'package:festenao_common/data/festenao_firestore.dart';
@@ -43,7 +42,7 @@ class AdminExportEditScreenBloc extends BaseBloc {
   final _state = BehaviorSubject<AdminExportEditScreenBlocState>();
 
   Firestore get firestore => projectContext.firestore;
-  late var storage = globalFirebaseContext.storage;
+  late var storage = projectContext.storage;
 
   String get firestoreExportCollectionPath =>
       join(_firestoreRootPath, firestoreExportPathPart);

@@ -18,7 +18,7 @@ class AdminExportViewScreenBlocState {
 }
 
 class AdminExportViewScreenBloc extends BaseBloc {
-  final String projectId;
+  final FestenaoAdminAppProjectContext projectContext;
   final String exportId;
   final _state = BehaviorSubject<AdminExportViewScreenBlocState>();
   StreamSubscription? _exportSubscription;
@@ -26,7 +26,8 @@ class AdminExportViewScreenBloc extends BaseBloc {
 
   ValueStream<AdminExportViewScreenBlocState> get state => _state;
 
-  AdminExportViewScreenBloc({required this.exportId, required this.projectId}) {
+  AdminExportViewScreenBloc(
+      {required this.exportId, required this.projectContext}) {
     refresh();
   }
 
@@ -77,7 +78,7 @@ class _AdminExportViewScreenState extends State<AdminExportViewScreen> {
           var canView = state != null;
           return AdminScreenLayout(
             appBar: AppBar(
-              title: const Text('Export'),
+              title: const Text('Export V2'),
             ),
             body: ValueStreamBuilder<AdminExportViewScreenBlocState>(
               stream: bloc.state,
@@ -133,9 +134,7 @@ class _AdminExportViewScreenState extends State<AdminExportViewScreen> {
   Future<void> _onEdit(BuildContext context, String exportId) async {
     var bloc = BlocProvider.of<AdminExportViewScreenBloc>(context);
     await goToAdminExportEditScreen(context,
-        projectContext:
-            ByProjectIdAdminAppProjectContext(projectId: bloc.projectId),
-        exportId: exportId);
+        projectContext: bloc.projectContext, exportId: exportId);
     if (context.mounted) {
       await bloc.refresh();
     }
@@ -143,11 +142,12 @@ class _AdminExportViewScreenState extends State<AdminExportViewScreen> {
 }
 
 Future<void> goToAdminExportViewScreen(BuildContext context,
-    {required String projectId, required String exportId}) async {
+    {required FestenaoAdminAppProjectContext projectContext,
+    required String exportId}) async {
   await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () =>
-            AdminExportViewScreenBloc(projectId: projectId, exportId: exportId),
+        blocBuilder: () => AdminExportViewScreenBloc(
+            projectContext: projectContext, exportId: exportId),
         child: const AdminExportViewScreen());
   }));
 }

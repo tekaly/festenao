@@ -103,7 +103,7 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
                             ),
                           if (export.size.v != null)
                             InfoTile(
-                              label: textTimestamp,
+                              label: textSize,
                               value: export.size.v?.toString() ?? '?',
                             ),
                           if (exportNotifier != null)
