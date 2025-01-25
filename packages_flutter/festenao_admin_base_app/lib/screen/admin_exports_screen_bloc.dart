@@ -29,7 +29,7 @@ class AdminExportsScreenBloc extends BaseBloc {
   }
 
   Future<void> refresh() async {
-    var firestore = globalFirebaseContext.firestore;
+    var firestore = projectContext.firestore;
     Future<void> add(List<FsExport> exports) async {
       FestenaoExportMeta? metaDev;
       FestenaoExportMeta? metaProd;
@@ -52,8 +52,8 @@ class AdminExportsScreenBloc extends BaseBloc {
           metaDev: metaDev, metaProd: metaProd));
     }
 
-    var query = firestore.collection(url.join(
-        globalFestenaoAppFirebaseContext.firestoreRootPath, getExportsPath()));
+    var query = firestore
+        .collection(url.join(projectContext.firestorePath, getExportsPath()));
     if (firestore.service.supportsTrackChanges) {
       _artistSubscription ??= query.onSnapshotSupport().listen((event) async {
         await add(event.docs.cv<FsExport>());

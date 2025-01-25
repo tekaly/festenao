@@ -2,6 +2,7 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:path/path.dart';
+import 'package:tkcms_admin_app/sembast/content_db_bloc.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
 
 /// App project context
@@ -10,6 +11,26 @@ abstract class FestenaoAdminAppProjectContext {
   FirebaseStorage get storage;
   String get firestorePath;
   String get storagePath;
+}
+
+extension FestenaoAdminAppProjectContextExt on FestenaoAdminAppProjectContext {
+  Future<Database> get db async {
+    var syncedDb = await this.syncedDb;
+    var db = await syncedDb.database;
+    return db;
+  }
+
+  Future<SyncedDb> get syncedDb async {
+    var projectContext = this;
+    if (projectContext is SingleFestenaoAdminAppProjectContext) {
+      return projectContext.syncedDb;
+    } else if (projectContext is ByProjectIdAdminAppProjectContext) {
+      return (await globalContentBloc.grabContentDb(projectContext.projectId))
+          .syncedDb;
+    } else {
+      throw UnsupportedError('Unknown projectContext $projectContext');
+    }
+  }
 }
 
 abstract class FestenaoAdminAppProjectContextBase

@@ -7,7 +7,7 @@ class DbMeta extends DbStringRecordBase {
 }
 
 /// Model
-var dbMetaModel = DbInfo();
+var dbMetaModel = DbMeta();
 
 class DbMetaGeneral extends DbMeta {
   late final name = CvField<String>('name');

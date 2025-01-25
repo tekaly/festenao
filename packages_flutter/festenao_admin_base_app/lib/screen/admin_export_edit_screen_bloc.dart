@@ -65,19 +65,15 @@ class AdminExportEditScreenBloc extends BaseBloc {
     var projectContext = this.projectContext;
     () async {
       try {
-        DbSyncMetaInfo metaInfo;
         if (kDebugMode) {
           print(
               'firestoreExportCollectionPath: $firestoreExportCollectionPath');
           print('storageRootPath: $exportStorageDirPath');
         }
-        if (projectContext is SingleFestenaoAdminAppProjectContext) {
-          var festenaoDb = projectContext.syncedDb;
-          metaInfo = (await festenaoDb.getSyncMetaInfo())!;
-        } else {
-          festenaoDb = await globalContentBloc.grabContentDb(projectId);
-          metaInfo = (await festenaoDb.syncedDb.getSyncMetaInfo())!;
-        }
+        var syncedDb = await projectContext.syncedDb;
+
+        var metaInfo = (await syncedDb.getSyncMetaInfo())!;
+
         if (exportId == null) {
           // Creation
 
