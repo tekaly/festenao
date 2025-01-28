@@ -16,7 +16,7 @@ void main() {
     late FestenaoDbSourceSync sync;
     setUp(() async {
       festenaoDb = FestenaoDb.newInMemory();
-      source = newInMemoryFestenaroSource();
+      source = newInMemoryFestenaoSource();
       sync = FestenaoDbSourceSync(db: festenaoDb, source: source);
     });
     test('syncNone', () async {

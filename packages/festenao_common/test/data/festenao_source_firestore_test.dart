@@ -9,11 +9,11 @@ import 'package:test/test.dart';
 
 var firebase = FirebaseLocal();
 
-FestenaoSourceFirestore newInMemoryFestenaroSource() {
+FestenaoSourceFirestore newInMemoryFestenaoSource() {
   fb.Firestore firestore;
   FestenaoSourceFirestore source;
-
-  firestore = newFirestoreServiceMemory().firestore(firebase.app());
+  var app = newFirebaseAppLocal();
+  firestore = newFirestoreServiceMemory().firestore(app);
   source = FestenaoSourceFirestore(firestore: firestore, rootPath: null);
   return source;
 }
@@ -22,7 +22,7 @@ void main() {
   group('festenao_source_firestore_test', () {
     late FestenaoSourceFirestore source;
     setUp(() {
-      source = newInMemoryFestenaroSource();
+      source = newInMemoryFestenaoSource();
     });
     test('putRecord', () async {
       var record = (await source.putSourceRecord(FaoSourceRecord()
