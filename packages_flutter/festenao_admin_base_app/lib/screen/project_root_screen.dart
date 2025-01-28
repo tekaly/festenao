@@ -14,27 +14,27 @@ import 'package:tkcms_user_app/view/body_container.dart';
 import '../sembast/projects_db.dart';
 import '../view/project_leading.dart';
 import 'project_edit_screen.dart';
-import 'project_view_screen_bloc.dart';
+import 'project_root_screen_bloc.dart';
 
-class ProjectViewResult {
+class ProjectRootResult {
   final bool deleted;
 
-  ProjectViewResult({required this.deleted});
+  ProjectRootResult({required this.deleted});
 }
 
-class ProjectViewScreen extends StatefulWidget {
-  const ProjectViewScreen({super.key});
+class ProjectRootScreen extends StatefulWidget {
+  const ProjectRootScreen({super.key});
 
   @override
-  ProjectViewScreenState createState() => ProjectViewScreenState();
+  ProjectRootScreenState createState() => ProjectRootScreenState();
 }
 
-class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
-    with AutoDisposedBusyScreenStateMixin<ProjectViewScreen> {
+class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
+    with AutoDisposedBusyScreenStateMixin<ProjectRootScreen> {
   Future<void> _confirmAndDelete(
       BuildContext context, DbProject project) async {
     var intl = festenaoAdminAppIntl(context);
-    var bloc = BlocProvider.of<ProjectViewScreenBloc>(context);
+    var bloc = BlocProvider.of<ProjectRootScreenBloc>(context);
     var result = await busyAction(() async {
       if (await showDialog<bool>(
               context: context,
@@ -72,7 +72,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
         }
       } else if (result.result == true) {
         if (context.mounted) {
-          Navigator.pop(context, ProjectViewResult(deleted: true));
+          Navigator.pop(context, ProjectRootResult(deleted: true));
         }
       }
     }
@@ -80,7 +80,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
 
   Future<void> _confirmAndLeave(BuildContext context, DbProject project) async {
     var intl = festenaoAdminAppIntl(context);
-    var bloc = BlocProvider.of<ProjectViewScreenBloc>(context);
+    var bloc = BlocProvider.of<ProjectRootScreenBloc>(context);
     var result = await busyAction(() async {
       if (await showDialog<bool>(
               context: context,
@@ -118,7 +118,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
         }
       } else if (result.result == true) {
         if (context.mounted) {
-          Navigator.pop(context, ProjectViewResult(deleted: true));
+          Navigator.pop(context, ProjectRootResult(deleted: true));
         }
       }
     }
@@ -127,7 +127,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
   @override
   Widget build(BuildContext context) {
     var intl = appIntl(context);
-    var bloc = BlocProvider.of<ProjectViewScreenBloc>(context);
+    var bloc = BlocProvider.of<ProjectRootScreenBloc>(context);
 
     return ValueStreamBuilder(
         stream: bloc.state,
@@ -209,6 +209,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                               child: Text(intl.projectShare)),
                                         ],*/
                                         const SizedBox(height: 24),
+                                        /*
                                         ElevatedButton(
                                             onPressed: () {
                                               Navigator.of(context)
@@ -220,7 +221,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                               goToNotesScreen(
                                                   context, project.ref);*/
                                             },
-                                            child: Text(intl.projectViewNotes)),
+                                            child: Text(intl.projectRootNotes)),*/
                                         if (canLeave)
                                           const SizedBox(height: 24),
                                         ElevatedButton(
@@ -265,7 +266,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
   }
 }
 
-Future<void> goToRemoteProjectViewScreen(BuildContext context,
+Future<void> goToRemoteProjectRootScreen(BuildContext context,
     {required String projectUid}) async {
   var cn = ContentNavigator.of(context);
   await cn
@@ -273,16 +274,16 @@ Future<void> goToRemoteProjectViewScreen(BuildContext context,
 }
 
 /*
-Future<void> goToLocalProjectViewScreen(BuildContext context,
+Future<void> goToLocalProjectRootScreen(BuildContext context,
     {required String projectId}) async {
   var cn = ContentNavigator.of(context);
   await cn.pushPath<void>(LocalProjectContentPath()..project.value = projectId);
 }
 */
-Future<void> goToProjectViewScreen(BuildContext context,
+Future<void> goToProjectRootScreen(BuildContext context,
     {required ProjectRef projectRef}) async {
   var syncedId = await projectRef.getProjectId();
   if (syncedId != null && context.mounted) {
-    await goToRemoteProjectViewScreen(context, projectUid: syncedId);
+    await goToRemoteProjectRootScreen(context, projectUid: syncedId);
   }
 }

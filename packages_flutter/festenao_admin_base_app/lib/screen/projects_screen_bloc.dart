@@ -36,9 +36,10 @@ class ProjectsScreenBloc
   bool _gotFirstUser = false;
   late final _lock = Lock(); // globalProjectsBloc.syncLock;
   final _fsLock = Lock();
+  final bool selectMode;
 
   /// Projects screen bloc
-  ProjectsScreenBloc() {
+  ProjectsScreenBloc({this.selectMode = false}) {
     audiAddStreamSubscription(
         globalAdminAppFirebaseContext.auth.onCurrentUser.listen((user) {
       _lock.synchronized(() async {

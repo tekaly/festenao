@@ -1,11 +1,13 @@
 import 'package:festenao_admin_base_app/screen/project_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/view/project_leading.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
+import 'package:tkcms_admin_app/view/trailing_arrow.dart';
 
 import 'projects_screen_bloc.dart';
 
@@ -79,7 +81,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     return BodyContainer(
                       child: ListTile(
                         leading: ProjectLeading(project: project),
-                        trailing: Row(
+                        trailing: const TrailingArrow(),
+                        /*Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
@@ -95,9 +98,16 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                                 },
                                 icon: Icon(Icons.edit))*/
                           ],
-                        ),
+                        ),*/
                         title: Text(project.name.v ?? project.uid.v ?? ''),
                         onTap: () async {
+                          if (bloc.selectMode) {
+                            Navigator.of(context).pop(
+                                SelectProjectResult(projectRef: project.ref));
+                          } else {
+                            await goToProjectViewScreen(context,
+                                projectRef: project.ref);
+                          }
                           //  await goToNotesScreen(context, Project.ref);
                         },
                       ),
@@ -123,4 +133,27 @@ Future<Object?> goToProjectsScreen(
       builder: (_) => BlocProvider(
           blocBuilder: () => ProjectsScreenBloc(),
           child: const ProjectsScreen())));
+}
+
+class SelectProjectResult {
+  final ProjectRef projectRef;
+
+  SelectProjectResult({required this.projectRef});
+
+  @override
+  String toString() => 'SelectProjectResult{projectRef: $projectRef}';
+}
+
+/// Go to Projects screen
+Future<SelectProjectResult?> selectProject(
+  BuildContext context,
+) async {
+  var result = await Navigator.of(context).push<Object?>(MaterialPageRoute(
+      builder: (_) => BlocProvider(
+          blocBuilder: () => ProjectsScreenBloc(selectMode: true),
+          child: const ProjectsScreen())));
+  if (result is SelectProjectResult) {
+    return result;
+  }
+  return null;
 }

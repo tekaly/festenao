@@ -32,6 +32,12 @@ class LocalProjectContentPath extends ContentPathBase {
 }
 */
 class SyncedProjectContentPath extends ContentPathBase {
+  final project = ContentPathField('admin_project');
+  @override
+  List<ContentPathField> get fields => [project];
+}
+
+class RootSyncedProjectContentPath extends ContentPathBase {
   final project = ContentPathField('project');
   @override
   List<ContentPathField> get fields => [project];

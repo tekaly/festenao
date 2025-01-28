@@ -1,4 +1,6 @@
 import 'package:festenao_admin_base_app/admin_app/menu.dart';
+import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_root_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
@@ -71,7 +73,7 @@ var projectInvitePageDef = ContentPageDef(
           child: const ProjectInviteViewScreen());
     },
     path: ProjectInviteContentPath());*/
-var syncedProjectPageDef = ContentPageDef(
+var adminViewSyncedProjectPageDef = ContentPageDef(
     screenBuilder: (crps) {
       var cp = SyncedProjectContentPath()..fromPath(crps.path);
       var syncedProjectId = cp.project.value!;
@@ -81,6 +83,17 @@ var syncedProjectPageDef = ContentPageDef(
           child: const ProjectViewScreen());
     },
     path: SyncedProjectContentPath());
+
+var rootSyncedProjectPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = SyncedProjectContentPath()..fromPath(crps.path);
+      var syncedProjectId = cp.project.value!;
+      return BlocProvider(
+          blocBuilder: () => ProjectRootScreenBloc(
+              projectRef: ProjectRef(syncedId: syncedProjectId)),
+          child: const ProjectRootScreen());
+    },
+    path: RootSyncedProjectContentPath());
 /*
 var projectNotesPageDef = ContentPageDef(
     screenBuilder: (crps) {
@@ -140,7 +153,8 @@ final contentNavigatorDef = ContentNavigatorDef(defs: [
   settingsPageDef,
   settingProjectsPageDef,
   projectPageDef,*/
-  syncedProjectPageDef, /*
+  rootSyncedProjectPageDef,
+  adminViewSyncedProjectPageDef, /*
   projectNotesPageDef,
   syncedProjectNotesPageDef,
   projectNoteViewPageDef,

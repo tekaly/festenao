@@ -26,6 +26,11 @@ class ProjectRef {
   /// True if remote
   bool get isRemote => !isLocal;
 
+  @override
+  String toString() => 'ProjectRef(id: $id, syncedId: $syncedId)';
+}
+
+extension DbProjectRefExt on ProjectRef {
   ///
   Future<String?> getProjectId() async {
     if (id != null) {
