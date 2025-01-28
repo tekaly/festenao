@@ -1,14 +1,21 @@
-import 'package:festenao_admin_base_app/admin_app/menu.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
+import 'package:festenao_admin_base_app/l10n/app_localizations.dart';
+import 'package:festenao_admin_base_app/route/navigator_def.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
+import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
+import 'package:tekartik_app_navigator_flutter/route_aware.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
+import 'package:tekartik_firebase_ui_auth/ui_auth.dart';
 import 'package:tkcms_admin_app/auth/auth.dart';
+import 'package:tkcms_admin_app/l10n/app_localizations.dart' as tkcms;
 import 'package:tkcms_admin_app/screen/login_screen.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
+import 'package:tkcms_user_app/theme/theme1.dart';
 
 import 'admin_app/festenao_admin_app.dart';
 import 'firebase/firebase_local.dart';
@@ -43,28 +50,30 @@ class FestenaoAdminApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: festenaoAdminDebugScreen,
+    return ContentNavigator(
+      def: contentNavigatorDef,
+      observers: [routeAwareObserver],
+      child: Builder(builder: (context) {
+        var cn = ContentNavigator.of(context);
+        return MaterialApp.router(
+          debugShowCheckedModeBanner: false,
+          title: 'Festenao admin',
+          theme: themeData1(),
+          //navigatorObservers: [cn.routeObserver],
+          routerDelegate: cn.routerDelegate,
+          routeInformationParser: cn.routeInformationParser,
+          supportedLocales: AppLocalizations.supportedLocales,
+          //locale: Locale(getCurrentLocale()),
+          localizationsDelegates: const [
+            FirebaseUiAuthServiceBasicLocalizations.delegate,
+            AppLocalizations.delegate,
+            tkcms.AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+        );
+      }),
     );
   }
 }

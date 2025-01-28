@@ -1,8 +1,8 @@
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
-/// Initialize notelio firestore builders
-void initNotelioFsBuilders() {
+/// Initialize festenao firestore builders
+void initFestenaoFsBuilders() {
   cvAddConstructors([
     FsProject.new,
   ]);
@@ -56,7 +56,7 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
 
   // ignore: unused_element
   void _init() {
-    initNotelioFsBuilders();
+    initFestenaoFsBuilders();
     projectDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
         entityCollectionInfo: projectCollectionInfo,
         firestore: firestore,
@@ -75,6 +75,6 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
 /// Global entity database
 late FestenaoFirestoreDatabase globalEntityDatabase;
 
-/// Global notelio firestore database
-FestenaoFirestoreDatabase get globalNotelioFirestoreDatabase =>
+/// Global festenao firestore database
+FestenaoFirestoreDatabase get globalFestenaoFirestoreDatabase =>
     globalEntityDatabase;

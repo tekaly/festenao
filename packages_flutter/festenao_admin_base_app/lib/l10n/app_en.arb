@@ -1,0 +1,298 @@
+{
+  "acceptButtonLabel": "Accept",
+  "@acceptButtonLabel": {
+    "description": "Accept button label"
+  },
+  "appVersion": "Version",
+  "@appVersion": {
+    "description": "App version"
+  },
+  "projectAccessAdmin": "Admin access",
+  "@projectAccessAdmin": {
+    "description": "Project access admin"
+  },
+  "projectAccessRead": "Reader access",
+  "@projectAccessRead": {
+    "description": "Project access read"
+  },
+  "@projectAccessReadWrite": {
+    "description": "Project access read/write"
+  },
+  "projectAccessWrite": "Editor access",
+  "projectDefaultName": "Project",
+  "@projectDefaultName": {
+    "description": "Project default name"
+  },
+  "projectDelete": "Delete Project",
+  "@projectDelete": {
+    "description": "Delete project"
+  },
+  "projectDeleteConfirm": "Are you sure you want to delete this project?\nAll notes in this project will be deleted",
+  "@projectDeleteConfirm": {
+    "description": "Delete project confirmation message"
+  },
+  "projectEditTitle": "Edit Project",
+  "@projectEditTitle": {
+    "description": "Edit Project title"
+  },
+  "projectInviteAccept": "Accept project invite",
+  "@projectInviteAccept": {
+    "description": "Accept project"
+  },
+  "projectInviteAcceptConfirm": "Are you sure you want to accept this project invite?",
+  "@projectInviteAcceptConfirm": {
+    "description": "Accept project invite confirmation message"
+  },
+  "projectInviteDelete": "Delete Project invite",
+  "@projectInviteDelete": {
+    "description": "Delete project invite"
+  },
+  "projectInviteDeleteConfirm": "Are you sure you want to delete this project invite?",
+  "@projectInviteDeleteConfirm": {
+    "description": "Delete project invite confirmation message"
+  },
+  "projectInviteLink": "Project invite link",
+  "@projectInviteLink": {
+    "description": "Project invite link"
+  },
+  "projectInviteLinkInformation": "Send this link to invite someone to this project",
+  "@projectInviteLinkInformation": {
+    "description": "Project invite link information"
+  },
+  "projectInviteMessage": "You have a project invite",
+  "@projectInviteMessage": {
+    "description": "Project invite message"
+  },
+  "projectInviteMustBeLoggedIn": "You must be logged in to accept a project invite",
+  "@projectInviteMustBeLoggedIn": {
+    "description": "Project invite not logged in message"
+  },
+  "projectInviteNotFound": "Project invite not found",
+  "@projectInviteNotFound": {
+    "description": "Project invite not found"
+  },
+  "projectInviteTitle": "Accept project invite",
+  "@projectInviteTitle": {
+    "description": "Project invite title"
+  },
+  "projectInviteView": "View invite",
+  "@projectInviteView": {
+    "description": "View invite"
+  },
+  "projectLeave": "Leave Project",
+  "@projectLeave": {
+    "description": "Leave project"
+  },
+  "projectLeaveConfirm": "Are you sure you want to leave this project?\nYou won't be able to access any notes contained in this project",
+  "@projectLeaveConfirm": {
+    "description": "Leave project confirmation message"
+  },
+  "projectNotFound": "Project not found",
+  "@projectNotFound": {
+    "description": "Project not found"
+  },
+  "projectShare": "Share project",
+  "@projectShare": {
+    "description": "Share project"
+  },
+  "projectShareInformation": "Click on the Share button below to invite someone to this project",
+  "@projectShareInformation": {
+    "description": "Project share information"
+  },
+  "projectTypeLocal": "Local",
+  "@projectTypeLocal": {
+    "description": "Local project type"
+  },
+  "projectTypeSynced": "Synced",
+  "@projectTypeSynced": {
+    "description": "Synced project type"
+  },
+  "projectViewNotes": "View notes",
+  "@projectViewNotes": {
+    "description": "View notes"
+  },
+  "projectsTitle": "Projects",
+  "@projectsTitle": {
+    "description": "Projects title"
+  },
+  "cancelButtonLabel": "Cancel",
+  "@cancelButtonLabel": {
+    "description": "Cancel button label"
+  },
+  "contentMarkdownInfo": "Content in markdown format",
+  "@contentMarkdownInfo": {
+    "description": "Content markdown info message"
+  },
+  "createProjectInfo": "Create a project to start storing your notes, local projects are stored on your device, synced projects are stored in the cloud",
+  "@createProjectInfo": {
+    "description": "Create project info message"
+  },
+  "createProjectTitle": "Create Project",
+  "@createProjectTitle": {
+    "description": "Create project title"
+  },
+  "deleteButtonLabel": "Delete",
+  "@deleteButtonLabel": {
+    "description": "Delete button label"
+  },
+  "editDiscardChanges": "Discard",
+  "@editDiscardChanges": {
+    "description": "Edit discard changes"
+  },
+  "editSaveChanges": "Save",
+  "@editSaveChanges": {
+    "description": "Edit save changes"
+  },
+  "editUnsavedChangesTitle": "Unsaved changes",
+  "@editUnsavedChangesTitle": {
+    "description": "Unsaved changes title"
+  },
+  "editYouHaveUnsavedChanges": "You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition, saving or discarding your changes",
+  "@editYouHaveUnsavedChanges": {
+    "description": "Edit unsaved changes"
+  },
+  "genericCopied": "Copied to clipboard",
+  "@genericCopied": {
+    "description": "Copied to clipboard"
+  },
+  "leaveButtonLabel": "Leave",
+  "@leaveButtonLabel": {
+    "description": "Delete button label"
+  },
+  "localProjectTitle": "Local Project",
+  "@localProjectTitle": {
+    "description": "Local project title"
+  },
+  "manageProjectTitle": "Manage Project",
+  "@manageProjectTitle": {
+    "description": "Manage project title"
+  },
+  "manageProjectsTitle": "Manage Projects",
+  "@manageProjectsTitle": {
+    "description": "Manage projects title"
+  },
+  "markdownGuideAsset": "markdown_guide_en.md",
+  "@markdownGuideAsset": {
+    "description": "Markdown guide asset"
+  },
+  "markdownGuideTitle": "Markdown Guide",
+  "@markdownGuideTitle": {
+    "description": "Markdown guide title"
+  },
+  "nameRequired": "Name is required",
+  "@nameRequired": {
+    "description": "Name required error message"
+  },
+  "notSignedInInfo": "You are not signed in",
+  "@notSignedInInfo": {
+    "description": "Info message when user is not signed in"
+  },
+  "noteContentHint": "Note content",
+  "@noteContentHint": {
+    "description": "Note content hint"
+  },
+  "noteContentLabel": "Content",
+  "@noteContentLabel": {
+    "description": "Note content label"
+  },
+  "noteCreateTitle": "Create Note",
+  "@noteCreateTitle": {
+    "description": "Create note title"
+  },
+  "noteDelete": "Delete Note",
+  "@noteDelete": {
+    "description": "Delete note"
+  },
+  "noteDeleteConfirm": "Are you sure you want to delete this note?",
+  "@noteDeleteConfirm": {
+    "description": "Delete note confirmation message"
+  },
+  "noteDescriptionHint": "Note description",
+  "@noteDescriptionHint": {
+    "description": "Note description hint"
+  },
+  "noteDescriptionLabel": "Description",
+  "@noteDescriptionLabel": {
+    "description": "Note description label"
+  },
+  "noteEditTitle": "Edit Note",
+  "@noteEditTitle": {
+    "description": "Edit note title"
+  },
+  "noteTitleHint": "Note title",
+  "@noteTitleHint": {
+    "description": "Note title hint"
+  },
+  "noteTitleLabel": "Title",
+  "@noteTitleLabel": {
+    "description": "Note title label"
+  },
+  "festenaoTitle": "Festenao",
+  "@festenaoTitle": {
+    "description": "App title"
+  },
+  "notesOthers": "Other notes",
+  "@notesOthers": {
+    "description": "Other notes"
+  },
+  "notesPinned": "Pinned notes",
+  "@notesPinned": {
+    "description": "Pinned notes"
+  },
+  "notesTitle": "Notes",
+  "@notesTitle": {
+    "description": "Notes title"
+  },
+  "operationFailed": "Operation failed\nPlease try again",
+  "@operationFailed": {
+    "description": "Operation failed"
+  },
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Privacy policy"
+  },
+  "settingCurrentProject": "Current project '{project}'",
+  "@settingCurrentProject": {
+    "description": "Current project setting",
+    "placeholders": {
+      "project": {
+        "type": "String",
+        "example": "My project"
+      }
+    }
+  },
+  "settingManageProject": "Manage Project",
+  "@settingManageProject": {
+    "description": "Manage current project"
+  },
+  "settingSwitchProject": "Switch Project",
+  "@settingSwitchProject": {
+    "description": "Switch current project"
+  },
+  "settingsTitle": "Settings",
+  "@settingsTitle": {
+    "description": "Settings title"
+  },
+  "signInButtonLabel": "Sign in",
+  "@signInButtonLabel": {
+    "description": "Sign in button label"
+  },
+  "userNotSignedInInfo": "You are not signed in",
+  "@userNotSignedInInfo": {
+    "description": "User not signed in info message"
+  },
+  "userSignedInInfo": "You are signed in as {user}",
+  "@userSignedInInfo": {
+    "description": "User sign in info message",
+    "placeholders": {
+      "user": {
+        "type": "String",
+        "example": "Alex"
+      }
+    }
+  },
+  "userTitle": "User",
+  "@userTitle": {
+    "description": "User title"
+  }
+}

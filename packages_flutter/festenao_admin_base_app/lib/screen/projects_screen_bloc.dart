@@ -63,7 +63,7 @@ class ProjectsScreenBloc
             }));
 
             /// Build from firestore
-            var fsDb = globalNotelioFirestoreDatabase.projectDb;
+            var fsDb = globalFestenaoFirestoreDatabase.projectDb;
             var projectsDb = globalProjectsDb;
             _firestoreSubscription = audiAddStreamSubscription(fsDb
                 .fsUserEntityAccessCollectionRef(userId)

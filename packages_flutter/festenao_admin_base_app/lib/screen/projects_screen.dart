@@ -1,4 +1,6 @@
-import 'package:festenao_admin_base_app/view/booklet_leading.dart';
+import 'package:festenao_admin_base_app/screen/project_edit_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
+import 'package:festenao_admin_base_app/view/project_leading.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
@@ -83,6 +85,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                             IconButton(
                                 onPressed: () {
                                   //goToNotesScreen(context, Project.ref);
+                                  goToProjectViewScreen(context,
+                                      projectRef: project.ref);
                                 },
                                 icon: const Icon(Icons.arrow_forward_ios)),
                             /*  IconButton(
@@ -102,7 +106,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
             }),
             floatingActionButton: FloatingActionButton(
               onPressed: () async {
-                //await goToCreateProjectScreen(context);
+                await goToProjectEditScreen(context, project: null);
               },
               child: const Icon(Icons.add),
             ),

@@ -111,10 +111,10 @@ final dbProjectUserStore =
 CvCollectionReference<FsProject> fsAppProjectCollection(String app) =>
     fsAppRoot(app).collection<FsProject>(projectPathPart);
 @Deprecated('Do not use')
-CvDocumentReference<CvFirestoreDocument> fsAppBookletDataSyncedDocument(
-        String app, String bookletId) =>
+CvDocumentReference<CvFirestoreDocument> fsAppProjectDataSyncedDocument(
+        String app, String projectId) =>
     fsAppProjectCollection(app)
-        .doc(bookletId)
+        .doc(projectId)
         .collection<CvFirestoreDocument>('data')
         .doc('synced');
 
@@ -139,6 +139,14 @@ class ProjectsDb {
         .onRecord(db)
         .firstWhere((user) => user?.readyTimestamp.value != null);
     yield* getProjectsQuery(userId: userId).onRecords(db);
+  }
+
+  Future<void> addProject(DbProject project) async {
+    await ready;
+    assert(!project.hasId);
+    await db.transaction((txn) async {
+      await dbProjectStore.add(txn, project);
+    });
   }
 
   /// Delete Project
