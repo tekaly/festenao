@@ -10,7 +10,6 @@ extension DbProjectUtils on DbProject {
       required TkCmsFsUserAccess projectAccess,
       required String userId}) {
     name.v = fsProject.name.v;
-    uid.v = fsProject.id;
     this.userId.v = userId;
     userAccessFields.fromCvFields(projectAccess.userAccessFields);
   }
@@ -18,7 +17,6 @@ extension DbProjectUtils on DbProject {
   /// Check if the [DbProject] need to be updated from another [DbProject]
   bool needUpdate(DbProject project) {
     return name.v != project.name.v ||
-        uid.v != project.uid.v ||
         userId.v != project.userId.v ||
         admin.v != project.admin.v ||
         write.v != project.write.v ||

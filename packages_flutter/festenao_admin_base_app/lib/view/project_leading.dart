@@ -11,8 +11,6 @@ class ProjectLeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return project.uid.isNull
-        ? const Icon(Icons.book)
-        : const Icon(Icons.cloud);
+    return const Icon(Icons.cloud);
   }
 }

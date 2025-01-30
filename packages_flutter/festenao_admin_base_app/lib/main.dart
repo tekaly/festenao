@@ -16,6 +16,7 @@ import 'package:tkcms_admin_app/firebase/database_service.dart';
 import 'package:tkcms_admin_app/l10n/app_localizations.dart' as tkcms;
 import 'package:tkcms_admin_app/screen/login_screen.dart';
 import 'package:tkcms_admin_app/screen/project_info.dart';
+import 'package:tkcms_admin_app/sembast/content_db_bloc.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_firestore_v2.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
@@ -47,7 +48,10 @@ Future<void> main() async {
       storageRootPath: 'festenao', firestoreRootPath: 'festenao');
   gDebugUsername = 'admin';
   gDebugPassword = '__admin__'; // irrelevant
+  globalContentBloc =
+      ContentDbBloc(app: globalTkCmsAdminAppFlavorContext.uniqueAppName);
 
+  // TODO remove
   fsProjectSyncedDb = SyncedEntitiesDb<TkCmsFsProject>(
       entityAccess: tkCmsFsProjectAccess,
       options: SyncedEntitiesOptions(

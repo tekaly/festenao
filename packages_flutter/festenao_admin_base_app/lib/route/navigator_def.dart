@@ -8,7 +8,6 @@ import 'package:festenao_admin_base_app/screen/projects_screen_bloc.dart';
 import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
-import '../sembast/projects_db.dart';
 import 'route_paths.dart';
 
 var userRootPageDef = ContentPageDef(
@@ -78,19 +77,17 @@ var adminViewSyncedProjectPageDef = ContentPageDef(
       var cp = SyncedProjectContentPath()..fromPath(crps.path);
       var syncedProjectId = cp.project.value!;
       return BlocProvider(
-          blocBuilder: () => ProjectViewScreenBloc(
-              projectRef: ProjectRef(syncedId: syncedProjectId)),
+          blocBuilder: () => ProjectViewScreenBloc(projectId: syncedProjectId),
           child: const ProjectViewScreen());
     },
     path: SyncedProjectContentPath());
 
 var rootSyncedProjectPageDef = ContentPageDef(
     screenBuilder: (crps) {
-      var cp = SyncedProjectContentPath()..fromPath(crps.path);
+      var cp = RootSyncedProjectContentPath()..fromPath(crps.path);
       var syncedProjectId = cp.project.value!;
       return BlocProvider(
-          blocBuilder: () => ProjectRootScreenBloc(
-              projectRef: ProjectRef(syncedId: syncedProjectId)),
+          blocBuilder: () => ProjectRootScreenBloc(projectId: syncedProjectId),
           child: const ProjectRootScreen());
     },
     path: RootSyncedProjectContentPath());

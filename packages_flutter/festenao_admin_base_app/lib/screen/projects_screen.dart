@@ -1,6 +1,5 @@
 import 'package:festenao_admin_base_app/screen/project_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
-import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/view/project_leading.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
@@ -99,14 +98,14 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                                 icon: Icon(Icons.edit))*/
                           ],
                         ),*/
-                        title: Text(project.name.v ?? project.uid.v ?? ''),
+                        title: Text(project.name.v ?? project.id),
                         onTap: () async {
                           if (bloc.selectMode) {
                             Navigator.of(context).pop(
-                                SelectProjectResult(projectRef: project.ref));
+                                SelectProjectResult(projectId: project.id));
                           } else {
                             await goToProjectViewScreen(context,
-                                projectRef: project.ref);
+                                projectId: project.id);
                           }
                           //  await goToNotesScreen(context, Project.ref);
                         },
@@ -136,12 +135,12 @@ Future<Object?> goToProjectsScreen(
 }
 
 class SelectProjectResult {
-  final ProjectRef projectRef;
+  final String projectId;
 
-  SelectProjectResult({required this.projectRef});
+  SelectProjectResult({required this.projectId});
 
   @override
-  String toString() => 'SelectProjectResult{projectRef: $projectRef}';
+  String toString() => 'SelectProjectResult{projectRef: $projectId}';
 }
 
 /// Go to Projects screen

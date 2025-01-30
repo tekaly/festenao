@@ -1,4 +1,3 @@
-import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
@@ -6,50 +5,6 @@ import 'package:tekartik_app_cv_sembast/app_cv_sembast.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
 export 'package:tekartik_app_cv_sembast/app_cv_sembast.dart';
-
-/// Reference to a Project
-class ProjectRef {
-  /// Local id
-  final String? id;
-
-  /// Synced id
-  final String? syncedId;
-
-  /// Project ref
-  ProjectRef({this.id, this.syncedId}) {
-    assert(id != null || syncedId != null);
-  }
-
-  /// True if local
-  bool get isLocal => syncedId == null;
-
-  /// True if remote
-  bool get isRemote => !isLocal;
-
-  @override
-  String toString() => 'ProjectRef(id: $id, syncedId: $syncedId)';
-}
-
-extension DbProjectRefExt on ProjectRef {
-  ///
-  Future<String?> getProjectId() async {
-    if (id != null) {
-      return id!;
-    }
-    var userId = (await globalFirebaseContext.auth.onCurrentUser.first)?.uid;
-    if (userId != null) {
-      var projectId = (await globalProjectsDb.getProjectBySyncedId(syncedId!,
-              userId: userId))
-          ?.id;
-      if (projectId != null) {
-        return projectId;
-      } else {
-        return null;
-      }
-    }
-    return null;
-  }
-}
 
 /// Key is the user id
 class DbProjectUser extends DbStringRecordBase {
@@ -60,39 +15,28 @@ class DbProjectUser extends DbStringRecordBase {
   CvFields get fields => [readyTimestamp];
 }
 
-/// Project
+/// Project, its id matches the firestore id
 class DbProject extends DbStringRecordBase with TkCmsCvUserAccessMixin {
   /// Name
   final name = CvField<String>('name');
 
   /// Firestore uid for non local
-  final uid = CvField<String>('uid');
+  //final uid = CvField<String>('uid');
 
   /// User id
   final userId = CvField<String>('userId');
 
-  /// True if local
-  bool get isLocal => uid.isNull;
-
-  /// True if remote
-  bool get isRemote => !isLocal;
-
   @override
-  CvFields get fields => [name, uid, userId, ...userAccessMixinfields];
-
-  /// Project ref
-  ProjectRef get ref {
-    return ProjectRef(id: id, syncedId: uid.v);
-  }
+  CvFields get fields => [name, userId, ...userAccessMixinfields];
 
   /// True if the user has write access
-  bool get isWrite => isLocal ? true : TkCmsCvUserAccessCommonExt(this).isWrite;
+  bool get isWrite => TkCmsCvUserAccessCommonExt(this).isWrite;
 
   /// True if the user has admin access
-  bool get isAdmin => isLocal ? true : TkCmsCvUserAccessCommonExt(this).isRead;
+  bool get isAdmin => TkCmsCvUserAccessCommonExt(this).isRead;
 
   /// True if the user has read access
-  bool get isRead => isLocal ? true : TkCmsCvUserAccessCommonExt(this).isRead;
+  bool get isRead => TkCmsCvUserAccessCommonExt(this).isRead;
 }
 
 /// The model
@@ -155,19 +99,17 @@ class ProjectsDb {
   }
 
   /// Delete Project
-  Future<void> deleteProject(ProjectRef projectRef) async {
-    var projectId = await projectRef.getProjectId();
-    if (projectId != null) {
-      await dbProjectStore.record(projectId).delete(db);
-    }
+  Future<void> deleteProject(String projectId) async {
+    await dbProjectStore.record(projectId).delete(db);
   }
 
+  /*
   /// on local Projects
   Stream<List<DbProject>> onLocalProjects() async* {
     await ready;
     yield* getLocalProjectsQuery().onRecords(db);
   }
-
+  */
   /// on Project
   Stream<DbProject?> onProject(String projectId) async* {
     await ready;
@@ -180,10 +122,11 @@ class ProjectsDb {
         finder: Finder(
             filter: Filter.or([
       Filter.equals(dbProjectModel.userId.name, userId),
-      Filter.isNull(dbProjectModel.uid.name),
+      // Filter.isNull(dbProjectModel.uid.name),
     ])));
   }
 
+  /*
   /// Get local Projects
   CvQueryRef<String, DbProject> getLocalProjectsQuery() {
     return dbProjectStore.query(
@@ -209,8 +152,8 @@ class ProjectsDb {
             finder: Finder(
                 filter: Filter.equals(dbProjectModel.userId.name, userId)))
         .getRecords(db);
-  }
-
+  }*/
+/*
   /// Get Project by synced id
   Future<DbProject?> getProjectBySyncedId(String uid,
       {required String userId}) async {
@@ -240,7 +183,7 @@ class ProjectsDb {
   }
 
   /// Get Project by local id
-  Future<DbProject?> getProject(ProjectRef projectRef) async {
+  Future<DbProject?> getProject(String projectId) async {
     await ready;
     if (projectRef.id != null) {
       return getProjectByLocalId(projectRef.id!);
@@ -251,7 +194,7 @@ class ProjectsDb {
       }
     }
     return null;
-  }
+  }*/
 }
 
 /// Global Projects db

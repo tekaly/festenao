@@ -13,11 +13,11 @@ class ProjectRootScreenBlocState {
 
 class ProjectRootScreenBloc
     extends AutoDisposeStateBaseBloc<ProjectRootScreenBlocState> {
-  final ProjectRef projectRef;
+  final String projectId;
 
   String get userId => firebaseUser!.uid;
   FirebaseUser? firebaseUser;
-  ProjectRootScreenBloc({required this.projectRef}) {
+  ProjectRootScreenBloc({required this.projectId}) {
     () async {
       var user = ((await globalAuthBloc.state.first).user);
       if (user == null) {
@@ -25,31 +25,22 @@ class ProjectRootScreenBloc
       } else {
         firebaseUser = user;
 
-        var projectId = projectRef.id ?? await projectRef.getProjectId();
-        if (projectId == null) {
-          add(ProjectRootScreenBlocState(project: null, user: user));
-        } else {
-          audiAddStreamSubscription(
-              globalProjectsDb.onProject(projectId).listen((event) {
-            var project = event;
-            add(ProjectRootScreenBlocState(project: project, user: user));
-          }));
-        }
+        audiAddStreamSubscription(
+            globalProjectsDb.onProject(projectId).listen((event) {
+          var project = event;
+          add(ProjectRootScreenBlocState(project: project, user: user));
+        }));
       }
     }();
   }
 
   Future<void> deleteProject(DbProject project) async {
-    if (project.isLocal) {
-      await dbProjectStore.record(project.id).delete(globalProjectsDb.db);
-    } else {
-      await globalFestenaoFirestoreDatabase.projectDb
-          .deleteEntity(project.uid.v!, userId: userId);
-    }
+    await globalFestenaoFirestoreDatabase.projectDb
+        .deleteEntity(project.id, userId: userId);
   }
 
   Future<void> leaveProject(DbProject project) async {
     await globalFestenaoFirestoreDatabase.projectDb
-        .leaveEntity(project.uid.v!, userId: userId);
+        .leaveEntity(project.id, userId: userId);
   }
 }

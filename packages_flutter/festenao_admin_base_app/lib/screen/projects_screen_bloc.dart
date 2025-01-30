@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/auth/auth_bloc.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
@@ -8,8 +9,6 @@ import 'package:tkcms_common/tkcms_audi.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_common.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
-
-import '../firebase/firebase.dart';
 
 /// Projects screen bloc state
 class ProjectsScreenBlocState {
@@ -33,33 +32,27 @@ class ProjectsScreenBloc
       // ignore: cancel_subscriptions
       _projectDetailsSubscription;
   String? _dbUserId;
-  bool _gotFirstUser = false;
+
   late final _lock = Lock(); // globalProjectsBloc.syncLock;
   final _fsLock = Lock();
   final bool selectMode;
 
   /// Projects screen bloc
   ProjectsScreenBloc({this.selectMode = false}) {
-    audiAddStreamSubscription(
-        globalAdminAppFirebaseContext.auth.onCurrentUser.listen((user) {
-      _lock.synchronized(() async {
-        var userId = user?.uid;
-        if (userId != _dbUserId || !_gotFirstUser) {
-          _gotFirstUser = true;
-          _dbUserId = userId;
-          audiDispose(_dbSubscription);
-          audiDispose(_firestoreSubscription);
-          audiDispose(_projectDetailsSubscription);
+    () async {
+      audiAddStreamSubscription(globalAuthBloc.state.listen((state) {
+        _lock.synchronized(() async {
+          var user = state.user;
 
-          if (userId == null) {
+          var userId = user?.uid;
+          if (userId != null && userId != _dbUserId) {
+            _dbUserId = userId;
+            audiDispose(_dbSubscription);
+            audiDispose(_firestoreSubscription);
+            audiDispose(_projectDetailsSubscription);
+
             _dbSubscription = audiAddStreamSubscription(
-                globalProjectsDb.onLocalProjects().listen((projects) {
-              add(ProjectsScreenBlocState(projects: projects, user: user));
-            }));
-          } else {
-            _dbSubscription = audiAddStreamSubscription(globalProjectsDb
-                .onProjects(userId: _dbUserId!)
-                .listen((projects) {
+                globalProjectsDb.onProjects(userId: userId).listen((projects) {
               add(ProjectsScreenBlocState(projects: projects, user: user));
             }));
 
@@ -100,10 +93,11 @@ class ProjectsScreenBloc
                       .listen((items) {
                 _fsLock.synchronized(() async {
                   // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
-                  var dbProjects = await projectsDb.getExistingSyncedProjects(
-                      userId: userId);
+                  var dbProjects = await projectsDb
+                      .getProjectsQuery(userId: userId)
+                      .getRecords(projectsDb.db);
                   var projectMap = {
-                    for (var project in dbProjects) project.uid.v!: project
+                    for (var project in dbProjects) project.id: project
                   };
                   var toDelete = dbProjects.map((e) => e.id).toSet();
                   var toSet = <DbProject>[];
@@ -170,13 +164,13 @@ class ProjectsScreenBloc
                     'error listing ${fsDb.fsUserEntityAccessCollectionRef(userId).path}');
               }
             }));
+          } else {
+            if (userId == null) {
+              add(ProjectsScreenBlocState(projects: []));
+            }
           }
-        } else {
-          if (!state.hasValue && userId == null) {
-            add(ProjectsScreenBlocState(projects: []));
-          }
-        }
-      });
-    }));
+        });
+      }));
+    }();
   }
 }

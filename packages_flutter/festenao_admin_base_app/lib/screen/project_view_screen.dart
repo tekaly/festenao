@@ -136,7 +136,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
           var project = state?.project;
           var canEdit = project?.isWrite ?? false;
           var canDelete = project?.isAdmin ?? false;
-          var canLeave = project?.isRemote ?? false;
+          var canLeave = project != null;
           var projectName = project?.name.v;
           /*
           var noteDescription = note?.description.v;
@@ -149,9 +149,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
             if (project != null)
               ListTile(
                 leading: ProjectLeading(project: project),
-                title: Text(project.isLocal
-                    ? intl.projectTypeLocal
-                    : intl.projectTypeSynced),
+                title: Text(intl.projectTypeSynced),
                 subtitle: accessText(intl, project),
               ),
           ];
@@ -265,24 +263,9 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
   }
 }
 
-Future<void> goToRemoteProjectViewScreen(BuildContext context,
-    {required String projectUid}) async {
-  var cn = ContentNavigator.of(context);
-  await cn
-      .pushPath<void>(SyncedProjectContentPath()..project.value = projectUid);
-}
-
-/*
-Future<void> goToLocalProjectViewScreen(BuildContext context,
+Future<void> goToProjectViewScreen(BuildContext context,
     {required String projectId}) async {
   var cn = ContentNavigator.of(context);
-  await cn.pushPath<void>(LocalProjectContentPath()..project.value = projectId);
-}
-*/
-Future<void> goToProjectViewScreen(BuildContext context,
-    {required ProjectRef projectRef}) async {
-  var syncedId = await projectRef.getProjectId();
-  if (syncedId != null && context.mounted) {
-    await goToRemoteProjectViewScreen(context, projectUid: syncedId);
-  }
+  await cn
+      .pushPath<void>(SyncedProjectContentPath()..project.value = projectId);
 }
