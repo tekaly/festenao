@@ -98,14 +98,14 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                                 icon: Icon(Icons.edit))*/
                           ],
                         ),*/
-                        title: Text(project.name.v ?? project.id),
+                        title: Text(project.name.v ?? project.fsId),
                         onTap: () async {
                           if (bloc.selectMode) {
                             Navigator.of(context).pop(
-                                SelectProjectResult(projectId: project.id));
+                                SelectProjectResult(projectId: project.fsId));
                           } else {
                             await goToProjectViewScreen(context,
-                                projectId: project.id);
+                                projectId: project.fsId);
                           }
                           //  await goToNotesScreen(context, Project.ref);
                         },

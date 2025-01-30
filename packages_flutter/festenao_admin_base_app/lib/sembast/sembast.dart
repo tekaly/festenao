@@ -1,5 +1,6 @@
 import 'package:sembast/timestamp.dart' show Timestamp;
 import 'package:tekartik_app_flutter_sembast/sembast.dart';
+import 'package:tkcms_admin_app/sembast/sembast.dart';
 import 'package:tkcms_common/tkcms_common.dart';
 
 export 'package:sembast/sembast.dart';
@@ -18,4 +19,6 @@ late final DatabaseFactory globalSembastDatabaseFactory;
 Future<void> initFestenaoLocalSembastFactory() async {
   globalSembastDatabaseFactory =
       getDatabaseFactory(rootPath: join('.dart_tool', 'festenao_local'));
+  globalSembastDatabasesContext =
+      SembastDatabasesContext(factory: globalSembastDatabaseFactory, path: '.');
 }

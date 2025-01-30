@@ -25,8 +25,9 @@ class ProjectRootScreenBloc
       } else {
         firebaseUser = user;
 
-        audiAddStreamSubscription(
-            globalProjectsDb.onProject(projectId).listen((event) {
+        audiAddStreamSubscription(globalProjectsDb
+            .onProject(projectId, userId: user.uid)
+            .listen((event) {
           var project = event;
           add(ProjectRootScreenBlocState(project: project, user: user));
         }));
@@ -36,11 +37,11 @@ class ProjectRootScreenBloc
 
   Future<void> deleteProject(DbProject project) async {
     await globalFestenaoFirestoreDatabase.projectDb
-        .deleteEntity(project.id, userId: userId);
+        .deleteEntity(project.fsId, userId: userId);
   }
 
   Future<void> leaveProject(DbProject project) async {
     await globalFestenaoFirestoreDatabase.projectDb
-        .leaveEntity(project.id, userId: userId);
+        .leaveEntity(project.fsId, userId: userId);
   }
 }

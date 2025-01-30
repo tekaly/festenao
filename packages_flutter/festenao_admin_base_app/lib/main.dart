@@ -2,7 +2,9 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/l10n/app_localizations.dart';
 import 'package:festenao_admin_base_app/route/navigator_def.dart';
+import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
+import 'package:festenao_common/data/src/model/db_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
@@ -16,7 +18,6 @@ import 'package:tkcms_admin_app/firebase/database_service.dart';
 import 'package:tkcms_admin_app/l10n/app_localizations.dart' as tkcms;
 import 'package:tkcms_admin_app/screen/login_screen.dart';
 import 'package:tkcms_admin_app/screen/project_info.dart';
-import 'package:tkcms_admin_app/sembast/content_db_bloc.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_firestore_v2.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
@@ -26,10 +27,12 @@ import 'package:tkcms_user_app/theme/theme1.dart';
 import 'admin_app/festenao_admin_app.dart';
 import 'firebase/firebase_local.dart';
 import 'prefs/local_prefs.dart';
+import 'sembast/projects_db_bloc.dart';
 
 Future<void> main() async {
   var packageName = 'festenao.admin_base_app';
   await initFestenaoLocalSembastFactory();
+
   var prefsFactory = getPrefsFactory(packageName: packageName);
   var prefs = await prefsFactory.openPreferences('${packageName}_prefs.db');
   globalPrefs = prefs;
@@ -48,8 +51,13 @@ Future<void> main() async {
       storageRootPath: 'festenao', firestoreRootPath: 'festenao');
   gDebugUsername = 'admin';
   gDebugPassword = '__admin__'; // irrelevant
-  globalContentBloc =
-      ContentDbBloc(app: globalTkCmsAdminAppFlavorContext.uniqueAppName);
+  globalProjectsDb = ProjectsDb(
+      name:
+          '${globalTkCmsAdminAppFlavorContext.uniqueAppName}_$projectsDbName');
+  await globalProjectsDb.ready;
+  globalProjectsDbBloc = ProjectsDbBloc(
+    app: globalTkCmsAdminAppFlavorContext.uniqueAppName,
+  );
 
   // TODO remove
   fsProjectSyncedDb = SyncedEntitiesDb<TkCmsFsProject>(
@@ -58,6 +66,7 @@ Future<void> main() async {
           sembastDatabaseContext: SembastDatabaseContext(
               factory: globalSembastDatabaseFactory, path: '.')));
 
+  initFestenaoDbBuilders();
   //await initFestenaoFirebaseServicesLocal();
   runApp(const FestenaoAdminApp());
 }

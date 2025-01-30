@@ -63,15 +63,15 @@ class ProjectsScreenBloc
                 .fsUserEntityAccessCollectionRef(userId)
                 .onSnapshots(fsDb.firestore)
                 .listen((list) async {
-              var projectUids = list.map((e) => e.id).toList();
-              var projectAccessMap = <String, TkCmsFsUserAccess>{};
+              var fsProjectUids = list.map((e) => e.id).toList();
+              var fsProjectAccessMap = <String, TkCmsFsUserAccess>{};
               for (var item in list) {
-                projectAccessMap[item.id] = item;
+                fsProjectAccessMap[item.id] = item;
               }
 
               audiDispose(_projectDetailsSubscription);
 
-              if (projectUids.isEmpty) {
+              if (fsProjectUids.isEmpty) {
                 await projectsDb.ready;
                 await projectsDb.db.transaction((txn) async {
                   await dbProjectStore.delete(txn,
@@ -85,7 +85,7 @@ class ProjectsScreenBloc
               }
               // Some error might happen (access) so handle it.
               _projectDetailsSubscription = audiAddStreamSubscription(
-                  streamJoinAllOrError(projectUids
+                  streamJoinAllOrError(fsProjectUids
                           .map((id) => (fsDb.fsEntityCollectionRef
                               .doc(id)
                               .onSnapshot(fsDb.firestore)))
@@ -97,7 +97,8 @@ class ProjectsScreenBloc
                       .getProjectsQuery(userId: userId)
                       .getRecords(projectsDb.db);
                   var projectMap = {
-                    for (var project in dbProjects) project.id: project
+                    for (var project in dbProjects)
+                      if (project.uid.isNotNull) project.fsId: project
                   };
                   var toDelete = dbProjects.map((e) => e.id).toSet();
                   var toSet = <DbProject>[];
@@ -106,7 +107,7 @@ class ProjectsScreenBloc
                       var fsProject = item.value!;
                       var uid = fsProject.id;
                       var existing = projectMap[uid];
-                      var userProjectAccess = projectAccessMap[uid];
+                      var userProjectAccess = fsProjectAccessMap[uid];
                       if (userProjectAccess == null) {
                         // ? this might delete id
                         continue;

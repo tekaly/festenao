@@ -1,8 +1,9 @@
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
+import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:path/path.dart';
-import 'package:tkcms_admin_app/sembast/content_db_bloc.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
 
 /// App project context
@@ -25,7 +26,9 @@ extension FestenaoAdminAppProjectContextExt on FestenaoAdminAppProjectContext {
     if (projectContext is SingleFestenaoAdminAppProjectContext) {
       return projectContext.syncedDb;
     } else if (projectContext is ByProjectIdAdminAppProjectContext) {
-      return (await globalContentBloc.grabContentDb(projectContext.projectId))
+      return (await globalProjectsDbBloc.grabContentDb(
+              userId: projectContext.userId,
+              projectId: projectContext.projectId))
           .syncedDb;
     } else {
       throw UnsupportedError('Unknown projectContext $projectContext');
@@ -68,8 +71,10 @@ class SingleFestenaoAdminAppProjectContext
 class ByProjectIdAdminAppProjectContext
     extends FestenaoAdminAppProjectContextBase {
   final String projectId;
+  final String userId;
 
-  ByProjectIdAdminAppProjectContext({required this.projectId})
+  ByProjectIdAdminAppProjectContext(
+      {required this.projectId, required this.userId})
       : super(
             firestore: globalAdminAppFirebaseContext.firestore,
             storage: globalAdminAppFirebaseContext.storage,

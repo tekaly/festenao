@@ -92,6 +92,7 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                                   goToAdminMetasScreen(context,
                                       projectContext:
                                           ByProjectIdAdminAppProjectContext(
+                                              userId: bloc.userId,
                                               projectId: bloc.projectId));
                                 },
                               ),

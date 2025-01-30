@@ -1,5 +1,6 @@
 import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/data/festenao_firestore.dart' as fs;
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/data/src/import.dart';
@@ -8,7 +9,6 @@ import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
 import 'package:tekaly_sembast_synced/synced_db_internals.dart';
 import 'package:tekaly_sembast_synced/synced_db_storage.dart';
-import 'package:tkcms_admin_app/sembast/content_db_bloc.dart';
 import 'package:tkcms_common/tkcms_content.dart';
 
 class AdminExportEditScreenBlocState {
@@ -38,6 +38,7 @@ class AdminExportEditScreenBloc extends BaseBloc {
       (projectContext as ByProjectIdAdminAppProjectContext);
 
   String get projectId => byIdProjectContext.projectId;
+  String get userId => byIdProjectContext.userId;
   final String? exportId;
   final _state = BehaviorSubject<AdminExportEditScreenBlocState>();
 
@@ -125,7 +126,8 @@ class AdminExportEditScreenBloc extends BaseBloc {
     if (projectContext is SingleFestenaoAdminAppProjectContext) {
       syncedDb = projectContext.syncedDb;
     } else {
-      festenaoDb = await globalContentBloc.grabContentDb(projectId);
+      festenaoDb = await globalProjectsDbBloc.grabContentDb(
+          projectId: projectId, userId: userId);
       syncedDb = festenaoDb.syncedDb;
     }
     // var exportInfo = await syncedDb.exportInMemory();
