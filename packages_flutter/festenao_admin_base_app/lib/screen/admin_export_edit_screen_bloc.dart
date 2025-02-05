@@ -135,6 +135,7 @@ class AdminExportEditScreenBloc extends BaseBloc {
       fsExport.size.v = (await syncedDb.exportDatabaseToStorage(
               exportContext: SyncedDbStorageExportContext(
                   storage: projectContext.storage,
+                  bucketName: projectContext.storageBucket,
                   rootPath: exportStorageDirPath),
               noMeta: true))
           .exportSize;
@@ -155,6 +156,7 @@ class AdminExportEditScreenBloc extends BaseBloc {
       await syncedDb.exportDatabaseToStorage(
           exportContext: SyncedDbStorageExportContext(
               storage: projectContext.storage,
+              bucketName: projectContext.storageBucket,
               rootPath: exportStorageDirPath,
               metaBasenameSuffix: '_dev'),
           metaOnly: true);

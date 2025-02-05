@@ -10,6 +10,7 @@ import 'package:tkcms_common/tkcms_storage.dart';
 abstract class FestenaoAdminAppProjectContext {
   Firestore get firestore;
   FirebaseStorage get storage;
+  String get storageBucket;
   String get firestorePath;
   String get storagePath;
 }
@@ -41,6 +42,8 @@ abstract class FestenaoAdminAppProjectContextBase
   @override
   final String firestorePath;
   @override
+  final String storageBucket;
+  @override
   final String storagePath;
   @override
   final Firestore firestore;
@@ -49,6 +52,7 @@ abstract class FestenaoAdminAppProjectContextBase
 
   FestenaoAdminAppProjectContextBase(
       {required this.firestorePath,
+      required this.storageBucket,
       required this.storagePath,
       required this.firestore,
       required this.storage});
@@ -63,6 +67,7 @@ class SingleFestenaoAdminAppProjectContext
       {required this.syncedDb,
       required super.firestore,
       required super.storage,
+      required super.storageBucket,
       required super.firestorePath,
       required super.storagePath});
 }
@@ -82,6 +87,7 @@ class ByProjectIdAdminAppProjectContext
                 globalFestenaoAppFirebaseContext.firestoreRootPath,
                 projectPathPart,
                 projectId),
+            storageBucket: globalFestenaoAppFirebaseContext.storageBucket,
             storagePath: url.join(
                 globalFestenaoAppFirebaseContext.storageRootPath,
                 projectPathPart,

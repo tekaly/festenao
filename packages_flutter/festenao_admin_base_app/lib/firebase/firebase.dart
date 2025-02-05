@@ -17,11 +17,16 @@ class FestenaoAppFirebaseContext {
   /// App path
   final String storageRootPath;
 
+  /// Storage bucket
+  final String storageBucket;
+
   /// App path
   final String firestoreRootPath;
 
   FestenaoAppFirebaseContext(
-      {required this.storageRootPath, required this.firestoreRootPath});
+      {required this.storageRootPath,
+      required this.firestoreRootPath,
+      required this.storageBucket});
 }
 
 // TODO fix path

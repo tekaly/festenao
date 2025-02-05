@@ -48,7 +48,9 @@ Future<void> main() async {
   gAuthBloc = TkCmsAuthBloc.local(db: fsDatabase, prefs: prefs);
   globalPackageName = 'tekaly.festenao';
   globalFestenaoAppFirebaseContext = FestenaoAppFirebaseContext(
-      storageRootPath: 'festenao', firestoreRootPath: 'festenao');
+      storageBucket: 'festenao.bucket',
+      storageRootPath: 'festenao',
+      firestoreRootPath: 'festenao');
   gDebugUsername = 'admin';
   gDebugPassword = '__admin__'; // irrelevant
   globalProjectsDb = ProjectsDb(
