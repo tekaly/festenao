@@ -167,6 +167,7 @@ class ProjectsScreenBloc
             }));
           } else {
             if (userId == null) {
+              _dbUserId = null;
               add(ProjectsScreenBlocState(projects: []));
             }
           }

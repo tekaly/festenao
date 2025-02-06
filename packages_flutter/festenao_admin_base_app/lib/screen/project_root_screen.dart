@@ -1,5 +1,6 @@
 import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
+import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/view/entry_tile.dart';
 import 'package:flutter/material.dart';
@@ -94,6 +95,19 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                                           ByProjectIdAdminAppProjectContext(
                                               userId: bloc.userId,
                                               projectId: bloc.projectId));
+                                },
+                              ),
+                              EntryTile(
+                                label: 'Info',
+                                onTap: () {
+                                  goToAdminInfosScreen(
+                                    context,
+                                    /*
+                                      projectContext:
+                                      ByProjectIdAdminAppProjectContext(
+                                          userId: bloc.userId,
+                                          projectId: bloc.projectId)*/
+                                  );
                                 },
                               ),
                               const SizedBox(height: 64),

@@ -1,5 +1,6 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/view/unsaved_changes_dialog.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
@@ -65,6 +66,9 @@ class ProjectEditScreenState extends AutoDisposeBaseState<ProjectEditScreen>
           Navigator.pop(context);
         }
       } else {
+        if (kDebugMode) {
+          print('error ${result.errorStackTrace}');
+        }
         if (context.mounted) {
           await muiSnack(context, 'error ${result.error}');
         }

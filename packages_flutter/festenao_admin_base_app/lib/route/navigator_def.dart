@@ -1,10 +1,11 @@
-import 'package:festenao_admin_base_app/admin_app/menu.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen_bloc.dart';
+import 'package:festenao_admin_base_app/screen/start_screen.dart';
+import 'package:festenao_admin_base_app/screen/start_screen_bloc.dart';
 import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
@@ -12,13 +13,8 @@ import 'route_paths.dart';
 
 var userRootPageDef = ContentPageDef(
     screenBuilder: (crps) {
-      return festenaoAdminDebugScreen;
-      /*
       return BlocProvider(
-          blocBuilder: () => StartScreenBloc(),
-          child: StartScreen(
-            contentPath: rootContentPath,
-          ));*/
+          blocBuilder: () => StartScreenBloc(), child: const StartScreen());
     },
     path: rootContentPath);
 

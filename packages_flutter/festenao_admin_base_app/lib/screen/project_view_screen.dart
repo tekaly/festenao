@@ -136,7 +136,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
           var project = state?.project;
           var canEdit = project?.isWrite ?? false;
           var canDelete = project?.isAdmin ?? false;
-          var canLeave = project != null;
+          //var canLeave = project != null;
           var projectName = project?.name.v;
           /*
           var noteDescription = note?.description.v;
@@ -207,20 +207,6 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                               child: Text(intl.projectShare)),
                                         ],*/
                                         const SizedBox(height: 24),
-                                        ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.of(context)
-                                                  .popUntilPath(
-                                                      rootContentPath);
-                                              /*
-                                              ContentNavigator.of(context)
-                                                  .transientPopAll();
-                                              goToNotesScreen(
-                                                  context, project.ref);*/
-                                            },
-                                            child: Text(intl.projectViewNotes)),
-                                        if (canLeave)
-                                          const SizedBox(height: 24),
                                         ElevatedButton(
                                             onPressed: () {
                                               _confirmAndLeave(
