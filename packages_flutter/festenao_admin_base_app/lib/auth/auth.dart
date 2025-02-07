@@ -5,7 +5,8 @@ import 'package:tekartik_firebase_ui_auth/ui_auth.dart';
 var useFirebaseAuth = false;
 
 /// Firebase auth service
-var globalAuthFlutterUiService = FirebaseUiAuthServiceBasic();
+/// Can be overriden with FirebaseUiAuthServiceFlutter when using firebase ui auth on flutter
+FirebaseUiAuthService globalAuthFlutterUiService = FirebaseUiAuthServiceBasic();
 
 /// Go to auth screen
 Future<void> goToAuthScreen(BuildContext context) async {
