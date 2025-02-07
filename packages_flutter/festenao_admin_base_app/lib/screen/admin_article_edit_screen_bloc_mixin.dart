@@ -42,7 +42,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle> {
 
       var path =
           globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
-      await globalFirebaseContext.storage
+      await globalFestenaoAdminAppFirebaseContext.storage
           .bucket()
           .file(path)
           .writeAsBytes(Uint8List.fromList(img.encodeJpg(image, quality: 50)));
@@ -66,7 +66,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle> {
 
       var path = url.join(
           globalFestenaoAppFirebaseContext.storageRootPath, 'image', imageName);
-      await globalFirebaseContext.storage
+      await globalFestenaoAdminAppFirebaseContext.storage
           .bucket()
           .file(path)
           .writeAsBytes(Uint8List.fromList(img.encodeJpg(image, quality: 50)));

@@ -81,8 +81,8 @@ class ByProjectIdAdminAppProjectContext
   ByProjectIdAdminAppProjectContext(
       {required this.projectId, required this.userId})
       : super(
-            firestore: globalAdminAppFirebaseContext.firestore,
-            storage: globalAdminAppFirebaseContext.storage,
+            firestore: globalFestenaoAdminAppFirebaseContext.firestore,
+            storage: globalFestenaoAdminAppFirebaseContext.storage,
             firestorePath: url.join(
                 globalFestenaoAppFirebaseContext.firestoreRootPath,
                 projectPathPart,

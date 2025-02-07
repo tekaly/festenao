@@ -11,7 +11,7 @@ class AuthBlocState {
 class AuthBloc extends AutoDisposeStateBaseBloc<AuthBlocState> {
   AuthBloc() {
     audiAddStreamSubscription(
-        globalAdminAppFirebaseContext.auth.onCurrentUser.listen((user) {
+        globalFestenaoAdminAppFirebaseContext.auth.onCurrentUser.listen((user) {
       add(AuthBlocState(user: user));
     }));
   }

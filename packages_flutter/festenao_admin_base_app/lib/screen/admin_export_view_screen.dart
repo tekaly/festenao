@@ -22,7 +22,7 @@ class AdminExportViewScreenBloc extends BaseBloc {
   final String exportId;
   final _state = BehaviorSubject<AdminExportViewScreenBlocState>();
   StreamSubscription? _exportSubscription;
-  var firestore = globalFirebaseContext.firestore;
+  var firestore = globalFestenaoAdminAppFirebaseContext.firestore;
 
   ValueStream<AdminExportViewScreenBlocState> get state => _state;
 

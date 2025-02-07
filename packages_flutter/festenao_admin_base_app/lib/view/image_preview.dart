@@ -12,7 +12,7 @@ String getImageStoragePath(String imageName) {
 
 String getImageUrl(String imageName) {
   return getUnauthenticatedStorageApi(
-          projectId: globalFirebaseContext.projectId)
+          projectId: globalFestenaoAdminAppFirebaseContext.projectId)
       .getMediaUrl(url.join(getImageStoragePath(imageName)));
 }
 

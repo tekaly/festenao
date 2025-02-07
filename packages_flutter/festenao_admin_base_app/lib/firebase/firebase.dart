@@ -1,14 +1,13 @@
 // To set on start
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/data/festenao_storage.dart';
+import 'package:tkcms_admin_app/app/tkcms_admin_app.dart';
 import 'package:tkcms_common/tkcms_common.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
 /// Global admin app context
-late FirebaseContext globalAdminAppFirebaseContext;
-
-/// To keep?
-FirebaseContext get globalFirebaseContext => globalAdminAppFirebaseContext;
+FirebaseContext get globalFestenaoAdminAppFirebaseContext =>
+    globalTkCmsAdminAppFirebaseContext;
 
 late FestenaoAppFirebaseContext globalFestenaoAppFirebaseContext;
 

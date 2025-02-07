@@ -43,6 +43,6 @@ final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
   });
   muiItem('Firestore explorer', () async {
     await goToFsDocumentRootScreen(muiBuildContext,
-        firestore: globalAdminAppFirebaseContext.firestore);
+        firestore: globalFestenaoAdminAppFirebaseContext.firestore);
   });
 });

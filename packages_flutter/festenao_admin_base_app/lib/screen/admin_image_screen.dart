@@ -128,7 +128,8 @@ class _AdminImageScreenState extends State<AdminImageScreen>
                     child: AspectRatio(
                       aspectRatio: image.aspectRatio,
                       child: Image.network(getUnauthenticatedStorageApi(
-                              projectId: globalFirebaseContext.projectId)
+                              projectId: globalFestenaoAdminAppFirebaseContext
+                                  .projectId)
                           .getMediaUrl(url.join(
                               globalFestenaoAppFirebaseContext.storageRootPath,
                               'image',

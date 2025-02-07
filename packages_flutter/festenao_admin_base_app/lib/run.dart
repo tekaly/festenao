@@ -12,6 +12,7 @@ import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tekartik_app_navigator_flutter/route_aware.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
 import 'package:tekartik_firebase_ui_auth/ui_auth.dart';
+import 'package:tkcms_admin_app/app.dart';
 import 'package:tkcms_admin_app/app/tkcms_admin_app.dart';
 import 'package:tkcms_admin_app/auth/auth.dart';
 import 'package:tkcms_admin_app/firebase/database_service.dart';
@@ -19,6 +20,7 @@ import 'package:tkcms_admin_app/l10n/app_localizations.dart' as tkcms;
 import 'package:tkcms_admin_app/screen/login_screen.dart';
 import 'package:tkcms_admin_app/screen/project_info.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
+import 'package:tkcms_common/tkcms_firebase.dart';
 import 'package:tkcms_common/tkcms_firestore_v2.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
 import 'package:tkcms_common/tkcms_sembast.dart';
@@ -29,20 +31,27 @@ import 'firebase/firebase_local.dart';
 import 'prefs/local_prefs.dart';
 import 'sembast/projects_db_bloc.dart';
 
-Future<void> main() async {
-  var packageName = 'festenao.admin_base_app';
+Future<void> festenaoRunApp(
+    {AppFlavorContext? appFlavorContext,
+    String? packageName,
+    FirebaseContext? firebaseContext}) async {
+  webSplashReady();
+  packageName ??= 'festenao.admin_base_app';
+  appFlavorContext ??= AppFlavorContext.testLocal;
   await initFestenaoLocalSembastFactory();
 
   var prefsFactory = getPrefsFactory(packageName: packageName);
   var prefs = await prefsFactory.openPreferences('${packageName}_prefs.db');
   globalPrefs = prefs;
-  var context = await initFestenaoFirebaseServicesLocal();
+
   //initFirebaseSim(projectId: 'festenao', packageName: packageName);
-  globalTkCmsAdminAppFirebaseContext = context;
+  firebaseContext ??= await initFestenaoFirebaseServicesLocal();
+
+  globalTkCmsAdminAppFirebaseContext = firebaseContext;
   var fsDatabase = FestenaoFirestoreDatabase(
-      firebaseContext: context, flavorContext: AppFlavorContext.testLocal);
+      firebaseContext: firebaseContext, flavorContext: appFlavorContext);
   gFsDatabaseService = fsDatabase;
-  globalTkCmsAdminAppFlavorContext = AppFlavorContext.testLocal;
+  globalTkCmsAdminAppFlavorContext = appFlavorContext;
 
   globalEntityDatabase = fsDatabase;
   gAuthBloc = TkCmsAuthBloc.local(db: fsDatabase, prefs: prefs);
@@ -69,7 +78,9 @@ Future<void> main() async {
               factory: globalSembastDatabaseFactory, path: '.')));
 
   initFestenaoDbBuilders();
-  //await initFestenaoFirebaseServicesLocal();
+  sleep(300).then((_) {
+    webSplashHide();
+  }).unawait();
   runApp(const FestenaoAdminApp());
 }
 

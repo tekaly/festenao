@@ -13,7 +13,7 @@ class FsEntityListScreen extends StatefulWidget {
 }
 
 class _FsEntityListScreenState extends State<FsEntityListScreen> {
-  var firebaseContext = globalAdminAppFirebaseContext;
+  var firebaseContext = globalFestenaoAdminAppFirebaseContext;
 
   var userId = '1';
   var collection = 'entities';
