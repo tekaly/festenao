@@ -1,5 +1,6 @@
 import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
+import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/view/entry_tile.dart';
@@ -97,18 +98,17 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                                 },
                               ),
                               EntryTile(
-                                label: 'Info',
+                                label: 'Infos',
                                 onTap: () {
                                   goToAdminInfosScreen(context,
-                                      projectContext:
-                                          ByProjectIdAdminAppProjectContext(
-                                              projectId: bloc.projectId)
-                                      /*
-                                      projectContext:
-                                      ByProjectIdAdminAppProjectContext(
-                                          userId: bloc.userId,
-                                          projectId: bloc.projectId)*/
-                                      );
+                                      projectContext: bloc.projectContext);
+                                },
+                              ),
+                              EntryTile(
+                                label: 'Artists',
+                                onTap: () {
+                                  goToAdminArtistsScreen(context,
+                                      projectContext: bloc.projectContext);
                                 },
                               ),
                               const SizedBox(height: 64),

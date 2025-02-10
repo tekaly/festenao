@@ -1,5 +1,4 @@
 import 'package:festenao_admin_base_app/auth/auth_bloc.dart';
-import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tekartik_firebase_auth_local/auth_local.dart';
@@ -13,6 +12,8 @@ class ProjectRootScreenBlocState {
 
 class ProjectRootScreenBloc
     extends AutoDisposeStateBaseBloc<ProjectRootScreenBlocState> {
+  FestenaoAdminAppProjectContext get projectContext =>
+      ByProjectIdAdminAppProjectContext(projectId: projectId);
   final String projectId;
 
   String get userId => firebaseUser!.uid;
@@ -33,15 +34,5 @@ class ProjectRootScreenBloc
         }));
       }
     }();
-  }
-
-  Future<void> deleteProject(DbProject project) async {
-    await globalFestenaoFirestoreDatabase.projectDb
-        .deleteEntity(project.fsId, userId: userId);
-  }
-
-  Future<void> leaveProject(DbProject project) async {
-    await globalFestenaoFirestoreDatabase.projectDb
-        .leaveEntity(project.fsId, userId: userId);
   }
 }
