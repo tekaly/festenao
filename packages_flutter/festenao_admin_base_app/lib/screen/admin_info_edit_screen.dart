@@ -1,3 +1,5 @@
+import 'package:festenao_admin_base_app/admin_app/admin_app_context_db_bloc.dart';
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/view/linear_wait.dart';
 import 'package:festenao_admin_base_app/view/text_field.dart';
@@ -36,9 +38,11 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
     super.dispose();
   }
 
+  AdminInfoEditScreenBloc get bloc =>
+      BlocProvider.of<AdminInfoEditScreenBloc>(context);
   @override
   Widget build(BuildContext context) {
-    var bloc = BlocProvider.of<AdminInfoEditScreenBloc>(context);
+    var bloc = this.bloc;
     return ValueStreamBuilder<AdminInfoEditScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
@@ -201,14 +205,23 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
   @override
   AdminArticleEditScreenInfo get info =>
       AdminArticleEditScreenInfo(articleKind: articleKindInfo);
+
+  @override
+  FestenaoAdminAppProjectContext get projectContext => bloc.projectContext;
+
+  @override
+  AdminAppProjectContextDbBloc get dbBloc => bloc.dbBloc;
 }
 
 Future<AdminInfoEditScreenResult?> goToAdminInfoEditScreen(BuildContext context,
-    {required String? infoId, DbInfo? info}) async {
+    {required String? infoId,
+    DbInfo? info,
+    required FestenaoAdminAppProjectContext projectContext}) async {
   var result = await Navigator.of(context)
       .push<Object?>(MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () => AdminInfoEditScreenBloc(infoId: infoId, info: info),
+        blocBuilder: () => AdminInfoEditScreenBloc(
+            infoId: infoId, info: info, projectContext: projectContext),
         child: const AdminInfoEditScreen());
   }));
   if (result is AdminInfoEditScreenResult) {

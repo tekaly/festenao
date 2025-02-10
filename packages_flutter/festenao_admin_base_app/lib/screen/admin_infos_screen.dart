@@ -1,7 +1,7 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
-import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_common/data/festenao_db.dart';
+import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_info_edit_screen.dart';
 import 'admin_info_screen.dart';
@@ -25,17 +25,19 @@ class AdminInfoScreenResult {
   AdminInfoScreenResult({this.info});
 }
 
-class AdminInfosScreenBloc extends BaseBloc {
-  final _state = BehaviorSubject<AdminInfosScreenBlocState>();
-  late var db = globalProjectsDb.db;
-  ValueStream<AdminInfosScreenBlocState> get state => _state;
+class AdminInfosScreenBloc
+    extends AutoDisposeStateBaseBloc<AdminInfosScreenBlocState> {
+  final FestenaoAdminAppProjectContext projectContext;
+  late final _dbBloc = audiAddDisposable(
+      AdminAppProjectContextDbBloc(projectContext: projectContext));
   late StreamSubscription _infoSubscription;
 
-  AdminInfosScreenBloc() {
+  AdminInfosScreenBloc({required this.projectContext}) {
     () async {
+      var db = await _dbBloc.grabDatabase();
       _infoSubscription =
           dbInfoStoreRef.query().onRecords(db).listen((records) {
-        _state.add(AdminInfosScreenBlocState(records));
+        add(AdminInfosScreenBlocState(records));
       });
     }();
   }
@@ -43,7 +45,6 @@ class AdminInfosScreenBloc extends BaseBloc {
   @override
   void dispose() {
     _infoSubscription.cancel();
-    _state.close();
     super.dispose();
   }
 }
@@ -95,7 +96,8 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
                       Navigator.of(context)
                           .pop(AdminInfoScreenResult(info: info));
                     } else {
-                      goToAdminInfoScreen(context, infoId: info.id);
+                      goToAdminInfoScreen(context,
+                          infoId: info.id, projectContext: bloc.projectContext);
                     }
                   },
                 );
@@ -104,7 +106,8 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          goToAdminInfoEditScreen(context, infoId: null);
+          goToAdminInfoEditScreen(context,
+              infoId: null, projectContext: bloc.projectContext);
         },
         child: const Icon(Icons.add),
       ),
@@ -112,20 +115,22 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
   }
 }
 
-Future<void> goToAdminInfosScreen(BuildContext context) async {
+Future<void> goToAdminInfosScreen(BuildContext context,
+    {required FestenaoAdminAppProjectContext projectContext}) async {
   await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () => AdminInfosScreenBloc(),
+        blocBuilder: () => AdminInfosScreenBloc(projectContext: projectContext),
         child: const AdminInfosScreen());
   }));
 }
 
 Future<AdminInfoScreenResult?> selectInfo(BuildContext context,
-    {String? infoType}) async {
+    {String? infoType,
+    required FestenaoAdminAppProjectContext projectContext}) async {
   var result = await Navigator.of(context)
       .push<Object?>(MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () => AdminInfosScreenBloc(),
+        blocBuilder: () => AdminInfosScreenBloc(projectContext: projectContext),
         child: AdminInfosScreen(
           param: AdminInfosScreenParam(selectMode: true, infoType: infoType),
         ));

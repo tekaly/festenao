@@ -99,14 +99,16 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                               EntryTile(
                                 label: 'Info',
                                 onTap: () {
-                                  goToAdminInfosScreen(
-                                    context,
-                                    /*
+                                  goToAdminInfosScreen(context,
+                                      projectContext:
+                                          ByProjectIdAdminAppProjectContext(
+                                              projectId: bloc.projectId)
+                                      /*
                                       projectContext:
                                       ByProjectIdAdminAppProjectContext(
                                           userId: bloc.userId,
                                           projectId: bloc.projectId)*/
-                                  );
+                                      );
                                 },
                               ),
                               const SizedBox(height: 64),

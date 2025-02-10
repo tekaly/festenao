@@ -1,5 +1,3 @@
-import 'package:festenao_admin_base_app/admin_app/admin_app_context_db_bloc.dart';
-import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
@@ -18,8 +16,8 @@ class AdminMetaGeneralEditScreenBlocState {
 class AdminMetaGeneralEditScreenBloc
     extends AutoDisposeStateBaseBloc<AdminMetaGeneralEditScreenBlocState> {
   final FestenaoAdminAppProjectContext projectContext;
-  late final _dbBloc =
-      audiAddDisposable(AdminAppContextDbBloc(projectContext: projectContext));
+  late final _dbBloc = audiAddDisposable(
+      AdminAppProjectContextDbBloc(projectContext: projectContext));
 
   AdminMetaGeneralEditScreenBloc({required this.projectContext}) {
     () async {

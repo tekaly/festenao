@@ -49,6 +49,8 @@ String imageFormatExtension(ImageFormat imageFormat) {
 
 class _AdminImageEditScreenState extends State<AdminImageEditScreen>
     with AdminArticleEditScreenMixin {
+  @override
+  FestenaoAdminAppProjectContext get projectContext => bloc.projectContext;
   TextEditingController? widthController;
   TextEditingController? heightController;
   TextEditingController? copyrightController;
@@ -75,9 +77,11 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
     nameController!.text = imageName;
   }
 
+  AdminImageEditScreenBloc get bloc =>
+      BlocProvider.of<AdminImageEditScreenBloc>(this.context);
   @override
   Widget build(BuildContext context) {
-    var bloc = BlocProvider.of<AdminImageEditScreenBloc>(context);
+    var bloc = this.bloc;
     var param = bloc.param;
     return ValueStreamBuilder<AdminImageEditScreenBlocState>(
         stream: bloc.state,
@@ -286,7 +290,7 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
 
                 if (imageId != null) {
                   () async {
-                    var db = globalProjectsDb.db;
+                    var db = await dbBloc.grabDatabase();
                     var image = await dbImageStoreRef.record(imageId).get(db);
                     if (image != null) {
                       var bytes = await httpClientFactory
@@ -372,17 +376,21 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
 
   @override
   AdminArticleEditScreenInfo get info => throw UnimplementedError();
+
+  @override
+  AdminAppProjectContextDbBloc get dbBloc => bloc.dbBloc;
 }
 
 Future<AdminImageEditScreenResult?> goToAdminImageEditScreen(
     BuildContext context,
     {required String? imageId,
-    AdminImageEditScreenParam? param}) async {
+    AdminImageEditScreenParam? param,
+    required FestenaoAdminAppProjectContext projectContext}) async {
   var result = await Navigator.of(context)
       .push<Object?>(MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () =>
-            AdminImageEditScreenBloc(imageId: imageId, param: param),
+        blocBuilder: () => AdminImageEditScreenBloc(
+            imageId: imageId, param: param, projectContext: projectContext),
         child: const AdminImageEditScreen());
   }));
   if (result is AdminImageEditScreenResult) {

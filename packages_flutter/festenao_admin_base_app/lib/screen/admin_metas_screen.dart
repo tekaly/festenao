@@ -1,4 +1,3 @@
-import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/admin_meta_general_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';

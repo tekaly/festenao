@@ -1,5 +1,3 @@
-import 'package:festenao_admin_base_app/admin_app/admin_app_context_db_bloc.dart';
-import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/data/festenao_firestore.dart' as fs;
@@ -34,8 +32,8 @@ class AdminExportEditData {
 }
 
 class AdminExportEditScreenBloc extends AutoDisposeBaseBloc {
-  late final _dbBloc =
-      audiAddDisposable(AdminAppContextDbBloc(projectContext: projectContext));
+  late final _dbBloc = audiAddDisposable(
+      AdminAppProjectContextDbBloc(projectContext: projectContext));
   final FestenaoAdminAppProjectContext projectContext;
 
   ByProjectIdAdminAppProjectContext get byIdProjectContext =>

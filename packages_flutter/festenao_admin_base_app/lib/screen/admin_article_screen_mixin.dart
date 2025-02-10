@@ -1,4 +1,5 @@
 import 'package:festenao_admin_base_app/admin_app/festenao_admin_app.dart';
+import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/image_preview.dart';
 import 'package:festenao_admin_base_app/view/info_tile.dart';
 import 'package:festenao_admin_base_app/view/menu.dart';
@@ -6,7 +7,6 @@ import 'package:festenao_admin_base_app/view/tile_padding.dart';
 import 'package:festenao_common/app/app_options.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/text/text.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import 'admin_image_edit_screen.dart';
@@ -14,7 +14,12 @@ import 'admin_image_edit_screen_bloc.dart';
 
 String tagsToText(Iterable<String> tags) => (tags.toList()..sort()).join(', ');
 
-mixin AdminArticleScreenMixin {
+abstract class AdminArticleScreen {
+  FestenaoAdminAppProjectContext get projectContext;
+  AdminAppProjectContextDbBloc get dbBloc;
+}
+
+mixin AdminArticleScreenMixin implements AdminArticleScreen {
   /// 'artist', 'event', 'info', ...
   String get articleKind;
   DbArticle? get dbArticle;
@@ -26,7 +31,10 @@ mixin AdminArticleScreenMixin {
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
-      child: ImagePreview(imageId: imageId),
+      child: ImagePreview(
+        imageId: imageId,
+        dbBloc: dbBloc,
+      ),
     );
   }
 
@@ -47,11 +55,16 @@ mixin AdminArticleScreenMixin {
               () {
                 goToAdminImageEditScreen(context,
                     imageId: imageId,
-                    param: AdminImageEditScreenParam(options: imageOption));
+                    param: AdminImageEditScreenParam(options: imageOption),
+                    projectContext: projectContext);
               },
           title: Text(imageId),
-          subtitle:
-              SizedBox(height: 64, child: ImagePreview(imageId: imageId))));
+          subtitle: SizedBox(
+              height: 64,
+              child: ImagePreview(
+                imageId: imageId,
+                dbBloc: dbBloc,
+              ))));
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
@@ -92,7 +105,10 @@ mixin AdminArticleScreenMixin {
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
       child: Container(
           constraints: const BoxConstraints(maxHeight: 128),
-          child: ImagePreview(imageId: imageId)),
+          child: ImagePreview(
+            imageId: imageId,
+            dbBloc: dbBloc,
+          )),
     );
   }
 
@@ -157,7 +173,8 @@ mixin AdminArticleScreenMixin {
                         articleKind, options.type.v!, articleId!),
                     image: DbImage()
                       ..width.v = choice.options.width.v
-                      ..height.v = choice.options.height.v));
+                      ..height.v = choice.options.height.v),
+                projectContext: projectContext);
           }));
     }
     return items;
@@ -185,7 +202,8 @@ mixin AdminArticleScreenMixin {
                     articleKind, options.type.v!, articleId!),
                 image: DbImage()
                   ..width.v = choice.options.width.v
-                  ..height.v = choice.options.height.v));
+                  ..height.v = choice.options.height.v),
+            projectContext: projectContext);
       }
     }, itemBuilder: (context) {
       var choices = <_MenuChoice>[];

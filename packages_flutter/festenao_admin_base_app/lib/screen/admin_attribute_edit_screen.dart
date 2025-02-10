@@ -1,5 +1,6 @@
 // ignore_for_file: depend_on_referenced_packages
 
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/admin_app/festenao_admin_app.dart';
 import 'package:festenao_admin_base_app/audio/cache.dart';
 import 'package:festenao_admin_base_app/audio/player.dart';
@@ -13,7 +14,7 @@ import 'package:flutter/material.dart';
 
 import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
-import 'package:tekartik_app_rx_bloc/state_base_bloc.dart';
+import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tekartik_app_rx_utils/app_rx_utils.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_admin_app/view/body_container.dart';
@@ -42,10 +43,12 @@ class AdminAttributeEditScreenResult {
 }
 
 class AdminAttributeEditScreenBloc
-    extends StateBaseBloc<AdminAttributeEditScreenBlocState> {
+    extends AutoDisposeStateBaseBloc<AdminAttributeEditScreenBlocState> {
+  final FestenaoAdminAppProjectContext projectContext;
   final AdminAttributeEditScreenParam? param;
 
-  AdminAttributeEditScreenBloc({required this.param}) {
+  AdminAttributeEditScreenBloc(
+      {required this.param, required this.projectContext}) {
     // Creation
     add(AdminAttributeEditScreenBlocState(attribute: param?.attribute));
   }
@@ -195,7 +198,8 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
                               ElevatedButton(
                                   onPressed: () async {
                                     var info = await selectInfo(context,
-                                        infoType: infoTypeSong);
+                                        infoType: infoTypeSong,
+                                        projectContext: bloc.projectContext);
                                     var dbInfo = info?.info;
                                     if (dbInfo != null) {
                                       linkController!.text =
@@ -307,11 +311,13 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
 
 Future<AdminAttributeEditScreenResult?> goToAdminAttributeEditScreen(
     BuildContext context,
-    {required AdminAttributeEditScreenParam? param}) async {
+    {required AdminAttributeEditScreenParam? param,
+    required FestenaoAdminAppProjectContext projectContext}) async {
   return await Navigator.of(context).push<AdminAttributeEditScreenResult>(
       MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () => AdminAttributeEditScreenBloc(param: param),
+        blocBuilder: () => AdminAttributeEditScreenBloc(
+            param: param, projectContext: projectContext),
         child: const AdminAttributeEditScreen());
   }));
 }

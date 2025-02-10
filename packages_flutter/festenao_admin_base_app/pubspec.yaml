@@ -184,6 +184,7 @@ dependencies:
       ref: dart3a
       path: flutter_packages/firestore_explorer
 
+  intl: any
 dev_dependencies:
 
   flutter_test:

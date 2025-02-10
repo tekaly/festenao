@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart';
+import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 
 import 'admin_image_edit_screen.dart';
@@ -39,29 +40,33 @@ class AdminImageEditScreenResult {
   AdminImageEditScreenResult({this.deleted});
 }
 
-class AdminImageEditScreenBloc extends BaseBloc {
+class AdminImageEditScreenBloc
+    extends AutoDisposeStateBaseBloc<AdminImageEditScreenBlocState> {
   final String? imageId;
   final AdminImageEditScreenParam? param;
-  final _state = BehaviorSubject<AdminImageEditScreenBlocState>();
-  late var db = globalProjectsDb.db;
-  ValueStream<AdminImageEditScreenBlocState> get state => _state;
+  final FestenaoAdminAppProjectContext projectContext;
+  late final dbBloc = audiAddDisposable(
+      AdminAppProjectContextDbBloc(projectContext: projectContext));
 
-  AdminImageEditScreenBloc({required this.imageId, required this.param}) {
+  AdminImageEditScreenBloc(
+      {required this.imageId,
+      required this.param,
+      required this.projectContext}) {
     if (imageId == null) {
       // Creation
-      _state.add(
-          AdminImageEditScreenBlocState(imageId: null, image: param?.image));
+      add(AdminImageEditScreenBlocState(imageId: null, image: param?.image));
     } else {
       () async {
+        var db = await dbBloc.grabDatabase();
         var image = (await dbImageStoreRef.record(imageId!).get(db));
 
-        _state
-            .add(AdminImageEditScreenBlocState(image: image, imageId: imageId));
+        add(AdminImageEditScreenBlocState(image: image, imageId: imageId));
       }();
     }
   }
 
   Future<void> saveImage(AdminImageEditData data) async {
+    var db = await dbBloc.grabDatabase();
     var dbImage = data.image;
 
     var imageData = data.imageData;
@@ -127,12 +132,7 @@ class AdminImageEditScreenBloc extends BaseBloc {
   }
 
   Future<void> delete() async {
+    var db = await dbBloc.grabDatabase();
     await dbImageStoreRef.record(imageId!).delete(db);
-  }
-
-  @override
-  void dispose() {
-    _state.close();
-    super.dispose();
   }
 }

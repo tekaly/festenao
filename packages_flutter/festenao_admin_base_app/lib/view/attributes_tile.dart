@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/screen/admin_attribute_edit_screen.dart';
 import 'package:festenao_admin_base_app/view/tile_padding.dart';
 import 'package:festenao_common/data/festenao_db.dart';
@@ -11,8 +12,10 @@ class AttributesTileOptions {
 }
 
 class AttributesTile extends StatefulWidget {
+  final FestenaoAdminAppProjectContext projectContext;
   final AttributesTileOptions options;
-  const AttributesTile({super.key, required this.options});
+  const AttributesTile(
+      {super.key, required this.options, required this.projectContext});
 
   @override
   State<AttributesTile> createState() => _AttributesTileState();
@@ -35,7 +38,8 @@ class _AttributesTileState extends State<AttributesTile> {
                   child: ElevatedButton(
                       onPressed: () async {
                         var result = await goToAdminAttributeEditScreen(context,
-                            param: AdminAttributeEditScreenParam());
+                            param: AdminAttributeEditScreenParam(),
+                            projectContext: widget.projectContext);
                         var attribute = result?.attribute;
                         if (attribute != null) {
                           attributes.value = [
@@ -47,7 +51,11 @@ class _AttributesTileState extends State<AttributesTile> {
                       child: const Text('Add attribute')),
                 ),
               for (var i = 0; i < attributeList.length; i++)
-                AdminAttributeTile(options: widget.options, index: i)
+                AdminAttributeTile(
+                  options: widget.options,
+                  index: i,
+                  projectContext: widget.projectContext,
+                )
             ],
           );
         });
@@ -55,13 +63,17 @@ class _AttributesTileState extends State<AttributesTile> {
 }
 
 class AdminAttributeTile extends StatelessWidget {
+  final FestenaoAdminAppProjectContext projectContext;
   final AttributesTileOptions options;
   final int index;
   ValueNotifier<List<CvAttribute>?> get attributes => options.attributes;
   List<CvAttribute> get attributeList =>
       options.attributes.value ?? <CvAttribute>[];
   const AdminAttributeTile(
-      {super.key, required this.options, required this.index});
+      {super.key,
+      required this.options,
+      required this.index,
+      required this.projectContext});
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +83,8 @@ class AdminAttributeTile extends StatelessWidget {
           ? null
           : () async {
               var result = await goToAdminAttributeEditScreen(context,
-                  param: AdminAttributeEditScreenParam(attribute: attribute));
+                  param: AdminAttributeEditScreenParam(attribute: attribute),
+                  projectContext: projectContext);
               var newAttribute = result?.attribute;
               if (newAttribute != null) {
                 attributes.value = [

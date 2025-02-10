@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
-import 'package:festenao_admin_base_app/sembast/projects_db.dart';
+import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_blur_hash/blur_hash.dart';
-import 'package:festenao_common/data/festenao_db.dart';
 import 'package:image/image.dart' as img;
 import 'package:path/path.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
@@ -17,8 +16,12 @@ class AdminArticleEditData {
       {required this.article, this.imageData, this.thumbailData});
 }
 
-mixin AdminArticleEditScreenBlocMixin<T extends DbArticle> {
-  final db = globalProjectsDb.db;
+abstract class AdminArticleEditScreenBloc {
+  AdminAppProjectContextDbBloc get dbBloc;
+}
+
+mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
+    implements AdminArticleEditScreenBloc {
   CvStoreRef<String, T> get articleStore;
 
   Future<void> save(AdminArticleEditData data) async {
@@ -27,6 +30,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle> {
     var imageData = data.imageData;
     var thumbnailImageData = data.thumbailData;
     var article = data.article;
+    var db = await dbBloc.grabDatabase();
     if (imageData != null) {
       var articleId = article.id;
       var imageId =

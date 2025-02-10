@@ -8,6 +8,7 @@ import 'package:festenao_common/data/festenao_storage.dart';
 import 'package:festenao_common/text/text.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:path/path.dart';
+import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_image_edit_screen.dart';
 import 'admin_screen_mixin.dart';
@@ -21,22 +22,25 @@ class AdminImageScreenBlocState {
   AdminImageScreenBlocState({this.imageId, this.image});
 }
 
-class AdminImageScreenBloc extends BaseBloc {
+class AdminImageScreenBloc
+    extends AutoDisposeStateBaseBloc<AdminImageScreenBlocState> {
+  final FestenaoAdminAppProjectContext projectContext;
   final String? imageId;
-  final _state = BehaviorSubject<AdminImageScreenBlocState>();
+  late final _dbBloc = audiAddDisposable(
+      AdminAppProjectContextDbBloc(projectContext: projectContext));
 
-  ValueStream<AdminImageScreenBlocState> get state => _state;
   StreamSubscription? _imageSubscription;
-  var db = globalProjectsDb.db;
-  AdminImageScreenBloc({required this.imageId}) {
+
+  AdminImageScreenBloc({required this.imageId, required this.projectContext}) {
     () async {
       if (imageId != null) {
+        var db = await _dbBloc.grabDatabase();
         _imageSubscription =
             dbImageStoreRef.record(imageId!).onRecord(db).listen((image) {
-          _state.add(AdminImageScreenBlocState(imageId: imageId, image: image));
+          add(AdminImageScreenBlocState(imageId: imageId, image: image));
         });
       } else {
-        _state.add(AdminImageScreenBlocState());
+        add(AdminImageScreenBlocState());
       }
     }();
   }
@@ -44,7 +48,7 @@ class AdminImageScreenBloc extends BaseBloc {
   @override
   void dispose() {
     _imageSubscription?.cancel();
-    _state.close();
+
     super.dispose();
   }
 }
@@ -152,7 +156,9 @@ class _AdminImageScreenState extends State<AdminImageScreen>
             return FloatingActionButton(
               onPressed: () async {
                 await goToAdminImageEditScreen(context,
-                    imageId: imageId, param: null);
+                    imageId: imageId,
+                    param: null,
+                    projectContext: bloc.projectContext);
               },
               child: const Icon(Icons.edit),
             );
@@ -162,11 +168,13 @@ class _AdminImageScreenState extends State<AdminImageScreen>
 }
 
 Future<void> goToAdminImageScreen(BuildContext context,
-    {required String? imageId}) async {
+    {required String? imageId,
+    required FestenaoAdminAppProjectContext projectContext}) async {
   await Navigator.of(context)
       .push<Object?>(MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () => AdminImageScreenBloc(imageId: imageId),
+        blocBuilder: () => AdminImageScreenBloc(
+            imageId: imageId, projectContext: projectContext),
         child: const AdminImageScreen());
   }));
 }

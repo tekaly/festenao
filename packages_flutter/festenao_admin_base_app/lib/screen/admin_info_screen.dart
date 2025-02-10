@@ -1,15 +1,12 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
-import 'package:festenao_admin_base_app/sembast/projects_db.dart';
+import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/action_tile.dart';
 import 'package:festenao_admin_base_app/view/attributes_tile.dart';
 import 'package:festenao_admin_base_app/view/info_tile.dart';
 import 'package:festenao_admin_base_app/view/menu.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/text/text.dart';
-import 'package:flutter/material.dart';
-import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
-import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
-import 'package:tekartik_app_rx_utils/app_rx_utils.dart';
+import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_admin_app/view/body_container.dart';
 
 import 'admin_article_screen_mixin.dart';
@@ -22,28 +19,21 @@ class AdminInfoScreenBlocState {
   AdminInfoScreenBlocState({this.infoId, this.info});
 }
 
-class AdminInfoScreenBloc extends BaseBloc {
+class AdminInfoScreenBloc
+    extends AutoDisposeStateBaseBloc<AdminInfoScreenBlocState> {
+  final FestenaoAdminAppProjectContext projectContext;
   final String? infoId;
-  final _state = BehaviorSubject<AdminInfoScreenBlocState>();
-
-  ValueStream<AdminInfoScreenBlocState> get state => _state;
-  late StreamSubscription _infoSubscription;
-
-  AdminInfoScreenBloc({required this.infoId}) {
+  late final dbBloc = audiAddDisposable(
+      AdminAppProjectContextDbBloc(projectContext: projectContext));
+  AdminInfoScreenBloc({required this.infoId, required this.projectContext}) {
     () async {
-      var db = globalProjectsDb.db;
-      _infoSubscription =
-          dbInfoStoreRef.record(infoId!).onRecord(db).listen((info) {
-        _state.add(AdminInfoScreenBlocState(infoId: infoId, info: info));
-      });
+      audiAddStreamSubscription(dbInfoStoreRef
+          .record(infoId!)
+          .onRecord(await dbBloc.grabDatabase())
+          .listen((info) {
+        add(AdminInfoScreenBlocState(infoId: infoId, info: info));
+      }));
     }();
-  }
-
-  @override
-  void dispose() {
-    _infoSubscription.cancel();
-    _state.close();
-    super.dispose();
   }
 }
 
@@ -56,9 +46,14 @@ class AdminInfoScreen extends StatefulWidget {
 
 class _AdminInfoScreenState extends State<AdminInfoScreen>
     with AdminArticleScreenMixin {
+  AdminInfoScreenBloc get bloc => BlocProvider.of<AdminInfoScreenBloc>(context);
+  @override
+  AdminAppProjectContextDbBloc get dbBloc => bloc.dbBloc;
+  @override
+  FestenaoAdminAppProjectContext get projectContext => bloc.projectContext;
   @override
   Widget build(BuildContext context) {
-    var bloc = BlocProvider.of<AdminInfoScreenBloc>(context);
+    var bloc = this.bloc;
 
     return ValueStreamBuilder<AdminInfoScreenBlocState>(
         stream: bloc.state,
@@ -74,13 +69,17 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
                       onPressed: () {
                         // devPrint('Duplicate go to edit');
                         goToAdminInfoEditScreen(context,
-                            infoId: null, info: dbInfo);
+                            infoId: null,
+                            info: dbInfo,
+                            projectContext: bloc.projectContext);
                       }),
                   MenuItem(
                       title: 'Edit',
                       onPressed: () {
                         goToAdminInfoEditScreen(context,
-                            infoId: dbInfo?.idOrNull, info: dbInfo);
+                            infoId: dbInfo?.idOrNull,
+                            info: dbInfo,
+                            projectContext: bloc.projectContext);
                       }),
                   SubMenuItem(
                       title: 'Images',
@@ -99,7 +98,9 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
                                 onPressed: () {
                                   Navigator.of(context).pop();
                                   goToAdminInfoEditScreen(context,
-                                      infoId: null, info: dbInfo);
+                                      infoId: null,
+                                      info: dbInfo,
+                                      projectContext: bloc.projectContext);
                                 }),
                             MenuItem(title: 'Edit', onPressed: () {}),
                           ].map((e) => PopupMenuItem<MenuItem>(
@@ -124,7 +125,9 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
                       //style: style,
                       onPressed: () {
                         goToAdminInfoEditScreen(context,
-                            infoId: null, info: dbInfo);
+                            infoId: null,
+                            info: dbInfo,
+                            projectContext: bloc.projectContext);
                       },
                       child: const Text('Dupliquer info')),
                 if (state?.info != null) imagesPopupMenu()
@@ -134,7 +137,8 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
               onTap: () async {
                 if (bloc.state.valueOrNull?.infoId != null) {
                   await goToAdminInfoEditScreen(context,
-                      infoId: bloc.state.valueOrNull?.infoId);
+                      infoId: bloc.state.valueOrNull?.infoId,
+                      projectContext: bloc.projectContext);
                 }
               },
               child: ValueStreamBuilder<AdminInfoScreenBlocState>(
@@ -174,10 +178,12 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
                       ),
                       getMarkdownContentTile(article),
                       AttributesTile(
-                          options: AttributesTileOptions(
-                              attributes: ValueNotifier<List<CvAttribute>?>(
-                                  article!.attributes.v),
-                              readOnly: true)),
+                        options: AttributesTileOptions(
+                            attributes: ValueNotifier<List<CvAttribute>?>(
+                                article!.attributes.v),
+                            readOnly: true),
+                        projectContext: bloc.projectContext,
+                      ),
                       getThumbailPreviewTile(article),
                       getImagePreviewTile(article),
                       BodyContainer(
@@ -188,7 +194,9 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
                               label: 'Dupliquer info',
                               onTap: () {
                                 goToAdminInfoEditScreen(context,
-                                    infoId: null, info: dbInfo);
+                                    infoId: null,
+                                    info: dbInfo,
+                                    projectContext: bloc.projectContext);
                               }),
                         ],
                       )),
@@ -207,7 +215,7 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
                   return FloatingActionButton(
                     onPressed: () async {
                       var result = await goToAdminInfoEditScreen(context,
-                          infoId: infoId);
+                          infoId: infoId, projectContext: bloc.projectContext);
                       if (result?.deleted ?? false) {
                         if (context.mounted) {
                           Navigator.pop(context);
@@ -231,10 +239,12 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
 }
 
 Future<void> goToAdminInfoScreen(BuildContext context,
-    {required String? infoId}) async {
+    {required String? infoId,
+    required FestenaoAdminAppProjectContext projectContext}) async {
   await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
     return BlocProvider(
-        blocBuilder: () => AdminInfoScreenBloc(infoId: infoId),
+        blocBuilder: () =>
+            AdminInfoScreenBloc(infoId: infoId, projectContext: projectContext),
         child: const AdminInfoScreen());
   }));
 }

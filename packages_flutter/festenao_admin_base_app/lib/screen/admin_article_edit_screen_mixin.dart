@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:festenao_admin_base_app/admin_app/festenao_admin_app.dart';
 import 'package:festenao_admin_base_app/file_picker/file_picker.dart';
-import 'package:festenao_admin_base_app/sembast/projects_db.dart';
+import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/attributes_tile.dart';
 import 'package:festenao_admin_base_app/view/image_preview.dart';
 import 'package:festenao_admin_base_app/view/text_field.dart';
@@ -10,9 +10,7 @@ import 'package:festenao_admin_base_app/view/tile_padding.dart';
 import 'package:festenao_common/app/src/app_options.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/text/text.dart';
-import 'package:flutter/material.dart';
 import 'package:image/image.dart' as img;
-import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
 import 'package:tekartik_app_http/app_http.dart';
 import 'package:tekartik_app_pick_crop_image_flutter/pick_crop_image.dart';
 
@@ -70,8 +68,16 @@ class AdminArticleEditScreenInfo {
   AdminArticleEditScreenInfo({required this.articleKind});
 }
 
-mixin AdminArticleEditScreenMixin {
+abstract class AdminArticleEditScreen {
+  AdminAppProjectContextDbBloc get dbBloc;
+  FestenaoAdminAppProjectContext get projectContext;
+  Future<Database> get projectDb;
+}
+
+mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
   bool get mounted;
+  @override
+  Future<Database> get projectDb => dbBloc.grabDatabase();
 
   /// 'artist', 'event', 'info', ...
   AdminArticleEditScreenInfo get info;
@@ -127,16 +133,17 @@ mixin AdminArticleEditScreenMixin {
     }
   }
 
-  List<ArticleImageHolder> getImageHolders(DbArticleCommon? article) {
+  List<ArticleImageHolder> getImageHolders(DbArticleCommon? article,
+      {required Database db}) {
     return _imageHolders ??= articleImageHoldersColumns.map((column) {
-      return ArticleImageHolder(article, column);
+      return ArticleImageHolder(article, column, db: db);
     }).toList();
   }
 
-  Widget getImagesWidget(DbArticleCommon? article) {
+  Widget getImagesWidget(DbArticleCommon? article, {required Database db}) {
     return Column(
       children: [
-        ...getImageHolders(article).map((holder) {
+        ...getImageHolders(article, db: db).map((holder) {
           return Column(
             children: [
               AppTextFieldTile(
@@ -277,9 +284,11 @@ mixin AdminArticleEditScreenMixin {
 
   Widget getAttributesTile(DbArticleMixin? article) {
     return AttributesTile(
-        options: AttributesTileOptions(
-            attributes: attributesValueNotifier ??=
-                getArticleAttributes(article)));
+      options: AttributesTileOptions(
+          attributes: attributesValueNotifier ??=
+              getArticleAttributes(article)),
+      projectContext: projectContext,
+    );
   }
 
   //DbArticleCommon().
@@ -292,7 +301,7 @@ mixin AdminArticleEditScreenMixin {
                 var squareImage = article?.squareImage.v;
                 if (squareImage != null) {
                   () async {
-                    var db = globalProjectsDb.db;
+                    var db = await projectDb;
                     var image =
                         await dbImageStoreRef.record(squareImage).get(db);
                     if (image != null) {
@@ -337,7 +346,7 @@ mixin AdminArticleEditScreenMixin {
                 var thumbnailImage = article?.thumbnail.v;
                 if (thumbnailImage != null) {
                   () async {
-                    var db = globalProjectsDb.db;
+                    var db = await projectDb;
                     var image =
                         await dbImageStoreRef.record(thumbnailImage).get(db);
                     if (image != null) {
@@ -368,7 +377,7 @@ mixin AdminArticleEditScreenMixin {
                 var imageId = article?.image.v;
                 if (imageId != null) {
                   () async {
-                    var db = globalProjectsDb.db;
+                    var db = await projectDb;
                     var image = await dbImageStoreRef.record(imageId).get(db);
                     if (image != null) {
                       var bytes = await httpClientFactory
@@ -399,7 +408,8 @@ mixin AdminArticleEditScreenMixin {
 
                 await goToAdminImageEditScreen(context,
                     imageId: imageId,
-                    param: AdminImageEditScreenParam(options: holder.options));
+                    param: AdminImageEditScreenParam(options: holder.options),
+                    projectContext: projectContext);
               }
             },
             child: Text(
@@ -507,6 +517,7 @@ mixin AdminArticleEditScreenMixin {
 }
 
 class ArticleImageHolder {
+  final Database db;
   TextEditingController? _imageIdController;
   TextEditingController get imageIdController =>
       _imageIdController ??= TextEditingController(text: _articleImageId);
@@ -527,7 +538,7 @@ class ArticleImageHolder {
 
   CvField<String>? get imageField =>
       article?.field<String>(articleImageColumn.name);
-  ArticleImageHolder(this.article, this.articleImageColumn);
+  ArticleImageHolder(this.article, this.articleImageColumn, {required this.db});
 
   void _setNull() {
     _imageData.value = null;
@@ -552,7 +563,7 @@ class ArticleImageHolder {
         var imageId = _articleImageId;
         if (imageId != null) {
           if (_imageData.value == null || _imageDataId != imageId) {
-            var db = globalProjectsDb.db;
+            var db = this.db;
             var image = await dbImageStoreRef.record(imageId).get(db);
             if (image != null) {
               var bytes = await httpClientFactory
