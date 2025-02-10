@@ -5,10 +5,20 @@ import 'package:tkcms_common/tkcms_common.dart';
 import 'package:tkcms_common/tkcms_content.dart';
 import 'package:tkcms_common/tkcms_firestore_v2.dart';
 
-class _ContentDbInfo {
+class _ContentDbInfo implements GrabbedContentDb {
+  final String key;
   int refCount = 1;
+  @override
   final ContentDb contentDb;
-  _ContentDbInfo({required this.contentDb});
+  _ContentDbInfo({required this.key, required this.contentDb});
+
+  Future<void> close() async {
+    await contentDb.close();
+  }
+}
+
+abstract class GrabbedContentDb {
+  ContentDb get contentDb;
 }
 
 class ProjectsDbBloc {
@@ -17,7 +27,7 @@ class ProjectsDbBloc {
 
   final _lock = Lock();
   final _map = <String, _ContentDbInfo>{};
-  Future<ContentDb> grabContentDb(
+  Future<GrabbedContentDb> grabContentDb(
       {required String userId, required String projectId}) async {
     var contentDb =
         await grabContentDbOrNull(projectId: projectId, userId: userId);
@@ -28,14 +38,14 @@ class ProjectsDbBloc {
   }
 
   String _key(String userId, String projectId) => '$userId/$projectId';
-  Future<ContentDb?> grabContentDbOrNull(
+  Future<GrabbedContentDb?> grabContentDbOrNull(
       {required String userId, required String projectId}) async {
     var key = _key(userId, projectId);
     return await _lock.synchronized(() async {
       var info = _map[key];
       if (info != null) {
         info.refCount++;
-        return info.contentDb;
+        return info;
       }
 
       await globalProjectsDb.ready;
@@ -56,32 +66,33 @@ class ProjectsDbBloc {
           sembastDatabaseContext:
               globalSembastDatabasesContext.db('content.db'));
       await contentDb.ready;
-      _map[projectId] = _ContentDbInfo(contentDb: contentDb);
-      return contentDb;
+      info = _map[key] = _ContentDbInfo(key: key, contentDb: contentDb);
+      return info;
     });
   }
 
+  /*
   @protected
-  Future<void> closeContentDb(String projectId) async {
+  Future<void> closeContentDb(String userId, String projectId) async {
+    var key = _key(userId, projectId);
     await _lock.synchronized(() {
-      var info = _map[projectId];
+      var info = _map[key];
       if (info != null) {
-        info.contentDb.close();
-        _map.remove(projectId);
+        info.close();
+        _map.remove(key);
       }
     });
-  }
+  }*/
 
-  Future<void> releaseContentDb(ContentDb contentDb) async {
+  Future<void> releaseContentDb(GrabbedContentDb contentDb) async {
     return await _lock.synchronized(() async {
-      var info = _map[contentDb.projectId];
-      if (info?.contentDb == contentDb) {
-        var refCount = --info!.refCount;
+      var info = contentDb as _ContentDbInfo;
 
-        if (refCount == 0) {
-          await contentDb.close();
-          _map.remove(contentDb.projectId);
-        }
+      var refCount = --info.refCount;
+
+      if (refCount == 0) {
+        await info.close();
+        _map.remove(info.key);
       }
     });
     // Close the database
