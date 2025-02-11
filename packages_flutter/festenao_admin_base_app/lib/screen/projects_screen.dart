@@ -1,3 +1,5 @@
+import 'package:festenao_admin_base_app/route/route_paths.dart';
+import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_admin_base_app/screen/project_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
 import 'package:festenao_admin_base_app/view/project_leading.dart';
@@ -5,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
+import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 import 'package:tkcms_admin_app/view/trailing_arrow.dart';
 
@@ -27,7 +30,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
         stream: bloc.state,
         builder: (context, snapshot) {
           var state = snapshot.data;
-          return Scaffold(
+          return FestenaoAdminAppScaffold(
             appBar: AppBar(
                 title: const Text('Project') // appIntl(context).ProjectsTitle),
                 /*actions: [
@@ -128,10 +131,12 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 Future<Object?> goToProjectsScreen(
   BuildContext context,
 ) async {
-  return await Navigator.of(context).push<Object?>(MaterialPageRoute(
+  return await ContentNavigator.of(context)
+      .pushPath<Object?>(ProjectsContentPath());
+  /*<Object?>(MaterialPageRoute(
       builder: (_) => BlocProvider(
           blocBuilder: () => ProjectsScreenBloc(),
-          child: const ProjectsScreen())));
+          child: const ProjectsScreen())));*/
 }
 
 class SelectProjectResult {

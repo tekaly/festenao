@@ -1,6 +1,9 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
+import 'package:festenao_admin_base_app/route/navigator_def.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/data/festenao_db.dart';
+import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_info_edit_screen.dart';
@@ -117,11 +120,18 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
 
 Future<void> goToAdminInfosScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () => AdminInfosScreenBloc(projectContext: projectContext),
-        child: const AdminInfosScreen());
-  }));
+  if (useContentPathNavigation) {
+    await ContentNavigator.of(context).pushPath<void>(ProjectInfosContentPath()
+      ..project.value = projectContext.pathProjectId);
+  } else {
+    await Navigator.of(context)
+        .push<void>(MaterialPageRoute(builder: (context) {
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminInfosScreenBloc(projectContext: projectContext),
+          child: const AdminInfosScreen());
+    }));
+  }
 }
 
 Future<AdminInfoScreenResult?> selectInfo(BuildContext context,

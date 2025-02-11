@@ -1,3 +1,6 @@
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
+import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
@@ -11,6 +14,7 @@ import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
 import 'route_paths.dart';
 
+var useContentPathNavigation = true;
 var userRootPageDef = ContentPageDef(
     screenBuilder: (crps) {
       return BlocProvider(
@@ -87,17 +91,33 @@ var rootSyncedProjectPageDef = ContentPageDef(
           child: const ProjectRootScreen());
     },
     path: RootSyncedProjectContentPath());
-/*
-var projectNotesPageDef = ContentPageDef(
+
+var projectMetasPageDef = ContentPageDef(
     screenBuilder: (crps) {
-      var cp = LocalProjectNotesContentPath()..fromPath(crps.path);
+      var cp = ProjectMetasContentPath()..fromPath(crps.path);
       var projectId = cp.project.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
       return BlocProvider(
           blocBuilder: () =>
-              NotesScreenBloc(projectRef: ProjectRef(id: projectId)),
-          child: const NotesScreen());
+              AdminMetasScreenBloc(projectContext: projectContext),
+          child: const AdminMetasScreen());
     },
-    path: LocalProjectNotesContentPath());
+    path: ProjectMetasContentPath());
+
+var projectInfosPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectInfosContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminInfosScreenBloc(projectContext: projectContext),
+          child: const AdminInfosScreen());
+    },
+    path: ProjectInfosContentPath());
+/*
 var syncedProjectNotesPageDef = ContentPageDef(
     screenBuilder: (crps) {
       var cp = SyncedProjectNotesContentPath()..fromPath(crps.path);
@@ -142,6 +162,8 @@ var syncedProjectNoteViewPageDef = ContentPageDef(
 final contentNavigatorDef = ContentNavigatorDef(defs: [
   userRootPageDef,
   projectsPageDef,
+  projectMetasPageDef,
+  projectInfosPageDef,
   /*
   settingsPageDef,
   settingProjectsPageDef,

@@ -1,8 +1,11 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
+import 'package:festenao_admin_base_app/route/navigator_def.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/admin_meta_general_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/entry_tile.dart';
 import 'package:festenao_common/text/text.dart';
+import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
@@ -53,9 +56,16 @@ class _AdminMetasScreenState extends State<AdminMetasScreen> {
 
 Future<void> goToAdminMetasScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => BlocProvider(
-          blocBuilder: () =>
-              AdminMetasScreenBloc(projectContext: projectContext),
-          child: const AdminMetasScreen())));
+  if (useContentPathNavigation) {
+    await ContentNavigator.of(context).pushPath<Object?>(
+        ProjectMetasContentPath()
+          ..project.value = projectContext.pathProjectId);
+    return;
+  } else {
+    await Navigator.of(context).push<void>(MaterialPageRoute(
+        builder: (_) => BlocProvider(
+            blocBuilder: () =>
+                AdminMetasScreenBloc(projectContext: projectContext),
+            child: const AdminMetasScreen())));
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
+import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
@@ -60,7 +61,7 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
               ),
           ];
 
-          return Scaffold(
+          return FestenaoAdminAppScaffold(
             appBar: AppBar(
               // Here we take the value from the MyHomePage object that
               // was created by the App.build method, and use it to set

@@ -42,6 +42,23 @@ class RootSyncedProjectContentPath extends ContentPathBase {
   @override
   List<ContentPathField> get fields => [project];
 }
+
+class _ProjectSubContentPath extends RootSyncedProjectContentPath {
+  late final ContentPathPart _part;
+  _ProjectSubContentPath(String sub) {
+    _part = ContentPathPart(sub);
+  }
+  @override
+  List<ContentPathField> get fields => [...super.fields, _part];
+}
+
+class ProjectMetasContentPath extends _ProjectSubContentPath {
+  ProjectMetasContentPath() : super('metas');
+}
+
+class ProjectInfosContentPath extends _ProjectSubContentPath {
+  ProjectInfosContentPath() : super('infos');
+}
 /*
 class ProjectInviteContentPath extends ContentPathBase {
   final invite = ContentPathField('invite');

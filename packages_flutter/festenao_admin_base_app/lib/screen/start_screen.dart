@@ -1,17 +1,18 @@
 import 'package:festenao_admin_base_app/admin_app/menu.dart';
 import 'package:festenao_admin_base_app/auth/auth.dart';
+
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
 import 'package:festenao_admin_base_app/view/entry_tile.dart';
 import 'package:festenao_admin_base_app/view/project_leading.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 import 'package:tkcms_admin_app/view/body_container.dart';
 import 'package:tkcms_admin_app/view/body_h_padding.dart';
 import 'package:tkcms_admin_app/view/trailing_arrow.dart';
 
+import 'screen_import.dart';
 import 'start_screen_bloc.dart';
 
 class StartScreen extends StatefulWidget {
@@ -29,7 +30,7 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
         stream: bloc.state,
         builder: (context, snapshot) {
           var state = snapshot.data;
-          return Scaffold(
+          return FestenaoAdminAppScaffold(
             appBar: AppBar(
               title: const Text('Festenao'), // appIntl(context).ProjectsTitle),
               actions: [

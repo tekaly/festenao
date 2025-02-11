@@ -19,6 +19,8 @@ abstract class FestenaoAdminAppProjectContext {
 }
 
 extension FestenaoAdminAppProjectContextExt on FestenaoAdminAppProjectContext {
+  String get pathProjectId =>
+      (this as ByProjectIdAdminAppProjectContext).projectId;
   /*
   @Deprecated('do not use, grab and release instead')
   Future<Database> get db async {
