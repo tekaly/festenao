@@ -6,7 +6,6 @@ import 'package:festenao_common/data/festenao_db.dart';
 
 import 'admin_artist_edit_screen.dart';
 import 'admin_artist_screen.dart';
-import 'admin_screen_mixin.dart';
 
 class AdminArtistsScreenParam {
   /// For selecting only

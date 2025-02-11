@@ -11,7 +11,6 @@ import 'package:path/path.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_image_edit_screen.dart';
-import 'admin_screen_mixin.dart';
 
 class AdminImageScreenResult {}
 
