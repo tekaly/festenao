@@ -35,6 +35,7 @@ Future<void> festenaoRunApp(
     {AppFlavorContext? appFlavorContext,
     String? packageName,
     FirebaseContext? firebaseContext}) async {
+  WidgetsFlutterBinding.ensureInitialized();
   webSplashReady();
   packageName ??= 'festenao.admin_base_app';
   appFlavorContext ??= AppFlavorContext.testLocal;
