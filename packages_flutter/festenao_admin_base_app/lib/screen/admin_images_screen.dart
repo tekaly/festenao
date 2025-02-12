@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
+import 'package:festenao_admin_base_app/route/navigator_def.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 
 import 'package:flutter/material.dart';
@@ -97,10 +99,18 @@ class _AdminImagesScreenState extends State<AdminImagesScreen> {
 
 Future<void> goToAdminImagesScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () =>
-            AdminImagesScreenBloc(projectContext: projectContext),
-        child: const AdminImagesScreen());
-  }));
+  if (useContentPathNavigation) {
+    await ContentNavigator.of(context).pushPath<Object?>(
+        ProjectImagesContentPath()
+          ..project.value = projectContext.pathProjectId);
+    return;
+  } else {
+    await Navigator.of(context)
+        .push<void>(MaterialPageRoute(builder: (context) {
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminImagesScreenBloc(projectContext: projectContext),
+          child: const AdminImagesScreen());
+    }));
+  }
 }

@@ -5,7 +5,6 @@ import 'package:festenao_admin_base_app/screen/admin_meta_general_edit_screen.da
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/entry_tile.dart';
 import 'package:festenao_common/text/text.dart';
-import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 

@@ -1,4 +1,6 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
+import 'package:festenao_admin_base_app/route/navigator_def.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/admin_screen_bloc_mixin.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/admin_article_thumbnail.dart';
@@ -147,12 +149,20 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
 
 Future<void> goToAdminArtistsScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () =>
-            AdminArtistsScreenBloc(projectContext: projectContext),
-        child: const AdminArtistsScreen());
-  }));
+  if (useContentPathNavigation) {
+    await ContentNavigator.of(context).pushPath<Object?>(
+        ProjectArtistsContentPath()
+          ..project.value = projectContext.pathProjectId);
+    return;
+  } else {
+    await Navigator.of(context)
+        .push<void>(MaterialPageRoute(builder: (context) {
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminArtistsScreenBloc(projectContext: projectContext),
+          child: const AdminArtistsScreen());
+    }));
+  }
 }
 
 Future<AdminArtistScreenResult?> selectArtist(BuildContext context,

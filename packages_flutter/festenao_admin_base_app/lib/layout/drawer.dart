@@ -1,17 +1,29 @@
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
+import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:sembast_db_explorer/sembast_db_explorer.dart';
+import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
 /// Admin go to app parent action
 VoidCallback? adminGoToAppParentAction;
 // Compat
 VoidCallback? get adminParentAction => adminGoToAppParentAction;
+
 set adminParentAction(VoidCallback? value) => adminGoToAppParentAction = value;
 
 class ListDrawer extends StatefulWidget {
   final bool isPopupDrawer;
+  final bool? content;
 
-  const ListDrawer({super.key, this.isPopupDrawer = false});
+  const ListDrawer({super.key, this.isPopupDrawer = false, this.content});
 
   @override
   State<ListDrawer> createState() => _ListDrawerState();
@@ -20,6 +32,177 @@ class ListDrawer extends StatefulWidget {
 class _ListDrawerState extends State<ListDrawer> {
   int selectedItem = 0;
 
+  @override
+  Widget build(BuildContext context) {
+    if (widget.content ?? false) {
+      return buildListView(context);
+    }
+    return Drawer(
+        child: SafeArea(
+      child: buildListView(context),
+    ));
+  }
+
+  ListView buildListView(BuildContext context) {
+    var sb = globalProjectsDbBloc;
+    FestenaoAdminAppProjectContext? appProjectContextOrNull;
+    if (sb is MultiProjectsDbBloc) {
+      final routeName = ModalRoute.of(context)?.settings.name;
+      var contentPath = AdminAppRootProjectContextPath()
+        ..fromPath(ContentPath.fromString(routeName ?? ''));
+      var projectId = contentPath.projectIdOrNull;
+      if (projectId != null) {
+        appProjectContextOrNull =
+            ByProjectIdAdminAppProjectContext(projectId: projectId);
+      }
+    } else if (sb is SingleProjectDbBloc) {
+      appProjectContextOrNull =
+          ByProjectIdAdminAppProjectContext(projectId: 'compat');
+    } else {
+      throw UnsupportedError(sb.toString());
+    }
+    var appProjectContext = appProjectContextOrNull;
+
+    return ListView(
+      shrinkWrap: widget.content ?? false,
+      children: [
+        InkWell(
+          onTap: () {
+            // goToHomeScreen(context);
+          },
+          child: Card(
+            margin: EdgeInsets.zero,
+            elevation: 5,
+            child: Container(
+              color: Theme.of(context).colorScheme.secondary,
+              child: const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 48, vertical: 64),
+                  //child: Image(image: assetGaelLogo718.image),
+                ),
+              ),
+            ),
+          ),
+        ),
+        /*
+        if (adminGoToAppParentAction != null)
+          ListTile(
+              title: const Text('Go to app'),
+              onTap: () {
+                adminGoToAppParentAction!();
+              }),*/
+        ListTile(
+          title: const Text('Festenao'),
+          onTap: () async {
+            ContentNavigator.popToRoot(context);
+          },
+        ),
+        if (appProjectContext != null) ...[
+          ListTile(
+            title: const Text('Project'),
+            onTap: () async {
+              await goToProjectRootScreen(context,
+                  projectId: appProjectContext.projectId);
+            },
+          ),
+          ListTile(
+              title: const Text('Metas'),
+              onTap: () {
+                goToAdminMetasScreen(context,
+                    projectContext: appProjectContext);
+              }),
+          ListTile(
+            title: const Text('Artists'),
+            onTap: () async {
+              await goToAdminArtistsScreen(context,
+                  projectContext: appProjectContext);
+            },
+          ),
+          ListTile(
+              title: const Text('Events'),
+              onTap: () {
+                goToAdminEventsScreen(context,
+                    projectContext: appProjectContext);
+              }),
+          ListTile(
+              title: const Text('Images'),
+              onTap: () {
+                goToAdminImagesScreen(context,
+                    projectContext: appProjectContext);
+              }),
+          ListTile(
+            title: const Text('Infos'),
+            onTap: () async {
+              await goToAdminInfosScreen(context,
+                  projectContext: appProjectContext);
+            },
+          ),
+          /*
+        if (app.goToLoginScreen != null)
+          ListTile(
+            title: const Text('Auth'),
+            onTap: () async {
+              await app.goToLoginScreen!(
+                  context, LoginScreenOptions(stayWhenLoggedIn: true));
+            },
+          ),
+        ListTile(
+          title: const Text('Users'),
+          onTap: () async {
+            await goToAdminUsersScreen(context);
+          },
+        ),
+        ListTile(
+          title: const Text('Publish'),
+          onTap: () async {
+            await goToAdminExportsScreen(context);
+          },
+        ),
+
+        ListTile(
+          title: const Text('Sembast db exploreer'),
+          onTap: () async {
+            var db = await festenaoDb.database;
+            if (context.mounted) {
+              await showDatabaseExplorer(context, db);
+            }
+          },
+        )
+        /*
+        DrawerItem(
+          leading: Icon(Icons.logout),
+          label: textSignOutLabel,
+          onTap: () {
+            goToStartScreen(context,
+                param: StartScreenParam(forceLogout: true));
+          },
+        ),*/
+        /*
+        DrawerItem(
+          leading: Icon(Icons.stream),
+          label: textStudiesTitle,
+          onTap: () {
+            goToStartScreen(context,
+                param: StartScreenParam(forceLogout: true));
+          },
+        ),*/
+
+         */
+        ],
+        ListTile(
+          title: const Text('Projects DB Sembast db explorer'),
+          onTap: () async {
+            var db = globalProjectsDb.db;
+            if (context.mounted) {
+              await showDatabaseExplorer(context, db);
+            }
+          },
+        )
+      ],
+    );
+  }
+
+/*
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -77,17 +260,7 @@ class _ListDrawerState extends State<ListDrawer> {
                 goToAdminInfosScreen(context);
               }),*/
           const Divider(),
-          ListTile(
-            title: const Text('Sync'),
-            onTap: () async {
-              /*tmp
-              var result = await sync();
-              if (context.mounted) {
-                ScaffoldMessenger.of(context)
-                    .showSnackBar(SnackBar(content: Text('$result')));
-              }*/
-            },
-          ),
+
           /*tmp
           if (app.goToLoginScreen != null)
             ListTile(
@@ -109,15 +282,7 @@ class _ListDrawerState extends State<ListDrawer> {
               await goToAdminExportsScreen(context);
             },
           ),*/
-          ListTile(
-            title: const Text('Sembast db explorer'),
-            onTap: () async {
-              var db = globalProjectsDb.db;
-              if (context.mounted) {
-                await showDatabaseExplorer(context, db);
-              }
-            },
-          )
+
           /*
           DrawerItem(
             leading: Icon(Icons.logout),
@@ -314,5 +479,5 @@ class _ListDrawerState extends State<ListDrawer> {
     );
 
      */
-  }
+  }*/
 }

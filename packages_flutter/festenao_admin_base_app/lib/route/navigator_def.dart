@@ -1,4 +1,7 @@
 import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
+import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
@@ -14,6 +17,8 @@ import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
 import 'route_paths.dart';
+
+export 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
 var useContentPathNavigation = true;
 
@@ -125,6 +130,45 @@ var projectInfosPageDef = ContentPageDef(
           child: const AdminInfosScreen());
     },
     path: ProjectInfosContentPath());
+
+var projectArtistsPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectArtistsContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminArtistsScreenBloc(projectContext: projectContext),
+          child: const AdminArtistsScreen());
+    },
+    path: ProjectArtistsContentPath());
+
+var projectImagesPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectImagesContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminImagesScreenBloc(projectContext: projectContext),
+          child: const AdminImagesScreen());
+    },
+    path: ProjectImagesContentPath());
+
+var projectEventsPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectEventsContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminEventsScreenBloc(projectContext: projectContext),
+          child: const AdminEventsScreen());
+    },
+    path: ProjectEventsContentPath());
 /*
 var syncedProjectNotesPageDef = ContentPageDef(
     screenBuilder: (crps) {
@@ -175,6 +219,10 @@ final festenaoAdminAppPages = [
   projectsPageDef,
   projectMetasPageDef,
   projectInfosPageDef,
+  projectArtistsPageDef,
+  projectImagesPageDef,
+  projectEventsPageDef,
+
   /*
   settingsPageDef,
   settingProjectsPageDef,

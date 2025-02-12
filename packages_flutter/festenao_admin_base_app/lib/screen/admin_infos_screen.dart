@@ -3,7 +3,6 @@ import 'package:festenao_admin_base_app/route/navigator_def.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/data/festenao_db.dart';
-import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_info_edit_screen.dart';

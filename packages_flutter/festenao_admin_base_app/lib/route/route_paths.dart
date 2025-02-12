@@ -37,6 +37,9 @@ class SyncedProjectContentPath extends ContentPathBase {
   List<ContentPathField> get fields => [project];
 }
 
+/// New def
+typedef AdminAppRootProjectContextPath = RootSyncedProjectContentPath;
+
 class RootSyncedProjectContentPath extends ContentPathBase {
   final project = ContentPathField('project');
   @override
@@ -67,6 +70,18 @@ class ProjectMetasContentPath extends _ProjectSubContentPath {
 
 class ProjectInfosContentPath extends _ProjectSubContentPath {
   ProjectInfosContentPath() : super('infos');
+}
+
+class ProjectArtistsContentPath extends _ProjectSubContentPath {
+  ProjectArtistsContentPath() : super('artists');
+}
+
+class ProjectEventsContentPath extends _ProjectSubContentPath {
+  ProjectEventsContentPath() : super('events');
+}
+
+class ProjectImagesContentPath extends _ProjectSubContentPath {
+  ProjectImagesContentPath() : super('images');
 }
 
 class HomeContentPath extends _SubContentPath {
@@ -104,3 +119,7 @@ class SyncedProjectNoteContentPath extends SyncedProjectContentPath {
   List<ContentPathField> get fields => [project, note];
 }
 */
+
+extension AdminAppRootProjectContextPathExt on AdminAppRootProjectContextPath {
+  String? get projectIdOrNull => project.value;
+}

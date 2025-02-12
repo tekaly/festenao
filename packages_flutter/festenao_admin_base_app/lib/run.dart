@@ -8,7 +8,6 @@ import 'package:festenao_common/data/src/model/db_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
-import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tekartik_app_navigator_flutter/route_aware.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
 import 'package:tekartik_firebase_ui_auth/ui_auth.dart';
