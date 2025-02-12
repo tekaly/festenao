@@ -77,6 +77,10 @@ class ProjectMetasContentPath extends _ProjectSubContentPath {
   ProjectMetasContentPath() : super('metas');
 }
 
+class ProjectMetaContentPath extends _ProjectSubIdContentPath {
+  ProjectMetaContentPath() : super('meta');
+}
+
 class ProjectInfosContentPath extends _ProjectSubContentPath {
   ProjectInfosContentPath() : super('infos');
 }
@@ -89,12 +93,24 @@ class ProjectArtistsContentPath extends _ProjectSubContentPath {
   ProjectArtistsContentPath() : super('artists');
 }
 
+class ProjectArtistContentPath extends _ProjectSubIdContentPath {
+  ProjectArtistContentPath() : super('artist');
+}
+
 class ProjectEventsContentPath extends _ProjectSubContentPath {
   ProjectEventsContentPath() : super('events');
 }
 
+class ProjectEventContentPath extends _ProjectSubIdContentPath {
+  ProjectEventContentPath() : super('event');
+}
+
 class ProjectImagesContentPath extends _ProjectSubContentPath {
   ProjectImagesContentPath() : super('images');
+}
+
+class ProjectImageContentPath extends _ProjectSubIdContentPath {
+  ProjectImageContentPath() : super('image');
 }
 
 class HomeContentPath extends _SubContentPath {

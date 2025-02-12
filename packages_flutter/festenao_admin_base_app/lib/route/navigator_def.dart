@@ -1,6 +1,9 @@
 import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
+import 'package:festenao_admin_base_app/screen/admin_artist_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_event_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_image_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_info_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
@@ -159,6 +162,19 @@ var projectArtistsPageDef = ContentPageDef(
     },
     path: ProjectArtistsContentPath());
 
+var projectArtistPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectArtistContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var subId = cp.sub.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () => AdminArtistScreenBloc(
+              projectContext: projectContext, artistId: subId),
+          child: const AdminArtistScreen());
+    },
+    path: ProjectArtistContentPath());
 var projectImagesPageDef = ContentPageDef(
     screenBuilder: (crps) {
       var cp = ProjectImagesContentPath()..fromPath(crps.path);
@@ -172,6 +188,19 @@ var projectImagesPageDef = ContentPageDef(
     },
     path: ProjectImagesContentPath());
 
+var projectImagePageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectImageContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var subId = cp.sub.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () => AdminImageScreenBloc(
+              projectContext: projectContext, imageId: subId),
+          child: const AdminImageScreen());
+    },
+    path: ProjectImageContentPath());
 var projectEventsPageDef = ContentPageDef(
     screenBuilder: (crps) {
       var cp = ProjectEventsContentPath()..fromPath(crps.path);
@@ -184,6 +213,20 @@ var projectEventsPageDef = ContentPageDef(
           child: const AdminEventsScreen());
     },
     path: ProjectEventsContentPath());
+
+var projectEventPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectEventContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var subId = cp.sub.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () => AdminEventScreenBloc(
+              projectContext: projectContext, eventId: subId),
+          child: const AdminEventScreen());
+    },
+    path: ProjectEventContentPath());
 /*
 var syncedProjectNotesPageDef = ContentPageDef(
     screenBuilder: (crps) {
@@ -236,8 +279,11 @@ final festenaoAdminAppPages = [
   projectInfosPageDef,
   projectInfoPageDef,
   projectArtistsPageDef,
+  projectArtistPageDef,
   projectImagesPageDef,
+  projectImagePageDef,
   projectEventsPageDef,
+  projectEventPageDef,
 
   /*
   settingsPageDef,

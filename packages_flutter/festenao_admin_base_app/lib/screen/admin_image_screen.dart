@@ -1,5 +1,7 @@
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
+import 'package:festenao_admin_base_app/route/navigator_def.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/info_tile.dart';
@@ -169,11 +171,17 @@ class _AdminImageScreenState extends State<AdminImageScreen>
 Future<void> goToAdminImageScreen(BuildContext context,
     {required String? imageId,
     required FestenaoAdminAppProjectContext projectContext}) async {
-  await Navigator.of(context)
-      .push<Object?>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () => AdminImageScreenBloc(
-            imageId: imageId, projectContext: projectContext),
-        child: const AdminImageScreen());
-  }));
+  if (useContentPathNavigation) {
+    await ContentNavigator.of(context).pushPath<void>(ProjectImageContentPath()
+      ..project.value = projectContext.projectId
+      ..sub.value = imageId);
+  } else {
+    await Navigator.of(context)
+        .push<Object?>(MaterialPageRoute(builder: (context) {
+      return BlocProvider(
+          blocBuilder: () => AdminImageScreenBloc(
+              imageId: imageId, projectContext: projectContext),
+          child: const AdminImageScreen());
+    }));
+  }
 }

@@ -66,6 +66,9 @@ Future<void> festenaoRunApp(
       name:
           '${globalTkCmsAdminAppFlavorContext.uniqueAppName}_$projectsDbName');
   await globalProjectsDb.ready;
+
+  /// Global prefs (last entered values)
+  await gAdminApp.openPrefs();
   globalProjectsDbBloc = MultiProjectsDbBloc(
     app: globalTkCmsAdminAppFlavorContext.uniqueAppName,
   );

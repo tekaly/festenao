@@ -1,4 +1,6 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
+import 'package:festenao_admin_base_app/route/navigator_def.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/admin_artist_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_screen_bloc_mixin.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
@@ -28,7 +30,7 @@ class AdminArtistScreenBloc
       var db = await projectDb;
       audiAddStreamSubscription(
           dbArtistStoreRef.record(artistId!).onRecord(db).listen((artist) {
-        AdminArtistScreenBlocState(artistId: artistId, dbArtist: artist);
+        add(AdminArtistScreenBlocState(artistId: artistId, dbArtist: artist));
       }));
     }();
   }
@@ -196,10 +198,17 @@ class _AdminArtistScreenState extends State<AdminArtistScreen>
 Future<void> goToAdminArtistScreen(BuildContext context,
     {required String? artistId,
     required FestenaoAdminAppProjectContext projectContext}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () => AdminArtistScreenBloc(
-            artistId: artistId, projectContext: projectContext),
-        child: const AdminArtistScreen());
-  }));
+  if (useContentPathNavigation) {
+    await ContentNavigator.of(context).pushPath<void>(ProjectArtistContentPath()
+      ..project.value = projectContext.projectId
+      ..sub.value = artistId);
+  } else {
+    await Navigator.of(context)
+        .push<void>(MaterialPageRoute(builder: (context) {
+      return BlocProvider(
+          blocBuilder: () => AdminArtistScreenBloc(
+              artistId: artistId, projectContext: projectContext),
+          child: const AdminArtistScreen());
+    }));
+  }
 }
