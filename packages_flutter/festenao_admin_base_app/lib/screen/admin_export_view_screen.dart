@@ -5,6 +5,7 @@ import 'package:festenao_admin_base_app/view/info_tile.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/text/text.dart';
 import 'package:path/path.dart';
+import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_admin_app/view/body_container.dart';
 
 import 'admin_export_edit_screen.dart';
@@ -16,14 +17,14 @@ class AdminExportViewScreenBlocState {
   AdminExportViewScreenBlocState({this.fsExport});
 }
 
-class AdminExportViewScreenBloc extends BaseBloc {
+class AdminExportViewScreenBloc
+    extends AutoDisposeStateBaseBloc<AdminExportViewScreenBlocState> {
   final FestenaoAdminAppProjectContext projectContext;
   final String exportId;
-  final _state = BehaviorSubject<AdminExportViewScreenBlocState>();
+
+  // ignore: cancel_subscriptions
   StreamSubscription? _exportSubscription;
   var firestore = globalFestenaoAdminAppFirebaseContext.firestore;
-
-  ValueStream<AdminExportViewScreenBlocState> get state => _state;
 
   AdminExportViewScreenBloc(
       {required this.exportId, required this.projectContext}) {
@@ -34,20 +35,13 @@ class AdminExportViewScreenBloc extends BaseBloc {
     var path = url.join(globalFestenaoAppFirebaseContext.firestoreRootPath,
         getExportPath(exportId));
     if (!firestore.service.supportsTrackChanges) {
+      audiDispose(_exportSubscription);
       _exportSubscription = null;
     }
-    _exportSubscription ??=
+    _exportSubscription ??= audiAddStreamSubscription(
         firestore.doc(path).onSnapshotSupport().listen((snapshot) {
-      _state.add(
-          AdminExportViewScreenBlocState(fsExport: snapshot.cv<FsExport>()));
-    });
-  }
-
-  @override
-  void dispose() {
-    _exportSubscription?.cancel();
-    _state.close();
-    super.dispose();
+      add(AdminExportViewScreenBlocState(fsExport: snapshot.cv<FsExport>()));
+    }));
   }
 }
 

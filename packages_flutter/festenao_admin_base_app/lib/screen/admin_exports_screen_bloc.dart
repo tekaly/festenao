@@ -4,6 +4,7 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:path/path.dart';
+import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 class AdminExportsScreenBlocState {
   final List<FsExport> list;
@@ -14,10 +15,9 @@ class AdminExportsScreenBlocState {
       {required this.metaDev, required this.metaProd});
 }
 
-class AdminExportsScreenBloc extends BaseBloc {
-  final _state = BehaviorSubject<AdminExportsScreenBlocState>();
-
-  ValueStream<AdminExportsScreenBlocState> get state => _state;
+class AdminExportsScreenBloc
+    extends AutoDisposeStateBaseBloc<AdminExportsScreenBlocState> {
+  // ignore: cancel_subscriptions
   StreamSubscription? _artistSubscription;
 
   final FestenaoAdminAppProjectContext projectContext;
@@ -28,7 +28,7 @@ class AdminExportsScreenBloc extends BaseBloc {
 
   Future<void> refresh() async {
     var firestore = projectContext.firestore;
-    Future<void> add(List<FsExport> exports) async {
+    Future<void> addExports(List<FsExport> exports) async {
       FestenaoExportMeta? metaDev;
       FestenaoExportMeta? metaProd;
 
@@ -46,25 +46,19 @@ class AdminExportsScreenBloc extends BaseBloc {
       if (metaProdSnapshot.exists) {
         metaProd = metaProdSnapshot.data.cv<FestenaoExportMeta>();
       }
-      _state.add(AdminExportsScreenBlocState(exports,
+      add(AdminExportsScreenBlocState(exports,
           metaDev: metaDev, metaProd: metaProd));
     }
 
     var query = firestore
         .collection(url.join(projectContext.firestorePath, getExportsPath()));
     if (firestore.service.supportsTrackChanges) {
-      _artistSubscription ??= query.onSnapshotSupport().listen((event) async {
-        await add(event.docs.cv<FsExport>());
-      });
+      _artistSubscription ??= audiAddStreamSubscription(
+          query.onSnapshotSupport().listen((event) async {
+        await addExports(event.docs.cv<FsExport>());
+      }));
     } else {
-      await add(await query.cvGet<FsExport>());
+      await addExports(await query.cvGet<FsExport>());
     }
-  }
-
-  @override
-  void dispose() {
-    _artistSubscription?.cancel();
-    _state.close();
-    super.dispose();
   }
 }

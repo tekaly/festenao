@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:festenao_common/data/festenao_db.dart';
-import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_article_edit_screen_bloc_mixin.dart';
 import 'admin_screen_bloc_mixin.dart';
@@ -27,20 +26,19 @@ class AdminInfoEditScreenBloc
     with AdminArticleEditScreenBlocMixin {
   final String? infoId;
   late final DbInfo? info;
-  final _state = BehaviorSubject<AdminInfoEditScreenBlocState>();
 
   AdminInfoEditScreenBloc(
       {DbInfo? info, required this.infoId, required super.projectContext}) {
     if (infoId == null) {
       this.info = info;
       // Creation
-      _state.add(AdminInfoEditScreenBlocState(info: info));
+      add(AdminInfoEditScreenBlocState(info: info));
     } else {
       () async {
         var db = await dbBloc.grabDatabase();
         this.info = info ??= (await dbInfoStoreRef.record(infoId!).get(db));
 
-        _state.add(AdminInfoEditScreenBlocState(info: info, infoId: infoId));
+        add(AdminInfoEditScreenBlocState(info: info, infoId: infoId));
       }();
     }
   }

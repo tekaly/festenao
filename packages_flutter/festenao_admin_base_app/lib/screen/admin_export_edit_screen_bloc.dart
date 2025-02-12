@@ -31,7 +31,8 @@ class AdminExportEditData {
       this.publish = false});
 }
 
-class AdminExportEditScreenBloc extends AutoDisposeBaseBloc {
+class AdminExportEditScreenBloc
+    extends AutoDisposeStateBaseBloc<AdminExportEditScreenBlocState> {
   late final _dbBloc = audiAddDisposable(
       AdminAppProjectContextDbBloc(projectContext: projectContext));
   final FestenaoAdminAppProjectContext projectContext;
@@ -42,7 +43,6 @@ class AdminExportEditScreenBloc extends AutoDisposeBaseBloc {
   String get projectId => byIdProjectContext.projectId;
   //String get userId => byIdProjectContext.userId;
   final String? exportId;
-  final _state = BehaviorSubject<AdminExportEditScreenBlocState>();
 
   Firestore get firestore => projectContext.firestore;
   late var storage = projectContext.storage;
@@ -61,8 +61,6 @@ class AdminExportEditScreenBloc extends AutoDisposeBaseBloc {
       join(projectContext.storagePath, storageDataPathPart);
   late GrabbedContentDb _grabbedContentDb;
   ContentDb get festenaoDb => _grabbedContentDb.contentDb;
-
-  ValueStream<AdminExportEditScreenBlocState> get state => _state;
 
   AdminExportEditScreenBloc(
       {required this.projectContext, required this.exportId}) {
@@ -90,12 +88,12 @@ class AdminExportEditScreenBloc extends AutoDisposeBaseBloc {
           fsExport ??= FsExport()
             ..changeId.fromCvField(metaInfo.lastChangeId)
             ..version.fromCvField(metaInfo.sourceVersion);
-          _state.add(AdminExportEditScreenBlocState(
+          add(AdminExportEditScreenBlocState(
               fsExport: fsExport, metaInfo: metaInfo));
         } else {
           var export = await firestore.cvGet<FsExport>(
               url.join(firestoreExportCollectionPath, exportId));
-          _state.add(AdminExportEditScreenBlocState(
+          add(AdminExportEditScreenBlocState(
               fsExport: export, metaInfo: metaInfo));
         }
       } catch (e, st) {
@@ -103,7 +101,7 @@ class AdminExportEditScreenBloc extends AutoDisposeBaseBloc {
           print(e);
           print(st);
         }
-        _state.addError(e);
+        addError(e);
         return;
       }
     }();
@@ -190,11 +188,5 @@ class AdminExportEditScreenBloc extends AutoDisposeBaseBloc {
           map,
           SetOptions(merge: true));
     });
-  }
-
-  @override
-  void dispose() {
-    _state.close();
-    super.dispose();
   }
 }
