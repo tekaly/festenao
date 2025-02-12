@@ -9,19 +9,27 @@ import 'package:festenao_admin_base_app/screen/projects_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/start_screen.dart';
 import 'package:festenao_admin_base_app/screen/start_screen_bloc.dart';
+import 'package:flutter/widgets.dart';
 import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
 import 'route_paths.dart';
 
 var useContentPathNavigation = true;
-var userRootPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      return BlocProvider(
-          blocBuilder: () => StartScreenBloc(), child: const StartScreen());
-    },
-    path: rootContentPath);
 
+/// Root/Start screen builder
+Widget festenaoAdminAppUserRootScreenBuilder(ContentPathRouteSettings crps) {
+  return BlocProvider(
+      blocBuilder: () => StartScreenBloc(), child: const StartScreen());
+}
+
+var userRootPageDef = festenaoAdminAppStartPagePageDef;
+var festenaoAdminAppStartPagePageDef = ContentPageDef(
+    screenBuilder: festenaoAdminAppUserRootScreenBuilder,
+    path: rootContentPath);
+var homeRootPageDef = ContentPageDef(
+    screenBuilder: festenaoAdminAppUserRootScreenBuilder,
+    path: HomeContentPath());
 var projectsPageDef = ContentPageDef(
     screenBuilder: (crps) {
       return BlocProvider(
@@ -159,8 +167,11 @@ var syncedProjectNoteViewPageDef = ContentPageDef(
           child: const NoteViewScreen());
     });
 */
-final contentNavigatorDef = ContentNavigatorDef(defs: [
+
+final festenaoAdminAppPages = [
+  // start
   userRootPageDef,
+  homeRootPageDef,
   projectsPageDef,
   projectMetasPageDef,
   projectInfosPageDef,
@@ -176,4 +187,7 @@ final contentNavigatorDef = ContentNavigatorDef(defs: [
   syncedProjectNoteViewPageDef,
   projectInvitePageDef,
   markdownGuidePageDef,*/
+];
+final contentNavigatorDef = ContentNavigatorDef(defs: [
+  ...festenaoAdminAppPages,
 ]);

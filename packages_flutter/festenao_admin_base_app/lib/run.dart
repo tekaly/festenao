@@ -67,7 +67,7 @@ Future<void> festenaoRunApp(
       name:
           '${globalTkCmsAdminAppFlavorContext.uniqueAppName}_$projectsDbName');
   await globalProjectsDb.ready;
-  globalProjectsDbBloc = ProjectsDbBloc(
+  globalProjectsDbBloc = MultiProjectsDbBloc(
     app: globalTkCmsAdminAppFlavorContext.uniqueAppName,
   );
 

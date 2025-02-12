@@ -7,6 +7,8 @@ import 'package:tkcms_common/tkcms_storage.dart';
 
 /// App project context
 abstract class FestenaoAdminAppProjectContext {
+  String get projectId;
+
   Firestore get firestore;
 
   FirebaseStorage get storage;
@@ -19,8 +21,7 @@ abstract class FestenaoAdminAppProjectContext {
 }
 
 extension FestenaoAdminAppProjectContextExt on FestenaoAdminAppProjectContext {
-  String get pathProjectId =>
-      (this as ByProjectIdAdminAppProjectContext).projectId;
+  String get pathProjectId => projectId;
   /*
   @Deprecated('do not use, grab and release instead')
   Future<Database> get db async {
@@ -70,10 +71,13 @@ abstract class FestenaoAdminAppProjectContextBase
 /// Compat mode or single project mode
 class SingleFestenaoAdminAppProjectContext
     extends FestenaoAdminAppProjectContextBase {
+  @override
+  final String projectId;
   final SyncedDb syncedDb;
 
   SingleFestenaoAdminAppProjectContext(
-      {required this.syncedDb,
+      {required this.projectId,
+      required this.syncedDb,
       required super.firestore,
       required super.storage,
       required super.storageBucket,
@@ -84,6 +88,7 @@ class SingleFestenaoAdminAppProjectContext
 /// By project id
 class ByProjectIdAdminAppProjectContext
     extends FestenaoAdminAppProjectContextBase {
+  @override
   final String projectId;
 
   // final String userId;

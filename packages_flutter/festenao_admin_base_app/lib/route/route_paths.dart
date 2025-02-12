@@ -43,6 +43,15 @@ class RootSyncedProjectContentPath extends ContentPathBase {
   List<ContentPathField> get fields => [project];
 }
 
+class _SubContentPath extends ContentPathBase {
+  late final ContentPathPart _part;
+  _SubContentPath(String sub) {
+    _part = ContentPathPart(sub);
+  }
+  @override
+  List<ContentPathField> get fields => [_part];
+}
+
 class _ProjectSubContentPath extends RootSyncedProjectContentPath {
   late final ContentPathPart _part;
   _ProjectSubContentPath(String sub) {
@@ -58,6 +67,10 @@ class ProjectMetasContentPath extends _ProjectSubContentPath {
 
 class ProjectInfosContentPath extends _ProjectSubContentPath {
   ProjectInfosContentPath() : super('infos');
+}
+
+class HomeContentPath extends _SubContentPath {
+  HomeContentPath() : super('home');
 }
 /*
 class ProjectInviteContentPath extends ContentPathBase {

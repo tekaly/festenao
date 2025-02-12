@@ -23,11 +23,20 @@ class AdminAppProjectContextDbBloc implements AutoDisposable {
     return await (await grabSyncedDb()).database;
   }
 
+  MultiProjectsDbBloc get multiProjectsDbBloc =>
+      globalProjectsDbBloc as MultiProjectsDbBloc;
   Future<SyncedDb> grabSyncedDb() async {
     if (projectContext is SingleFestenaoAdminAppProjectContext) {
       return (projectContext as SingleFestenaoAdminAppProjectContext).syncedDb;
     } else if (projectContext is ByProjectIdAdminAppProjectContext) {
-      return (await _grabContentDb()).contentDb.syncedDb;
+      var projectsDbBloc = globalProjectsDbBloc;
+      if (projectsDbBloc is MultiProjectsDbBloc) {
+        return (await _grabContentDb()).contentDb.syncedDb;
+      } else if (projectsDbBloc is SingleProjectDbBloc) {
+        return projectsDbBloc.syncedDb;
+      } else {
+        throw StateError('Invalid projectsDbBloc $projectsDbBloc');
+      }
     } else {
       throw ArgumentError('Invalid project context $projectContext');
     }
@@ -38,8 +47,9 @@ class AdminAppProjectContextDbBloc implements AutoDisposable {
     _grabbedContentDb ??= await () async {
       return _lock.synchronized(() async {
         return _grabbedContentDb ??= await () async {
-          var userId = globalAuthBloc.state.value.user!.uid;
-          return await globalProjectsDbBloc.grabContentDb(
+          var userId =
+              globalAuthBloc.state.value.user?.uid ?? 'service_account';
+          return await multiProjectsDbBloc.grabContentDb(
               userId: userId, projectId: _projectId);
         }();
       });
@@ -49,11 +59,14 @@ class AdminAppProjectContextDbBloc implements AutoDisposable {
 
   @override
   void audiDispose() {
-    var grabbedContextDb = _grabbedContentDb;
-    if (grabbedContextDb != null) {
-      _lock.synchronized(() async {
-        await globalProjectsDbBloc.releaseContentDb(grabbedContextDb);
-      });
+    var projectsDbBloc = globalProjectsDbBloc;
+    if (projectsDbBloc is MultiProjectsDbBloc) {
+      var grabbedContextDb = _grabbedContentDb;
+      if (grabbedContextDb != null) {
+        _lock.synchronized(() async {
+          await projectsDbBloc.releaseContentDb(grabbedContextDb);
+        });
+      }
     }
   }
 }

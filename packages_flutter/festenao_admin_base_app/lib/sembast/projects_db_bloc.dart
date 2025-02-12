@@ -21,12 +21,40 @@ abstract class GrabbedContentDb {
   ContentDb get contentDb;
 }
 
-class ProjectsDbBloc {
-  ProjectsDbBloc({required this.app});
+/// Compat
+abstract class SingleProjectDbBloc implements ProjectsDbBloc {
+  SyncedDb get syncedDb;
+  factory SingleProjectDbBloc({required SyncedDb syncedDb}) =>
+      _SingleProjectDbBloc(syncedDb: syncedDb);
+}
+
+class _SingleProjectDbBloc implements SingleProjectDbBloc {
+  @override
+  final SyncedDb syncedDb;
+
+  _SingleProjectDbBloc({required this.syncedDb});
+}
+
+abstract class MultiProjectsDbBloc implements ProjectsDbBloc {
+  Future<GrabbedContentDb> grabContentDb(
+      {required String userId, required String projectId});
+  Future<GrabbedContentDb?> grabContentDbOrNull(
+      {required String userId, required String projectId});
+  Future<void> releaseContentDb(GrabbedContentDb contentDb);
+
+  factory MultiProjectsDbBloc({required String app}) =>
+      _ProjectsDbBloc(app: app);
+}
+
+class ProjectsDbBloc {}
+
+class _ProjectsDbBloc implements MultiProjectsDbBloc {
+  _ProjectsDbBloc({required this.app});
   final String app;
 
   final _lock = Lock();
   final _map = <String, _ContentDbInfo>{};
+  @override
   Future<GrabbedContentDb> grabContentDb(
       {required String userId, required String projectId}) async {
     var contentDb =
@@ -38,6 +66,7 @@ class ProjectsDbBloc {
   }
 
   String _key(String userId, String projectId) => '$userId/$projectId';
+  @override
   Future<GrabbedContentDb?> grabContentDbOrNull(
       {required String userId, required String projectId}) async {
     var key = _key(userId, projectId);
@@ -71,19 +100,7 @@ class ProjectsDbBloc {
     });
   }
 
-  /*
-  @protected
-  Future<void> closeContentDb(String userId, String projectId) async {
-    var key = _key(userId, projectId);
-    await _lock.synchronized(() {
-      var info = _map[key];
-      if (info != null) {
-        info.close();
-        _map.remove(key);
-      }
-    });
-  }*/
-
+  @override
   Future<void> releaseContentDb(GrabbedContentDb contentDb) async {
     return await _lock.synchronized(() async {
       var info = contentDb as _ContentDbInfo;
