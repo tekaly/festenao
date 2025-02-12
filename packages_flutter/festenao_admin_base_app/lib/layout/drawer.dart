@@ -35,7 +35,7 @@ class _ListDrawerState extends State<ListDrawer> {
   @override
   Widget build(BuildContext context) {
     if (widget.content ?? false) {
-      return buildListView(context);
+      return Hero(tag: 'festenao_drawer', child: buildListView(context));
     }
     return Drawer(
         child: SafeArea(
@@ -43,7 +43,7 @@ class _ListDrawerState extends State<ListDrawer> {
     ));
   }
 
-  ListView buildListView(BuildContext context) {
+  Widget buildListView(BuildContext context) {
     var sb = globalProjectsDbBloc;
     FestenaoAdminAppProjectContext? appProjectContextOrNull;
     if (sb is MultiProjectsDbBloc) {

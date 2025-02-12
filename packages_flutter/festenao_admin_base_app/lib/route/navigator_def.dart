@@ -2,6 +2,7 @@ import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart
 import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_info_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
@@ -131,6 +132,20 @@ var projectInfosPageDef = ContentPageDef(
     },
     path: ProjectInfosContentPath());
 
+var projectInfoPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectInfoContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var subId = cp.sub.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () => AdminInfoScreenBloc(
+              projectContext: projectContext, infoId: subId),
+          child: const AdminInfoScreen());
+    },
+    path: ProjectInfoContentPath());
+
 var projectArtistsPageDef = ContentPageDef(
     screenBuilder: (crps) {
       var cp = ProjectArtistsContentPath()..fromPath(crps.path);
@@ -219,6 +234,7 @@ final festenaoAdminAppPages = [
   projectsPageDef,
   projectMetasPageDef,
   projectInfosPageDef,
+  projectInfoPageDef,
   projectArtistsPageDef,
   projectImagesPageDef,
   projectEventsPageDef,

@@ -8,6 +8,7 @@ import 'package:festenao_common/data/festenao_db.dart';
 
 import 'admin_artist_edit_screen.dart';
 import 'admin_artist_screen.dart';
+import 'project_root_screen.dart';
 
 class AdminArtistsScreenParam {
   /// For selecting only
@@ -150,10 +151,11 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
 Future<void> goToAdminArtistsScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
   if (useContentPathNavigation) {
-    await ContentNavigator.of(context).pushPath<Object?>(
-        ProjectArtistsContentPath()
-          ..project.value = projectContext.pathProjectId);
-    return;
+    await popAndGoToProjectSubScreen(
+      context,
+      projectContext: projectContext,
+      contentPath: ProjectArtistsContentPath(),
+    );
   } else {
     await Navigator.of(context)
         .push<void>(MaterialPageRoute(builder: (context) {

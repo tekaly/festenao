@@ -1,6 +1,7 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/route/navigator_def.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
+import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
@@ -120,8 +121,11 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
 Future<void> goToAdminInfosScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
   if (useContentPathNavigation) {
-    await ContentNavigator.of(context).pushPath<void>(ProjectInfosContentPath()
-      ..project.value = projectContext.pathProjectId);
+    await popAndGoToProjectSubScreen(
+      context,
+      projectContext: projectContext,
+      contentPath: ProjectInfosContentPath(),
+    );
   } else {
     await Navigator.of(context)
         .push<void>(MaterialPageRoute(builder: (context) {

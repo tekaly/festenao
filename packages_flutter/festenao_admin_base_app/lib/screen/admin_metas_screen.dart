@@ -8,6 +8,8 @@ import 'package:festenao_common/text/text.dart';
 
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
+import 'project_root_screen.dart';
+
 class AdminMetaScreenBlocState {
   AdminMetaScreenBlocState();
 }
@@ -56,10 +58,11 @@ class _AdminMetasScreenState extends State<AdminMetasScreen> {
 Future<void> goToAdminMetasScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
   if (useContentPathNavigation) {
-    await ContentNavigator.of(context).pushPath<Object?>(
-        ProjectMetasContentPath()
-          ..project.value = projectContext.pathProjectId);
-    return;
+    await popAndGoToProjectSubScreen(
+      context,
+      projectContext: projectContext,
+      contentPath: ProjectMetasContentPath(),
+    );
   } else {
     await Navigator.of(context).push<void>(MaterialPageRoute(
         builder: (_) => BlocProvider(

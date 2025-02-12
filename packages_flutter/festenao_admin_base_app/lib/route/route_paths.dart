@@ -55,7 +55,7 @@ class _SubContentPath extends ContentPathBase {
   List<ContentPathField> get fields => [_part];
 }
 
-class _ProjectSubContentPath extends RootSyncedProjectContentPath {
+abstract class _ProjectSubContentPath extends RootSyncedProjectContentPath {
   late final ContentPathPart _part;
   _ProjectSubContentPath(String sub) {
     _part = ContentPathPart(sub);
@@ -64,12 +64,25 @@ class _ProjectSubContentPath extends RootSyncedProjectContentPath {
   List<ContentPathField> get fields => [...super.fields, _part];
 }
 
+abstract class _ProjectSubIdContentPath extends RootSyncedProjectContentPath {
+  late final ContentPathField sub;
+  _ProjectSubIdContentPath(String sub) {
+    this.sub = ContentPathField(sub);
+  }
+  @override
+  List<ContentPathField> get fields => [...super.fields, sub];
+}
+
 class ProjectMetasContentPath extends _ProjectSubContentPath {
   ProjectMetasContentPath() : super('metas');
 }
 
 class ProjectInfosContentPath extends _ProjectSubContentPath {
   ProjectInfosContentPath() : super('infos');
+}
+
+class ProjectInfoContentPath extends _ProjectSubIdContentPath {
+  ProjectInfoContentPath() : super('info');
 }
 
 class ProjectArtistsContentPath extends _ProjectSubContentPath {

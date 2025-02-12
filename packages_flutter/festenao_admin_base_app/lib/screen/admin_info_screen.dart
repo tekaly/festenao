@@ -1,4 +1,6 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
+import 'package:festenao_admin_base_app/route/navigator_def.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/action_tile.dart';
 import 'package:festenao_admin_base_app/view/attributes_tile.dart';
@@ -241,10 +243,17 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
 Future<void> goToAdminInfoScreen(BuildContext context,
     {required String? infoId,
     required FestenaoAdminAppProjectContext projectContext}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () =>
-            AdminInfoScreenBloc(infoId: infoId, projectContext: projectContext),
-        child: const AdminInfoScreen());
-  }));
+  if (useContentPathNavigation) {
+    await ContentNavigator.of(context).pushPath<void>(ProjectInfoContentPath()
+      ..project.value = projectContext.projectId
+      ..sub.value = infoId);
+  } else {
+    await Navigator.of(context)
+        .push<void>(MaterialPageRoute(builder: (context) {
+      return BlocProvider(
+          blocBuilder: () => AdminInfoScreenBloc(
+              infoId: infoId, projectContext: projectContext),
+          child: const AdminInfoScreen());
+    }));
+  }
 }

@@ -145,3 +145,24 @@ Future<void> goToProjectRootScreen(BuildContext context,
   await cn.pushPath<void>(
       RootSyncedProjectContentPath()..project.value = projectId);
 }
+
+Future<void> popAndGoToProjectRootScreen(BuildContext context,
+    {required FestenaoAdminAppProjectContext projectContext}) async {
+  var cn = ContentNavigator.of(context);
+  cn.popUntilPathOrPush(
+      context,
+      AdminAppRootProjectContextPath()
+        ..project.value = projectContext.projectId);
+}
+
+Future<void> popAndGoToProjectSubScreen(BuildContext context,
+    {required FestenaoAdminAppProjectContext projectContext,
+    required AdminAppRootProjectContextPath contentPath}) async {
+  var projectId = projectContext.projectId;
+  var cn = ContentNavigator.of(context);
+  cn.popUntilPathOrPush(
+      context, AdminAppRootProjectContextPath()..project.value = projectId);
+
+  await cn.pushPath<void>(contentPath..project.value = projectContext.projectId,
+      transitionDelegate: const NoAnimationTransitionDelegate());
+}

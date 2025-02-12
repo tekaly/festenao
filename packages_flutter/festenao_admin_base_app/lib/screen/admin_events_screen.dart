@@ -6,6 +6,7 @@ import 'package:tekartik_common_utils/string_utils.dart';
 
 import 'admin_event_edit_screen.dart';
 import 'admin_event_screen.dart';
+import 'project_root_screen.dart';
 import 'screen_bloc_import.dart';
 import 'screen_import.dart';
 
@@ -148,10 +149,11 @@ class _AdminEventsScreenState extends State<AdminEventsScreen>
 Future<void> goToAdminEventsScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
   if (useContentPathNavigation) {
-    await ContentNavigator.of(context).pushPath<Object?>(
-        ProjectEventsContentPath()
-          ..project.value = projectContext.pathProjectId);
-    return;
+    await popAndGoToProjectSubScreen(
+      context,
+      projectContext: projectContext,
+      contentPath: ProjectEventsContentPath(),
+    );
   } else {
     await Navigator.of(context)
         .push<void>(MaterialPageRoute(builder: (context) {

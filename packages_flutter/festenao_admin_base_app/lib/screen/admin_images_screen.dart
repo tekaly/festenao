@@ -12,6 +12,7 @@ import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_image_edit_screen.dart';
 import 'admin_image_screen.dart';
+import 'project_root_screen.dart';
 
 class AdminImagesScreenBlocState {
   final List<DbImage> list;
@@ -100,10 +101,11 @@ class _AdminImagesScreenState extends State<AdminImagesScreen> {
 Future<void> goToAdminImagesScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
   if (useContentPathNavigation) {
-    await ContentNavigator.of(context).pushPath<Object?>(
-        ProjectImagesContentPath()
-          ..project.value = projectContext.pathProjectId);
-    return;
+    await popAndGoToProjectSubScreen(
+      context,
+      projectContext: projectContext,
+      contentPath: ProjectImagesContentPath(),
+    );
   } else {
     await Navigator.of(context)
         .push<void>(MaterialPageRoute(builder: (context) {
