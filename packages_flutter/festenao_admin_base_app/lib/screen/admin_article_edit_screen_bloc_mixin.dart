@@ -31,6 +31,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
     var thumbnailImageData = data.thumbailData;
     var article = data.article;
     var db = await dbBloc.grabDatabase();
+    var bucket = dbBloc.projectContext.storageBucket;
     if (imageData != null) {
       var articleId = article.id;
       var imageId =
@@ -47,7 +48,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
       var path =
           globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
       await globalFestenaoAdminAppFirebaseContext.storage
-          .bucket()
+          .bucket(bucket)
           .file(path)
           .writeAsBytes(Uint8List.fromList(img.encodeJpg(image, quality: 50)));
       await dbImage.put(db);
@@ -71,7 +72,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
       var path = url.join(
           globalFestenaoAppFirebaseContext.storageRootPath, 'image', imageName);
       await globalFestenaoAdminAppFirebaseContext.storage
-          .bucket()
+          .bucket(bucket)
           .file(path)
           .writeAsBytes(Uint8List.fromList(img.encodeJpg(image, quality: 50)));
       await dbImage.put(db);

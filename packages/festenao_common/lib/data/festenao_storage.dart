@@ -1,9 +1,11 @@
 import 'package:tekartik_firebase_storage_rest/storage_json.dart';
 
+//@Deprecated('Use UnauthenticatedStorageApi from tekartik_firebase_storage_rest')
 UnauthenticatedStorageApi getUnauthenticatedStorageApi(
-    {required String projectId}) {
+    {String? projectId, String? storageBucket}) {
+  assert(projectId != null ? storageBucket == null : storageBucket != null);
   var api = UnauthenticatedStorageApi(
-      client: null, storageBucket: '$projectId.appspot.com');
+      client: null, storageBucket: storageBucket ?? '$projectId.appspot.com');
   return api;
 }
 

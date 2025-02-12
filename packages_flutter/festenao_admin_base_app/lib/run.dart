@@ -1,21 +1,17 @@
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
-import 'package:festenao_admin_base_app/l10n/app_localizations.dart';
 import 'package:festenao_admin_base_app/route/navigator_def.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
 import 'package:festenao_common/data/src/model/db_models.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
 import 'package:tekartik_app_navigator_flutter/route_aware.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
-import 'package:tekartik_firebase_ui_auth/ui_auth.dart';
 import 'package:tkcms_admin_app/app.dart';
 import 'package:tkcms_admin_app/app/tkcms_admin_app.dart';
 import 'package:tkcms_admin_app/auth/auth.dart';
 import 'package:tkcms_admin_app/firebase/database_service.dart';
-import 'package:tkcms_admin_app/l10n/app_localizations.dart' as tkcms;
 import 'package:tkcms_admin_app/screen/login_screen.dart';
 import 'package:tkcms_admin_app/screen/project_info.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
@@ -27,6 +23,7 @@ import 'package:tkcms_user_app/theme/theme1.dart';
 
 import 'admin_app/festenao_admin_app.dart';
 import 'firebase/firebase_local.dart';
+import 'l10n/app_intl.dart';
 import 'prefs/local_prefs.dart';
 import 'sembast/projects_db_bloc.dart';
 
@@ -68,7 +65,7 @@ Future<void> festenaoRunApp(
   await globalProjectsDb.ready;
 
   /// Global prefs (last entered values)
-  await gAdminApp.openPrefs();
+  await globalFestenaoAdminApp.openPrefs();
   globalProjectsDbBloc = MultiProjectsDbBloc(
     app: globalTkCmsAdminAppFlavorContext.uniqueAppName,
   );
@@ -107,15 +104,10 @@ class FestenaoAdminApp extends StatelessWidget {
           //navigatorObservers: [cn.routeObserver],
           routerDelegate: cn.routerDelegate,
           routeInformationParser: cn.routeInformationParser,
-          supportedLocales: AppLocalizations.supportedLocales,
+          supportedLocales: festenaoAdminAppSupportedLocales,
           //locale: Locale(getCurrentLocale()),
           localizationsDelegates: const [
-            FirebaseUiAuthServiceBasicLocalizations.delegate,
-            AppLocalizations.delegate,
-            tkcms.AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
+            ...festenaoAdminAppAllLocalizationsDelegates,
           ],
         );
       }),

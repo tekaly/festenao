@@ -7,26 +7,31 @@ import 'package:path/path.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 
 /// Image path in storage
+//@Deprecated('Use getImageUrl')
 String getImageStoragePath(String imageName) {
   return globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
 }
 
-String getImageUrl(String imageName) {
-  return getUnauthenticatedStorageApi(
-          projectId: globalFestenaoAdminAppFirebaseContext.projectId)
+String getImageUrl(String imageName, {required String storageBucket}) {
+  return getUnauthenticatedStorageApi(storageBucket: storageBucket)
       .getMediaUrl(url.join(getImageStoragePath(imageName)));
 }
 
 class DbImagePreview extends StatelessWidget {
+  final FestenaoAdminAppProjectContext projectContext;
   final DbImage image;
 
-  const DbImagePreview({super.key, required this.image});
+  const DbImagePreview(
+      {super.key, required this.image, required this.projectContext});
 
   @override
   Widget build(BuildContext context) {
     return AspectRatio(
         aspectRatio: image.aspectRatio,
-        child: Image.network(getImageUrl(image.name.v!)));
+        child: Image.network(getImageUrl(
+          image.name.v!,
+          storageBucket: projectContext.storageBucket,
+        )));
   }
 }
 
@@ -61,7 +66,10 @@ class ImagePreview extends StatelessWidget {
                 if (dbImage == null) {
                   return const Text('Pas d\'image');
                 } else {
-                  return DbImagePreview(image: dbImage);
+                  return DbImagePreview(
+                    image: dbImage,
+                    projectContext: dbBloc.projectContext,
+                  );
                 }
               });
         });

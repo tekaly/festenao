@@ -36,17 +36,6 @@ class AdminImageEditScreen extends StatefulWidget {
   State<AdminImageEditScreen> createState() => _AdminImageEditScreenState();
 }
 
-enum ImageFormat { png, jpg }
-
-String imageFormatExtension(ImageFormat imageFormat) {
-  switch (imageFormat) {
-    case ImageFormat.png:
-      return '.png';
-    case ImageFormat.jpg:
-      return '.jpg';
-  }
-}
-
 class _AdminImageEditScreenState extends State<AdminImageEditScreen>
     with AdminArticleEditScreenMixin {
   @override
@@ -55,8 +44,8 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
   TextEditingController? heightController;
   TextEditingController? copyrightController;
   TextEditingController? blurHashController;
-  final _imageFormat =
-      BehaviorSubject<ImageFormat>.seeded(gAdminApp.prefsImageFormat);
+  final _imageFormat = BehaviorSubject<ImageFormat>.seeded(
+      globalFestenaoAdminApp.prefsImageFormat);
 
   @override
   void dispose() {
@@ -71,7 +60,7 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
 
   void _setFormat(ImageFormat format) {
     _imageFormat.add(format);
-    gAdminApp.prefsImageFormat = format;
+    globalFestenaoAdminApp.prefsImageFormat = format;
     var imageName =
         '${basenameWithoutExtension(stringNonEmpty(nameController!.text.trim()) ?? idController!.text.trim())}${imageFormatExtension(format)}';
     nameController!.text = imageName;
@@ -293,9 +282,14 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
                     var db = await dbBloc.grabDatabase();
                     var image = await dbImageStoreRef.record(imageId).get(db);
                     if (image != null) {
+                      var imageUrl = Uri.parse(getImageUrl(
+                        image.name.v!,
+                        storageBucket: projectContext.storageBucket,
+                      ));
+                      // print('imageUrl: $imageUrl');
                       var bytes = await httpClientFactory
                           .newClient()
-                          .readBytes(Uri.parse(getImageUrl(image.name.v!)));
+                          .readBytes(imageUrl);
                       valueNotifier.value = bytes;
                     }
                   }();

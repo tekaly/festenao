@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/admin_app/festenao_admin_app.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_blur_hash/blur_hash.dart';
@@ -67,6 +68,7 @@ class AdminImageEditScreenBloc
 
   Future<void> saveImage(AdminImageEditData data) async {
     var db = await dbBloc.grabDatabase();
+    var bucket = dbBloc.projectContext.storageBucket;
     var dbImage = data.image;
 
     var imageData = data.imageData;
@@ -103,7 +105,7 @@ class AdminImageEditScreenBloc
           globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
       // devPrint('sending to $path ${imageData.length}');
       await globalFestenaoAdminAppFirebaseContext.storage
-          .bucket()
+          .bucket(bucket)
           .file(path)
           .writeAsBytes(imageData);
     }
@@ -114,7 +116,7 @@ class AdminImageEditScreenBloc
         var path =
             globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
         var bytes = await globalFestenaoAdminAppFirebaseContext.storage
-            .bucket()
+            .bucket(bucket)
             .file(path)
             .readAsBytes();
 

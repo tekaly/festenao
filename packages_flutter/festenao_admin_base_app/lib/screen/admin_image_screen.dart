@@ -10,7 +10,6 @@ import 'package:festenao_common/data/festenao_storage.dart';
 import 'package:festenao_common/text/text.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
 import 'package:path/path.dart';
-import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_image_edit_screen.dart';
 
@@ -24,18 +23,15 @@ class AdminImageScreenBlocState {
 }
 
 class AdminImageScreenBloc
-    extends AutoDisposeStateBaseBloc<AdminImageScreenBlocState> {
-  final FestenaoAdminAppProjectContext projectContext;
+    extends AdminAppProjectScreenBlocBase<AdminImageScreenBlocState> {
   final String? imageId;
-  late final _dbBloc = audiAddDisposable(
-      AdminAppProjectContextDbBloc(projectContext: projectContext));
 
   StreamSubscription? _imageSubscription;
 
-  AdminImageScreenBloc({required this.imageId, required this.projectContext}) {
+  AdminImageScreenBloc({required this.imageId, required super.projectContext}) {
     () async {
       if (imageId != null) {
-        var db = await _dbBloc.grabDatabase();
+        var db = await dbBloc.grabDatabase();
         _imageSubscription =
             dbImageStoreRef.record(imageId!).onRecord(db).listen((image) {
           add(AdminImageScreenBlocState(imageId: imageId, image: image));
@@ -63,9 +59,11 @@ class AdminImageScreen extends StatefulWidget {
 
 class _AdminImageScreenState extends State<AdminImageScreen>
     with AdminScreenMixin {
+  AdminImageScreenBloc get bloc =>
+      BlocProvider.of<AdminImageScreenBloc>(this.context);
   @override
   Widget build(BuildContext context) {
-    var bloc = BlocProvider.of<AdminImageScreenBloc>(context);
+    var bloc = this.bloc;
     return AdminScreenLayout(
       appBar: AppBar(
         title: const Text('Image'),
@@ -91,6 +89,15 @@ class _AdminImageScreenState extends State<AdminImageScreen>
               );
             }
             var image = state.image;
+            var imageUrl = image == null
+                ? null
+                : getUnauthenticatedStorageApi(
+                    storageBucket: bloc.projectContext.storageBucket,
+                  ).getMediaUrl(
+                    url.join(globalFestenaoAppFirebaseContext.storageRootPath,
+                        'image', image.name.v!),
+                  );
+            // print('imageUrl: $imageUrl');
             return ListView(children: [
               if (image == null)
                 const ListTile(
@@ -127,21 +134,16 @@ class _AdminImageScreenState extends State<AdminImageScreen>
                       ),
                     ),
                   ),
-                SizedBox(
-                  height: 340,
-                  child: Center(
-                    child: AspectRatio(
-                      aspectRatio: image.aspectRatio,
-                      child: Image.network(getUnauthenticatedStorageApi(
-                              projectId: globalFestenaoAdminAppFirebaseContext
-                                  .projectId)
-                          .getMediaUrl(url.join(
-                              globalFestenaoAppFirebaseContext.storageRootPath,
-                              'image',
-                              image.name.v!))),
+                if (imageUrl != null)
+                  SizedBox(
+                    height: 340,
+                    child: Center(
+                      child: AspectRatio(
+                        aspectRatio: image.aspectRatio,
+                        child: Image.network(imageUrl),
+                      ),
                     ),
                   ),
-                ),
               ]
             ]);
           },

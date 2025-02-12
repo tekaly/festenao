@@ -1,4 +1,3 @@
-import 'package:festenao_admin_base_app/screen/admin_image_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/app/app_options.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
@@ -11,9 +10,21 @@ class FestenaoAdminAppOptions {}
 var globalFestenaoAppOptions = festenaoAppOptionsDefault;
 late String globalPackageName;
 
-class AdminApp {
+enum ImageFormat { png, jpg }
+
+String imageFormatExtension(ImageFormat imageFormat) {
+  switch (imageFormat) {
+    case ImageFormat.png:
+      return '.png';
+    case ImageFormat.jpg:
+      return '.jpg';
+  }
+}
+
+class FestenaoAdminApp {
   // Set by caller
   late FirebaseContext fbContext;
+
   late Prefs prefs;
 
   // AppOptions? _options;
@@ -46,5 +57,5 @@ var _imageFormatMap = <ImageFormat, String>{
 var _reverseImageFormatMap =
     _imageFormatMap.map((key, value) => MapEntry(value, key));
 
-final app = AdminApp();
-AdminApp get gAdminApp => app;
+final _app = FestenaoAdminApp();
+FestenaoAdminApp get globalFestenaoAdminApp => _app;

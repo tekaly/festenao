@@ -136,7 +136,8 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
   List<ArticleImageHolder> getImageHolders(DbArticleCommon? article,
       {required Database db}) {
     return _imageHolders ??= articleImageHoldersColumns.map((column) {
-      return ArticleImageHolder(article, column, db: db);
+      return ArticleImageHolder(article, column,
+          db: db, projectContext: projectContext);
     }).toList();
   }
 
@@ -305,9 +306,9 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
                     var image =
                         await dbImageStoreRef.record(squareImage).get(db);
                     if (image != null) {
-                      var bytes = await httpClientFactory
-                          .newClient()
-                          .readBytes(Uri.parse(getImageUrl(image.name.v!)));
+                      var bytes = await httpClientFactory.newClient().readBytes(
+                          Uri.parse(getImageUrl(image.name.v!,
+                              storageBucket: projectContext.storageBucket)));
                       valueNotifier.value = bytes;
                     }
                   }();
@@ -352,7 +353,10 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
                     if (image != null) {
                       var bytes = await httpClientFactory
                           .newClient()
-                          .readBytes(Uri.parse(getImageUrl(image.name.v!)));
+                          .readBytes(Uri.parse(getImageUrl(
+                            image.name.v!,
+                            storageBucket: dbBloc.projectContext.storageBucket,
+                          )));
                       valueNotifier.value = bytes;
                     }
                   }();
@@ -382,7 +386,10 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
                     if (image != null) {
                       var bytes = await httpClientFactory
                           .newClient()
-                          .readBytes(Uri.parse(getImageUrl(image.name.v!)));
+                          .readBytes(Uri.parse(getImageUrl(
+                            image.name.v!,
+                            storageBucket: projectContext.storageBucket,
+                          )));
                       valueNotifier.value = bytes;
                     }
                   }();
@@ -517,6 +524,7 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
 }
 
 class ArticleImageHolder {
+  final FestenaoAdminAppProjectContext projectContext;
   final Database db;
   TextEditingController? _imageIdController;
   TextEditingController get imageIdController =>
@@ -538,7 +546,8 @@ class ArticleImageHolder {
 
   CvField<String>? get imageField =>
       article?.field<String>(articleImageColumn.name);
-  ArticleImageHolder(this.article, this.articleImageColumn, {required this.db});
+  ArticleImageHolder(this.article, this.articleImageColumn,
+      {required this.db, required this.projectContext});
 
   void _setNull() {
     _imageData.value = null;
@@ -568,7 +577,10 @@ class ArticleImageHolder {
             if (image != null) {
               var bytes = await httpClientFactory
                   .newClient()
-                  .readBytes(Uri.parse(getImageUrl(image.name.v!)));
+                  .readBytes(Uri.parse(getImageUrl(
+                    image.name.v!,
+                    storageBucket: projectContext.storageBucket,
+                  )));
               _set(imageId, bytes);
             }
           }
