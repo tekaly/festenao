@@ -1,9 +1,8 @@
 import 'dart:async';
 
-import 'package:festenao_admin_base_app/firebase/firebase.dart';
+import 'package:festenao_admin_base_app/screen/admin_export_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
-import 'package:path/path.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 class AdminExportsScreenBlocState {
@@ -16,10 +15,12 @@ class AdminExportsScreenBlocState {
 }
 
 class AdminExportsScreenBloc
-    extends AutoDisposeStateBaseBloc<AdminExportsScreenBlocState> {
+    extends AutoDisposeStateBaseBloc<AdminExportsScreenBlocState>
+    with AdminExportBlocMixin {
   // ignore: cancel_subscriptions
   StreamSubscription? _artistSubscription;
 
+  @override
   final FestenaoAdminAppProjectContext projectContext;
 
   AdminExportsScreenBloc({required this.projectContext}) {
@@ -33,15 +34,21 @@ class AdminExportsScreenBloc
       FestenaoExportMeta? metaProd;
 
       var metaDevSnapshot = await firestore
+          .collection(firestoreMetaCollectionPath)
+          .doc(getFirestorePublishMetaDocumentName(true))
+          // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
+          .get();
+      /*firestore
           .doc(
               globalFestenaoAppFirebaseContext.getMetaExportFirestorePath(true))
-          .get();
+          .get();*/
       if (metaDevSnapshot.exists) {
         metaDev = metaDevSnapshot.data.cv<FestenaoExportMeta>();
       }
       var metaProdSnapshot = await firestore
-          .doc(globalFestenaoAppFirebaseContext
-              .getMetaExportFirestorePath(false))
+          .collection(firestoreMetaCollectionPath)
+          .doc(getFirestorePublishMetaDocumentName(false))
+          // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
           .get();
       if (metaProdSnapshot.exists) {
         metaProd = metaProdSnapshot.data.cv<FestenaoExportMeta>();
@@ -50,8 +57,7 @@ class AdminExportsScreenBloc
           metaDev: metaDev, metaProd: metaProd));
     }
 
-    var query = firestore
-        .collection(url.join(projectContext.firestorePath, getExportsPath()));
+    var query = firestore.collection(firestoreExportCollectionPath);
     if (firestore.service.supportsTrackChanges) {
       _artistSubscription ??= audiAddStreamSubscription(
           query.onSnapshotSupport().listen((event) async {

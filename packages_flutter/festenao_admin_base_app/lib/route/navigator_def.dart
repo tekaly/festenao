@@ -3,6 +3,9 @@ import 'package:festenao_admin_base_app/screen/admin_artist_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_event_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_export_view_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_exports_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_exports_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/admin_image_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_info_screen.dart';
@@ -225,6 +228,33 @@ var projectEventPageDef = ContentPageDef(
           child: const AdminEventScreen());
     },
     path: ProjectEventContentPath());
+
+var projectExportsPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectExportsContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminExportsScreenBloc(projectContext: projectContext),
+          child: const AdminExportsScreen());
+    },
+    path: ProjectExportsContentPath());
+
+var projectExportPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectExportContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var subId = cp.sub.value!;
+      var projectContext =
+          ByProjectIdAdminAppProjectContext(projectId: projectId);
+      return BlocProvider(
+          blocBuilder: () => AdminExportViewScreenBloc(
+              projectContext: projectContext, exportId: subId),
+          child: const AdminExportViewScreen());
+    },
+    path: ProjectExportContentPath());
 /*
 var syncedProjectNotesPageDef = ContentPageDef(
     screenBuilder: (crps) {
@@ -282,7 +312,8 @@ final festenaoAdminAppPages = [
   projectImagePageDef,
   projectEventsPageDef,
   projectEventPageDef,
-
+  projectExportsPageDef,
+  projectExportPageDef,
   /*
   settingsPageDef,
   settingProjectsPageDef,

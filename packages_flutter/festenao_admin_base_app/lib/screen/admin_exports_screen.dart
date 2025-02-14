@@ -1,4 +1,6 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
+import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 
 import 'admin_export_edit_screen.dart';
@@ -77,10 +79,19 @@ class _AdminExportsScreenState extends State<AdminExportsScreen> {
 
 Future<void> goToAdminExportsScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () =>
-            AdminExportsScreenBloc(projectContext: projectContext),
-        child: const AdminExportsScreen());
-  }));
+  if (festenaoUseContentPathNavigation) {
+    await popAndGoToProjectSubScreen(
+      context,
+      projectContext: projectContext,
+      contentPath: ProjectExportsContentPath(),
+    );
+  } else {
+    await Navigator.of(context)
+        .push<void>(MaterialPageRoute(builder: (context) {
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminExportsScreenBloc(projectContext: projectContext),
+          child: const AdminExportsScreen());
+    }));
+  }
 }

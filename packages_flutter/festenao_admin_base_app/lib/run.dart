@@ -6,6 +6,7 @@ import 'package:festenao_admin_base_app/route/route_navigation.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
 import 'package:festenao_common/data/src/model/db_models.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
 import 'package:tekartik_app_navigator_flutter/route_aware.dart';
@@ -33,6 +34,9 @@ Future<void> festenaoRunApp(
     {AppFlavorContext? appFlavorContext,
     String? packageName,
     FirebaseContext? firebaseContext}) async {
+  if (kDebugMode) {
+    gDebugLogFirestore = true;
+  }
   // festenaoUseContentPathNavigation = devWarning(true);
   WidgetsFlutterBinding.ensureInitialized();
   webSplashReady();
@@ -58,8 +62,8 @@ Future<void> festenaoRunApp(
   globalPackageName = 'tekaly.festenao';
   globalFestenaoAppFirebaseContext = FestenaoAppFirebaseContext(
       storageBucket: 'festenao.bucket',
-      storageRootPath: 'festenao',
-      firestoreRootPath: 'festenao');
+      storageRootPath: 'app/festenao',
+      firestoreRootPath: 'app/festenao');
   gDebugUsername = 'admin';
   gDebugPassword = '__admin__'; // irrelevant
   globalProjectsDb = ProjectsDb(
@@ -72,6 +76,8 @@ Future<void> festenaoRunApp(
   globalProjectsDbBloc = MultiProjectsDbBloc(
     app: globalTkCmsAdminAppFlavorContext.uniqueAppName,
   );
+
+  initFestenaoFsBuilders();
 
   // TODO remove
   fsProjectSyncedDb = SyncedEntitiesDb<TkCmsFsProject>(

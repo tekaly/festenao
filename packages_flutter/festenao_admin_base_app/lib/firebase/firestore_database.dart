@@ -1,10 +1,13 @@
+import 'package:festenao_common/data/festenao_cv.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// Initialize festenao firestore builders
 void initFestenaoFsBuilders() {
+  initTkCmsFsBuilders();
+  initFestenaoCvBuilders();
   cvAddConstructors([
-    FsProject.new,
+    FsExport.new,
   ]);
 }
 

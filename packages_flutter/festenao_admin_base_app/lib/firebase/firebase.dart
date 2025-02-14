@@ -34,15 +34,19 @@ String getImageDirPath(String imageName) =>
 
 // TODO fix path
 extension FestenaoFirebaseContextExt on FestenaoAppFirebaseContext {
+  // @Deprecated('do not use')
   String getImageDirStoragePath(String imageName) =>
       url.join(storageRootPath, storageImageDirPart, imageName);
 
+  @Deprecated('do not use')
   String getDataExportStoragePath(int changeId) => url.join(storageRootPath,
       storageDataDirPart, getStoragePublishDataFileBasename(changeId));
 
+  @Deprecated('do not use')
   String getMetaExportStoragePath(bool isDev) => url.join(storageRootPath,
       storageDataDirPart, getStoragePublishMetaFileBasename(isDev));
 
+  //@Deprecated('do not use') compat
   String getMetaExportFirestorePath(bool isDev) => url.join(
       firestoreRootPath, getInfosPath(), 'export_meta${isDev ? '_dev' : ''}');
 }

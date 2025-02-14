@@ -106,6 +106,14 @@ class ProjectEventContentPath extends _ProjectSubIdContentPath {
   ProjectEventContentPath() : super('event');
 }
 
+class ProjectExportsContentPath extends _ProjectSubContentPath {
+  ProjectExportsContentPath() : super('exports');
+}
+
+class ProjectExportContentPath extends _ProjectSubIdContentPath {
+  ProjectExportContentPath() : super('export');
+}
+
 class ProjectImagesContentPath extends _ProjectSubContentPath {
   ProjectImagesContentPath() : super('images');
 }

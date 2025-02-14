@@ -1,10 +1,12 @@
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
+import 'package:festenao_admin_base_app/route/navigator_def.dart';
+import 'package:festenao_admin_base_app/route/route_paths.dart';
+import 'package:festenao_admin_base_app/screen/admin_export_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/info_tile.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/text/text.dart';
-import 'package:path/path.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_admin_app/view/body_container.dart';
 
@@ -18,7 +20,9 @@ class AdminExportViewScreenBlocState {
 }
 
 class AdminExportViewScreenBloc
-    extends AutoDisposeStateBaseBloc<AdminExportViewScreenBlocState> {
+    extends AutoDisposeStateBaseBloc<AdminExportViewScreenBlocState>
+    with AdminExportBlocMixin {
+  @override
   final FestenaoAdminAppProjectContext projectContext;
   final String exportId;
 
@@ -32,14 +36,15 @@ class AdminExportViewScreenBloc
   }
 
   Future<void> refresh() async {
-    var path = url.join(globalFestenaoAppFirebaseContext.firestoreRootPath,
-        getExportPath(exportId));
     if (!firestore.service.supportsTrackChanges) {
       audiDispose(_exportSubscription);
       _exportSubscription = null;
     }
-    _exportSubscription ??= audiAddStreamSubscription(
-        firestore.doc(path).onSnapshotSupport().listen((snapshot) {
+    _exportSubscription ??= audiAddStreamSubscription(firestore
+        .collection(firestoreExportCollectionPath)
+        .doc(exportId)
+        .onSnapshotSupport()
+        .listen((snapshot) {
       add(AdminExportViewScreenBlocState(fsExport: snapshot.cv<FsExport>()));
     }));
   }
@@ -137,10 +142,17 @@ class _AdminExportViewScreenState extends State<AdminExportViewScreen> {
 Future<void> goToAdminExportViewScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext,
     required String exportId}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () => AdminExportViewScreenBloc(
-            projectContext: projectContext, exportId: exportId),
-        child: const AdminExportViewScreen());
-  }));
+  if (festenaoUseContentPathNavigation) {
+    await ContentNavigator.of(context).pushPath<void>(ProjectExportContentPath()
+      ..project.value = projectContext.projectId
+      ..sub.value = exportId);
+  } else {
+    await Navigator.of(context)
+        .push<void>(MaterialPageRoute(builder: (context) {
+      return BlocProvider(
+          blocBuilder: () => AdminExportViewScreenBloc(
+              projectContext: projectContext, exportId: exportId),
+          child: const AdminExportViewScreen());
+    }));
+  }
 }

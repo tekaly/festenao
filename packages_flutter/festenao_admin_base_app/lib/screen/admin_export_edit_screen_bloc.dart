@@ -31,10 +31,27 @@ class AdminExportEditData {
       this.publish = false});
 }
 
+abstract class AdminExportBlocMixinInterface {
+  FestenaoAdminAppProjectContext get projectContext;
+}
+
+mixin AdminExportBlocMixin implements AdminExportBlocMixinInterface {
+  String get _firestoreRootPath => projectContext.firestorePath;
+  @override
+  FestenaoAdminAppProjectContext get projectContext;
+  String get firestoreExportCollectionPath =>
+      join(_firestoreRootPath, firestoreExportPathPart);
+
+  String get firestoreMetaCollectionPath =>
+      join(_firestoreRootPath, firestoreExportMetaPathPart);
+}
+
 class AdminExportEditScreenBloc
-    extends AutoDisposeStateBaseBloc<AdminExportEditScreenBlocState> {
+    extends AutoDisposeStateBaseBloc<AdminExportEditScreenBlocState>
+    with AdminExportBlocMixin {
   late final _dbBloc = audiAddDisposable(
       AdminAppProjectContextDbBloc(projectContext: projectContext));
+  @override
   final FestenaoAdminAppProjectContext projectContext;
 
   ByProjectIdAdminAppProjectContext get byIdProjectContext =>
@@ -47,12 +64,15 @@ class AdminExportEditScreenBloc
   Firestore get firestore => projectContext.firestore;
   late var storage = projectContext.storage;
 
+  @override
   String get firestoreExportCollectionPath =>
       join(_firestoreRootPath, firestoreExportPathPart);
 
+  @override
   String get firestoreMetaCollectionPath =>
       join(_firestoreRootPath, firestoreExportMetaPathPart);
 
+  @override
   String get _firestoreRootPath => projectContext.firestorePath;
 
   //late var exportFirestoreRootPath = projectContext.firestorePath;

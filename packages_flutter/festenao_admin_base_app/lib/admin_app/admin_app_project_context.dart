@@ -15,6 +15,7 @@ abstract class FestenaoAdminAppProjectContext {
 
   String get storageBucket;
 
+  /// Firestore root path for the app/projectId
   String get firestorePath;
 
   String get storagePath;

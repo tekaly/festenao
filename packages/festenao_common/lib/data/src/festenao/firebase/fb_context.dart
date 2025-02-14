@@ -17,6 +17,7 @@ extension FbContextExt on FbContext {
   String getMetaExportStoragePath(bool isDev) => url.join(storageRootPath!,
       storageDataDirPart, getStoragePublishMetaFileBasename(isDev));
 
+  //@Deprecated('do not use')
   String getMetaExportFirestorePath(bool isDev) => url.join(
       firestoreRootPath!, getInfosPath(), 'export_meta${isDev ? '_dev' : ''}');
 }
