@@ -1,13 +1,11 @@
-import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
-import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
+import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/view/entry_tile.dart';
-import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
@@ -16,6 +14,7 @@ import 'package:tkcms_admin_app/l10n/app_intl.dart';
 import 'package:tkcms_user_app/view/body_container.dart';
 
 import '../view/project_leading.dart';
+import 'admin_exports_screen.dart';
 import 'admin_metas_screen.dart';
 import 'project_root_screen_bloc.dart';
 
@@ -128,6 +127,15 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                                       projectContext: bloc.projectContext);
                                 },
                               ),
+                              EntryTile(
+                                label: 'Publish v2',
+                                onTap: () async {
+                                  await goToAdminExportsScreen(
+                                    context,
+                                    projectContext: bloc.projectContext,
+                                  );
+                                },
+                              ),
                               const SizedBox(height: 64),
                             ]),
                       ))
@@ -160,9 +168,20 @@ Future<void> popAndGoToProjectSubScreen(BuildContext context,
     required AdminAppRootProjectContextPath contentPath}) async {
   var projectId = projectContext.projectId;
   var cn = ContentNavigator.of(context);
+  final routeName = Navigator.of(context).widget.pages.last.name;
+  //print('routeName: $routeName');
+  //print('going to $contentPath');
+  if (routeName != null && contentPath.matchesString(routeName)) {
+    // print('Already in $contentPath');
+    return;
+  }
+  var nextContentPath = contentPath..project.value = projectId;
+  /*
   cn.popUntilPathOrPush(
       context, AdminAppRootProjectContextPath()..project.value = projectId);
 
+  await sleep(300);
   await cn.pushPath<void>(contentPath..project.value = projectContext.projectId,
-      transitionDelegate: const NoAnimationTransitionDelegate());
+      transitionDelegate: const NoAnimationTransitionDelegate());*/
+  cn.popUntilPathOrPush(context, nextContentPath);
 }

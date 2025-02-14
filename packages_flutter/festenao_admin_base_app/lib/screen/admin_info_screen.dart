@@ -243,7 +243,7 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
 Future<void> goToAdminInfoScreen(BuildContext context,
     {required String? infoId,
     required FestenaoAdminAppProjectContext projectContext}) async {
-  if (useContentPathNavigation) {
+  if (festenaoUseContentPathNavigation) {
     await ContentNavigator.of(context).pushPath<void>(ProjectInfoContentPath()
       ..project.value = projectContext.projectId
       ..sub.value = infoId);

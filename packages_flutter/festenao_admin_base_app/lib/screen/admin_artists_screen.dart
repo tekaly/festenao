@@ -1,5 +1,4 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
-import 'package:festenao_admin_base_app/route/navigator_def.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/admin_screen_bloc_mixin.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
@@ -70,6 +69,7 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
   @override
   Widget build(BuildContext context) {
     var bloc = this.bloc;
+
     return AdminScreenLayout(
       appBar: AppBar(
         title: const Text('Artistes'),
@@ -150,7 +150,7 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
 
 Future<void> goToAdminArtistsScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
-  if (useContentPathNavigation) {
+  if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
       projectContext: projectContext,

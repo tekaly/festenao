@@ -2,6 +2,7 @@ import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_exports_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
@@ -35,7 +36,7 @@ class _ListDrawerState extends State<ListDrawer> {
   @override
   Widget build(BuildContext context) {
     if (widget.content ?? false) {
-      return Hero(tag: 'festenao_drawer', child: buildListView(context));
+      return Hero(tag: UniqueKey(), child: buildListView(context));
     }
     return Drawer(
         child: SafeArea(
@@ -135,6 +136,15 @@ class _ListDrawerState extends State<ListDrawer> {
             onTap: () async {
               await goToAdminInfosScreen(context,
                   projectContext: appProjectContext);
+            },
+          ),
+          ListTile(
+            title: const Text('Publish v2'),
+            onTap: () async {
+              await goToAdminExportsScreen(
+                context,
+                projectContext: appProjectContext,
+              );
             },
           ),
           /*

@@ -24,8 +24,6 @@ import 'route_paths.dart';
 
 export 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
-var useContentPathNavigation = true;
-
 /// Root/Start screen builder
 Widget festenaoAdminAppUserRootScreenBuilder(ContentPathRouteSettings crps) {
   return BlocProvider(

@@ -173,7 +173,7 @@ class _AdminImageScreenState extends State<AdminImageScreen>
 Future<void> goToAdminImageScreen(BuildContext context,
     {required String? imageId,
     required FestenaoAdminAppProjectContext projectContext}) async {
-  if (useContentPathNavigation) {
+  if (festenaoUseContentPathNavigation) {
     await ContentNavigator.of(context).pushPath<void>(ProjectImageContentPath()
       ..project.value = projectContext.projectId
       ..sub.value = imageId);

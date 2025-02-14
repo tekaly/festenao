@@ -1,4 +1,5 @@
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
+export 'route_navigation.dart';
 
 class ProjectsContentPath extends ContentPathBase {
   final _part = ContentPathPart('projects');

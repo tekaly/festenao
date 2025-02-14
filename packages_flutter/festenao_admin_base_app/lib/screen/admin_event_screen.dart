@@ -202,7 +202,7 @@ class _AdminEventScreenState extends State<AdminEventScreen>
 Future<void> goToAdminEventScreen(BuildContext context,
     {required String? eventId,
     required FestenaoAdminAppProjectContext projectContext}) async {
-  if (useContentPathNavigation) {
+  if (festenaoUseContentPathNavigation) {
     await ContentNavigator.of(context).pushPath<void>(ProjectEventContentPath()
       ..project.value = projectContext.projectId
       ..sub.value = eventId);

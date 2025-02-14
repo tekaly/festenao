@@ -198,7 +198,7 @@ class _AdminArtistScreenState extends State<AdminArtistScreen>
 Future<void> goToAdminArtistScreen(BuildContext context,
     {required String? artistId,
     required FestenaoAdminAppProjectContext projectContext}) async {
-  if (useContentPathNavigation) {
+  if (festenaoUseContentPathNavigation) {
     await ContentNavigator.of(context).pushPath<void>(ProjectArtistContentPath()
       ..project.value = projectContext.projectId
       ..sub.value = artistId);

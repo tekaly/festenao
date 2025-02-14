@@ -1,6 +1,8 @@
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/route/navigator_def.dart';
+// ignore: unused_import
+import 'package:festenao_admin_base_app/route/route_navigation.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
 import 'package:festenao_common/data/src/model/db_models.dart';
@@ -31,6 +33,7 @@ Future<void> festenaoRunApp(
     {AppFlavorContext? appFlavorContext,
     String? packageName,
     FirebaseContext? firebaseContext}) async {
+  // festenaoUseContentPathNavigation = devWarning(true);
   WidgetsFlutterBinding.ensureInitialized();
   webSplashReady();
   packageName ??= 'festenao.admin_base_app';

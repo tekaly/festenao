@@ -1,5 +1,6 @@
 import 'package:festenao_admin_base_app/auth/auth_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tekartik_firebase_auth_local/auth_local.dart';
 
@@ -20,6 +21,12 @@ class ProjectRootScreenBloc
   FirebaseUser? firebaseUser;
   ProjectRootScreenBloc({required this.projectId}) {
     () async {
+      if (globalProjectsDbBloc is SingleProjectDbBloc) {
+        add(ProjectRootScreenBlocState(
+            project: DbProject()..uid.v = 'compat', user: null));
+        return;
+      }
+
       var user = ((await globalAuthBloc.state.first).user);
       if (user == null) {
         add(ProjectRootScreenBlocState());

@@ -1,5 +1,4 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
-import 'package:festenao_admin_base_app/route/navigator_def.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/view/admin_article_thumbnail.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
@@ -148,7 +147,7 @@ class _AdminEventsScreenState extends State<AdminEventsScreen>
 
 Future<void> goToAdminEventsScreen(BuildContext context,
     {required FestenaoAdminAppProjectContext projectContext}) async {
-  if (useContentPathNavigation) {
+  if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
       projectContext: projectContext,
