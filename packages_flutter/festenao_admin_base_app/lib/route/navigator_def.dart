@@ -13,6 +13,10 @@ import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen_bloc.dart';
+import 'package:festenao_admin_base_app/screen/project_root_user_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_root_user_screen_bloc.dart';
+import 'package:festenao_admin_base_app/screen/project_root_users_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_root_users_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
@@ -255,6 +259,31 @@ var projectExportPageDef = ContentPageDef(
           child: const AdminExportViewScreen());
     },
     path: ProjectExportContentPath());
+
+var projectUsersPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectUsersContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminUsersScreenBloc(param: AdminUsersScreenParam(id: projectId)),
+          child: const AdminUsersScreen());
+    },
+    path: ProjectUsersContentPath());
+
+var projectUserPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      var cp = ProjectUserContentPath()..fromPath(crps.path);
+      var projectId = cp.project.value!;
+      var subId = cp.sub.value!;
+
+      return BlocProvider(
+          blocBuilder: () =>
+              AdminUserScreenBloc(projectId: projectId, userId: subId),
+          child: const AdminUserScreen());
+    },
+    path: ProjectUserContentPath());
 /*
 var syncedProjectNotesPageDef = ContentPageDef(
     screenBuilder: (crps) {
@@ -314,6 +343,8 @@ final festenaoAdminAppPages = [
   projectEventPageDef,
   projectExportsPageDef,
   projectExportPageDef,
+  projectUsersPageDef,
+  projectUserPageDef,
   /*
   settingsPageDef,
   settingProjectsPageDef,

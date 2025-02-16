@@ -7,6 +7,7 @@ import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_root_users_screen.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:flutter/material.dart';
@@ -139,11 +140,20 @@ class _ListDrawerState extends State<ListDrawer> {
             },
           ),
           ListTile(
-            title: const Text('Publish v2'),
+            title: const Text('Publish'),
             onTap: () async {
               await goToAdminExportsScreen(
                 context,
                 projectContext: appProjectContext,
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Users'),
+            onTap: () async {
+              await goToAdminUsersScreen(
+                context,
+                projectId: appProjectContext.projectId,
               );
             },
           ),

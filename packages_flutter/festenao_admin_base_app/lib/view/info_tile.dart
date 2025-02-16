@@ -4,9 +4,14 @@ class InfoTile extends StatelessWidget {
   final String? value;
   final String? label;
   final bool showIfValueEmpty;
+  final VoidCallback? onTap;
 
   const InfoTile(
-      {super.key, this.value, this.label, this.showIfValueEmpty = true});
+      {super.key,
+      this.value,
+      this.label,
+      this.showIfValueEmpty = true,
+      this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -16,6 +21,7 @@ class InfoTile extends StatelessWidget {
       }
     }
     return ListTile(
+      onTap: onTap,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

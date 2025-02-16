@@ -106,6 +106,16 @@ class ProjectEventContentPath extends _ProjectSubIdContentPath {
   ProjectEventContentPath() : super('event');
 }
 
+/// Special user fs only
+class ProjectUsersContentPath extends _ProjectSubContentPath {
+  ProjectUsersContentPath() : super('users');
+}
+
+class ProjectUserContentPath extends _ProjectSubIdContentPath {
+  ProjectUserContentPath() : super('user');
+}
+
+/// Special export fs only
 class ProjectExportsContentPath extends _ProjectSubContentPath {
   ProjectExportsContentPath() : super('exports');
 }

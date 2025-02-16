@@ -3,6 +3,7 @@ import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_root_users_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/view/entry_tile.dart';
@@ -133,6 +134,15 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                                   await goToAdminExportsScreen(
                                     context,
                                     projectContext: bloc.projectContext,
+                                  );
+                                },
+                              ),
+                              EntryTile(
+                                label: 'Users',
+                                onTap: () async {
+                                  await goToAdminUsersScreen(
+                                    context,
+                                    projectId: bloc.projectId,
                                   );
                                 },
                               ),
