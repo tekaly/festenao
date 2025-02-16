@@ -1,16 +1,17 @@
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_users_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
-import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 import 'package:tkcms_admin_app/view/body_container.dart';
 import 'package:tkcms_admin_app/view/section_tile.dart';
 import 'package:tkcms_admin_app/view/trailing_arrow.dart';
 
 import '../layout/admin_screen_layout.dart';
+import 'project_root_user_edit_screen_bloc.dart';
 
 class AdminUsersScreen extends StatefulWidget {
   const AdminUsersScreen({super.key});
@@ -70,7 +71,9 @@ class _AdminUsersScreenState extends AutoDisposeBaseState<AdminUsersScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await muiSnack(context, 'goToAdminUserCreateScreen(context)');
+          await goToAdminUserEditScreen(context,
+              param: AdminUserEditScreenParam(
+                  projectId: bloc.param.id, userId: null));
         },
         child: const Icon(Icons.add),
       ),

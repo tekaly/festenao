@@ -37,7 +37,7 @@ final projectCollectionInfo =
 /// User private collection info
 final userPrvCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsUserPrv>(
-        id: 'Project_user',
+        id: 'project_user',
         name: 'User private',
         treeDef: TkCmsCollectionsTreeDef(map: {
           'data': {'data': null, 'meta': null}

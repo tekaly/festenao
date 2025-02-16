@@ -1,11 +1,12 @@
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
+import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/info_tile.dart';
 import 'package:flutter/services.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
-import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
@@ -113,8 +114,9 @@ class _AdminUserScreenState extends AutoDisposeBaseState<AdminUserScreen> {
           }
           return FloatingActionButton(
             onPressed: () async {
-              await muiSnack(
-                  context, 'await goToAdminUserEditScreen(context, userId);');
+              await goToAdminUserEditScreen(context,
+                  param: AdminUserEditScreenParam(
+                      userId: userId, projectId: bloc.projectId));
             },
             child: const Icon(Icons.edit),
           );
