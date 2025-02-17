@@ -6,6 +6,11 @@ export 'package:tekartik_app_date/calendar_time.dart';
 
 var dataOffset = const Duration(minutes: -60);
 
+/// For start-end format
+CalendarTime parseStartCalendarTimeOrThrow(String text) {
+  return CalendarTime(text: text.split('-').first);
+}
+
 extension CalendarTimeCompatExt on CalendarTime {
   String toInputString() {
     var hours = (seconds ~/ 3600);
@@ -149,21 +154,21 @@ CalendarDayCompat? parseCalendarDayCompat(String text) {
   }
 }
 
-CalendarDayCompat parseCalendarDayOrThrow(String text) {
+CalendarDayCompat parseCalendarDayOrThrowCompat(String text) {
   return CalendarDayCompat(text: text);
 }
 
 /// For start-end format
-CalendarTimeCompat? parseStartCalendarTime(String text) {
+CalendarTimeCompat? parseStartCalendarTimeCompat(String text) {
   try {
-    return parseStartCalendarTimeOrThrow(text);
+    return parseStartCalendarTimeOrThrowCompat(text);
   } catch (_) {
     return null;
   }
 }
 
 /// For start-end format
-CalendarTimeCompat parseStartCalendarTimeOrThrow(String text) {
+CalendarTimeCompat parseStartCalendarTimeOrThrowCompat(String text) {
   return CalendarTimeCompat(text: text.split('-').first);
 }
 
