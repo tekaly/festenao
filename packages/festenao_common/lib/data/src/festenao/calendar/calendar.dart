@@ -134,14 +134,14 @@ String secondsToTimeString(int seconds) {
   return '${twoDigitNumber(hours)}:${twoDigitNumber(minutes)}';
 }
 
-CalendarDayCompat? parseCalendarDayOrNull(String? text) {
+CalendarDayCompat? parseCalendarDayOrNullCompat(String? text) {
   if (text == null) {
     return null;
   }
-  return parseCalendarDay(text);
+  return parseCalendarDayCompat(text);
 }
 
-CalendarDayCompat? parseCalendarDay(String text) {
+CalendarDayCompat? parseCalendarDayCompat(String text) {
   try {
     return CalendarDayCompat(text: text);
   } catch (_) {
