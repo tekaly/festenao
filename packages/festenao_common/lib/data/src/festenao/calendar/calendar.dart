@@ -1,7 +1,46 @@
+import 'package:festenao_common/data/calendar.dart';
 import 'package:tekartik_common_utils/date_time_utils.dart';
 import 'package:tekartik_common_utils/int_utils.dart';
+export 'package:tekartik_app_date/calendar_day.dart';
+export 'package:tekartik_app_date/calendar_time.dart';
 
 var dataOffset = const Duration(minutes: -60);
+
+extension CalendarTimeCompatExt on CalendarTime {
+  String toInputString() {
+    var hours = (seconds ~/ 3600);
+    var minutes = (seconds ~/ 60) % 60;
+    return '${from2Digits(hours)}:${from2Digits(minutes)}';
+  }
+
+  // Return a time in the even timezone as UTC
+  DateTime toDateTime(CalendarDay day, {bool? isLocal = false}) {
+    var year = day.dateTime.year;
+    var month = day.dateTime.month;
+    var monthDay = day.dateTime.day;
+    var hours = (seconds ~/ 3600) % 24;
+    var minutes = seconds % 60;
+
+    DateTime dateTime;
+    if (isLocal ?? false) {
+      dateTime = DateTime(year, month, monthDay, hours, minutes);
+    } else {
+      dateTime = DateTime.utc(year, month, monthDay, hours, minutes);
+    }
+    dateTime = dateTime.add(Duration(hours: totalDays * 24));
+    return dateTime;
+  }
+
+  int get totalHours => seconds ~/ 3600;
+  int get totalDays => totalHours ~/ 24;
+}
+
+extension CalendarDayCompatExt on CalendarDay {
+  /// UTC is the default
+  DateTime toDateTime(CalendarTime time, {bool? isLocal = false}) {
+    return time.toDateTime(this, isLocal: isLocal);
+  }
+}
 
 String from2Digits(int value) {
   var sb = StringBuffer();
@@ -12,12 +51,12 @@ String from2Digits(int value) {
   return sb.toString();
 }
 
-class CalendarTime implements Comparable<CalendarTime> {
+class CalendarTimeCompat implements Comparable<CalendarTimeCompat> {
   late int _seconds; // in seconds from midnight
   int get seconds => _seconds;
 
   // Handle 11:00 and 1100
-  CalendarTime({String? text, int? seconds}) {
+  CalendarTimeCompat({String? text, int? seconds}) {
     if (seconds != null) {
       _seconds = seconds;
     } else if (text != null) {
@@ -44,7 +83,7 @@ class CalendarTime implements Comparable<CalendarTime> {
   }
 
   @override
-  int compareTo(CalendarTime other) => _seconds - other._seconds;
+  int compareTo(CalendarTimeCompat other) => _seconds - other._seconds;
 
   @override
   String toString() {
@@ -60,7 +99,7 @@ class CalendarTime implements Comparable<CalendarTime> {
   }
 
   // Return a time in the even timezone as UTC
-  DateTime toDateTime(CalendarDay day, {bool? isLocal = false}) {
+  DateTime toDateTime(CalendarDayCompat day, {bool? isLocal = false}) {
     var year = day.dateTime.year;
     var month = day.dateTime.month;
     var monthDay = day.dateTime.day;
@@ -95,27 +134,27 @@ String secondsToTimeString(int seconds) {
   return '${twoDigitNumber(hours)}:${twoDigitNumber(minutes)}';
 }
 
-CalendarDay? parseCalendarDayOrNull(String? text) {
+CalendarDayCompat? parseCalendarDayOrNull(String? text) {
   if (text == null) {
     return null;
   }
   return parseCalendarDay(text);
 }
 
-CalendarDay? parseCalendarDay(String text) {
+CalendarDayCompat? parseCalendarDay(String text) {
   try {
-    return CalendarDay(text: text);
+    return CalendarDayCompat(text: text);
   } catch (_) {
     return null;
   }
 }
 
-CalendarDay parseCalendarDayOrThrow(String text) {
-  return CalendarDay(text: text);
+CalendarDayCompat parseCalendarDayOrThrow(String text) {
+  return CalendarDayCompat(text: text);
 }
 
 /// For start-end format
-CalendarTime? parseStartCalendarTime(String text) {
+CalendarTimeCompat? parseStartCalendarTime(String text) {
   try {
     return parseStartCalendarTimeOrThrow(text);
   } catch (_) {
@@ -124,24 +163,24 @@ CalendarTime? parseStartCalendarTime(String text) {
 }
 
 /// For start-end format
-CalendarTime parseStartCalendarTimeOrThrow(String text) {
-  return CalendarTime(text: text.split('-').first);
+CalendarTimeCompat parseStartCalendarTimeOrThrow(String text) {
+  return CalendarTimeCompat(text: text.split('-').first);
 }
 
 /// For start-end format
-CalendarTime? parseEndCalendarTime(String text) {
+CalendarTimeCompat? parseEndCalendarTime(String text) {
   try {
-    return CalendarTime(text: text.split('-')[1]);
+    return CalendarTimeCompat(text: text.split('-')[1]);
   } catch (_) {
     return null;
   }
 }
 
-class CalendarDay implements Comparable<CalendarDay> {
+class CalendarDayCompat implements Comparable<CalendarDayCompat> {
   late final DateTime _dateTime;
 
   /// Use either, [dateTime] takes precedence
-  CalendarDay({String? text, DateTime? dateTime}) {
+  CalendarDayCompat({String? text, DateTime? dateTime}) {
     dateTime ??= parseDateTime(text);
     if (dateTime != null) {
       _dateTime = DateTime.utc(dateTime.year, dateTime.month, dateTime.day);
@@ -153,7 +192,7 @@ class CalendarDay implements Comparable<CalendarDay> {
   DateTime get dateTime => _dateTime;
 
   @override
-  int compareTo(CalendarDay other) =>
+  int compareTo(CalendarDayCompat other) =>
       _dateTime.millisecondsSinceEpoch - other._dateTime.millisecondsSinceEpoch;
 
   @override
@@ -164,7 +203,7 @@ class CalendarDay implements Comparable<CalendarDay> {
 
   @override
   bool operator ==(other) {
-    if (other is CalendarDay) {
+    if (other is CalendarDayCompat) {
       return _dateTime.millisecondsSinceEpoch ==
           other._dateTime.millisecondsSinceEpoch;
     }
@@ -172,7 +211,7 @@ class CalendarDay implements Comparable<CalendarDay> {
   }
 
   /// UTC is the default
-  DateTime toDateTime(CalendarTime time, {bool? isLocal = false}) {
+  DateTime toDateTime(CalendarTimeCompat time, {bool? isLocal = false}) {
     return time.toDateTime(this, isLocal: isLocal);
   }
 }

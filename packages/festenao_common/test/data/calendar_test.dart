@@ -3,28 +3,37 @@ import 'package:test/test.dart';
 
 void main() {
   group('time', () {
+    test('time compat', () {
+      var time = CalendarTimeCompat(seconds: 123456);
+      expect(time.toString(), '10:17');
+    });
     test('time', () {
       var time = CalendarTime(seconds: 123456);
-      expect(time.toString(), '10:17');
+      expect(time.text, '34:17:36');
+      expect(time.toString(), 'Time(34:17:36)');
 
       time = CalendarTime(text: '10:00');
-      expect(time.toString(), '10:00');
+      expect(time.text, '10:00');
+      expect(time.toString(), 'Time(10:00)');
       time = CalendarTime(text: '1000');
-      expect(time.toString(), '10:00');
+      expect(time.text, '10:00');
       time = CalendarTime(text: '10');
-      expect(time.toString(), '10:00');
+      expect(time.text, '10:00');
       time = CalendarTime(text: '24:00');
-      expect(time.toString(), '00:00');
+      expect(time.text, '24:00');
       time = CalendarTime(text: '26:00');
-      expect(time.toString(), '02:00');
+      expect(time.text, '26:00');
       expect(time.toInputString(), '26:00');
+      time = CalendarTime(text: '-2:00');
+      expect(time.text, '-02:00');
     });
     test('day', () {
       var day = CalendarDay(text: '2012-01-23');
-      expect(day.toString(), '2012-01-23');
+      expect(day.text, '2012-01-23');
+      expect(day.toString(), 'Day(2012-01-23)');
 
       day = CalendarDay(text: '20120123');
-      expect(day.toString(), '2012-01-23');
+      expect(day.text, '2012-01-23');
     });
     test('toDayTime', () {
       var day = CalendarDay(text: '2023-07-25');
