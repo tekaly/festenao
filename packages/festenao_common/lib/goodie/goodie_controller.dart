@@ -1,13 +1,17 @@
 import 'dart:math';
 
+import 'package:festenao_common/data/calendar.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/data/src/import.dart';
+import 'package:tekartik_app_date/time_offset.dart';
 
 import 'goodie_model.dart';
 
-const _goodiesStateInfoDocId = 'goodiesState';
-const _goodiesConfigInfoDocId = 'goodiesConfig';
-const _infoCollectionPart = 'info';
+/// /goodie_state/{day}
+const _goodiesStateCollectionId = 'goodie_state';
+const _goodieInfoCollectionPart = 'goodie_info';
+const _goodiesConfigInfoDocId = 'config';
+const _goodiesStateInfoDocId = 'state'; // Not in daily state
 
 /// Simple goodie controller
 class GoodieController {
@@ -23,6 +27,11 @@ class GoodieController {
     initFsGoodieBuilders();
   }
 
+  late FsGoodiesConfig _lastGoodiesConfigUsed;
+
+  /// Last goodie config used
+  FsGoodiesConfig get lastGoodiesConfigUsed => _lastGoodiesConfigUsed;
+
   @visibleForTesting
   CvDocumentReference<FsGoodieSession> get fsGoodieSessionRef =>
       _fsGoodieSessionRef;
@@ -35,13 +44,20 @@ class GoodieController {
       _fsGoodiesConfigRef;
   CvDocumentReference<FsGoodiesConfig> get _fsGoodiesConfigRef =>
       _fsGoodieSessionRef
-          .collection<FsGoodiesConfig>(_infoCollectionPart)
+          .collection<FsGoodiesConfig>(_goodieInfoCollectionPart)
           .doc(_goodiesConfigInfoDocId);
+  CvDocumentReference<FsGoodiesState> fsGoodiesDailyStateRef(CalendarDay day) =>
+      _fsGoodiesDailyStateRef(day);
+  CvDocumentReference<FsGoodiesState> _fsGoodiesDailyStateRef(
+          CalendarDay day) =>
+      _fsGoodieSessionRef
+          .collection<FsGoodiesState>(_goodiesStateCollectionId)
+          .doc(day.text);
   CvDocumentReference<FsGoodiesState> get fsGoodiesStateRef =>
       _fsGoodiesStateRef;
   CvDocumentReference<FsGoodiesState> get _fsGoodiesStateRef =>
       _fsGoodieSessionRef
-          .collection<FsGoodiesState>(_infoCollectionPart)
+          .collection<FsGoodiesState>(_goodieInfoCollectionPart)
           .doc(_goodiesStateInfoDocId);
 
   Future<String?> findRandomGoodie({
@@ -58,25 +74,35 @@ class GoodieController {
     required CvFirestoreTransaction txn,
     required DateTime now,
   }) async {
-    var config = await txn.refGet(_fsGoodiesConfigRef);
+    var config = _lastGoodiesConfigUsed = await txn.refGet(_fsGoodiesConfigRef);
 
     if (config.exists) {
       var random = Random();
       var chance = random.nextDouble();
       var winningChance = config.winningChance.v ?? 0;
       if (chance < winningChance) {
-        var state = await txn.refGet(
-          _fsGoodiesStateRef,
-        );
+        CvDocumentReference<FsGoodiesState> goodiesStateRef;
+        if (config.isModeDaily) {
+          var offset = TimeOffset.parse(config.startOfDayTimeOffset.v ?? '');
+          var day = CalendarDay.fromTimestamp(
+            now.subtract(Duration(milliseconds: offset.milliseconds)).toUtc(),
+          );
+          goodiesStateRef = _fsGoodiesDailyStateRef(day);
+        } else if (config.isModeOnce) {
+          goodiesStateRef = fsGoodiesStateRef;
+        } else {
+          throw UnsupportedError('Bad config: $config');
+        }
+        var state = await txn.refGet(goodiesStateRef);
 
         if (!state.exists) {
           state = FsGoodiesState()
-            ..path = _fsGoodiesStateRef.path
+            ..path = goodiesStateRef.path
             ..goodies.v = config.goodies.v
                 ?.map(
                   (e) => CvGoodieState()
                     ..id.v = e.id.v
-                    ..count.v = e.dailyQuantity.v,
+                    ..count.v = e.quantity.v,
                 )
                 .toList();
         }
