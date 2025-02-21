@@ -11,6 +11,11 @@ CalendarTime parseStartCalendarTimeOrThrow(String text) {
   return CalendarTime(text: text.split('-').first);
 }
 
+/// Used by apps
+CalendarDay parseCalendarDayOrThrow(String text) {
+  return CalendarDay(text: text);
+}
+
 extension CalendarTimeCompatExt on CalendarTime {
   String toInputString() {
     var hours = (seconds ~/ 3600);

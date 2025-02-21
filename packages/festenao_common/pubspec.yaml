@@ -90,6 +90,20 @@ dependencies:
       url: https://github.com/tekartik/app_common_utils.dart
       ref: dart3a
       path: app_date
+  tekartik_html:
+    git:
+      url: https://github.com/tekartik/html.dart
+      ref: dart3a
+  tekartik_mustache_fs:
+    git:
+      url: https://github.com/tekartik/mustache.dart
+      ref: dart3a
+      path: mustache_fs
+  tekartik_yacht:
+    git:
+      url: https://github.com/tekartik/yacht.dart
+      ref: dart3a
+      path: packages/yacht
   # path: ^1.8.0
 
 dev_dependencies:
