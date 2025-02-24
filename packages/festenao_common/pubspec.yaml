@@ -8,6 +8,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  dev_test:
   path: ">=1.9.0"
   sembast: ">=3.7.4+3"
   meta: ">=1.15.0"
@@ -104,6 +105,31 @@ dependencies:
       url: https://github.com/tekartik/yacht.dart
       ref: dart3a
       path: packages/yacht
+  tekartik_firebase_functions_io:
+    git:
+      url: https://github.com/tekartik/firebase_functions.dart
+      ref: dart3a
+      path: firebase_functions_io
+  tekartik_test_menu_browser:
+    git:
+      url: https://github.com/tekartik/test_menu.dart
+      ref: dart3a
+      path: test_menu_browser
+  tkcms_test:
+    git:
+      url: https://github.com/tekartikprj/tkcms.git
+      ref: dart3a
+      path: packages/tkcms_test
+  tekartik_app_http:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_http
+  tekartik_firebase_functions:
+    git:
+      url: https://github.com/tekartik/firebase_functions.dart
+      ref: dart3a
+      path: firebase_functions
   # path: ^1.8.0
 
 dev_dependencies:
