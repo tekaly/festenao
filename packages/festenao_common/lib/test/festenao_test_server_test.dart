@@ -8,21 +8,61 @@ import 'package:tkcms_common/tkcms_firebase.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
 import 'package:tkcms_common/tkcms_server.dart';
-import 'package:tkcms_test/tkcms_test_server_api.dart';
 
-class FestenaoTestServerContext {
-  final TestServerApiService apiService;
+class FestenaoTestApiContext {
+  final FestenaoApiService apiService;
+
+  FestenaoTestApiContext({required this.apiService});
+
+  @mustCallSuper
+  Future<void> close() async {
+    await apiService.close();
+  }
+}
+
+class FestenaoTestAmpContext {
   final FestenaoAmpService ampService;
-  final FfServer ffServer;
+
+  FestenaoTestAmpContext({required this.ampService});
+
+  @mustCallSuper
+  Future<void> close() async {
+    await ampService.close();
+  }
+}
+
+class FestenaoTestFfServerContext {
+  final FfServer? ffServer;
+
+  FestenaoTestFfServerContext({required this.ffServer});
+
+  @mustCallSuper
+  Future<void> close() async {
+    await ffServer?.close();
+  }
+}
+
+class FestenaoTestServerContext
+    implements
+        FestenaoTestApiContext,
+        FestenaoTestAmpContext,
+        FestenaoTestFfServerContext {
+  @override
+  final FestenaoApiService apiService;
+  @override
+  final FestenaoAmpService ampService;
+  @override
+  final FfServer? ffServer;
 
   FestenaoTestServerContext(
-      {required this.apiService,
-      required this.ffServer,
-      required this.ampService});
+      {required this.apiService, this.ffServer, required this.ampService});
 
+  @override
   Future<void> close() async {
-    await ffServer.close();
+    //await ffServer.close();
     await apiService.close();
+    await ffServer?.close();
+    await ampService.close();
   }
 }
 
@@ -49,7 +89,7 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
     serverApp: ffServerApp,
   );
   var commandUri = ffServer.uri.replace(path: ffServerApp.command);
-  var apiService = TestServerApiService(
+  var apiService = FestenaoApiService(
     callableApi: ffContext.functionsCall.callable(ffServerApp.callCommand),
     httpClientFactory: httpClientFactory,
     httpsApiUri: commandUri,
@@ -73,7 +113,7 @@ Future<void> main() async {
 void testFestenaoServerGroup(
     Future<FestenaoTestServerContext> Function() initAllContext) {
   late FestenaoTestServerContext context;
-  late TestServerApiService apiService;
+  late FestenaoApiService apiService;
   late FestenaoAmpService ampService;
   setUpAll(() async {
     context = await initAllContext();

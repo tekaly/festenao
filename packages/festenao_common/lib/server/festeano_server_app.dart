@@ -70,7 +70,7 @@ class FestenaoServerApp extends TkCmsServerAppV2 {
       );
   @override
   void initFunctions() {
-    ampCommand = 'amp${flavorContext.ifNotProdSuffix}';
+    ampCommand = 'amp${flavorContext.ifNotProdFlavor}';
     super.initFunctions();
     functions[ampCommand] = amp;
   }

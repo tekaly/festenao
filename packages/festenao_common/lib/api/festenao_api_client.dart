@@ -2,6 +2,9 @@ import 'package:path/path.dart';
 import 'package:tekartik_app_http/app_http.dart';
 import 'package:tkcms_common/tkcms_api.dart';
 
+var functionFestenaoAmpDev = 'ampdev';
+var functionFestenaoAmpProd = 'amp';
+
 /// Amp page service
 class FestenaoAmpService {
   final HttpClientFactory httpClientFactory;
@@ -26,10 +29,21 @@ class FestenaoAmpService {
     }
     return _client.read(pathUri(path));
   }
+
+  Future<void> close() async {
+    try {
+      _client.close();
+    } catch (_) {}
+    // keep local server on
+  }
 }
 
 class FestenaoApiService extends TkCmsApiServiceBaseV2 {
-  FestenaoApiService({HttpClientFactory? httpClientFactory, super.httpsApiUri})
+  FestenaoApiService(
+      {HttpClientFactory? httpClientFactory,
+      super.httpsApiUri,
+      super.callableApi,
+      super.app})
       : super(
             apiVersion: apiVersion2,
             httpClientFactory: httpClientFactory ?? httpClientFactoryUniversal);

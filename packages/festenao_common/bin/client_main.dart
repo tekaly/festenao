@@ -10,7 +10,7 @@ Future<void> main(List<String> args) async {
   await mainMenuUniversal(args, () {
     vars.dump();
     keyValuesMenu('Settings', vars);
-    item('amp_dev', () async {
+    item('ampdev', () async {
       var commandUri = Uri.parse('${serverUrl.value}');
       write('${serverUrl.value}');
       // ignore: unused_local_variable
@@ -18,7 +18,7 @@ Future<void> main(List<String> args) async {
         httpsApiUri: commandUri,
         //app: tkCmsAppDev,
       );
-      var ampUri = Uri.parse('${serverUrl.value}/amp_dev/test');
+      var ampUri = Uri.parse('${serverUrl.value}/ampdev/test');
       var ampService = FestenaoAmpService(httpsAmpUri: ampUri);
       var uri = ampService.pathUri('');
       write('uri: $uri');

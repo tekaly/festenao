@@ -27,7 +27,7 @@ Future main() async {
     if (kDartIsWeb) {
     } else {
       // ignore: avoid_print
-      print('http://localhost:4999/amp_dev/app/test');
+      print('http://localhost:4999/ampdev/app/test');
     }
   }
   await ffContext.functions.serve();
