@@ -87,7 +87,7 @@ mixin CvFormQuestionResponseMixin on CvModel {
   );
 
   /// Answer mixin fields
-  List<CvField> get answerMixinFields => [
+  List<CvField> get responseMixinFields => [
         answerType,
         answerInt,
         answerText,
@@ -104,7 +104,7 @@ class CvFormQuestionResponse extends CvModelBase
   final id = CvField<String>('id');
 
   @override
-  List<CvField> get fields => [id, ...answerMixinFields];
+  List<CvField> get fields => [id, ...responseMixinFields];
 }
 
 // study
@@ -307,4 +307,24 @@ class FsFormFull extends CvFirestoreDocumentBase with CvFormMixin {
   @override
   List<CvField> get fields =>
       [...formMixinFields, formQuestions, formSubForms, formProposedAnswers];
+}
+
+/// Form response
+class CvFormResponse extends CvModelBase {
+  /// Response list
+  final list = CvModelListField<CvFormQuestionResponse>('list');
+
+  @override
+  CvFields get fields => [list];
+}
+
+/// Extension
+extension CvFormResponseExt on CvFormResponse {
+  /// Add a response
+  void addResponse(CvFormQuestionResponse response) {
+    assert(response.id.v != null, 'response.id is null');
+    var list = this.list.v ??= [];
+    list.removeWhere((item) => item.id.v == response.id.v);
+    list.add(response);
+  }
 }
