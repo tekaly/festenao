@@ -10,6 +10,7 @@ Future<void> main() async {
   initFsFormBuilders();
   group('form', () {
     test('fill', () {
+      expect(_fill<FsFormQuestion>(), isNotEmpty);
       expect(_fill<CvFormProposedAnswer>(), {
         'answerEmptyAllowed': false,
         'answerType': 'text_2',

@@ -37,13 +37,16 @@ Widget festenaoAdminAppUserRootScreenBuilder(ContentPathRouteSettings crps) {
       blocBuilder: () => StartScreenBloc(), child: const StartScreen());
 }
 
-var userRootPageDef = festenaoAdminAppStartPagePageDef;
-var festenaoAdminAppStartPagePageDef = ContentPageDef(
+var userRootPageDef = festenaoAdminAppStartPageDef;
+var festenaoAdminAppStartPageDef = ContentPageDef(
     screenBuilder: festenaoAdminAppUserRootScreenBuilder,
     path: rootContentPath);
 var homeRootPageDef = ContentPageDef(
     screenBuilder: festenaoAdminAppUserRootScreenBuilder,
     path: HomeContentPath());
+var festenaoLegacyAdminAppStartPagePageDef = ContentPageDef(
+    screenBuilder: festenaoAdminAppUserRootScreenBuilder,
+    path: FestenaoHomeContentPath());
 var projectsPageDef = ContentPageDef(
     screenBuilder: (crps) {
       return BlocProvider(
@@ -331,6 +334,7 @@ final festenaoAdminAppPages = [
   // start
   userRootPageDef,
   homeRootPageDef,
+  festenaoLegacyAdminAppStartPagePageDef,
   projectsPageDef,
   projectMetasPageDef,
   projectInfosPageDef,
@@ -358,6 +362,8 @@ final festenaoAdminAppPages = [
   projectInvitePageDef,
   markdownGuidePageDef,*/
 ];
-final contentNavigatorDef = ContentNavigatorDef(defs: [
+final _contentNavigatorDef = ContentNavigatorDef(defs: [
   ...festenaoAdminAppPages,
 ]);
+ContentNavigatorDef get festenaoAdminAppContentNavigatorDef =>
+    _contentNavigatorDef;

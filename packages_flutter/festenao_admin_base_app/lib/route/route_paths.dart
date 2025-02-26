@@ -135,6 +135,10 @@ class ProjectImageContentPath extends _ProjectSubIdContentPath {
 class HomeContentPath extends _SubContentPath {
   HomeContentPath() : super('home');
 }
+
+class FestenaoHomeContentPath extends _SubContentPath {
+  FestenaoHomeContentPath() : super('festenao_home');
+}
 /*
 class ProjectInviteContentPath extends ContentPathBase {
   final invite = ContentPathField('invite');

@@ -31,7 +31,8 @@ import 'prefs/local_prefs.dart';
 import 'sembast/projects_db_bloc.dart';
 
 Future<void> festenaoRunApp(
-    {AppFlavorContext? appFlavorContext,
+    {ContentNavigatorDef? contentNavigatorDef,
+    AppFlavorContext? appFlavorContext,
     String? packageName,
     FirebaseContext? firebaseContext}) async {
   if (kDebugMode) {
@@ -90,19 +91,23 @@ Future<void> festenaoRunApp(
   sleep(300).then((_) {
     webSplashHide();
   }).unawait();
-  runApp(const FestenaoAdminApp());
+  runApp(FestenaoAdminApp(
+    contentNavigatorDef: contentNavigatorDef,
+  ));
 }
 
 /// Festenao admin app
 class FestenaoAdminApp extends StatelessWidget {
+  final ContentNavigatorDef? contentNavigatorDef;
+
   /// Festenao admin app
-  const FestenaoAdminApp({super.key});
+  const FestenaoAdminApp({super.key, this.contentNavigatorDef});
 
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return ContentNavigator(
-      def: contentNavigatorDef,
+      def: contentNavigatorDef ?? festenaoAdminAppContentNavigatorDef,
       observers: [routeAwareObserver],
       child: Builder(builder: (context) {
         var cn = ContentNavigator.of(context);

@@ -1,14 +1,15 @@
 import 'package:festenao_admin_base_app/auth/auth.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
+import 'package:festenao_admin_base_app/form/fs_form_info.dart';
 import 'package:festenao_admin_base_app/prefs/local_prefs.dart';
 import 'package:festenao_admin_base_app/screen/fs_entity_list_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
 import 'package:tekaly_firestore_explorer/firestore_explorer.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
+import 'package:tkcms_admin_app/firebase/database_service.dart';
 import 'package:tkcms_admin_app/screen/basic_entities_screen.dart';
 import 'package:tkcms_admin_app/screen/debug_screen.dart';
-import 'package:tkcms_admin_app/screen/project_info.dart';
 
 /// Festenao admin menu
 final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
@@ -46,7 +47,8 @@ final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
   muiItem('Question basic entity', () async {
     await goToBasicEntitiesScreen(
       muiBuildContext,
-      entityAccess: tkCmsFsRootItemAccess,
+      entityAccess:
+          fbFsFormQuestionAccess(gFsDatabaseService.firestoreDatabaseContext),
     );
   });
   muiItem('Firestore explorer', () async {

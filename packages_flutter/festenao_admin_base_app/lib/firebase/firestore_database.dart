@@ -1,5 +1,6 @@
 import 'package:festenao_common/data/festenao_cv.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
+import 'package:festenao_common/form/src/fs_form_model.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// Initialize festenao firestore builders
@@ -10,6 +11,7 @@ void initFestenaoFsBuilders() {
     FsExport.new,
     FsProject.new,
   ]);
+  initFsFormBuilders();
 }
 
 /// Main entity database

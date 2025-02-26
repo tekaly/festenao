@@ -7,6 +7,7 @@ void initFsFormBuilders() {
     CvFormProposedAnswer.new,
     CvFormQuestion.new,
     FsForm.new,
+    FsFormQuestion.new,
     CvQuestionRef.new,
     CvFormQuestionResponse.new,
     CvFormQuestion.new,
