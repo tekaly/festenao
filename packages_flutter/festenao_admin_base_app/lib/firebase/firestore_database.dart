@@ -8,6 +8,7 @@ void initFestenaoFsBuilders() {
   initFestenaoCvBuilders();
   cvAddConstructors([
     FsExport.new,
+    FsProject.new,
   ]);
 }
 

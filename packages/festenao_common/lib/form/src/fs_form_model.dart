@@ -141,12 +141,12 @@ const formAnswerTypeDate = 'date'; // 2021-06-26
 //             ...
 //     ]
 /// FS Form question
-class FsFormQuestion extends CvFirestoreDocumentBase with CvFormQuestionMixin {
+class FsFormQuestion extends TkCmsFsBasicEntity with CvFormQuestionMixin {
   /// Question title (hidden)
-  final title = CvField<String>('title');
+  //final title = CvField<String>('title');
 
   @override
-  List<CvField> get fields => [title, ...questionMixinFields];
+  CvFields get fields => [...super.fields, ...questionMixinFields];
 }
 
 /// Proposed answer mixin
