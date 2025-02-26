@@ -87,14 +87,25 @@ class SingleFestenaoAdminAppProjectContext
 }
 
 /// By project id
-class ByProjectIdAdminAppProjectContext
-    extends FestenaoAdminAppProjectContextBase {
+abstract class ByProjectIdAdminAppProjectContext
+    extends FestenaoAdminAppProjectContext {
+  // final String userId;
+
+  factory ByProjectIdAdminAppProjectContext({required String projectId}) {
+    return _ByProjectIdAdminAppProjectContext(projectId: projectId);
+  }
+}
+
+/// By project id
+class _ByProjectIdAdminAppProjectContext
+    extends FestenaoAdminAppProjectContextBase
+    implements ByProjectIdAdminAppProjectContext {
   @override
   final String projectId;
 
   // final String userId;
 
-  ByProjectIdAdminAppProjectContext({required this.projectId})
+  _ByProjectIdAdminAppProjectContext({required this.projectId})
       : super(
             firestore: globalFestenaoAdminAppFirebaseContext.firestore,
             storage: globalFestenaoAdminAppFirebaseContext.storage,

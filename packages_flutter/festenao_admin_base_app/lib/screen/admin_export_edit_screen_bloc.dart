@@ -179,7 +179,9 @@ class AdminExportEditScreenBloc
           firestoreInfoPath, getFirestorePublishMetaDocumentName(false)));
       await syncedDb.exportDatabaseToStorage(
           exportContext: SyncedDbStorageExportContext(
-              storage: projectContext.storage, rootPath: exportStorageDirPath),
+              bucketName: projectContext.storageBucket,
+              storage: projectContext.storage,
+              rootPath: exportStorageDirPath),
           metaOnly: true);
     }
     var map = fsExport.toMap();
