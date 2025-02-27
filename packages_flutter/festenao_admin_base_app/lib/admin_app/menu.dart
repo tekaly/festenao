@@ -10,6 +10,7 @@ import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tkcms_admin_app/firebase/database_service.dart';
 import 'package:tkcms_admin_app/screen/basic_entities_screen.dart';
 import 'package:tkcms_admin_app/screen/debug_screen.dart';
+import 'package:tkcms_admin_app/screen/doc_entities_screen.dart';
 
 /// Festenao admin menu
 final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
@@ -49,6 +50,13 @@ final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
       muiBuildContext,
       entityAccess:
           fbFsFormQuestionAccess(gFsDatabaseService.firestoreDatabaseContext),
+    );
+  });
+  muiItem('Question doc entity', () async {
+    await goToDocEntitiesScreen(
+      muiBuildContext,
+      entityAccess: fbFsDocFormQuestionAccess(
+          gFsDatabaseService.firestoreDatabaseContext),
     );
   });
   muiItem('Firestore explorer', () async {
