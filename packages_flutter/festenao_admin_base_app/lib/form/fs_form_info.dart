@@ -8,16 +8,16 @@ var fsFormQuestionCollectionInfo =
   //treeDef: TkCmsCollectionsTreeDef(map: {'item': null}),
 );
 
-TkCmsFirestoreDatabaseServiceBasicEntityAccess<FsFormQuestion>
+TkCmsFirestoreDatabaseServiceBasicEntityAccessor<FsFormQuestion>
     fbFsFormQuestionAccess(FirestoreDatabaseContext firestoreDatabaseContext) =>
-        TkCmsFirestoreDatabaseServiceBasicEntityAccess<FsFormQuestion>(
+        TkCmsFirestoreDatabaseServiceBasicEntityAccessor<FsFormQuestion>(
           entityCollectionInfo: fsFormQuestionCollectionInfo,
           firestoreDatabaseContext: firestoreDatabaseContext,
         );
-TkCmsFirestoreDatabaseServiceDocEntityAccess<FsFormQuestion>
+TkCmsFirestoreDatabaseServiceDocEntityAccessor<FsFormQuestion>
     fbFsDocFormQuestionAccess(
             FirestoreDatabaseContext firestoreDatabaseContext) =>
-        TkCmsFirestoreDatabaseServiceDocEntityAccess<FsFormQuestion>(
+        TkCmsFirestoreDatabaseServiceDocEntityAccessor<FsFormQuestion>(
           entityCollectionInfo: fsFormQuestionCollectionInfo,
           firestoreDatabaseContext: firestoreDatabaseContext,
         );

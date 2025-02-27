@@ -30,6 +30,9 @@ class CvFormQuestionChoice extends CvModelBase {
 
 /// Form question mixin
 mixin CvFormQuestionMixin on CvModel {
+  /// Question slug (short id lower case)
+  final slug = CvField<String>('slug');
+
   /// Question text
   final text = CvField<String>('text');
 
@@ -44,6 +47,7 @@ mixin CvFormQuestionMixin on CvModel {
 
   /// Question mixin fields
   List<CvField> get questionMixinFields => [
+        slug,
         text,
         hint,
         proposedAnswer,

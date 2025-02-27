@@ -2,6 +2,7 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
+import 'package:festenao_common/festenao_firestore.dart';
 import 'package:path/path.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
 
@@ -22,6 +23,13 @@ abstract class FestenaoAdminAppProjectContext {
 }
 
 extension FestenaoAdminAppProjectContextExt on FestenaoAdminAppProjectContext {
+  CvDocumentReference get _rootDocumentRef =>
+      CvDocumentReference(firestorePath);
+
+  /// Firestore database context
+  FirestoreDatabaseContext get firestoreDatabaseContext =>
+      FirestoreDatabaseContext(
+          firestore: firestore, rootDocument: _rootDocumentRef);
   String get pathProjectId => projectId;
   /*
   @Deprecated('do not use, grab and release instead')

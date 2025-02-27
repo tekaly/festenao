@@ -46,50 +46,30 @@ Future<void> main() async {
           }
         ]
       });
-      expect(_fill<FsFormFull>(), {
-        'title': 'text_1',
-        'questions': [
-          {'id': 'text_2', 'subFormId': 'text_3'}
-        ],
-        'formQuestions': [
-          {
-            'id': 'text_4',
-            'text': 'text_5',
-            'hint': 'text_6',
-            'proposedAnswer': {
-              'answerEmptyAllowed': false,
-              'answerType': 'text_8',
-              'answerChoices': [
-                {'id': 'text_9', 'text': 'text_10'}
-              ],
-              'answerIntMin': 11,
-              'answerIntMax': 12,
-              'answerIntPresets': [13]
-            },
-            'proposedAnswerId': 'text_14'
-          }
-        ],
-        'formSubForms': [
-          {
-            'title': 'text_15',
-            'questions': [
-              {'id': 'text_16', 'subFormId': 'text_17'}
-            ]
-          }
-        ],
-        'formProposedAnswers': [
-          {
-            'answerEmptyAllowed': true,
-            'answerType': 'text_19',
-            'answerChoices': [
-              {'id': 'text_20', 'text': 'text_21'}
-            ],
-            'answerIntMin': 22,
-            'answerIntMax': 23,
-            'answerIntPresets': [24]
-          }
-        ]
+      expect(_fill<FsFormQuestion>(), {
+        'name': 'text_1',
+        'slug': 'text_2',
+        'text': 'text_3',
+        'hint': 'text_4',
+        'proposedAnswer': {
+          'answerEmptyAllowed': false,
+          'answerType': 'text_6',
+          'answerChoices': [
+            {'id': 'text_7', 'text': 'text_8'}
+          ],
+          'answerIntMin': 9,
+          'answerIntMax': 10,
+          'answerIntPresets': [11]
+        },
+        'proposedAnswerId': 'text_12'
       });
+      expect(cvNewModel<FsFormFull>().fields.map((e) => e.key), [
+        'title',
+        'questions',
+        'formQuestions',
+        'formSubForms',
+        'formProposedAnswers'
+      ]);
     });
   });
 }
