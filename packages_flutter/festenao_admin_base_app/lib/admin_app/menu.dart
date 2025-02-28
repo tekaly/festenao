@@ -1,5 +1,6 @@
 import 'package:festenao_admin_base_app/auth/auth.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
+import 'package:festenao_admin_base_app/form/form_questions_screen.dart';
 import 'package:festenao_admin_base_app/form/fs_form_info.dart';
 import 'package:festenao_admin_base_app/prefs/local_prefs.dart';
 import 'package:festenao_admin_base_app/screen/fs_entity_list_screen.dart';
@@ -44,6 +45,13 @@ final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
     } else {
       await goToProjectRootScreen(muiBuildContext, projectId: currentProjectId);
     }
+  });
+  muiItem('Questions', () async {
+    await goToAdminFormQuestionsScreen(
+      muiBuildContext,
+      entityAccess: fbFsDocFormQuestionAccess(
+          gFsDatabaseService.firestoreDatabaseContext),
+    );
   });
   muiItem('Question basic entity', () async {
     await goToBasicEntitiesScreen(
