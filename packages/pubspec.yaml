@@ -1,7 +1,0 @@
-name: _
-publish_to: none
-environment:
-  sdk: ^3.6.0
-workspace:
-  - festenao_common
-  - festenao_blur_hash

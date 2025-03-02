@@ -1,0 +1,12 @@
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - packages/festenao_blur_hash
+  - packages/festenao_common
+  - packages_flutter/festenao_admin_base_app
+  - packages_flutter/festenao_audio_player
+  - packages_flutter/festenao_base_app
+  - packages_flutter/festenao_firebase_flutter
+
