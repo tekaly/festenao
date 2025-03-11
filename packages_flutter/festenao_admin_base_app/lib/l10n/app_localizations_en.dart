@@ -27,6 +27,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectDefaultName => 'Project';
 
   @override
+  String get projectAccessNone => 'No access';
+
+  @override
   String get projectDelete => 'Delete Project';
 
   @override

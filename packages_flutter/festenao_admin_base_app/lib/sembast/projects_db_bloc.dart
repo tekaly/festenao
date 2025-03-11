@@ -35,6 +35,14 @@ class _SingleProjectDbBloc implements SingleProjectDbBloc {
   _SingleProjectDbBloc({required this.syncedDb});
 }
 
+/// Enforced single app projectId
+abstract class EnforcedSingleProjectDbBloc extends MultiProjectsDbBloc {
+  factory EnforcedSingleProjectDbBloc(
+          {required String app, required String projectId}) =>
+      _EnforcedProjectsDbBloc(app: app, enforcedProjectId: projectId);
+}
+
+/// Multi projects db bloc
 abstract class MultiProjectsDbBloc implements ProjectsDbBloc {
   Future<GrabbedContentDb> grabContentDb(
       {required String userId, required String projectId});
@@ -46,7 +54,16 @@ abstract class MultiProjectsDbBloc implements ProjectsDbBloc {
       _ProjectsDbBloc(app: app);
 }
 
+/// Projects db bloc
 class ProjectsDbBloc {}
+
+class _EnforcedProjectsDbBloc extends _ProjectsDbBloc
+    implements EnforcedSingleProjectDbBloc {
+  final String? enforcedProjectId;
+
+  _EnforcedProjectsDbBloc(
+      {required super.app, required this.enforcedProjectId});
+}
 
 class _ProjectsDbBloc implements MultiProjectsDbBloc {
   _ProjectsDbBloc({required this.app});

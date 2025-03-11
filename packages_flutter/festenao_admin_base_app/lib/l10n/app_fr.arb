@@ -4,6 +4,7 @@
   "projectAccessAdmin": "Accès administrateur",
   "projectAccessRead": "Accès lecteur",
   "projectAccessWrite": "Accès éditeur",
+  "projectAccessNone": "Aucun accès",
   "projectDefaultName": "Livret",
   "projectDelete": "Supprimer le livret",
   "projectDeleteConfirm": "Êtes-vous sûr de vouloir supprimer ce livret ?\nToutes les notes de ce livret seront supprimées.",

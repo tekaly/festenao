@@ -2,6 +2,7 @@ import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/data/src/festenao/cv_import.dart';
 import 'package:path/path.dart';
 
+/// Deprecated use TkCmsFsUserAccess
 class FsUserAccess extends CvFirestoreDocumentBase {
   /// User id!
   String get userId => url.basename(path);

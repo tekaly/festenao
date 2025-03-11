@@ -3,7 +3,9 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/form/form_questions_screen.dart';
 import 'package:festenao_admin_base_app/form/fs_form_info.dart';
 import 'package:festenao_admin_base_app/prefs/local_prefs.dart';
+import 'package:festenao_admin_base_app/screen/app_users_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_entity_list_screen.dart';
+import 'package:festenao_admin_base_app/screen/fs_projects_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
 import 'package:tekaly_firestore_explorer/firestore_explorer.dart';
@@ -70,5 +72,11 @@ final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
   muiItem('Firestore explorer', () async {
     await goToFsDocumentRootScreen(muiBuildContext,
         firestore: globalFestenaoAdminAppFirebaseContext.firestore);
+  });
+  muiItem('FsProject list screen', () async {
+    await goToFsProjectsScreen(muiBuildContext);
+  });
+  muiItem('App users list screen', () async {
+    await goToFsAppUsersScreen(muiBuildContext);
   });
 });

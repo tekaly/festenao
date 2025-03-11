@@ -46,6 +46,7 @@ class _AdminMetaGeneralEditScreenState
     with AutoDisposedBusyScreenStateMixin {
   var controllers = <TextEditingController>[];
   var controllerInitialized = false;
+  late TextEditingController tagsController;
   DbMeta? lastMeta;
 
   @override
@@ -72,22 +73,32 @@ class _AdminMetaGeneralEditScreenState
                 );
               }
               var meta = state.meta;
+              var textFields = <CvField>[];
               if (!controllerInitialized) {
+                tagsController = audiAddTextEditingController(
+                    TextEditingController(text: meta.tags.v?.join(', ')));
                 for (var field in meta.fields) {
-                  controllers.add(audiAddTextEditingController(
-                      TextEditingController(
-                          text: field.valueOrNull?.toString() ?? '')));
+                  if (field is! CvListField) {
+                    textFields.add(field);
+                    controllers.add(audiAddTextEditingController(
+                        TextEditingController(
+                            text: field.valueOrNull?.toString() ?? '')));
+                  }
                 }
               }
 
               var children = <Widget>[];
-              for (var i = 0; i < meta.fields.length; i++) {
-                var field = meta.fields[i];
+              for (var i = 0; i < textFields.length; i++) {
+                var field = textFields[i];
                 children.add(AppTextFieldTile(
                   labelText: field.name,
                   controller: controllers[i],
                 ));
               }
+              children.add(AppTextFieldTile(
+                labelText: meta.tags.name,
+                controller: tagsController,
+              ));
               return Stack(
                 children: [
                   ListView(children: children),

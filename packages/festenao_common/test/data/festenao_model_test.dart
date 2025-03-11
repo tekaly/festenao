@@ -81,7 +81,10 @@ void main() {
     test('meta', () async {
       var record = dbMetaGeneralRecordRef.cv()
         ..fillModel(cvSembastFillOptions1);
-      expect(record.toMap(), {'name': 'text_1'});
+      expect(record.toMap(), {
+        'name': 'text_1',
+        'tags': ['text_2']
+      });
     });
   });
 }

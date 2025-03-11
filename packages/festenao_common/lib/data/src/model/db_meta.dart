@@ -11,9 +11,10 @@ var dbMetaModel = DbMeta();
 
 class DbMetaGeneral extends DbMeta {
   late final name = CvField<String>('name');
+  late final tags = CvListField<String>('tags');
 
   @override
-  late final List<CvField<Object?>> fields = [name];
+  late final List<CvField<Object?>> fields = [name, tags];
 }
 
 var dbMetaGeneralModel = DbMetaGeneral();

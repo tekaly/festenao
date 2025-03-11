@@ -27,6 +27,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get projectDefaultName => 'Livret';
 
   @override
+  String get projectAccessNone => 'Aucun accès';
+
+  @override
   String get projectDelete => 'Supprimer le livret';
 
   @override

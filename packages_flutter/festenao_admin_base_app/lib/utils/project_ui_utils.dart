@@ -1,21 +1,18 @@
+import 'package:festenao_admin_base_app/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
-import 'package:tkcms_admin_app/l10n/app_localizations.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
-String? accessString(AppLocalizations intl, TkCmsCvUserAccessCommon access) {
+String accessString(AppLocalizations intl, TkCmsCvUserAccessCommon access) {
   return access.isAdmin
       ? intl.projectAccessAdmin
       : (access.isWrite
           ? intl.projectAccessWrite
-          : (access.isRead ? intl.projectAccessRead : null));
+          : (access.isRead ? intl.projectAccessRead : 'No access'));
 }
 
 Text? accessText(AppLocalizations intl, TkCmsCvUserAccessCommon access) {
   var text = accessString(intl, access);
-  if (text == null) {
-    return null;
-  }
   return Text(text);
 }
 

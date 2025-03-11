@@ -1,5 +1,6 @@
 import 'package:festenao_admin_base_app/form/form_questions_screen.dart';
 import 'package:festenao_admin_base_app/form/fs_form_info.dart';
+import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/admin_artists_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
@@ -14,7 +15,6 @@ import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
-import 'package:tkcms_admin_app/l10n/app_intl.dart';
 import 'package:tkcms_admin_app/screen/doc_entities_screen.dart';
 import 'package:tkcms_user_app/view/body_container.dart';
 
@@ -40,7 +40,7 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
     with AutoDisposedBusyScreenStateMixin<ProjectRootScreen> {
   @override
   Widget build(BuildContext context) {
-    var intl = appIntl(context);
+    var intl = festenaoAdminAppIntl(context);
     var bloc = BlocProvider.of<ProjectRootScreenBloc>(context);
 
     return ValueStreamBuilder(

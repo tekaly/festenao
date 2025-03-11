@@ -1,0 +1,6 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="festenao_admin_base_app_single_project" type="FlutterRunConfigurationType" factoryName="Flutter">
+    <option name="filePath" value="$PROJECT_DIR$/../festenao/packages_flutter/festenao_admin_base_app/lib/main_single_project.dart" />
+    <method v="2" />
+  </configuration>
+</component>

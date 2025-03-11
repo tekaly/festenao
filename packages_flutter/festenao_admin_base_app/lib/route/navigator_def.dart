@@ -12,6 +12,8 @@ import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_info_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
+import 'package:festenao_admin_base_app/screen/app_users_screen.dart';
+import 'package:festenao_admin_base_app/screen/app_users_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_screen.dart';
@@ -75,6 +77,13 @@ var projectsPageDef = ContentPageDef(
           child: const ProjectsScreen());
     },
     path: ProjectsContentPath());
+var appUsersPageDef = ContentPageDef(
+    screenBuilder: (crps) {
+      return BlocProvider(
+          blocBuilder: () => FsAppUsersScreenBloc(),
+          child: const FsAppUsersScreen());
+    },
+    path: AppUsersContentPath());
 /*
 var settingsPageDef = ContentPageDef(
     screenBuilder: (crps) {
@@ -370,6 +379,7 @@ final festenaoAdminAppPages = [
   projectExportPageDef,
   projectUsersPageDef,
   projectUserPageDef,
+  appUsersPageDef,
   /*
   settingsPageDef,
   settingProjectsPageDef,

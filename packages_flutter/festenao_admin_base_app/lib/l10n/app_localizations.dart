@@ -134,6 +134,12 @@ abstract class AppLocalizations {
   /// **'Project'**
   String get projectDefaultName;
 
+  /// No access
+  ///
+  /// In en, this message translates to:
+  /// **'No access'**
+  String get projectAccessNone;
+
   /// Delete project
   ///
   /// In en, this message translates to:

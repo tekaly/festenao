@@ -38,6 +38,12 @@ class SyncedProjectContentPath extends ContentPathBase {
   List<ContentPathField> get fields => [project];
 }
 
+class AppUsersContentPath extends ContentPathBase {
+  final _part = ContentPathPart('app_users');
+  @override
+  List<ContentPathField> get fields => [_part];
+}
+
 /// New def
 typedef AdminAppRootProjectContextPath = RootSyncedProjectContentPath;
 

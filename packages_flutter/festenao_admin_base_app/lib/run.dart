@@ -34,6 +34,7 @@ Future<void> festenaoRunApp(
     {ContentNavigatorDef? contentNavigatorDef,
     AppFlavorContext? appFlavorContext,
     String? packageName,
+    String? singleProjectId,
     FirebaseContext? firebaseContext}) async {
   if (kDebugMode) {
     gDebugLogFirestore = true;
@@ -68,15 +69,19 @@ Future<void> festenaoRunApp(
   gDebugUsername = 'admin';
   gDebugPassword = '__admin__'; // irrelevant
   globalProjectsDb = ProjectsDb(
+      factory: globalSembastDatabaseFactory,
       name:
           '${globalTkCmsAdminAppFlavorContext.uniqueAppName}_$projectsDbName');
   await globalProjectsDb.ready;
 
   /// Global prefs (last entered values)
+  var app = globalTkCmsAdminAppFlavorContext.uniqueAppName;
   await globalFestenaoAdminApp.openPrefs();
-  globalProjectsDbBloc = MultiProjectsDbBloc(
-    app: globalTkCmsAdminAppFlavorContext.uniqueAppName,
-  );
+  globalProjectsDbBloc = singleProjectId == null
+      ? MultiProjectsDbBloc(
+          app: app,
+        )
+      : EnforcedSingleProjectDbBloc(app: app, projectId: singleProjectId);
 
   initFestenaoFsBuilders();
 

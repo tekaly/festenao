@@ -23,6 +23,10 @@
   "@projectDefaultName": {
     "description": "Project default name"
   },
+  "projectAccessNone": "No access",
+  "@projectAccessNone": {
+    "description": "No access"
+  },
   "projectDelete": "Delete Project",
   "@projectDelete": {
     "description": "Delete project"
