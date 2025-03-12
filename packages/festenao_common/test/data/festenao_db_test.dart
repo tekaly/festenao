@@ -14,19 +14,26 @@ void main() {
     test('stores', () async {
       expect(festenaoDb.dbSyncMetaStoreRef.name, 'faoM');
       expect(festenaoDb.dbSyncRecordStoreRef.name, 'faoR');
-      expect(festenaoDb.syncedStoreNames,
-          ['artist', 'event', 'image', 'info', 'meta']);
+      expect(festenaoDb.syncedStoreNames, [
+        'artist',
+        'event',
+        'image',
+        'info',
+        'meta',
+      ]);
     });
     test('add/delete record', () async {
       var db = await festenaoDb.database;
-      var key = (await dbArtistStoreRef.add(db, DbArtist()..name.v = 'test'))
-          .rawRef
-          .key;
+      var key =
+          (await dbArtistStoreRef.add(
+            db,
+            DbArtist()..name.v = 'test',
+          )).rawRef.key;
       expect(await festenaoDb.getSyncRecords(), [
         DbSyncRecord()
           ..store.v = dbArtistStoreRef.name
           ..key.v = key
-          ..dirty.v = true
+          ..dirty.v = true,
       ]);
       await dbArtistStoreRef.record(key).delete(db);
       expect(await festenaoDb.getSyncRecords(), [
@@ -34,7 +41,7 @@ void main() {
           ..store.v = dbArtistStoreRef.name
           ..key.v = key
           ..dirty.v = true
-          ..deleted.v = true
+          ..deleted.v = true,
       ]);
     });
     test('putRecord', () async {
@@ -45,7 +52,7 @@ void main() {
         DbSyncRecord()
           ..store.v = dbArtistStoreRef.name
           ..key.v = 'test'
-          ..dirty.v = true
+          ..dirty.v = true,
       ]);
 
       /// Manualle delete the sync record so that it gets re-created
@@ -56,7 +63,7 @@ void main() {
         DbSyncRecord()
           ..store.v = dbArtistStoreRef.name
           ..key.v = 'test'
-          ..dirty.v = true
+          ..dirty.v = true,
       ]);
     });
     test('delete record', () async {
@@ -74,7 +81,7 @@ void main() {
           ..store.v = dbArtistStoreRef.name
           ..key.v = 'test_delete'
           ..dirty.v = true
-          ..deleted.v = true
+          ..deleted.v = true,
       ]);
     });
     test('ext', () async {
@@ -102,13 +109,13 @@ void main() {
         {'store': 'artist'},
         [
           'export',
-          {'name': 'test'}
+          {'name': 'test'},
         ],
         {'store': 'faoR'},
         [
           1,
-          {'store': 'artist', 'key': 'export', 'dirty': true}
-        ]
+          {'store': 'artist', 'key': 'export', 'dirty': true},
+        ],
       ]);
     });
   });

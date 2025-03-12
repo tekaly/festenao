@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:tkcms_admin_app/l10n/app_intl.dart';
 
-enum UnsavedChangesDialogResult {
-  save,
-  discard,
-  cancel,
-}
+enum UnsavedChangesDialogResult { save, discard, cancel }
 
 /// Shows a dialog and resolves to true when the user has indicated that they
 /// want to pop.
@@ -13,7 +9,8 @@ enum UnsavedChangesDialogResult {
 /// A return value of null indicates a desire not to pop, such as when the
 /// user has dismissed the modal without tapping a button.
 Future<UnsavedChangesDialogResult?> showUnsavedChangesDialog(
-    BuildContext context) async {
+  BuildContext context,
+) async {
   var intl = appIntl(context);
   return await showDialog<UnsavedChangesDialogResult>(
         context: context,

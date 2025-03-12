@@ -30,18 +30,30 @@ class AdminEventsScreenBloc
     var model = DbEvent();
     var db = await projectDb;
     audiDispose(_eventSubscription);
-    _eventSubscription = audiAddStreamSubscription(dbEventStoreRef
-        .query(
-            finder: Finder(sortOrders: [
-          SortOrder(model.day.name),
-          SortOrder(model.beginTime.name)
-        ]))
-        .onRecords(db)
-        .listen((records) {
-      add(AdminEventsScreenBlocState(records
-          .where((element) => _showHidden || !element.hasTag(articleTagHidden))
-          .toList()));
-    }));
+    _eventSubscription = audiAddStreamSubscription(
+      dbEventStoreRef
+          .query(
+            finder: Finder(
+              sortOrders: [
+                SortOrder(model.day.name),
+                SortOrder(model.beginTime.name),
+              ],
+            ),
+          )
+          .onRecords(db)
+          .listen((records) {
+            add(
+              AdminEventsScreenBlocState(
+                records
+                    .where(
+                      (element) =>
+                          _showHidden || !element.hasTag(articleTagHidden),
+                    )
+                    .toList(),
+              ),
+            );
+          }),
+    );
   }
 
   AdminEventsScreenBloc({required super.projectContext}) {
@@ -71,21 +83,24 @@ class _AdminEventsScreenState extends State<AdminEventsScreen>
             //offset: Offset(100, 100),
             elevation: 5.0,
             // child: _menuIcon,
-            itemBuilder: (context) => [
-              PopupMenuItem<bool>(
-                child: StatefulBuilder(
-                  builder: (bulderContext, doSetState) => SwitchListTile(
-                    //activeColor: kLeadingOrangeColor,
-                    value: bloc.showHidden, // isShow,
-                    onChanged: (value) => doSetState(() {
-                      bloc.showHidden = value;
-                    }),
-                    title: const Text('Show hidden'),
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem<bool>(
+                    child: StatefulBuilder(
+                      builder:
+                          (bulderContext, doSetState) => SwitchListTile(
+                            //activeColor: kLeadingOrangeColor,
+                            value: bloc.showHidden, // isShow,
+                            onChanged:
+                                (value) => doSetState(() {
+                                  bloc.showHidden = value;
+                                }),
+                            title: const Text('Show hidden'),
+                          ),
+                    ),
                   ),
-                ),
-              ),
-            ],
-          )
+                ],
+          ),
           /*SwitchListTile(value: true, onChanged: (_) {
           print('onChanged');
         }
@@ -97,43 +112,47 @@ class _AdminEventsScreenState extends State<AdminEventsScreen>
         builder: (context, snapshot) {
           var list = snapshot.data?.list;
           if (list == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           return ListView.builder(
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                var event = list[index];
-                var tags = event.tags.v?.join(', ');
-                var attributes = event.attributes.value
-                    ?.map((e) =>
-                        '${stringIsEmpty(e.type.v) ? '' : '${e.type.v}:'}${stringNonEmpty(e.value.v) ?? stringNonEmpty(e.name.v)}')
-                    .join(', ');
-                return ListTile(
-                  leading: AdminArticleThumbnail(
-                    article: event,
-                    dbBloc: dbBloc,
-                  ),
-                  title: Text(event.nameOrId),
-                  subtitle: Text(
-                    '${event.day.v} ${event.beginTime.v}-${event.endTime.v}'
-                    '\n$tags'
-                    '\n$attributes',
-                  ),
-                  onTap: () {
-                    goToAdminEventScreen(context,
-                        eventId: event.id, projectContext: projectContext);
-                  },
-                );
-              });
+            itemCount: list.length,
+            itemBuilder: (context, index) {
+              var event = list[index];
+              var tags = event.tags.v?.join(', ');
+              var attributes = event.attributes.value
+                  ?.map(
+                    (e) =>
+                        '${stringIsEmpty(e.type.v) ? '' : '${e.type.v}:'}${stringNonEmpty(e.value.v) ?? stringNonEmpty(e.name.v)}',
+                  )
+                  .join(', ');
+              return ListTile(
+                leading: AdminArticleThumbnail(article: event, dbBloc: dbBloc),
+                title: Text(event.nameOrId),
+                subtitle: Text(
+                  '${event.day.v} ${event.beginTime.v}-${event.endTime.v}'
+                  '\n$tags'
+                  '\n$attributes',
+                ),
+                onTap: () {
+                  goToAdminEventScreen(
+                    context,
+                    eventId: event.id,
+                    projectContext: projectContext,
+                  );
+                },
+              );
+            },
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          goToAdminEventEditScreen(context,
-              eventId: null, projectContext: projectContext);
+          goToAdminEventEditScreen(
+            context,
+            eventId: null,
+            projectContext: projectContext,
+          );
         },
         child: const Icon(Icons.add),
       ),
@@ -145,8 +164,10 @@ class _AdminEventsScreenState extends State<AdminEventsScreen>
   AdminAppProjectContextDbBloc get dbBloc => bloc.dbBloc;
 }
 
-Future<void> goToAdminEventsScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext}) async {
+Future<void> goToAdminEventsScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
   if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
@@ -154,12 +175,16 @@ Future<void> goToAdminEventsScreen(BuildContext context,
       contentPath: ProjectEventsContentPath(),
     );
   } else {
-    await Navigator.of(context)
-        .push<void>(MaterialPageRoute(builder: (context) {
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminEventsScreenBloc(projectContext: projectContext),
-          child: const AdminEventsScreen());
-    }));
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) {
+          return BlocProvider(
+            blocBuilder:
+                () => AdminEventsScreenBloc(projectContext: projectContext),
+            child: const AdminEventsScreen(),
+          );
+        },
+      ),
+    );
   }
 }

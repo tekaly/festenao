@@ -23,9 +23,7 @@ class _AdminUserScreenState extends AutoDisposeBaseState<AdminUserScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<AdminUserScreenBloc>(context);
     return AdminScreenLayout(
-      appBar: AppBar(
-        title: const Text('User'),
-      ),
+      appBar: AppBar(title: const Text('User')),
       body: StreamBuilder<AdminUserScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
@@ -114,9 +112,13 @@ class _AdminUserScreenState extends AutoDisposeBaseState<AdminUserScreen> {
           }
           return FloatingActionButton(
             onPressed: () async {
-              await goToAdminUserEditScreen(context,
-                  param: AdminUserEditScreenParam(
-                      userId: userId, projectId: bloc.projectId));
+              await goToAdminUserEditScreen(
+                context,
+                param: AdminUserEditScreenParam(
+                  userId: userId,
+                  projectId: bloc.projectId,
+                ),
+              );
             },
             child: const Icon(Icons.edit),
           );
@@ -127,19 +129,28 @@ class _AdminUserScreenState extends AutoDisposeBaseState<AdminUserScreen> {
 }
 
 /// Push to avoid going to root
-Future<void> goToAdminUserScreen(BuildContext context,
-    {required String projectId, required String userId}) async {
+Future<void> goToAdminUserScreen(
+  BuildContext context, {
+  required String projectId,
+  required String userId,
+}) async {
   if (festenaoUseContentPathNavigation) {
-    await ContentNavigator.of(context).pushPath<void>(ProjectUserContentPath()
-      ..project.value = projectId
-      ..sub.value = userId);
+    await ContentNavigator.of(context).pushPath<void>(
+      ProjectUserContentPath()
+        ..project.value = projectId
+        ..sub.value = userId,
+    );
   } else {
-    await Navigator.of(context)
-        .push<void>(MaterialPageRoute(builder: (context) {
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminUserScreenBloc(projectId: projectId, userId: userId),
-          child: const AdminUserScreen());
-    }));
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) {
+          return BlocProvider(
+            blocBuilder:
+                () => AdminUserScreenBloc(projectId: projectId, userId: userId),
+            child: const AdminUserScreen(),
+          );
+        },
+      ),
+    );
   }
 }

@@ -10,8 +10,9 @@ dynamic sanitize(dynamic value) {
     return value;
   }
   if (value is Map) {
-    return value.map((key, value) =>
-        MapEntry<String, dynamic>(key as String, sanitize(value)));
+    return value.map(
+      (key, value) => MapEntry<String, dynamic>(key as String, sanitize(value)),
+    );
   }
   if (value is List) {
     return value.map((value) => sanitize(value));
@@ -75,11 +76,7 @@ class FestenaoAmpPage {
         );
         li = htmlProvider.createElementTag('li');
         ul.appendChild(li);
-        li.appendChild(
-          htmlProvider.createElementHtml(
-            '<a href="..">Up</a>',
-          ),
-        );
+        li.appendChild(htmlProvider.createElementHtml('<a href="..">Up</a>'));
       }
       ul.appendChild(htmlProvider.createTextNode('\n'));
     }
@@ -233,10 +230,7 @@ class FestenaoAmpPage {
 ''');
       }
     }
-    var result = htmlPrintDocument(
-      index,
-      options: HtmlPrinterOptions(),
-    );
+    var result = htmlPrintDocument(index, options: HtmlPrinterOptions());
 
     // print(result);
     return result;
@@ -262,6 +256,7 @@ class FestenaoAmpPage {
     _console.addAll(lines);
   }
 }
+
 /*
 Map<String, dynamic> cmsArticleMap(CmsArticle article) {
   var map = <String, dynamic>{};

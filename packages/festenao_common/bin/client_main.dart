@@ -3,8 +3,9 @@ import 'package:tekartik_test_menu_browser/key_value_universal.dart';
 import 'package:tekartik_test_menu_browser/test_menu_universal.dart';
 import 'package:tkcms_common/tkcms_common.dart';
 
-var serverUrl =
-    'FESTENAO_SERVER_URL'.kvFromVar(defaultValue: 'http://localhost:4999');
+var serverUrl = 'FESTENAO_SERVER_URL'.kvFromVar(
+  defaultValue: 'http://localhost:4999',
+);
 var vars = [serverUrl];
 Future<void> main(List<String> args) async {
   await mainMenuUniversal(args, () {

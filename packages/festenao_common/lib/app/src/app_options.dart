@@ -17,27 +17,33 @@ class FestenaoAppImageOptions extends CvModelBase {
   String toString() => '${type.v} ${width.v}x${height.v}';
 }
 
-final thumbnailAppImageOptions = FestenaoAppImageOptions()
-  ..width.v = thumbnailWidthDefault
-  ..height.v = thumbnailWidthDefault
-  ..type.v = imageTypeThumbnail;
-final mainAppImageOptions = FestenaoAppImageOptions()
-  ..width.v = imageWidthDefault
-  ..type.v = imageTypeMain;
+final thumbnailAppImageOptions =
+    FestenaoAppImageOptions()
+      ..width.v = thumbnailWidthDefault
+      ..height.v = thumbnailWidthDefault
+      ..type.v = imageTypeThumbnail;
+final mainAppImageOptions =
+    FestenaoAppImageOptions()
+      ..width.v = imageWidthDefault
+      ..type.v = imageTypeMain;
 
-final squareAppImageOptions = FestenaoAppImageOptions()
-  ..width.v = squareSizeDefault
-  ..height.v = squareSizeDefault
-  ..type.v = imageTypeSquare;
+final squareAppImageOptions =
+    FestenaoAppImageOptions()
+      ..width.v = squareSizeDefault
+      ..height.v = squareSizeDefault
+      ..type.v = imageTypeSquare;
 
-final gridAppImageOptions = FestenaoAppImageOptions()
-  ..width.v = gridSizeDefault
-  ..height.v = gridSizeDefault
-  ..type.v = imageTypeGrid;
+final gridAppImageOptions =
+    FestenaoAppImageOptions()
+      ..width.v = gridSizeDefault
+      ..height.v = gridSizeDefault
+      ..type.v = imageTypeGrid;
 
 class FestenaoAppOptions extends CvModelBase {
   final images = CvModelListField<FestenaoAppImageOptions>(
-      'images', (_) => FestenaoAppImageOptions());
+    'images',
+    (_) => FestenaoAppImageOptions(),
+  );
 
   @override
   List<CvField> get fields => [images];
@@ -56,10 +62,11 @@ extension FestenaoAppOptionsExt on FestenaoAppOptions {
   }
 }
 
-var festenaoAppOptionsDefault = FestenaoAppOptions()
-  ..images.v = [
-    thumbnailAppImageOptions,
-    mainAppImageOptions,
-    squareAppImageOptions,
-    gridAppImageOptions,
-  ];
+var festenaoAppOptionsDefault =
+    FestenaoAppOptions()
+      ..images.v = [
+        thumbnailAppImageOptions,
+        mainAppImageOptions,
+        squareAppImageOptions,
+        gridAppImageOptions,
+      ];

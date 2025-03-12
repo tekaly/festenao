@@ -39,10 +39,7 @@ class _ListDrawerState extends State<ListDrawer> {
     if (widget.content ?? false) {
       return Hero(tag: UniqueKey(), child: buildListView(context));
     }
-    return Drawer(
-        child: SafeArea(
-      child: buildListView(context),
-    ));
+    return Drawer(child: SafeArea(child: buildListView(context)));
   }
 
   Widget buildListView(BuildContext context) {
@@ -50,16 +47,19 @@ class _ListDrawerState extends State<ListDrawer> {
     FestenaoAdminAppProjectContext? appProjectContextOrNull;
     if (sb is MultiProjectsDbBloc) {
       final routeName = ModalRoute.of(context)?.settings.name;
-      var contentPath = AdminAppRootProjectContextPath()
-        ..fromPath(ContentPath.fromString(routeName ?? ''));
+      var contentPath =
+          AdminAppRootProjectContextPath()
+            ..fromPath(ContentPath.fromString(routeName ?? ''));
       var projectId = contentPath.projectIdOrNull;
       if (projectId != null) {
-        appProjectContextOrNull =
-            ByProjectIdAdminAppProjectContext(projectId: projectId);
+        appProjectContextOrNull = ByProjectIdAdminAppProjectContext(
+          projectId: projectId,
+        );
       }
     } else if (sb is SingleProjectDbBloc) {
-      appProjectContextOrNull =
-          ByProjectIdAdminAppProjectContext(projectId: 'compat');
+      appProjectContextOrNull = ByProjectIdAdminAppProjectContext(
+        projectId: 'compat',
+      );
     } else {
       throw UnsupportedError(sb.toString());
     }
@@ -103,40 +103,46 @@ class _ListDrawerState extends State<ListDrawer> {
           ListTile(
             title: const Text('Project'),
             onTap: () async {
-              await goToProjectRootScreen(context,
-                  projectId: appProjectContext.projectId);
+              await goToProjectRootScreen(
+                context,
+                projectId: appProjectContext.projectId,
+              );
             },
           ),
           ListTile(
-              title: const Text('Metas'),
-              onTap: () {
-                goToAdminMetasScreen(context,
-                    projectContext: appProjectContext);
-              }),
+            title: const Text('Metas'),
+            onTap: () {
+              goToAdminMetasScreen(context, projectContext: appProjectContext);
+            },
+          ),
           ListTile(
             title: const Text('Artists'),
             onTap: () async {
-              await goToAdminArtistsScreen(context,
-                  projectContext: appProjectContext);
+              await goToAdminArtistsScreen(
+                context,
+                projectContext: appProjectContext,
+              );
             },
           ),
           ListTile(
-              title: const Text('Events'),
-              onTap: () {
-                goToAdminEventsScreen(context,
-                    projectContext: appProjectContext);
-              }),
+            title: const Text('Events'),
+            onTap: () {
+              goToAdminEventsScreen(context, projectContext: appProjectContext);
+            },
+          ),
           ListTile(
-              title: const Text('Images'),
-              onTap: () {
-                goToAdminImagesScreen(context,
-                    projectContext: appProjectContext);
-              }),
+            title: const Text('Images'),
+            onTap: () {
+              goToAdminImagesScreen(context, projectContext: appProjectContext);
+            },
+          ),
           ListTile(
             title: const Text('Infos'),
             onTap: () async {
-              await goToAdminInfosScreen(context,
-                  projectContext: appProjectContext);
+              await goToAdminInfosScreen(
+                context,
+                projectContext: appProjectContext,
+              );
             },
           ),
           ListTile(
@@ -217,12 +223,12 @@ class _ListDrawerState extends State<ListDrawer> {
               await showDatabaseExplorer(context, db);
             }
           },
-        )
+        ),
       ],
     );
   }
 
-/*
+  /*
   @override
   Widget build(BuildContext context) {
     return Drawer(

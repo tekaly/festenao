@@ -24,11 +24,12 @@ class AdminExportEditData {
   final bool publishDev;
   final bool publish;
 
-  AdminExportEditData(
-      {required this.fsExport,
-      this.export = false,
-      this.publishDev = false,
-      this.publish = false});
+  AdminExportEditData({
+    required this.fsExport,
+    this.export = false,
+    this.publishDev = false,
+    this.publish = false,
+  });
 }
 
 abstract class AdminExportBlocMixinInterface {
@@ -50,7 +51,8 @@ class AdminExportEditScreenBloc
     extends AutoDisposeStateBaseBloc<AdminExportEditScreenBlocState>
     with AdminExportBlocMixin {
   late final _dbBloc = audiAddDisposable(
-      AdminAppProjectContextDbBloc(projectContext: projectContext));
+    AdminAppProjectContextDbBloc(projectContext: projectContext),
+  );
   @override
   final FestenaoAdminAppProjectContext projectContext;
 
@@ -82,13 +84,16 @@ class AdminExportEditScreenBloc
   late GrabbedContentDb _grabbedContentDb;
   ContentDb get festenaoDb => _grabbedContentDb.contentDb;
 
-  AdminExportEditScreenBloc(
-      {required this.projectContext, required this.exportId}) {
+  AdminExportEditScreenBloc({
+    required this.projectContext,
+    required this.exportId,
+  }) {
     () async {
       try {
         if (kDebugMode) {
           print(
-              'firestoreExportCollectionPath: $firestoreExportCollectionPath');
+            'firestoreExportCollectionPath: $firestoreExportCollectionPath',
+          );
           print('storageRootPath: $exportStorageDirPath');
         }
         var syncedDb = await _dbBloc.grabSyncedDb();
@@ -100,21 +105,32 @@ class AdminExportEditScreenBloc
 
           var changeId = metaInfo.lastChangeId.v!;
           // Find existing export
-          var fsExport = (await firestore
-                  .collection(firestoreExportCollectionPath)
-                  .where(fsExportModel.changeId.name, isEqualTo: changeId)
-                  .cvGet<FsExport>())
-              .firstOrNull;
-          fsExport ??= FsExport()
-            ..changeId.fromCvField(metaInfo.lastChangeId)
-            ..version.fromCvField(metaInfo.sourceVersion);
-          add(AdminExportEditScreenBlocState(
-              fsExport: fsExport, metaInfo: metaInfo));
+          var fsExport =
+              (await firestore
+                      .collection(firestoreExportCollectionPath)
+                      .where(fsExportModel.changeId.name, isEqualTo: changeId)
+                      .cvGet<FsExport>())
+                  .firstOrNull;
+          fsExport ??=
+              FsExport()
+                ..changeId.fromCvField(metaInfo.lastChangeId)
+                ..version.fromCvField(metaInfo.sourceVersion);
+          add(
+            AdminExportEditScreenBlocState(
+              fsExport: fsExport,
+              metaInfo: metaInfo,
+            ),
+          );
         } else {
           var export = await firestore.cvGet<FsExport>(
-              url.join(firestoreExportCollectionPath, exportId));
-          add(AdminExportEditScreenBlocState(
-              fsExport: export, metaInfo: metaInfo));
+            url.join(firestoreExportCollectionPath, exportId),
+          );
+          add(
+            AdminExportEditScreenBlocState(
+              fsExport: export,
+              metaInfo: metaInfo,
+            ),
+          );
         }
       } catch (e, st) {
         if (kDebugMode) {
@@ -145,18 +161,21 @@ class AdminExportEditScreenBloc
     var syncedDb = await _dbBloc.grabSyncedDb();
     // var exportInfo = await syncedDb.exportInMemory();
     if (export) {
-      fsExport.size.v = (await syncedDb.exportDatabaseToStorage(
-              exportContext: SyncedDbStorageExportContext(
-                  storage: projectContext.storage,
-                  bucketName: projectContext.storageBucket,
-                  rootPath: exportStorageDirPath),
-              noMeta: true))
-          .exportSize;
+      fsExport.size.v =
+          (await syncedDb.exportDatabaseToStorage(
+            exportContext: SyncedDbStorageExportContext(
+              storage: projectContext.storage,
+              bucketName: projectContext.storageBucket,
+              rootPath: exportStorageDirPath,
+            ),
+            noMeta: true,
+          )).exportSize;
     }
-    var meta = FestenaoExportMeta()
-      ..lastChangeId.fromCvField(fsExport.changeId)
-      ..sourceVersion.fromCvField(fsExport.version)
-      ..lastTimestamp.v = Timestamp.now().toIso8601String();
+    var meta =
+        FestenaoExportMeta()
+          ..lastChangeId.fromCvField(fsExport.changeId)
+          ..sourceVersion.fromCvField(fsExport.version)
+          ..lastTimestamp.v = Timestamp.now().toIso8601String();
 
     Future<void> writeFirestoreMeta(String path) async {
       await firestore.doc(path).set(meta.toMap());
@@ -164,25 +183,31 @@ class AdminExportEditScreenBloc
 
     var firestoreInfoPath = firestoreMetaCollectionPath;
     if (data.publishDev) {
-      await writeFirestoreMeta(url.join(
-          firestoreInfoPath, getFirestorePublishMetaDocumentName(true)));
+      await writeFirestoreMeta(
+        url.join(firestoreInfoPath, getFirestorePublishMetaDocumentName(true)),
+      );
       await syncedDb.exportDatabaseToStorage(
-          exportContext: SyncedDbStorageExportContext(
-              storage: projectContext.storage,
-              bucketName: projectContext.storageBucket,
-              rootPath: exportStorageDirPath,
-              metaBasenameSuffix: '_dev'),
-          metaOnly: true);
+        exportContext: SyncedDbStorageExportContext(
+          storage: projectContext.storage,
+          bucketName: projectContext.storageBucket,
+          rootPath: exportStorageDirPath,
+          metaBasenameSuffix: '_dev',
+        ),
+        metaOnly: true,
+      );
     }
     if (data.publish) {
-      await writeFirestoreMeta(url.join(
-          firestoreInfoPath, getFirestorePublishMetaDocumentName(false)));
+      await writeFirestoreMeta(
+        url.join(firestoreInfoPath, getFirestorePublishMetaDocumentName(false)),
+      );
       await syncedDb.exportDatabaseToStorage(
-          exportContext: SyncedDbStorageExportContext(
-              bucketName: projectContext.storageBucket,
-              storage: projectContext.storage,
-              rootPath: exportStorageDirPath),
-          metaOnly: true);
+        exportContext: SyncedDbStorageExportContext(
+          bucketName: projectContext.storageBucket,
+          storage: projectContext.storage,
+          rootPath: exportStorageDirPath,
+        ),
+        metaOnly: true,
+      );
     }
     var map = fsExport.toMap();
     // Set timestamp
@@ -190,10 +215,11 @@ class AdminExportEditScreenBloc
 
     // Delete other
     var toDelete = <String?>[];
-    var existingExports = await firestore
-        .collection(firestoreExportCollectionPath)
-        .where(fsExportModel.changeId.name, isEqualTo: changeId)
-        .cvGet<FsExport>();
+    var existingExports =
+        await firestore
+            .collection(firestoreExportCollectionPath)
+            .where(fsExportModel.changeId.name, isEqualTo: changeId)
+            .cvGet<FsExport>();
     for (var export in existingExports) {
       if (export.id != exportId) {
         toDelete.add(export.id);
@@ -206,9 +232,10 @@ class AdminExportEditScreenBloc
         );
       }
       transaction.set(
-          firestore.doc(url.join(firestoreExportCollectionPath, exportId!)),
-          map,
-          SetOptions(merge: true));
+        firestore.doc(url.join(firestoreExportCollectionPath, exportId!)),
+        map,
+        SetOptions(merge: true),
+      );
     });
   }
 }

@@ -42,10 +42,14 @@ class AdminArtistsScreenBloc
   Future<void> _refresh() async {
     var db = await projectDb;
     audiAddStreamSubscription(
-        dbArtistStoreRef.query().onRecords(db).listen((records) {
-      add(AdminArtistsScreenBlocState(
-          records.where((element) => _showHidden || !element.hidden).toList()));
-    }));
+      dbArtistStoreRef.query().onRecords(db).listen((records) {
+        add(
+          AdminArtistsScreenBlocState(
+            records.where((element) => _showHidden || !element.hidden).toList(),
+          ),
+        );
+      }),
+    );
   }
 
   AdminArtistsScreenBloc({required super.projectContext}) {
@@ -78,21 +82,24 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
             //offset: Offset(100, 100),
             elevation: 5.0,
             // child: _menuIcon,
-            itemBuilder: (context) => [
-              PopupMenuItem<bool>(
-                child: StatefulBuilder(
-                  builder: (builderContext, doSetState) => SwitchListTile(
-                    //activeColor: kLeadingOrangeColor,
-                    value: bloc.showHidden, // isShow,
-                    onChanged: (value) => doSetState(() {
-                      bloc.showHidden = value;
-                    }),
-                    title: const Text('Show hidden'),
+            itemBuilder:
+                (context) => [
+                  PopupMenuItem<bool>(
+                    child: StatefulBuilder(
+                      builder:
+                          (builderContext, doSetState) => SwitchListTile(
+                            //activeColor: kLeadingOrangeColor,
+                            value: bloc.showHidden, // isShow,
+                            onChanged:
+                                (value) => doSetState(() {
+                                  bloc.showHidden = value;
+                                }),
+                            title: const Text('Show hidden'),
+                          ),
+                    ),
                   ),
-                ),
-              ),
-            ],
-          )
+                ],
+          ),
           /*SwitchListTile(value: true, onChanged: (_) {
           print('onChanged');
         }
@@ -104,43 +111,49 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
         builder: (context, snapshot) {
           var list = snapshot.data?.list;
           if (list == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
           return ListView.builder(
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                var artist = list[index];
-                return ListTile(
-                  leading: AdminArticleThumbnail(
-                    article: artist,
-                    dbBloc: bloc.dbBloc,
-                  ),
-                  title: Text(artist.name.v ?? '?'),
-                  subtitle: Text(
-                      '${artist.id}\n${(artist.subtitle.v?.isNotEmpty ?? false) ? artist.subtitle.v : 'null'}'
-                      '\n${artist.tags.v?.join(', ') ?? ''}'),
-                  //onTap: onTap,
-                  //  title: Text(artist.name.v ?? '?'),
-                  onTap: () {
-                    if (widget.param?.selectMode ?? false) {
-                      Navigator.of(context)
-                          .pop(AdminArtistScreenResult(artist: artist));
-                    } else {
-                      goToAdminArtistScreen(context,
-                          artistId: artist.id,
-                          projectContext: bloc.projectContext);
-                    }
-                  },
-                );
-              });
+            itemCount: list.length,
+            itemBuilder: (context, index) {
+              var artist = list[index];
+              return ListTile(
+                leading: AdminArticleThumbnail(
+                  article: artist,
+                  dbBloc: bloc.dbBloc,
+                ),
+                title: Text(artist.name.v ?? '?'),
+                subtitle: Text(
+                  '${artist.id}\n${(artist.subtitle.v?.isNotEmpty ?? false) ? artist.subtitle.v : 'null'}'
+                  '\n${artist.tags.v?.join(', ') ?? ''}',
+                ),
+                //onTap: onTap,
+                //  title: Text(artist.name.v ?? '?'),
+                onTap: () {
+                  if (widget.param?.selectMode ?? false) {
+                    Navigator.of(
+                      context,
+                    ).pop(AdminArtistScreenResult(artist: artist));
+                  } else {
+                    goToAdminArtistScreen(
+                      context,
+                      artistId: artist.id,
+                      projectContext: bloc.projectContext,
+                    );
+                  }
+                },
+              );
+            },
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          goToAdminArtistEditScreen(context,
-              artistId: null, projectContext: bloc.projectContext);
+          goToAdminArtistEditScreen(
+            context,
+            artistId: null,
+            projectContext: bloc.projectContext,
+          );
         },
         child: const Icon(Icons.add),
       ),
@@ -148,8 +161,10 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
   }
 }
 
-Future<void> goToAdminArtistsScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext}) async {
+Future<void> goToAdminArtistsScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
   if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
@@ -157,27 +172,37 @@ Future<void> goToAdminArtistsScreen(BuildContext context,
       contentPath: ProjectArtistsContentPath(),
     );
   } else {
-    await Navigator.of(context)
-        .push<void>(MaterialPageRoute(builder: (context) {
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminArtistsScreenBloc(projectContext: projectContext),
-          child: const AdminArtistsScreen());
-    }));
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) {
+          return BlocProvider(
+            blocBuilder:
+                () => AdminArtistsScreenBloc(projectContext: projectContext),
+            child: const AdminArtistsScreen(),
+          );
+        },
+      ),
+    );
   }
 }
 
-Future<AdminArtistScreenResult?> selectArtist(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext}) async {
-  var result = await Navigator.of(context)
-      .push<Object?>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () =>
-            AdminArtistsScreenBloc(projectContext: projectContext),
-        child: AdminArtistsScreen(
-          param: AdminArtistsScreenParam(selectMode: true),
-        ));
-  }));
+Future<AdminArtistScreenResult?> selectArtist(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
+  var result = await Navigator.of(context).push<Object?>(
+    MaterialPageRoute(
+      builder: (context) {
+        return BlocProvider(
+          blocBuilder:
+              () => AdminArtistsScreenBloc(projectContext: projectContext),
+          child: AdminArtistsScreen(
+            param: AdminArtistsScreenParam(selectMode: true),
+          ),
+        );
+      },
+    ),
+  );
   if (result is AdminArtistScreenResult) {
     return result;
   }

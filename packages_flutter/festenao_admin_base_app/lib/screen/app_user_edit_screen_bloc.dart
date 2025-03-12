@@ -36,11 +36,7 @@ class AppUserEditScreenBloc
           var userAccessRef = fsDb.fsEntityUserAccessRef(app, userId);
           var userAccess = await userAccessRef.get(fsDb.firestore);
           if (!disposed) {
-            add(
-              AppUserEditScreenBlocState(
-                userAccess,
-              ),
-            );
+            add(AppUserEditScreenBlocState(userAccess));
           }
         }
       }
@@ -56,7 +52,10 @@ class AppUserEditScreenBloc
     userAccess.fixAccess();
 
     await fsDb.setEntityUserAccess(
-        entityId: app, userId: userId, userAccess: userAccess);
+      entityId: app,
+      userId: userId,
+      userAccess: userAccess,
+    );
     /*
     if (id == null) {
       var existing = await userAccessRef(data.user.userId!).get(fbFirestore);

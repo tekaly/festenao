@@ -47,12 +47,14 @@ class AdminImageEditScreenBloc
   final AdminImageEditScreenParam? param;
   final FestenaoAdminAppProjectContext projectContext;
   late final dbBloc = audiAddDisposable(
-      AdminAppProjectContextDbBloc(projectContext: projectContext));
+    AdminAppProjectContextDbBloc(projectContext: projectContext),
+  );
 
-  AdminImageEditScreenBloc(
-      {required this.imageId,
-      required this.param,
-      required this.projectContext}) {
+  AdminImageEditScreenBloc({
+    required this.imageId,
+    required this.param,
+    required this.projectContext,
+  }) {
     if (imageId == null) {
       // Creation
       add(AdminImageEditScreenBlocState(imageId: null, image: param?.image));
@@ -101,8 +103,9 @@ class AdminImageEditScreenBloc
         ..blurHash.v = blurHash
         ..copyright.v = dbImage.copyright.v;
 
-      var path =
-          globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
+      var path = globalFestenaoAppFirebaseContext.getImageDirStoragePath(
+        imageName,
+      );
       // devPrint('sending to $path ${imageData.length}');
       await globalFestenaoAdminAppFirebaseContext.storage
           .bucket(bucket)
@@ -113,12 +116,14 @@ class AdminImageEditScreenBloc
       try {
         // Read it from network
         var imageName = dbImage.name.v!;
-        var path =
-            globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
-        var bytes = await globalFestenaoAdminAppFirebaseContext.storage
-            .bucket(bucket)
-            .file(path)
-            .readAsBytes();
+        var path = globalFestenaoAppFirebaseContext.getImageDirStoragePath(
+          imageName,
+        );
+        var bytes =
+            await globalFestenaoAdminAppFirebaseContext.storage
+                .bucket(bucket)
+                .file(path)
+                .readAsBytes();
 
         var image = img.decodeImage(bytes)!;
 

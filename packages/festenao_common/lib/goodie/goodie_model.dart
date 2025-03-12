@@ -7,7 +7,7 @@ void initFsGoodieBuilders() {
     CvGoodieState.new,
     CvGoodieLocalizedText.new,
     FsGameGoodiePlayer.new,
-    FsGoodiesState.new
+    FsGoodiesState.new,
   ]);
 }
 
@@ -66,9 +66,7 @@ class FsGameGoodiePlayer extends CvFirestoreDocumentBase
   late final day = CvField<String>('day');
 
   /// local start time of the player
-  late final localTimestamp = CvField<Timestamp>(
-    'localTimestamp',
-  );
+  late final localTimestamp = CvField<Timestamp>('localTimestamp');
 
   /// Won status
   late final won = CvField<String>('won');

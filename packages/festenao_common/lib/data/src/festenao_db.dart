@@ -16,7 +16,7 @@ final _syncStores = [
   dbEventStoreRef,
   dbImageStoreRef,
   dbInfoStoreRef,
-  dbMetaStoreRef
+  dbMetaStoreRef,
 ];
 var festenaoExport = 'festenao_export.jsonl';
 var festenaoExportMeta = 'festenao_export_meta.json';
@@ -30,7 +30,7 @@ var assetsDataExportPath = url.join(assetsRootDataPath, festenaoExport);
 
 var festenaoDbSystemStoreNames = [
   dbSyncRecordStoreRef.name,
-  dbSyncMetaStoreRef.name
+  dbSyncMetaStoreRef.name,
 ];
 
 /// Must be json encodable
@@ -73,7 +73,7 @@ class FestenaoDb extends SyncedDbBase {
   }
 
   FestenaoDb(DatabaseFactory databaseFactory, {String? name})
-      : this._(databaseFactory, false, name: name);
+    : this._(databaseFactory, false, name: name);
 
   Future<void> dbClear(Database db) async {
     await db.transaction((txn) async {
@@ -101,30 +101,37 @@ class FestenaoDb extends SyncedDbBase {
   Future<FestenaoExportInfo> export() async {
     var syncMeta = (await getSyncMetaInfo())!;
     var sdb = await database;
-    var map = await exportDatabase(sdb,
-        storeNames: getNonEmptyStoreNames(sdb).toList()
-          ..removeWhere(
-              (element) => [dbSyncRecordStoreRef.name].contains(element)));
+    var map = await exportDatabase(
+      sdb,
+      storeNames:
+          getNonEmptyStoreNames(sdb).toList()..removeWhere(
+            (element) => [dbSyncRecordStoreRef.name].contains(element),
+          ),
+    );
 
-    var exportMeta = FestenaoExportMeta()
-      ..sourceVersion.setValue(syncMeta.sourceVersion.v)
-      ..lastTimestamp.setValue(syncMeta.lastTimestamp.v?.toIso8601String())
-      ..lastChangeId.setValue(syncMeta.lastChangeId.v);
+    var exportMeta =
+        FestenaoExportMeta()
+          ..sourceVersion.setValue(syncMeta.sourceVersion.v)
+          ..lastTimestamp.setValue(syncMeta.lastTimestamp.v?.toIso8601String())
+          ..lastChangeId.setValue(syncMeta.lastChangeId.v);
     return FestenaoExportInfo(metaInfo: exportMeta, data: map);
   }
 
   @override
-  late final rawDatabase = databaseFactory.openDatabase(name, version: 2,
-      onVersionChanged: (db, oldVersion, newVersion) async {
-    if (oldVersion > 0 && oldVersion < 2) {
-      // Clear db
-      await dbClear(db);
-    }
-    if (!_test) {
-      // await (artistStore.record('test').cv()..name.v = 'Test name')
-      //    .put(db);
-    }
-  });
+  late final rawDatabase = databaseFactory.openDatabase(
+    name,
+    version: 2,
+    onVersionChanged: (db, oldVersion, newVersion) async {
+      if (oldVersion > 0 && oldVersion < 2) {
+        // Clear db
+        await dbClear(db);
+      }
+      if (!_test) {
+        // await (artistStore.record('test').cv()..name.v = 'Test name')
+        //    .put(db);
+      }
+    },
+  );
 }
 
 class FestenaoExportInfo {

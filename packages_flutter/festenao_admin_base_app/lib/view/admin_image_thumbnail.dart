@@ -7,17 +7,18 @@ class ImageThumbnailPreview extends StatelessWidget {
   final AdminAppProjectContextDbBloc dbBloc;
   final String imageId;
 
-  const ImageThumbnailPreview(
-      {super.key, required this.imageId, required this.dbBloc});
+  const ImageThumbnailPreview({
+    super.key,
+    required this.imageId,
+    required this.dbBloc,
+  });
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-        width: 32,
-        height: 32,
-        child: ImagePreview(
-          imageId: imageId,
-          dbBloc: dbBloc,
-        ));
+      width: 32,
+      height: 32,
+      child: ImagePreview(imageId: imageId, dbBloc: dbBloc),
+    );
   }
 }

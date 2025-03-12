@@ -20,10 +20,7 @@ class GoodieController {
   /// Top firestore path
   final String firestorePath;
 
-  GoodieController({
-    required this.firestore,
-    required this.firestorePath,
-  }) {
+  GoodieController({required this.firestore, required this.firestorePath}) {
     initFsGoodieBuilders();
   }
 
@@ -49,10 +46,10 @@ class GoodieController {
   CvDocumentReference<FsGoodiesState> fsGoodiesDailyStateRef(CalendarDay day) =>
       _fsGoodiesDailyStateRef(day);
   CvDocumentReference<FsGoodiesState> _fsGoodiesDailyStateRef(
-          CalendarDay day) =>
-      _fsGoodieSessionRef
-          .collection<FsGoodiesState>(_goodiesStateCollectionId)
-          .doc(day.text);
+    CalendarDay day,
+  ) => _fsGoodieSessionRef
+      .collection<FsGoodiesState>(_goodiesStateCollectionId)
+      .doc(day.text);
   CvDocumentReference<FsGoodiesState> get fsGoodiesStateRef =>
       _fsGoodiesStateRef;
   CvDocumentReference<FsGoodiesState> get _fsGoodiesStateRef =>
@@ -60,9 +57,7 @@ class GoodieController {
           .collection<FsGoodiesState>(_goodieInfoCollectionPart)
           .doc(_goodiesStateInfoDocId);
 
-  Future<String?> findRandomGoodie({
-    required DateTime now,
-  }) async {
+  Future<String?> findRandomGoodie({required DateTime now}) async {
     return await firestore.cvRunTransaction((txn) async {
       return txnFindRandomGoodie(txn: txn, now: now);
     });
@@ -96,15 +91,18 @@ class GoodieController {
         var state = await txn.refGet(goodiesStateRef);
 
         if (!state.exists) {
-          state = FsGoodiesState()
-            ..path = goodiesStateRef.path
-            ..goodies.v = config.goodies.v
-                ?.map(
-                  (e) => CvGoodieState()
-                    ..id.v = e.id.v
-                    ..count.v = e.quantity.v,
-                )
-                .toList();
+          state =
+              FsGoodiesState()
+                ..path = goodiesStateRef.path
+                ..goodies.v =
+                    config.goodies.v
+                        ?.map(
+                          (e) =>
+                              CvGoodieState()
+                                ..id.v = e.id.v
+                                ..count.v = e.quantity.v,
+                        )
+                        .toList();
         }
         var totalGoodieCount = state.goodies.v!.fold<int>(
           0,

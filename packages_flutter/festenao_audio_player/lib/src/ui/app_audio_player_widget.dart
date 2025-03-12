@@ -6,8 +6,11 @@ class AppAudioPlayerWidget extends StatefulWidget {
   final AppAudioPlayerSong song;
   final AppAudioPlayer player;
 
-  const AppAudioPlayerWidget(
-      {super.key, required this.player, required this.song});
+  const AppAudioPlayerWidget({
+    super.key,
+    required this.player,
+    required this.song,
+  });
 
   @override
   State<AppAudioPlayerWidget> createState() => _AppAudioPlayerWidgetState();
@@ -37,44 +40,50 @@ class _AppAudioPlayerWidgetState extends State<AppAudioPlayerWidget> {
       children: [
         // IconButton(onPressed: () {}, icon: Icon(Icons.skip_previous)),
         IconButton(
-            onPressed: () async {
-              await player.seek(Duration.zero);
-            },
-            icon: const Icon(Icons.skip_previous)),
+          onPressed: () async {
+            await player.seek(Duration.zero);
+          },
+          icon: const Icon(Icons.skip_previous),
+        ),
 
         IconButton(
-            onPressed: () async {
-              await player.playSong(song);
-            },
-            iconSize: 64,
-            icon: const Icon(Icons.play_arrow)),
+          onPressed: () async {
+            await player.playSong(song);
+          },
+          iconSize: 64,
+          icon: const Icon(Icons.play_arrow),
+        ),
         IconButton(
-            onPressed: () async {
-              await player.pause();
-            },
-            iconSize: 32,
-            icon: const Icon(Icons.pause)),
+          onPressed: () async {
+            await player.pause();
+          },
+          iconSize: 32,
+          icon: const Icon(Icons.pause),
+        ),
         IconButton(
-            onPressed: () async {
-              await player.resume();
-            },
-            iconSize: 32,
-            icon: const Icon(Icons.play_arrow_outlined)),
+          onPressed: () async {
+            await player.resume();
+          },
+          iconSize: 32,
+          icon: const Icon(Icons.play_arrow_outlined),
+        ),
         IconButton(
-            onPressed: () async {
-              await player.stop();
-              await player.seek(Duration.zero);
-            },
-            iconSize: 32,
-            icon: const Icon(Icons.stop)),
+          onPressed: () async {
+            await player.stop();
+            await player.seek(Duration.zero);
+          },
+          iconSize: 32,
+          icon: const Icon(Icons.stop),
+        ),
         IconButton(
-            onPressed: () async {
-              var duration = await player.getDuration();
-              if (duration != null) {
-                await player.seek(duration);
-              }
-            },
-            icon: const Icon(Icons.skip_next)),
+          onPressed: () async {
+            var duration = await player.getDuration();
+            if (duration != null) {
+              await player.seek(duration);
+            }
+          },
+          icon: const Icon(Icons.skip_next),
+        ),
         StreamBuilder<Duration?>(
           builder: (context, snapshot) {
             var position = snapshot.data ?? Duration.zero;
@@ -82,16 +91,15 @@ class _AppAudioPlayerWidgetState extends State<AppAudioPlayerWidget> {
           },
           stream: player.positionStream,
         ),
-        const SizedBox(
-          width: 8,
-        ),
+        const SizedBox(width: 8),
         Expanded(
           child: StreamBuilder<AppAudioPlayerState>(
             builder: (context, snapshot) {
               return StreamBuilder<Duration?>(
                 builder: (context, positionSnapshot) {
                   var duration = snapshot.data?.duration;
-                  var position = positionSnapshot.data ??
+                  var position =
+                      positionSnapshot.data ??
                       snapshot.data?.position ??
                       Duration.zero;
                   var value = 0.0;
@@ -115,8 +123,9 @@ class _AppAudioPlayerWidgetState extends State<AppAudioPlayerWidget> {
                       });
                       if (duration != null) {
                         var position = Duration(
-                            milliseconds:
-                                (duration.inMilliseconds * value).toInt());
+                          milliseconds:
+                              (duration.inMilliseconds * value).toInt(),
+                        );
                         await player.seek(position);
                         await player.resume();
 

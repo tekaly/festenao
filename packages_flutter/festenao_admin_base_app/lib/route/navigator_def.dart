@@ -38,23 +38,27 @@ export 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 /// Root/Start screen builder
 Widget festenaoAdminAppUserRootScreenBuilder(ContentPathRouteSettings crps) {
   return BlocProvider(
-      blocBuilder: () => StartScreenBloc(), child: const StartScreen());
+    blocBuilder: () => StartScreenBloc(),
+    child: const StartScreen(),
+  );
 }
 
-FestenaoAdminAppProjectContext _byProjectIdAdminAppProjectContext(
-    {required String projectId}) {
+FestenaoAdminAppProjectContext _byProjectIdAdminAppProjectContext({
+  required String projectId,
+}) {
   var projectsDbBloc = globalProjectsDbBloc;
   if (projectsDbBloc is MultiProjectsDbBloc) {
     return ByProjectIdAdminAppProjectContext(projectId: projectId);
   } else if (projectsDbBloc is SingleProjectDbBloc) {
     return SingleFestenaoAdminAppProjectContext(
-        projectId: projectId,
-        syncedDb: projectsDbBloc.syncedDb,
-        firestore: globalFestenaoAdminAppFirebaseContext.firestore,
-        storage: globalFestenaoAdminAppFirebaseContext.storage,
-        storageBucket: globalFestenaoAppFirebaseContext.storageBucket,
-        firestorePath: globalFestenaoAppFirebaseContext.firestoreRootPath,
-        storagePath: globalFestenaoAppFirebaseContext.storageRootPath);
+      projectId: projectId,
+      syncedDb: projectsDbBloc.syncedDb,
+      firestore: globalFestenaoAdminAppFirebaseContext.firestore,
+      storage: globalFestenaoAdminAppFirebaseContext.storage,
+      storageBucket: globalFestenaoAppFirebaseContext.storageBucket,
+      firestorePath: globalFestenaoAppFirebaseContext.firestoreRootPath,
+      storagePath: globalFestenaoAppFirebaseContext.storageRootPath,
+    );
   } else {
     throw StateError('Invalid projectsDbBloc $globalProjectsDbBloc');
   }
@@ -62,28 +66,35 @@ FestenaoAdminAppProjectContext _byProjectIdAdminAppProjectContext(
 
 var userRootPageDef = festenaoAdminAppStartPageDef;
 var festenaoAdminAppStartPageDef = ContentPageDef(
-    screenBuilder: festenaoAdminAppUserRootScreenBuilder,
-    path: rootContentPath);
+  screenBuilder: festenaoAdminAppUserRootScreenBuilder,
+  path: rootContentPath,
+);
 var homeRootPageDef = ContentPageDef(
-    screenBuilder: festenaoAdminAppUserRootScreenBuilder,
-    path: HomeContentPath());
+  screenBuilder: festenaoAdminAppUserRootScreenBuilder,
+  path: HomeContentPath(),
+);
 var festenaoLegacyAdminAppStartPagePageDef = ContentPageDef(
-    screenBuilder: festenaoAdminAppUserRootScreenBuilder,
-    path: FestenaoHomeContentPath());
+  screenBuilder: festenaoAdminAppUserRootScreenBuilder,
+  path: FestenaoHomeContentPath(),
+);
 var projectsPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      return BlocProvider(
-          blocBuilder: () => ProjectsScreenBloc(),
-          child: const ProjectsScreen());
-    },
-    path: ProjectsContentPath());
+  screenBuilder: (crps) {
+    return BlocProvider(
+      blocBuilder: () => ProjectsScreenBloc(),
+      child: const ProjectsScreen(),
+    );
+  },
+  path: ProjectsContentPath(),
+);
 var appUsersPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      return BlocProvider(
-          blocBuilder: () => FsAppUsersScreenBloc(),
-          child: const FsAppUsersScreen());
-    },
-    path: AppUsersContentPath());
+  screenBuilder: (crps) {
+    return BlocProvider(
+      blocBuilder: () => FsAppUsersScreenBloc(),
+      child: const FsAppUsersScreen(),
+    );
+  },
+  path: AppUsersContentPath(),
+);
 /*
 var settingsPageDef = ContentPageDef(
     screenBuilder: (crps) {
@@ -128,195 +139,246 @@ var projectInvitePageDef = ContentPageDef(
     },
     path: ProjectInviteContentPath());*/
 var adminViewSyncedProjectPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = SyncedProjectContentPath()..fromPath(crps.path);
-      var syncedProjectId = cp.project.value!;
-      return BlocProvider(
-          blocBuilder: () => ProjectViewScreenBloc(projectId: syncedProjectId),
-          child: const ProjectViewScreen());
-    },
-    path: SyncedProjectContentPath());
+  screenBuilder: (crps) {
+    var cp = SyncedProjectContentPath()..fromPath(crps.path);
+    var syncedProjectId = cp.project.value!;
+    return BlocProvider(
+      blocBuilder: () => ProjectViewScreenBloc(projectId: syncedProjectId),
+      child: const ProjectViewScreen(),
+    );
+  },
+  path: SyncedProjectContentPath(),
+);
 
 var rootSyncedProjectPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = RootSyncedProjectContentPath()..fromPath(crps.path);
-      var syncedProjectId = cp.project.value!;
-      return BlocProvider(
-          blocBuilder: () => ProjectRootScreenBloc(projectId: syncedProjectId),
-          child: const ProjectRootScreen());
-    },
-    path: RootSyncedProjectContentPath());
+  screenBuilder: (crps) {
+    var cp = RootSyncedProjectContentPath()..fromPath(crps.path);
+    var syncedProjectId = cp.project.value!;
+    return BlocProvider(
+      blocBuilder: () => ProjectRootScreenBloc(projectId: syncedProjectId),
+      child: const ProjectRootScreen(),
+    );
+  },
+  path: RootSyncedProjectContentPath(),
+);
 
 var projectMetasPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectMetasContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminMetasScreenBloc(projectContext: projectContext),
-          child: const AdminMetasScreen());
-    },
-    path: ProjectMetasContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectMetasContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder: () => AdminMetasScreenBloc(projectContext: projectContext),
+      child: const AdminMetasScreen(),
+    );
+  },
+  path: ProjectMetasContentPath(),
+);
 
 var projectInfosPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectInfosContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminInfosScreenBloc(projectContext: projectContext),
-          child: const AdminInfosScreen());
-    },
-    path: ProjectInfosContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectInfosContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder: () => AdminInfosScreenBloc(projectContext: projectContext),
+      child: const AdminInfosScreen(),
+    );
+  },
+  path: ProjectInfosContentPath(),
+);
 
 var projectInfoPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectInfoContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var subId = cp.sub.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () => AdminInfoScreenBloc(
-              projectContext: projectContext, infoId: subId),
-          child: const AdminInfoScreen());
-    },
-    path: ProjectInfoContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectInfoContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var subId = cp.sub.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder:
+          () => AdminInfoScreenBloc(
+            projectContext: projectContext,
+            infoId: subId,
+          ),
+      child: const AdminInfoScreen(),
+    );
+  },
+  path: ProjectInfoContentPath(),
+);
 
 var projectArtistsPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectArtistsContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminArtistsScreenBloc(projectContext: projectContext),
-          child: const AdminArtistsScreen());
-    },
-    path: ProjectArtistsContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectArtistsContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder: () => AdminArtistsScreenBloc(projectContext: projectContext),
+      child: const AdminArtistsScreen(),
+    );
+  },
+  path: ProjectArtistsContentPath(),
+);
 
 var projectArtistPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectArtistContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var subId = cp.sub.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () => AdminArtistScreenBloc(
-              projectContext: projectContext, artistId: subId),
-          child: const AdminArtistScreen());
-    },
-    path: ProjectArtistContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectArtistContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var subId = cp.sub.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder:
+          () => AdminArtistScreenBloc(
+            projectContext: projectContext,
+            artistId: subId,
+          ),
+      child: const AdminArtistScreen(),
+    );
+  },
+  path: ProjectArtistContentPath(),
+);
 var projectImagesPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectImagesContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminImagesScreenBloc(projectContext: projectContext),
-          child: const AdminImagesScreen());
-    },
-    path: ProjectImagesContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectImagesContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder: () => AdminImagesScreenBloc(projectContext: projectContext),
+      child: const AdminImagesScreen(),
+    );
+  },
+  path: ProjectImagesContentPath(),
+);
 
 var projectImagePageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectImageContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var subId = cp.sub.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () => AdminImageScreenBloc(
-              projectContext: projectContext, imageId: subId),
-          child: const AdminImageScreen());
-    },
-    path: ProjectImageContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectImageContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var subId = cp.sub.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder:
+          () => AdminImageScreenBloc(
+            projectContext: projectContext,
+            imageId: subId,
+          ),
+      child: const AdminImageScreen(),
+    );
+  },
+  path: ProjectImageContentPath(),
+);
 var projectEventsPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectEventsContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminEventsScreenBloc(projectContext: projectContext),
-          child: const AdminEventsScreen());
-    },
-    path: ProjectEventsContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectEventsContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder: () => AdminEventsScreenBloc(projectContext: projectContext),
+      child: const AdminEventsScreen(),
+    );
+  },
+  path: ProjectEventsContentPath(),
+);
 
 var projectEventPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectEventContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var subId = cp.sub.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () => AdminEventScreenBloc(
-              projectContext: projectContext, eventId: subId),
-          child: const AdminEventScreen());
-    },
-    path: ProjectEventContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectEventContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var subId = cp.sub.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder:
+          () => AdminEventScreenBloc(
+            projectContext: projectContext,
+            eventId: subId,
+          ),
+      child: const AdminEventScreen(),
+    );
+  },
+  path: ProjectEventContentPath(),
+);
 
 var projectExportsPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectExportsContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminExportsScreenBloc(projectContext: projectContext),
-          child: const AdminExportsScreen());
-    },
-    path: ProjectExportsContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectExportsContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder: () => AdminExportsScreenBloc(projectContext: projectContext),
+      child: const AdminExportsScreen(),
+    );
+  },
+  path: ProjectExportsContentPath(),
+);
 
 var projectExportPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectExportContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var subId = cp.sub.value!;
-      var projectContext =
-          _byProjectIdAdminAppProjectContext(projectId: projectId);
-      return BlocProvider(
-          blocBuilder: () => AdminExportViewScreenBloc(
-              projectContext: projectContext, exportId: subId),
-          child: const AdminExportViewScreen());
-    },
-    path: ProjectExportContentPath());
+  screenBuilder: (crps) {
+    var cp = ProjectExportContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var subId = cp.sub.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder:
+          () => AdminExportViewScreenBloc(
+            projectContext: projectContext,
+            exportId: subId,
+          ),
+      child: const AdminExportViewScreen(),
+    );
+  },
+  path: ProjectExportContentPath(),
+);
 
 var projectUsersPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectUsersContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
+  screenBuilder: (crps) {
+    var cp = ProjectUsersContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
 
-      return BlocProvider(
-          blocBuilder: () =>
+    return BlocProvider(
+      blocBuilder:
+          () =>
               AdminUsersScreenBloc(param: AdminUsersScreenParam(id: projectId)),
-          child: const AdminUsersScreen());
-    },
-    path: ProjectUsersContentPath());
+      child: const AdminUsersScreen(),
+    );
+  },
+  path: ProjectUsersContentPath(),
+);
 
 var projectUserPageDef = ContentPageDef(
-    screenBuilder: (crps) {
-      var cp = ProjectUserContentPath()..fromPath(crps.path);
-      var projectId = cp.project.value!;
-      var subId = cp.sub.value!;
+  screenBuilder: (crps) {
+    var cp = ProjectUserContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var subId = cp.sub.value!;
 
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminUserScreenBloc(projectId: projectId, userId: subId),
-          child: const AdminUserScreen());
-    },
-    path: ProjectUserContentPath());
+    return BlocProvider(
+      blocBuilder:
+          () => AdminUserScreenBloc(projectId: projectId, userId: subId),
+      child: const AdminUserScreen(),
+    );
+  },
+  path: ProjectUserContentPath(),
+);
 /*
 var syncedProjectNotesPageDef = ContentPageDef(
     screenBuilder: (crps) {
@@ -385,16 +447,16 @@ final festenaoAdminAppPages = [
   settingProjectsPageDef,
   projectPageDef,*/
   rootSyncedProjectPageDef,
-  adminViewSyncedProjectPageDef, /*
+  adminViewSyncedProjectPageDef /*
   projectNotesPageDef,
   syncedProjectNotesPageDef,
   projectNoteViewPageDef,
   syncedProjectNoteViewPageDef,
   projectInvitePageDef,
-  markdownGuidePageDef,*/
+  markdownGuidePageDef,*/,
 ];
-final _contentNavigatorDef = ContentNavigatorDef(defs: [
-  ...festenaoAdminAppPages,
-]);
+final _contentNavigatorDef = ContentNavigatorDef(
+  defs: [...festenaoAdminAppPages],
+);
 ContentNavigatorDef get festenaoAdminAppContentNavigatorDef =>
     _contentNavigatorDef;

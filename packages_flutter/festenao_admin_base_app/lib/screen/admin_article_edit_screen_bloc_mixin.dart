@@ -12,8 +12,11 @@ class AdminArticleEditData {
   Uint8List? imageData;
   Uint8List? thumbailData;
 
-  AdminArticleEditData(
-      {required this.article, this.imageData, this.thumbailData});
+  AdminArticleEditData({
+    required this.article,
+    this.imageData,
+    this.thumbailData,
+  });
 }
 
 abstract class AdminArticleEditScreenBloc {
@@ -39,14 +42,16 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
       var image = img.decodeImage(imageData)!;
       var imageName = '$imageId.jpg';
       var blurHash = await image.blurHashEncode();
-      dbImage = dbImageStoreRef.record(imageId).cv()
-        ..name.v = imageName
-        ..width.v = image.width
-        ..height.v = image.height
-        ..blurHash.v = blurHash;
+      dbImage =
+          dbImageStoreRef.record(imageId).cv()
+            ..name.v = imageName
+            ..width.v = image.width
+            ..height.v = image.height
+            ..blurHash.v = blurHash;
 
-      var path =
-          globalFestenaoAppFirebaseContext.getImageDirStoragePath(imageName);
+      var path = globalFestenaoAppFirebaseContext.getImageDirStoragePath(
+        imageName,
+      );
       await globalFestenaoAdminAppFirebaseContext.storage
           .bucket(bucket)
           .file(path)
@@ -58,19 +63,24 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
     }
     if (thumbnailImageData != null) {
       var articleId = article.id;
-      var imageId = stringNonEmpty(article.thumbnail.v) ??
+      var imageId =
+          stringNonEmpty(article.thumbnail.v) ??
           '${articleStore.name}_thumb_$articleId';
       var image = img.decodeImage(thumbnailImageData)!;
       var imageName = '$imageId.jpg';
       var blurHash = await image.blurHashEncode();
-      dbImage = dbImageStoreRef.record(imageId).cv()
-        ..name.v = imageName
-        ..width.v = image.width
-        ..height.v = image.height
-        ..blurHash.v = blurHash;
+      dbImage =
+          dbImageStoreRef.record(imageId).cv()
+            ..name.v = imageName
+            ..width.v = image.width
+            ..height.v = image.height
+            ..blurHash.v = blurHash;
 
       var path = url.join(
-          globalFestenaoAppFirebaseContext.storageRootPath, 'image', imageName);
+        globalFestenaoAppFirebaseContext.storageRootPath,
+        'image',
+        imageName,
+      );
       await globalFestenaoAdminAppFirebaseContext.storage
           .bucket(bucket)
           .file(path)

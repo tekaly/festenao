@@ -34,7 +34,7 @@ void main() {
     test('cvModelField', () async {
       var parent = DbParent()..child.v = (Child()..value.v = 'test');
       expect(parent.toMap(), {
-        'child': {'value': 'test'}
+        'child': {'value': 'test'},
       });
       expect(parent.toMap().cv<DbParent>(), parent);
     });
@@ -42,8 +42,8 @@ void main() {
       var parent = ParentWithList()..children.v = [Child()..value.v = 'test'];
       expect(parent.toMap(), {
         'children': [
-          {'value': 'test'}
-        ]
+          {'value': 'test'},
+        ],
       });
       expect(parent.toMap().cv<ParentWithList>(), parent);
     });

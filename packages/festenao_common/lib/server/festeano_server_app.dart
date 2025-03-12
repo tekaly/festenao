@@ -7,7 +7,7 @@ class FestenaoServerApp extends TkCmsServerAppV2 {
   final String app;
   late String ampCommand;
   FestenaoServerApp({this.app = 'festenao', required super.context})
-      : super(apiVersion: apiVersion2);
+    : super(apiVersion: apiVersion2);
 
   @override
   Future<ApiResult> onCommand(ApiRequest apiRequest) async {
@@ -26,7 +26,8 @@ class FestenaoServerApp extends TkCmsServerAppV2 {
     var requestPath = ampRequest.path;
     var request = ampRequest.request;
     return onAppAmp(
-        IncomingAppAmpRequest(request: request, app: app, path: requestPath));
+      IncomingAppAmpRequest(request: request, app: app, path: requestPath),
+    );
     /*
     // ignore: dead_code
     var parts = requestPath.split('/');
@@ -65,9 +66,9 @@ class FestenaoServerApp extends TkCmsServerAppV2 {
   }
 
   HttpsFunction get amp => functions.https.onRequestV2(
-        HttpsOptions(cors: true, region: regionBelgium),
-        onHttpsAmp,
-      );
+    HttpsOptions(cors: true, region: regionBelgium),
+    onHttpsAmp,
+  );
   @override
   void initFunctions() {
     ampCommand = 'amp${flavorContext.ifNotProdFlavor}';
@@ -77,8 +78,11 @@ class FestenaoServerApp extends TkCmsServerAppV2 {
 }
 
 class IncomingAppAmpRequest extends IncomingAmpRequest {
-  IncomingAppAmpRequest(
-      {required super.request, required this.app, super.path});
+  IncomingAppAmpRequest({
+    required super.request,
+    required this.app,
+    super.path,
+  });
 
   final String app;
 }

@@ -14,13 +14,14 @@ class CalendarEditTile extends StatelessWidget {
   final String? valueText;
   final bool? set;
 
-  const CalendarEditTile(
-      {super.key,
-      this.onTap,
-      this.labelText,
-      this.valueText,
-      this.set,
-      this.onLongPress});
+  const CalendarEditTile({
+    super.key,
+    this.onTap,
+    this.labelText,
+    this.valueText,
+    this.set,
+    this.onLongPress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,8 +32,9 @@ class CalendarEditTile extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             decoration: BoxDecoration(
-                border: Border.all(color: colorAdminLightBlue),
-                borderRadius: BorderRadius.circular(10)),
+              border: Border.all(color: colorAdminLightBlue),
+              borderRadius: BorderRadius.circular(10),
+            ),
             child: EditInfoTile(
               trailing: CalendarEditTrailing(),
               set: set,
@@ -48,8 +50,9 @@ class CalendarEditTile extends StatelessWidget {
             left: 32,
             top: -2,
             child: Container(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: Text(' $labelText ', style: infoLabelTextStyle)),
+              color: Theme.of(context).scaffoldBackgroundColor,
+              child: Text(' $labelText ', style: infoLabelTextStyle),
+            ),
           ),
       ],
     );
@@ -59,70 +62,70 @@ class CalendarEditTile extends StatelessWidget {
 class CalendarFormFieldTile extends FormField<DateTime?> {
   final ValueNotifier<CalendarDay?> valueNotifier;
 
-  CalendarFormFieldTile(
-      {super.key,
-      required BuildContext context,
-      required this.valueNotifier,
-      String? labelText})
-      : super(
-            initialValue: valueNotifier.value?.dateTime,
-            validator: (value) {
-              if (value == null) {
-                return textFieldCannotBeEmptyError;
-              }
-              return null;
-            },
-            builder: (state) {
-              return ValueListenableBuilder<CalendarDay?>(
-                  valueListenable: valueNotifier,
-                  builder: (context, snapshot, _) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CalendarEditTile(
-                          labelText: labelText,
-                          valueText: valueNotifier.value == null
-                              ? ''
-                              : valueNotifier.value!.toString(),
-                          onLongPress: () {
-                            valueNotifier.value = null;
-                            state.didChange(null);
-                          },
-                          onTap: () async {
-                            var now = DateTime.now();
-                            final picked = await showDatePicker(
-                                context: context,
-                                initialDate: valueNotifier.value?.dateTime ??
-                                    DateTime.now(),
-                                initialDatePickerMode: DatePickerMode.day,
-                                firstDate: DateTime(now.year - 1),
-                                lastDate: DateTime(now.year + 10));
-                            if (picked != null) {
-                              valueNotifier.value =
-                                  CalendarDay(dateTime: picked);
-                              state.didChange(picked);
-                            }
-                          },
-                        ),
-                        if (state.hasError)
-                          Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 16.0),
-                            child: Text(
-                              state.errorText!,
-                              style: errorTextStyle,
-                            ),
-                          ),
-                      ],
-                    );
-                  });
-            });
+  CalendarFormFieldTile({
+    super.key,
+    required BuildContext context,
+    required this.valueNotifier,
+    String? labelText,
+  }) : super(
+         initialValue: valueNotifier.value?.dateTime,
+         validator: (value) {
+           if (value == null) {
+             return textFieldCannotBeEmptyError;
+           }
+           return null;
+         },
+         builder: (state) {
+           return ValueListenableBuilder<CalendarDay?>(
+             valueListenable: valueNotifier,
+             builder: (context, snapshot, _) {
+               return Column(
+                 crossAxisAlignment: CrossAxisAlignment.start,
+                 children: [
+                   CalendarEditTile(
+                     labelText: labelText,
+                     valueText:
+                         valueNotifier.value == null
+                             ? ''
+                             : valueNotifier.value!.toString(),
+                     onLongPress: () {
+                       valueNotifier.value = null;
+                       state.didChange(null);
+                     },
+                     onTap: () async {
+                       var now = DateTime.now();
+                       final picked = await showDatePicker(
+                         context: context,
+                         initialDate:
+                             valueNotifier.value?.dateTime ?? DateTime.now(),
+                         initialDatePickerMode: DatePickerMode.day,
+                         firstDate: DateTime(now.year - 1),
+                         lastDate: DateTime(now.year + 10),
+                       );
+                       if (picked != null) {
+                         valueNotifier.value = CalendarDay(dateTime: picked);
+                         state.didChange(picked);
+                       }
+                     },
+                   ),
+                   if (state.hasError)
+                     Padding(
+                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                       child: Text(state.errorText!, style: errorTextStyle),
+                     ),
+                 ],
+               );
+             },
+           );
+         },
+       );
 }
 
 class CalendarEditTrailing extends IconLeading {
   CalendarEditTrailing({super.key})
-      : super(
-            iconData: Icons.calendar_today,
-            color: colorAdminLightBlue,
-            size: editIconSize);
+    : super(
+        iconData: Icons.calendar_today,
+        color: colorAdminLightBlue,
+        size: editIconSize,
+      );
 }

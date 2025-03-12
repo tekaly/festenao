@@ -12,7 +12,7 @@ void initFsFormBuilders() {
     CvFormQuestionResponse.new,
     CvFormQuestion.new,
     CvForm.new,
-    FsFormFull.new
+    FsFormFull.new,
   ]);
 }
 
@@ -47,14 +47,14 @@ mixin CvFormQuestionMixin on CvModel {
 
   /// Question mixin fields
   List<CvField> get questionMixinFields => [
-        slug,
-        text,
-        hint,
-        proposedAnswer,
+    slug,
+    text,
+    hint,
+    proposedAnswer,
 
-        /// Aternative to choice id
-        proposedAnswerId,
-      ];
+    /// Aternative to choice id
+    proposedAnswerId,
+  ];
 }
 
 /// Survey question
@@ -87,19 +87,17 @@ mixin CvFormQuestionResponseMixin on CvModel {
   final choiceIds = CvListField<String>('choiceIds');
 
   /// Sub form response
-  final subFormResponses = CvModelListField<CvFormQuestionResponse>(
-    'subForm',
-  );
+  final subFormResponses = CvModelListField<CvFormQuestionResponse>('subForm');
 
   /// Answer mixin fields
   List<CvField> get responseMixinFields => [
-        answerType,
-        answerInt,
-        answerText,
-        choiceId,
-        choiceIds,
-        subFormResponses
-      ];
+    answerType,
+    answerInt,
+    answerText,
+    choiceId,
+    choiceIds,
+    subFormResponses,
+  ];
 }
 
 /// Survey answer
@@ -158,13 +156,13 @@ class FsFormQuestion extends TkCmsFsBasicEntity with CvFormQuestionMixin {
 mixin CvFormProposedAnswerMixin implements CvModel {
   /// Proposed answer mixin fields
   List<CvField> get proposedAnswerMixinFields => [
-        answerEmptyAllowed,
-        answerType,
-        answerChoices,
-        answerIntMin,
-        answerIntMax,
-        answerIntPresets,
-      ];
+    answerEmptyAllowed,
+    answerType,
+    answerChoices,
+    answerIntMin,
+    answerIntMax,
+    answerIntPresets,
+  ];
 
   /// Empty answer allowed
   final answerEmptyAllowed = CvField<bool>('answerEmptyAllowed');
@@ -173,9 +171,7 @@ mixin CvFormProposedAnswerMixin implements CvModel {
   final answerType = CvField<String>('answerType');
 
   /// Answer choices
-  final answerChoices = CvModelListField<CvFormQuestionChoice>(
-    'answerChoices',
-  );
+  final answerChoices = CvModelListField<CvFormQuestionChoice>('answerChoices');
 
   /// For answerType == int
   final answerIntMin = CvField<int>('answerIntMin');
@@ -233,11 +229,11 @@ mixin CvFormQuestionSelectionMixin {
 
   /// mixin
   List<CvField> get selectionMixinFields => [
-        title,
-        answerChoiceIds,
-        answerIntMax,
-        answerIntMin,
-      ];
+    title,
+    answerChoiceIds,
+    answerIntMax,
+    answerIntMin,
+  ];
 }
 
 /// Question selection if needed
@@ -306,12 +302,17 @@ class FsFormFull extends CvFirestoreDocumentBase with CvFormMixin {
   final formSubForms = CvModelListField<CvForm>('formSubForms');
 
   /// Proposed answers
-  final formProposedAnswers =
-      CvModelListField<CvFormProposedAnswer>('formProposedAnswers');
+  final formProposedAnswers = CvModelListField<CvFormProposedAnswer>(
+    'formProposedAnswers',
+  );
 
   @override
-  List<CvField> get fields =>
-      [...formMixinFields, formQuestions, formSubForms, formProposedAnswers];
+  List<CvField> get fields => [
+    ...formMixinFields,
+    formQuestions,
+    formSubForms,
+    formProposedAnswers,
+  ];
 }
 
 /// Form response

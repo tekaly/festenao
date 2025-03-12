@@ -15,14 +15,15 @@ class EditInfoTile extends StatelessWidget {
   // True if the data is set
   final bool? set;
 
-  const EditInfoTile(
-      {super.key,
-      this.onTap,
-      this.onLongPress,
-      @required this.labelText,
-      @required this.valueText,
-      this.set,
-      this.trailing});
+  const EditInfoTile({
+    super.key,
+    this.onTap,
+    this.onLongPress,
+    @required this.labelText,
+    @required this.valueText,
+    this.set,
+    this.trailing,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,19 +43,19 @@ class EditInfoTile extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            if (valueText != null)
-                              Text(
-                                valueText!,
-                                style: infoValueTextStyle.copyWith(
-                                    color: valueTextColor),
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 4),
+                          if (valueText != null)
+                            Text(
+                              valueText!,
+                              style: infoValueTextStyle.copyWith(
+                                color: valueTextColor,
                               ),
-                            const SizedBox(
-                              height: 6,
                             ),
-                          ]),
+                          const SizedBox(height: 6),
+                        ],
+                      ),
                     ),
                     if (trailing != null) trailing!,
                   ],

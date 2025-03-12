@@ -41,15 +41,13 @@ class AdminUserEditScreenBloc
           add(AdminUserEditScreenBlocState(null));
         } else {
           var fsDb = globalFestenaoFirestoreDatabase.projectDb;
-          var userAccessRef =
-              fsDb.fsEntityUserAccessRef(param.projectId, userId);
+          var userAccessRef = fsDb.fsEntityUserAccessRef(
+            param.projectId,
+            userId,
+          );
           var userAccess = await userAccessRef.get(fsDb.firestore);
           if (!disposed) {
-            add(
-              AdminUserEditScreenBlocState(
-                userAccess,
-              ),
-            );
+            add(AdminUserEditScreenBlocState(userAccess));
           }
         }
       }
@@ -64,7 +62,10 @@ class AdminUserEditScreenBloc
     userAccess.fixAccess();
 
     await fsDb.setEntityUserAccess(
-        entityId: param.projectId, userId: userId, userAccess: userAccess);
+      entityId: param.projectId,
+      userId: userId,
+      userAccess: userAccess,
+    );
     /*
     if (id == null) {
       var existing = await userAccessRef(data.user.userId!).get(fbFirestore);

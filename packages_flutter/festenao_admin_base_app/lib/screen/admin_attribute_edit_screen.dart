@@ -47,8 +47,10 @@ class AdminAttributeEditScreenBloc
   final FestenaoAdminAppProjectContext projectContext;
   final AdminAttributeEditScreenParam? param;
 
-  AdminAttributeEditScreenBloc(
-      {required this.param, required this.projectContext}) {
+  AdminAttributeEditScreenBloc({
+    required this.param,
+    required this.projectContext,
+  }) {
     // Creation
     add(AdminAttributeEditScreenBlocState(attribute: param?.attribute));
   }
@@ -81,178 +83,198 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<AdminAttributeEditScreenBloc>(context);
     return ValueStreamBuilder<AdminAttributeEditScreenBlocState>(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
 
-          var attribute = state?.attribute;
-          var canSave = state != null;
+        var attribute = state?.attribute;
+        var canSave = state != null;
 
-          return AdminScreenLayout(
-            appBar: AppBar(
-              actions: [
-                if (canSave)
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    tooltip: 'Supprimer',
-                    onPressed: () {
-                      _onDelete(context);
-                    },
-                  ),
-              ],
-              title: const Text('Attribute'),
-            ),
-            body: Builder(
-              builder: (context) {
-                if (!canSave) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                // devPrint('canSave $canSave $attributeId $attribute');
+        return AdminScreenLayout(
+          appBar: AppBar(
+            actions: [
+              if (canSave)
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  tooltip: 'Supprimer',
+                  onPressed: () {
+                    _onDelete(context);
+                  },
+                ),
+            ],
+            title: const Text('Attribute'),
+          ),
+          body: Builder(
+            builder: (context) {
+              if (!canSave) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              // devPrint('canSave $canSave $attributeId $attribute');
 
-                nameController ??=
-                    TextEditingController(text: attribute?.name.v);
-                if (typeController == null) {
-                  sleep(0).then((_) {
+              nameController ??= TextEditingController(text: attribute?.name.v);
+              if (typeController == null) {
+                sleep(0).then((_) {
+                  _handleType();
+                  typeController!.addListener(() {
                     _handleType();
-                    typeController!.addListener(() {
-                      _handleType();
-                    });
                   });
-                }
-                return Stack(
-                  children: [
-                    ListView(children: [
+                });
+              }
+              return Stack(
+                children: [
+                  ListView(
+                    children: [
                       Form(
-                          key: formKey,
-                          child: BodyContainer(
-                              child: Column(children: [
-                            AppTextFieldTile(
-                              controller: nameController,
-                              emptyAllowed: true,
-                              labelText: textNameLabel,
-                            ),
-                            getTypeWidget(
-                              attribute,
-                            ),
-                            AppTextFieldTile(
-                              controller: linkController ??=
-                                  TextEditingController(
-                                      text: attribute?.value.v),
-                              emptyAllowed: true,
-                              labelText: textLinkLabel,
-                            ),
-                          ]))),
-                      ValueListenableBuilder<bool>(
-                          valueListenable: showAudioNotifier,
-                          builder: (context, snapshot, _) {
-                            if (!snapshot) {
-                              return Container();
-                            }
-                            // TODO handle cache ready.
-                            initAudioCache(packageName: globalPackageName);
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                BodyContainer(
-                                    child: AppAudioPlayerWidget(
-                                        player: globalAppAudioPlayer,
-                                        song: AppAudioPlayerSong(
-                                            linkController!.text))),
-                                BodyContainer(
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Row(
-                                      children: [
-                                        FloatingActionButton(
-                                          onPressed: () async {
-                                            await initAudioCache(
-                                                packageName: globalPackageName);
-                                            await globalAppAudioPlayer.playSong(
-                                                AppAudioPlayerSong(
-                                                    linkController!.text));
-                                          },
-                                          child: const Icon(Icons.play_arrow),
-                                        ),
-                                        const SizedBox(
-                                          width: 8,
-                                        ),
-                                        FloatingActionButton(
-                                          onPressed: () async {
-                                            await globalAppAudioPlayer.stop();
-                                          },
-                                          child: const Icon(Icons.stop),
-                                        )
-                                      ],
+                        key: formKey,
+                        child: BodyContainer(
+                          child: Column(
+                            children: [
+                              AppTextFieldTile(
+                                controller: nameController,
+                                emptyAllowed: true,
+                                labelText: textNameLabel,
+                              ),
+                              getTypeWidget(attribute),
+                              AppTextFieldTile(
+                                controller:
+                                    linkController ??= TextEditingController(
+                                      text: attribute?.value.v,
                                     ),
+                                emptyAllowed: true,
+                                labelText: textLinkLabel,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: showAudioNotifier,
+                        builder: (context, snapshot, _) {
+                          if (!snapshot) {
+                            return Container();
+                          }
+                          // TODO handle cache ready.
+                          initAudioCache(packageName: globalPackageName);
+                          return Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              BodyContainer(
+                                child: AppAudioPlayerWidget(
+                                  player: globalAppAudioPlayer,
+                                  song: AppAudioPlayerSong(
+                                    linkController!.text,
                                   ),
                                 ),
-                              ],
-                            );
-                          }),
+                              ),
+                              BodyContainer(
+                                child: Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Row(
+                                    children: [
+                                      FloatingActionButton(
+                                        onPressed: () async {
+                                          await initAudioCache(
+                                            packageName: globalPackageName,
+                                          );
+                                          await globalAppAudioPlayer.playSong(
+                                            AppAudioPlayerSong(
+                                              linkController!.text,
+                                            ),
+                                          );
+                                        },
+                                        child: const Icon(Icons.play_arrow),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      FloatingActionButton(
+                                        onPressed: () async {
+                                          await globalAppAudioPlayer.stop();
+                                        },
+                                        child: const Icon(Icons.stop),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                       BodyContainer(
                         child: BodyHPadding(
                           child: Row(
                             children: [
                               ElevatedButton(
-                                  onPressed: () async {
-                                    var info = await selectInfo(context,
-                                        infoType: infoTypeSong,
-                                        projectContext: bloc.projectContext);
-                                    var dbInfo = info?.info;
-                                    if (dbInfo != null) {
-                                      linkController!.text =
-                                          '${dbInfoStoreRef.name}:${dbInfo.id}';
-                                    }
-                                  },
-                                  child: const Text('Select song')),
+                                onPressed: () async {
+                                  var info = await selectInfo(
+                                    context,
+                                    infoType: infoTypeSong,
+                                    projectContext: bloc.projectContext,
+                                  );
+                                  var dbInfo = info?.info;
+                                  if (dbInfo != null) {
+                                    linkController!.text =
+                                        '${dbInfoStoreRef.name}:${dbInfo.id}';
+                                  }
+                                },
+                                child: const Text('Select song'),
+                              ),
                             ],
                           ),
                         ),
-                      )
-                    ]),
-                  ],
-                );
-              },
-            ),
-            floatingActionButton: canSave
-                ? FloatingActionButton(
+                      ),
+                    ],
+                  ),
+                ],
+              );
+            },
+          ),
+          floatingActionButton:
+              canSave
+                  ? FloatingActionButton(
                     heroTag: UniqueKey(),
                     onPressed: () => _onSave(context),
                     child: const Icon(Icons.save),
                   )
-                : null,
-          );
-        });
+                  : null,
+        );
+      },
+    );
   }
 
-  Widget getTypeWidget(CvAttribute? attribute,
-          {ValueChanged<String>? onChanged}) =>
-      Builder(builder: (context) {
-        var types = attributeTypes;
+  Widget getTypeWidget(
+    CvAttribute? attribute, {
+    ValueChanged<String>? onChanged,
+  }) => Builder(
+    builder: (context) {
+      var types = attributeTypes;
 
-        return Column(
-          children: [
-            AppTextFieldTile(
-              emptyAllowed: true,
-              controller: typeController ??=
-                  TextEditingController(text: attribute?.type.v),
-              labelText: textTypeLabel,
-              onChanged: onChanged,
-            ),
-            Wrap(
-              children: [
-                ...types.map((e) => TextButton(
-                    onPressed: () {
-                      typeController!.text = e;
-                    },
-                    child: Text(e)))
-              ],
-            )
-          ],
-        );
-      });
+      return Column(
+        children: [
+          AppTextFieldTile(
+            emptyAllowed: true,
+            controller:
+                typeController ??= TextEditingController(
+                  text: attribute?.type.v,
+                ),
+            labelText: textTypeLabel,
+            onChanged: onChanged,
+          ),
+          Wrap(
+            children: [
+              ...types.map(
+                (e) => TextButton(
+                  onPressed: () {
+                    typeController!.text = e;
+                  },
+                  child: Text(e),
+                ),
+              ),
+            ],
+          ),
+        ],
+      );
+    },
+  );
   final _saveLock = Lock();
 
   Future<void> _onSave(BuildContext context) async {
@@ -260,10 +282,11 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
       await _saveLock.synchronized(() async {
         try {
           formKey.currentState!.save();
-          var attribute = CvAttribute()
-            ..name.v = nameController!.text
-            ..type.v = typeController!.text
-            ..value.v = linkController!.text;
+          var attribute =
+              CvAttribute()
+                ..name.v = nameController!.text
+                ..type.v = typeController!.text
+                ..value.v = linkController!.text;
 
           // All empty not allowed
           if (stringIsEmpty(attribute.name.v) &&
@@ -272,8 +295,9 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
             snack(context, 'Nom ou type ou Lien ne doit pas etre vide');
             return;
           }
-          Navigator.of(context)
-              .pop(AdminAttributeEditScreenResult(attribute: attribute));
+          Navigator.of(
+            context,
+          ).pop(AdminAttributeEditScreenResult(attribute: attribute));
         } catch (e, st) {
           if (kDebugMode) {
             print(e);
@@ -288,8 +312,9 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
     if (!_saveLock.locked) {
       await _saveLock.synchronized(() async {
         try {
-          Navigator.of(context)
-              .pop(AdminAttributeEditScreenResult(deleted: true));
+          Navigator.of(
+            context,
+          ).pop(AdminAttributeEditScreenResult(deleted: true));
         } catch (e, st) {
           if (kDebugMode) {
             print(e);
@@ -310,14 +335,22 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
 }
 
 Future<AdminAttributeEditScreenResult?> goToAdminAttributeEditScreen(
-    BuildContext context,
-    {required AdminAttributeEditScreenParam? param,
-    required FestenaoAdminAppProjectContext projectContext}) async {
+  BuildContext context, {
+  required AdminAttributeEditScreenParam? param,
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
   return await Navigator.of(context).push<AdminAttributeEditScreenResult>(
-      MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () => AdminAttributeEditScreenBloc(
-            param: param, projectContext: projectContext),
-        child: const AdminAttributeEditScreen());
-  }));
+    MaterialPageRoute(
+      builder: (context) {
+        return BlocProvider(
+          blocBuilder:
+              () => AdminAttributeEditScreenBloc(
+                param: param,
+                projectContext: projectContext,
+              ),
+          child: const AdminAttributeEditScreen(),
+        );
+      },
+    ),
+  );
 }

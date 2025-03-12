@@ -22,10 +22,11 @@ class FestenaoAppFirebaseContext {
   /// App path
   final String firestoreRootPath;
 
-  FestenaoAppFirebaseContext(
-      {required this.storageRootPath,
-      required this.firestoreRootPath,
-      required this.storageBucket});
+  FestenaoAppFirebaseContext({
+    required this.storageRootPath,
+    required this.firestoreRootPath,
+    required this.storageBucket,
+  });
 }
 
 // TODO fix path
@@ -39,14 +40,23 @@ extension FestenaoFirebaseContextExt on FestenaoAppFirebaseContext {
       url.join(storageRootPath, storageImageDirPart, imageName);
 
   @Deprecated('do not use')
-  String getDataExportStoragePath(int changeId) => url.join(storageRootPath,
-      storageDataDirPart, getStoragePublishDataFileBasename(changeId));
+  String getDataExportStoragePath(int changeId) => url.join(
+    storageRootPath,
+    storageDataDirPart,
+    getStoragePublishDataFileBasename(changeId),
+  );
 
   @Deprecated('do not use')
-  String getMetaExportStoragePath(bool isDev) => url.join(storageRootPath,
-      storageDataDirPart, getStoragePublishMetaFileBasename(isDev));
+  String getMetaExportStoragePath(bool isDev) => url.join(
+    storageRootPath,
+    storageDataDirPart,
+    getStoragePublishMetaFileBasename(isDev),
+  );
 
   //@Deprecated('do not use') compat
   String getMetaExportFirestorePath(bool isDev) => url.join(
-      firestoreRootPath, getInfosPath(), 'export_meta${isDev ? '_dev' : ''}');
+    firestoreRootPath,
+    getInfosPath(),
+    'export_meta${isDev ? '_dev' : ''}',
+  );
 }

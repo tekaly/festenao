@@ -43,14 +43,17 @@ class _AdminUserEditScreenState
           if (!_initialized) {
             _initialized = true;
             _read = audiAddBehaviorSubject(
-                BehaviorSubject.seeded(user?.read.v ?? false));
+              BehaviorSubject.seeded(user?.read.v ?? false),
+            );
             _write = audiAddBehaviorSubject(
-                BehaviorSubject.seeded(user?.write.v ?? false));
+              BehaviorSubject.seeded(user?.write.v ?? false),
+            );
             _admin = audiAddBehaviorSubject(
-                BehaviorSubject.seeded(user?.admin.v ?? false));
-            idController = audiAddTextEditingController(TextEditingController(
-              text: userId,
-            ));
+              BehaviorSubject.seeded(user?.admin.v ?? false),
+            );
+            idController = audiAddTextEditingController(
+              TextEditingController(text: userId),
+            );
           }
 
           return Stack(
@@ -91,6 +94,7 @@ class _AdminUserEditScreenState
                       ),
                     ),
                     const SizedBox(height: 16),
+
                     /*
                     BodyContainer(
                       child: AppTextFieldTile(
@@ -111,7 +115,6 @@ class _AdminUserEditScreenState
                         validator: fieldNonEmptyValidator,
                       ),
                     ),*/
-
                     BodyContainer(
                       child: BehaviorSubjectBuilder(
                         subject: _admin,
@@ -119,15 +122,16 @@ class _AdminUserEditScreenState
                           var isAdmin = snapshot.data;
                           return SwitchListTile(
                             value: snapshot.data ?? false,
-                            onChanged: isAdmin == null
-                                ? null
-                                : (bool value) {
-                                    _admin.value = value;
-                                    if (value) {
-                                      _write.value = true;
-                                      _read.value = true;
-                                    }
-                                  },
+                            onChanged:
+                                isAdmin == null
+                                    ? null
+                                    : (bool value) {
+                                      _admin.value = value;
+                                      if (value) {
+                                        _write.value = true;
+                                        _read.value = true;
+                                      }
+                                    },
                             title: const Text('Admin'),
                           );
                         },
@@ -140,16 +144,17 @@ class _AdminUserEditScreenState
                           var write = snapshot.data;
                           return SwitchListTile(
                             value: snapshot.data ?? false,
-                            onChanged: write == null
-                                ? null
-                                : (bool value) {
-                                    _write.value = value;
-                                    if (!value) {
-                                      _admin.value = false;
-                                    } else {
-                                      _read.value = true;
-                                    }
-                                  },
+                            onChanged:
+                                write == null
+                                    ? null
+                                    : (bool value) {
+                                      _write.value = value;
+                                      if (!value) {
+                                        _admin.value = false;
+                                      } else {
+                                        _read.value = true;
+                                      }
+                                    },
                             title: const Text('Write'),
                           );
                         },
@@ -162,15 +167,16 @@ class _AdminUserEditScreenState
                           var read = snapshot.data;
                           return SwitchListTile(
                             value: snapshot.data ?? false,
-                            onChanged: read == null
-                                ? null
-                                : (bool value) {
-                                    _read.value = value;
-                                    if (!value) {
-                                      _write.value = false;
-                                      _admin.value = false;
-                                    }
-                                  },
+                            onChanged:
+                                read == null
+                                    ? null
+                                    : (bool value) {
+                                      _read.value = value;
+                                      if (!value) {
+                                        _write.value = false;
+                                        _admin.value = false;
+                                      }
+                                    },
                             title: const Text('Read'),
                           );
                         },
@@ -204,10 +210,11 @@ class _AdminUserEditScreenState
     formKey.currentState!.save();
     if (formKey.currentState!.validate()) {
       var userId = idController.text;
-      var fsUserAccess = TkCmsFsUserAccess()
-        ..write.v = _write.value
-        ..admin.v = _admin.value
-        ..read.v = _read.value;
+      var fsUserAccess =
+          TkCmsFsUserAccess()
+            ..write.v = _write.value
+            ..admin.v = _admin.value
+            ..read.v = _read.value;
 
       var bloc = BlocProvider.of<AdminUserEditScreenBloc>(context);
       if (await waitingAction(() async {
@@ -246,12 +253,14 @@ Future<void> _goToAdminUserEditScreen(
   BuildContext context, {
   required AdminUserEditScreenParam param,
 }) async {
-  await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) {
-    return BlocProvider<AdminUserEditScreenBloc>(
-      blocBuilder: () => AdminUserEditScreenBloc(
-        param: param,
-      ),
-      child: const AdminUserEditScreen(),
-    );
-  }));
+  await Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (_) {
+        return BlocProvider<AdminUserEditScreenBloc>(
+          blocBuilder: () => AdminUserEditScreenBloc(param: param),
+          child: const AdminUserEditScreen(),
+        );
+      },
+    ),
+  );
 }

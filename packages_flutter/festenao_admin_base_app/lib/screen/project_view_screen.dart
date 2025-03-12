@@ -32,32 +32,35 @@ class ProjectViewScreen extends StatefulWidget {
 class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
     with AutoDisposedBusyScreenStateMixin<ProjectViewScreen> {
   Future<void> _confirmAndDelete(
-      BuildContext context, DbProject project) async {
+    BuildContext context,
+    DbProject project,
+  ) async {
     var intl = festenaoAdminAppIntl(context);
     var bloc = BlocProvider.of<ProjectViewScreenBloc>(context);
     var result = await busyAction(() async {
       if (await showDialog<bool>(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: Text(intl.projectDelete),
-                  content: Text(intl.projectDeleteConfirm),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(intl.cancelButtonLabel),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(true);
-                      },
-                      child: Text(intl.deleteButtonLabel),
-                    )
-                  ],
-                );
-              }) ==
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text(intl.projectDelete),
+                content: Text(intl.projectDeleteConfirm),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(intl.cancelButtonLabel),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: Text(intl.deleteButtonLabel),
+                  ),
+                ],
+              );
+            },
+          ) ==
           true) {
         await bloc.deleteProject(project);
         return true;
@@ -83,27 +86,28 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
     var bloc = BlocProvider.of<ProjectViewScreenBloc>(context);
     var result = await busyAction(() async {
       if (await showDialog<bool>(
-              context: context,
-              builder: (context) {
-                return AlertDialog(
-                  title: Text(intl.projectLeave),
-                  content: Text(intl.projectLeaveConfirm),
-                  actions: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                      },
-                      child: Text(intl.cancelButtonLabel),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.of(context).pop(true);
-                      },
-                      child: Text(intl.leaveButtonLabel),
-                    )
-                  ],
-                );
-              }) ==
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text(intl.projectLeave),
+                content: Text(intl.projectLeaveConfirm),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(intl.cancelButtonLabel),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: Text(intl.leaveButtonLabel),
+                  ),
+                ],
+              );
+            },
+          ) ==
           true) {
         await bloc.leaveProject(project);
         return true;
@@ -130,50 +134,56 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
     var bloc = BlocProvider.of<ProjectViewScreenBloc>(context);
 
     return ValueStreamBuilder(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
-          var project = state?.project;
-          var fsProject = state?.fsProject;
-          var fsProjectAccess = state?.fsUserAccess;
-          var dbProjectReady = state?.dbProjectReady ?? false;
-          var canEdit = project?.isWrite ?? false;
-          var canDelete = project?.isAdmin ?? false;
-          //var canLeave = project != null;
-          var projectName = project?.name.v;
-          /*
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
+        var project = state?.project;
+        var fsProject = state?.fsProject;
+        var fsProjectAccess = state?.fsUserAccess;
+        var dbProjectReady = state?.dbProjectReady ?? false;
+        var canEdit = project?.isWrite ?? false;
+        var canDelete = project?.isAdmin ?? false;
+        //var canLeave = project != null;
+        var projectName = project?.name.v;
+        /*
           var noteDescription = note?.description.v;
           var noteContent = note?.content.v;*/
 
-          var children = <Widget>[
-            BodyHPadding(
-                child: Text(projectName ?? '',
-                    style: Theme.of(context).textTheme.headlineSmall)),
-            if (project != null)
-              ListTile(
-                leading: ProjectLeading(project: project),
-                title: Text(intl.projectTypeSynced),
-                subtitle: accessText(intl, project),
-              )
-            else if (fsProject != null) ...[
-              ListTile(
-                //leading: ProjectLeading(project: project),
-                title: Text(fsProject.name.v ?? ''),
-                subtitle:
-                    accessText(intl, fsProjectAccess ?? TkCmsFsUserAccess()),
-              )
-            ]
-          ];
+        var children = <Widget>[
+          BodyHPadding(
+            child: Text(
+              projectName ?? '',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ),
+          if (project != null)
+            ListTile(
+              leading: ProjectLeading(project: project),
+              title: Text(intl.projectTypeSynced),
+              subtitle: accessText(intl, project),
+            )
+          else if (fsProject != null) ...[
+            ListTile(
+              //leading: ProjectLeading(project: project),
+              title: Text(fsProject.name.v ?? ''),
+              subtitle: accessText(
+                intl,
+                fsProjectAccess ?? TkCmsFsUserAccess(),
+              ),
+            ),
+          ],
+        ];
 
-          return Scaffold(
-            appBar: AppBar(
-              // Here we take the value from the MyHomePage object that
-              // was created by the App.build method, and use it to set
-              // our appbar title.
-              title: Text(projectName ?? ''),
-              actions: project == null
-                  ? null
-                  : <Widget>[
+        return Scaffold(
+          appBar: AppBar(
+            // Here we take the value from the MyHomePage object that
+            // was created by the App.build method, and use it to set
+            // our appbar title.
+            title: Text(projectName ?? ''),
+            actions:
+                project == null
+                    ? null
+                    : <Widget>[
                       /*
                       if (project.isRemote)
                         IconButton(
@@ -184,19 +194,21 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                             }),*/
                       if (canDelete)
                         IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () async {
-                              await _confirmAndDelete(context, project);
-                            }),
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            await _confirmAndDelete(context, project);
+                          },
+                        ),
                     ],
-            ),
-            body: !dbProjectReady
-                ? const Center(child: CircularProgressIndicator())
-                : ListView(
+          ),
+          body:
+              !dbProjectReady
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
                     children: [
                       BodyContainer(
-                          child: BodyHPadding(
-                        child: Column(
+                        child: BodyHPadding(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Row(),
@@ -204,10 +216,10 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                               Center(
                                 child: IntrinsicWidth(
                                   child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        /*
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      /*
                                         if (project.isRemote) ...[
                                           const SizedBox(height: 24),
                                           ElevatedButton(
@@ -217,40 +229,53 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                               },
                                               child: Text(intl.projectShare)),
                                         ],*/
+                                      const SizedBox(height: 24),
+                                      ElevatedButton(
+                                        onPressed:
+                                            project != null
+                                                ? () {
+                                                  _confirmAndLeave(
+                                                    context,
+                                                    project,
+                                                  );
+                                                }
+                                                : null,
+                                        child: Text(intl.projectLeave),
+                                      ),
+                                      if (canDelete) ...[
                                         const SizedBox(height: 24),
                                         ElevatedButton(
-                                            onPressed: project != null
-                                                ? () {
-                                                    _confirmAndLeave(
-                                                        context, project);
-                                                  }
-                                                : null,
-                                            child: Text(intl.projectLeave)),
-                                        if (canDelete) ...[
-                                          const SizedBox(height: 24),
-                                          ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                  backgroundColor: colorError),
-                                              onPressed: project != null
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: colorError,
+                                          ),
+                                          onPressed:
+                                              project != null
                                                   ? () {
-                                                      _confirmAndDelete(
-                                                          context, project);
-                                                    }
+                                                    _confirmAndDelete(
+                                                      context,
+                                                      project,
+                                                    );
+                                                  }
                                                   : null,
-                                              child: Text(intl.projectDelete)),
-                                        ]
-                                      ]),
+                                          child: Text(intl.projectDelete),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 64),
-                            ]),
-                      ))
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-            //new Column(children: children),
 
-            floatingActionButton: canEdit
-                ? FloatingActionButton(
+          //new Column(children: children),
+          floatingActionButton:
+              canEdit
+                  ? FloatingActionButton(
                     //onPressed: _incrementCounter,
                     tooltip: 'Edit',
                     onPressed: () async {
@@ -258,15 +283,19 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                     },
                     child: const Icon(Icons.edit),
                   )
-                : null, // This trailing comma makes auto-formatting nicer for build methods.
-          );
-        });
+                  : null, // This trailing comma makes auto-formatting nicer for build methods.
+        );
+      },
+    );
   }
 }
 
-Future<void> goToProjectViewScreen(BuildContext context,
-    {required String projectId}) async {
+Future<void> goToProjectViewScreen(
+  BuildContext context, {
+  required String projectId,
+}) async {
   var cn = ContentNavigator.of(context);
-  await cn
-      .pushPath<void>(SyncedProjectContentPath()..project.value = projectId);
+  await cn.pushPath<void>(
+    SyncedProjectContentPath()..project.value = projectId,
+  );
 }

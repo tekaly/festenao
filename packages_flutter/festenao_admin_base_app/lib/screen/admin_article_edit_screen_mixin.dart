@@ -26,6 +26,7 @@ extension ArticleImageHolderExt on ArticleImageHolder {
     var type = this.type;
     return globalFestenaoAppOptions.getOptionsByType(type);
   }
+
   /*
   CvColumn<FestenaoAppImageOptions> get constraintsColumn =>
   imageColumnConstraintsColumn[articleImageColumn]!;
@@ -100,8 +101,8 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
   List<ArticleImageHolder>? _imageHolders;
 
   ValueNotifier<List<CvAttribute>?> getArticleAttributes(
-          DbArticleMixin? article) =>
-      ValueNotifier<List<CvAttribute>?>(article?.attributes.v);
+    DbArticleMixin? article,
+  ) => ValueNotifier<List<CvAttribute>?>(article?.attributes.v);
   ValueNotifier<Uint8List?>? imageBytes;
   ValueNotifier<Uint8List?>? thumbnailImageBytes;
   ValueNotifier<Uint8List?>? squareImageBytes;
@@ -133,12 +134,19 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
     }
   }
 
-  List<ArticleImageHolder> getImageHolders(DbArticleCommon? article,
-      {required Database db}) {
-    return _imageHolders ??= articleImageHoldersColumns.map((column) {
-      return ArticleImageHolder(article, column,
-          db: db, projectContext: projectContext);
-    }).toList();
+  List<ArticleImageHolder> getImageHolders(
+    DbArticleCommon? article, {
+    required Database db,
+  }) {
+    return _imageHolders ??=
+        articleImageHoldersColumns.map((column) {
+          return ArticleImageHolder(
+            article,
+            column,
+            db: db,
+            projectContext: projectContext,
+          );
+        }).toList();
   }
 
   Widget getImagesWidget(DbArticleCommon? article, {required Database db}) {
@@ -156,31 +164,35 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
               getHolderSelectorTile(holder),
             ],
           );
-        })
+        }),
       ],
     );
   }
 
   Widget getThumbailNameWidget(DbArticleMixin? article) => AppTextFieldTile(
-        emptyAllowed: true,
-        controller: thumbnailController ??=
-            TextEditingController(text: article?.thumbnail.v),
-        labelText: textThumbnailLabel,
-      );
+    emptyAllowed: true,
+    controller:
+        thumbnailController ??= TextEditingController(
+          text: article?.thumbnail.v,
+        ),
+    labelText: textThumbnailLabel,
+  );
 
   Widget getSquareNameWidget(DbArticleMixin? article) => AppTextFieldTile(
-        emptyAllowed: true,
-        controller: thumbnailController ??=
-            TextEditingController(text: article?.thumbnail.v),
-        labelText: textThumbnailLabel,
-      );
+    emptyAllowed: true,
+    controller:
+        thumbnailController ??= TextEditingController(
+          text: article?.thumbnail.v,
+        ),
+    labelText: textThumbnailLabel,
+  );
 
   Widget getImageNameWidget(DbArticleMixin? article) => AppTextFieldTile(
-        emptyAllowed: true,
-        controller: imageController ??=
-            TextEditingController(text: article?.image.v),
-        labelText: textImageLabel,
-      );
+    emptyAllowed: true,
+    controller:
+        imageController ??= TextEditingController(text: article?.image.v),
+    labelText: textImageLabel,
+  );
 
   Widget getCommonWidgets(DbArticle? article) {
     return Column(
@@ -193,322 +205,384 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
   }
 
   Widget getBottomCommonWidgets(DbArticleCommon? article) {
-    return Column(
-      children: [getAuthorWidget(article)],
-    );
+    return Column(children: [getAuthorWidget(article)]);
   }
 
   Widget getAuthorWidget(DbArticleCommon? common) {
     return AppTextFieldTile(
       emptyAllowed: true,
-      controller: authorController ??=
-          TextEditingController(text: common?.author.v),
+      controller:
+          authorController ??= TextEditingController(text: common?.author.v),
       labelText: textAuthorLabel,
     );
   }
 
-  Widget getTypeWidget(DbArticle? article) => Builder(builder: (context) {
-        var types = getArticleKindTypes(articleKind);
+  Widget getTypeWidget(DbArticle? article) => Builder(
+    builder: (context) {
+      var types = getArticleKindTypes(articleKind);
 
-        return Column(
-          children: [
-            AppTextFieldTile(
-              emptyAllowed: true,
-              controller: typeController ??=
-                  TextEditingController(text: article?.type.v),
-              labelText: textTypeLabel,
+      return Column(
+        children: [
+          AppTextFieldTile(
+            emptyAllowed: true,
+            controller:
+                typeController ??= TextEditingController(text: article?.type.v),
+            labelText: textTypeLabel,
+          ),
+          if (types.isNotEmpty)
+            Wrap(
+              children: [
+                ...types.map(
+                  (e) => TextButton(
+                    onPressed: () {
+                      typeController!.text = e;
+                    },
+                    child: Text(e),
+                  ),
+                ),
+              ],
             ),
-            if (types.isNotEmpty)
-              Wrap(
-                children: [
-                  ...types.map((e) => TextButton(
-                      onPressed: () {
-                        typeController!.text = e;
-                      },
-                      child: Text(e)))
-                ],
-              )
-          ],
-        );
-      });
+        ],
+      );
+    },
+  );
 
-  Widget getSortWidget(DbArticle? article) => Builder(builder: (context) {
-        return Column(
-          children: [
-            AppTextFieldTile(
-              emptyAllowed: true,
-              controller: sortController ??=
-                  TextEditingController(text: article?.sort.v),
-              labelText: textTypeLabel,
-            ),
-          ],
-        );
-      });
+  Widget getSortWidget(DbArticle? article) => Builder(
+    builder: (context) {
+      return Column(
+        children: [
+          AppTextFieldTile(
+            emptyAllowed: true,
+            controller:
+                sortController ??= TextEditingController(text: article?.sort.v),
+            labelText: textTypeLabel,
+          ),
+        ],
+      );
+    },
+  );
 
   Set<String> getTagInputSet() {
-    var tags = tagsController!.text.split(',').map((e) => e.trim()).toSet()
-      ..removeWhere((element) => element.isEmpty);
+    var tags =
+        tagsController!.text.split(',').map((e) => e.trim()).toSet()
+          ..removeWhere((element) => element.isEmpty);
     return tags;
   }
 
-  Widget getTagsWidget(DbArticle? article) => Builder(builder: (context) {
-        var tags = getArticleKindTags(articleKind);
+  Widget getTagsWidget(DbArticle? article) => Builder(
+    builder: (context) {
+      var tags = getArticleKindTags(articleKind);
 
-        return Column(
-          children: [
-            AppTextFieldTile(
-              emptyAllowed: true,
-              controller: tagsController ??= TextEditingController(
-                  text: tagsToText(article?.tags.v ?? <String>[])),
-              labelText: textTagsLabel,
+      return Column(
+        children: [
+          AppTextFieldTile(
+            emptyAllowed: true,
+            controller:
+                tagsController ??= TextEditingController(
+                  text: tagsToText(article?.tags.v ?? <String>[]),
+                ),
+            labelText: textTagsLabel,
+          ),
+          if (tags.isNotEmpty)
+            Wrap(
+              children: [
+                ...tags.map(
+                  (e) => TextButton(
+                    onPressed: () {
+                      var inputTags = getTagInputSet();
+                      var tag = e;
+                      if (inputTags.contains(tag)) {
+                        inputTags.remove(tag);
+                      } else {
+                        inputTags.add(tag);
+                      }
+                      tagsController!.text = tagsToText(inputTags);
+                    },
+                    child: Text(e),
+                  ),
+                ),
+              ],
             ),
-            if (tags.isNotEmpty)
-              Wrap(
-                children: [
-                  ...tags.map((e) => TextButton(
-                      onPressed: () {
-                        var inputTags = getTagInputSet();
-                        var tag = e;
-                        if (inputTags.contains(tag)) {
-                          inputTags.remove(tag);
-                        } else {
-                          inputTags.add(tag);
-                        }
-                        tagsController!.text = tagsToText(inputTags);
-                      },
-                      child: Text(e)))
-                ],
-              )
-          ],
-        );
-      });
+        ],
+      );
+    },
+  );
 
   Widget getAttributesTile(DbArticleMixin? article) {
     return AttributesTile(
       options: AttributesTileOptions(
-          attributes: attributesValueNotifier ??=
-              getArticleAttributes(article)),
+        attributes: attributesValueNotifier ??= getArticleAttributes(article),
+      ),
       projectContext: projectContext,
     );
   }
 
   //DbArticleCommon().
   Widget getThumbnailPreviewTile(DbArticle? article) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: TilePadding(
-          child: ValueListenableBuilder<Uint8List?>(
-              valueListenable: squareImageBytes ??= () {
-                var valueNotifier = ValueNotifier<Uint8List?>(null);
-                var squareImage = article?.squareImage.v;
-                if (squareImage != null) {
-                  () async {
-                    var db = await projectDb;
-                    var image =
-                        await dbImageStoreRef.record(squareImage).get(db);
-                    if (image != null) {
-                      var bytes = await httpClientFactory.newClient().readBytes(
-                          Uri.parse(getImageUrl(image.name.v!,
-                              storageBucket: projectContext.storageBucket)));
-                      valueNotifier.value = bytes;
-                    }
-                  }();
-                }
-                return valueNotifier;
-              }(),
-              builder: (context, snapshot, _) {
-                if (snapshot == null) {
-                  return const Text('Pas d\'image');
-                }
-                return Image.memory(snapshot);
-              }),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: TilePadding(
+      child: ValueListenableBuilder<Uint8List?>(
+        valueListenable:
+            squareImageBytes ??= () {
+              var valueNotifier = ValueNotifier<Uint8List?>(null);
+              var squareImage = article?.squareImage.v;
+              if (squareImage != null) {
+                () async {
+                  var db = await projectDb;
+                  var image = await dbImageStoreRef.record(squareImage).get(db);
+                  if (image != null) {
+                    var bytes = await httpClientFactory.newClient().readBytes(
+                      Uri.parse(
+                        getImageUrl(
+                          image.name.v!,
+                          storageBucket: projectContext.storageBucket,
+                        ),
+                      ),
+                    );
+                    valueNotifier.value = bytes;
+                  }
+                }();
+              }
+              return valueNotifier;
+            }(),
+        builder: (context, snapshot, _) {
+          if (snapshot == null) {
+            return const Text('Pas d\'image');
+          }
+          return Image.memory(snapshot);
+        },
+      ),
+    ),
+  );
 
   Widget getHolderPreviewTile(ArticleImageHolder holder) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: TilePadding(
-          child: ValueListenableBuilder<Uint8List?>(
-              valueListenable: holder.imageData,
-              builder: (context, snapshot, _) {
-                if (snapshot == null) {
-                  return const Text('Pas d\'image');
-                }
-                return Image.memory(snapshot);
-              }),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: TilePadding(
+      child: ValueListenableBuilder<Uint8List?>(
+        valueListenable: holder.imageData,
+        builder: (context, snapshot, _) {
+          if (snapshot == null) {
+            return const Text('Pas d\'image');
+          }
+          return Image.memory(snapshot);
+        },
+      ),
+    ),
+  );
 
   Widget getSquarePreviewTile(DbArticle? article) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: TilePadding(
-          child: ValueListenableBuilder<Uint8List?>(
-              valueListenable: squareImageBytes ??= () {
-                var valueNotifier = ValueNotifier<Uint8List?>(null);
-                var thumbnailImage = article?.thumbnail.v;
-                if (thumbnailImage != null) {
-                  () async {
-                    var db = await projectDb;
-                    var image =
-                        await dbImageStoreRef.record(thumbnailImage).get(db);
-                    if (image != null) {
-                      var bytes = await httpClientFactory
-                          .newClient()
-                          .readBytes(Uri.parse(getImageUrl(
-                            image.name.v!,
-                            storageBucket: dbBloc.projectContext.storageBucket,
-                          )));
-                      valueNotifier.value = bytes;
-                    }
-                  }();
-                }
-                return valueNotifier;
-              }(),
-              builder: (context, snapshot, _) {
-                if (snapshot == null) {
-                  return const Text('Pas d\'image');
-                }
-                return Image.memory(snapshot);
-              }),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: TilePadding(
+      child: ValueListenableBuilder<Uint8List?>(
+        valueListenable:
+            squareImageBytes ??= () {
+              var valueNotifier = ValueNotifier<Uint8List?>(null);
+              var thumbnailImage = article?.thumbnail.v;
+              if (thumbnailImage != null) {
+                () async {
+                  var db = await projectDb;
+                  var image = await dbImageStoreRef
+                      .record(thumbnailImage)
+                      .get(db);
+                  if (image != null) {
+                    var bytes = await httpClientFactory.newClient().readBytes(
+                      Uri.parse(
+                        getImageUrl(
+                          image.name.v!,
+                          storageBucket: dbBloc.projectContext.storageBucket,
+                        ),
+                      ),
+                    );
+                    valueNotifier.value = bytes;
+                  }
+                }();
+              }
+              return valueNotifier;
+            }(),
+        builder: (context, snapshot, _) {
+          if (snapshot == null) {
+            return const Text('Pas d\'image');
+          }
+          return Image.memory(snapshot);
+        },
+      ),
+    ),
+  );
 
   Widget getImagePreviewTile(DbArticle? article) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: TilePadding(
-          child: ValueListenableBuilder<Uint8List?>(
-              valueListenable: imageBytes ??= () {
-                var valueNotifier = ValueNotifier<Uint8List?>(null);
-                var imageId = article?.image.v;
-                if (imageId != null) {
-                  () async {
-                    var db = await projectDb;
-                    var image = await dbImageStoreRef.record(imageId).get(db);
-                    if (image != null) {
-                      var bytes = await httpClientFactory
-                          .newClient()
-                          .readBytes(Uri.parse(getImageUrl(
-                            image.name.v!,
-                            storageBucket: projectContext.storageBucket,
-                          )));
-                      valueNotifier.value = bytes;
-                    }
-                  }();
-                }
-                return valueNotifier;
-              }(),
-              builder: (context, snapshot, _) {
-                if (snapshot == null) {
-                  return const Text('Pas d\'image');
-                }
-                return Image.memory(snapshot);
-              }),
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: TilePadding(
+      child: ValueListenableBuilder<Uint8List?>(
+        valueListenable:
+            imageBytes ??= () {
+              var valueNotifier = ValueNotifier<Uint8List?>(null);
+              var imageId = article?.image.v;
+              if (imageId != null) {
+                () async {
+                  var db = await projectDb;
+                  var image = await dbImageStoreRef.record(imageId).get(db);
+                  if (image != null) {
+                    var bytes = await httpClientFactory.newClient().readBytes(
+                      Uri.parse(
+                        getImageUrl(
+                          image.name.v!,
+                          storageBucket: projectContext.storageBucket,
+                        ),
+                      ),
+                    );
+                    valueNotifier.value = bytes;
+                  }
+                }();
+              }
+              return valueNotifier;
+            }(),
+        builder: (context, snapshot, _) {
+          if (snapshot == null) {
+            return const Text('Pas d\'image');
+          }
+          return Image.memory(snapshot);
+        },
+      ),
+    ),
+  );
 
   Widget getHolderSelectorTile(ArticleImageHolder holder) => TilePadding(
-        child: Builder(builder: (context) {
-          return ElevatedButton(
-            onPressed: () async {
-              {
-                var imageId = articleKindToImageId(
-                    articleKind, holder.type, idController!.text);
+    child: Builder(
+      builder: (context) {
+        return ElevatedButton(
+          onPressed: () async {
+            {
+              var imageId = articleKindToImageId(
+                articleKind,
+                holder.type,
+                idController!.text,
+              );
 
-                await goToAdminImageEditScreen(context,
-                    imageId: imageId,
-                    param: AdminImageEditScreenParam(options: holder.options),
-                    projectContext: projectContext);
-              }
-            },
-            child: Text(
-                'Selection ${holder.label} ${holder.options?.width.v}x${holder.options?.height.v ?? '?'}'),
-          );
-        }),
-      );
+              await goToAdminImageEditScreen(
+                context,
+                imageId: imageId,
+                param: AdminImageEditScreenParam(options: holder.options),
+                projectContext: projectContext,
+              );
+            }
+          },
+          child: Text(
+            'Selection ${holder.label} ${holder.options?.width.v}x${holder.options?.height.v ?? '?'}',
+          ),
+        );
+      },
+    ),
+  );
   Widget getThumbnailSelectorTile(DbArticle? article) => TilePadding(
-        child: Builder(builder: (context) {
-          return ElevatedButton(
-            onPressed: () async {
-              {
-                var options = globalFestenaoAppOptions
-                    .getOptionsByType(imageTypeThumbnail);
-                var result = await pickCropImage(context,
-                    options: PickCropImageOptions(
-                        width: options?.width.v,
-                        height: options?.height.v,
-                        encoding: ImageEncodingJpg(quality: 50)));
-                if (result != null) {
-                  thumbnailImageBytes!.value = result.bytes;
-                }
-                return;
+    child: Builder(
+      builder: (context) {
+        return ElevatedButton(
+          onPressed: () async {
+            {
+              var options = globalFestenaoAppOptions.getOptionsByType(
+                imageTypeThumbnail,
+              );
+              var result = await pickCropImage(
+                context,
+                options: PickCropImageOptions(
+                  width: options?.width.v,
+                  height: options?.height.v,
+                  encoding: ImageEncodingJpg(quality: 50),
+                ),
+              );
+              if (result != null) {
+                thumbnailImageBytes!.value = result.bytes;
               }
-            },
-            child: const Text('Selection thumbnaiil'),
-          );
-        }),
-      );
+              return;
+            }
+          },
+          child: const Text('Selection thumbnaiil'),
+        );
+      },
+    ),
+  );
 
   Widget getSquareSelectorTile(DbArticle? article) => TilePadding(
-        child: Builder(builder: (context) {
-          return ElevatedButton(
-            onPressed: () async {
-              {
-                var options =
-                    globalFestenaoAppOptions.getOptionsByType(imageTypeSquare);
+    child: Builder(
+      builder: (context) {
+        return ElevatedButton(
+          onPressed: () async {
+            {
+              var options = globalFestenaoAppOptions.getOptionsByType(
+                imageTypeSquare,
+              );
 
-                var result = await pickCropImage(context,
-                    options: PickCropImageOptions(
-                        width: options?.width.v,
-                        height: options?.height.v,
-                        encoding: ImageEncodingJpg(quality: 50)));
-                if (result != null) {
-                  squareImageBytes!.value = result.bytes;
-                }
-                return;
+              var result = await pickCropImage(
+                context,
+                options: PickCropImageOptions(
+                  width: options?.width.v,
+                  height: options?.height.v,
+                  encoding: ImageEncodingJpg(quality: 50),
+                ),
+              );
+              if (result != null) {
+                squareImageBytes!.value = result.bytes;
               }
-            },
-            child: const Text('Selection square'),
-          );
-        }),
-      );
+              return;
+            }
+          },
+          child: const Text('Selection square'),
+        );
+      },
+    ),
+  );
 
   Widget getImageSelectorTile(DbArticle? article) => TilePadding(
-        child: Builder(builder: (context) {
-          return ElevatedButton(
-            onPressed: () async {
-              var result = await pickImageFile(context);
-              var file = result?.files.firstOrNull;
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                    content: Text('${file?.name} (${file?.bytes?.length})')));
-                if (file != null) {
-                  var image = img.decodeImage(file.bytes!)!;
+    child: Builder(
+      builder: (context) {
+        return ElevatedButton(
+          onPressed: () async {
+            var result = await pickImageFile(context);
+            var file = result?.files.firstOrNull;
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('${file?.name} (${file?.bytes?.length})'),
+                ),
+              );
+              if (file != null) {
+                var image = img.decodeImage(file.bytes!)!;
 
-                  var result = await goToAdminImageDataEditScreen(context,
-                      param: AdminImageDataEditScreenParam(bytes: file.bytes!));
-                  if (result != null) {
-                    if (result.cropRect != null) {
-                      // devPrint(result.cropRect);
-                      image = img.copyCrop(image,
-                          x: result.cropRect!.left.floor(),
-                          y: result.cropRect!.top.floor(),
-                          width: result.cropRect!.width.floor(),
-                          height: result.cropRect!.height.floor());
-                      if (image.width > 1080) {
-                        image = img.copyResize(image,
-                            width: 1080,
-                            interpolation: img.Interpolation.cubic);
-                      }
+                var result = await goToAdminImageDataEditScreen(
+                  context,
+                  param: AdminImageDataEditScreenParam(bytes: file.bytes!),
+                );
+                if (result != null) {
+                  if (result.cropRect != null) {
+                    // devPrint(result.cropRect);
+                    image = img.copyCrop(
+                      image,
+                      x: result.cropRect!.left.floor(),
+                      y: result.cropRect!.top.floor(),
+                      width: result.cropRect!.width.floor(),
+                      height: result.cropRect!.height.floor(),
+                    );
+                    if (image.width > 1080) {
+                      image = img.copyResize(
+                        image,
+                        width: 1080,
+                        interpolation: img.Interpolation.cubic,
+                      );
                     }
-                    imageBytes!.value = newImageData =
-                        Uint8List.fromList(img.encodeJpg(image, quality: 50));
                   }
+                  imageBytes!.value =
+                      newImageData = Uint8List.fromList(
+                        img.encodeJpg(image, quality: 50),
+                      );
                 }
               }
-            },
-            child: const Text('Selection image'),
-          );
-        }),
-      );
+            }
+          },
+          child: const Text('Selection image'),
+        );
+      },
+    ),
+  );
   void articleFromForm(DbArticleMixin article) {
     article
       ..name.v = nameController!.text
@@ -546,8 +620,12 @@ class ArticleImageHolder {
 
   CvField<String>? get imageField =>
       article?.field<String>(articleImageColumn.name);
-  ArticleImageHolder(this.article, this.articleImageColumn,
-      {required this.db, required this.projectContext});
+  ArticleImageHolder(
+    this.article,
+    this.articleImageColumn, {
+    required this.db,
+    required this.projectContext,
+  });
 
   void _setNull() {
     _imageData.value = null;
@@ -575,12 +653,14 @@ class ArticleImageHolder {
             var db = this.db;
             var image = await dbImageStoreRef.record(imageId).get(db);
             if (image != null) {
-              var bytes = await httpClientFactory
-                  .newClient()
-                  .readBytes(Uri.parse(getImageUrl(
+              var bytes = await httpClientFactory.newClient().readBytes(
+                Uri.parse(
+                  getImageUrl(
                     image.name.v!,
                     storageBucket: projectContext.storageBucket,
-                  )));
+                  ),
+                ),
+              );
               _set(imageId, bytes);
             }
           }
@@ -594,5 +674,5 @@ class ArticleImageHolder {
 final articleImageHoldersColumns = <CvColumn<String>>[
   dbArticleCommonModel.image,
   dbArticleCommonModel.squareImage,
-  dbArticleCommonModel.thumbnail
+  dbArticleCommonModel.thumbnail,
 ];

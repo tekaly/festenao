@@ -7,10 +7,7 @@ import 'package:tkcms_common/tkcms_firestore.dart';
 void initFestenaoFsBuilders() {
   initTkCmsFsBuilders();
   initFestenaoCvBuilders();
-  cvAddConstructors([
-    FsExport.new,
-    FsProject.new,
-  ]);
+  cvAddConstructors([FsExport.new, FsProject.new]);
   initFsFormBuilders();
 }
 
@@ -31,20 +28,26 @@ class FsUserPrv extends TkCmsFsEntity {
 /// Project collection info
 final projectCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsProject>(
-        id: projectPathPart,
-        name: 'Project',
-        treeDef: TkCmsCollectionsTreeDef(map: {
-          'data': {'data': null, 'meta': null}
-        }));
+      id: projectPathPart,
+      name: 'Project',
+      treeDef: TkCmsCollectionsTreeDef(
+        map: {
+          'data': {'data': null, 'meta': null},
+        },
+      ),
+    );
 
 /// User private collection info
 final userPrvCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsUserPrv>(
-        id: 'project_user',
-        name: 'User private',
-        treeDef: TkCmsCollectionsTreeDef(map: {
-          'data': {'data': null, 'meta': null}
-        }));
+      id: 'project_user',
+      name: 'User private',
+      treeDef: TkCmsCollectionsTreeDef(
+        map: {
+          'data': {'data': null, 'meta': null},
+        },
+      ),
+    );
 
 /// Main entity database
 class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
@@ -58,8 +61,10 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   late TkCmsFirestoreDatabaseServiceEntityAccess<FsUserPrv> userPrvDb;
 
   /// Constructor
-  FestenaoFirestoreDatabase(
-      {required super.firebaseContext, required super.flavorContext}) {
+  FestenaoFirestoreDatabase({
+    required super.firebaseContext,
+    required super.flavorContext,
+  }) {
     _init();
   }
 
@@ -67,17 +72,20 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   void _init() {
     initFestenaoFsBuilders();
     projectDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
-        entityCollectionInfo: projectCollectionInfo,
-        firestore: firestore,
-        rootDocument: fsAppRoot(app));
+      entityCollectionInfo: projectCollectionInfo,
+      firestore: firestore,
+      rootDocument: fsAppRoot(app),
+    );
     userPrvDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsUserPrv>(
-        entityCollectionInfo: userPrvCollectionInfo,
-        firestore: firestore,
-        rootDocument: fsAppRoot(app));
+      entityCollectionInfo: userPrvCollectionInfo,
+      firestore: firestore,
+      rootDocument: fsAppRoot(app),
+    );
     appDb = TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp>(
-        entityCollectionInfo: tkCmsFsAppCollectionInfo,
-        firestore: firestore,
-        rootDocument: fsAppRoot(app));
+      entityCollectionInfo: tkCmsFsAppCollectionInfo,
+      firestore: firestore,
+      rootDocument: fsAppRoot(app),
+    );
   }
 
   /// Project collection reference

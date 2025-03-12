@@ -1,8 +1,8 @@
 import 'package:festenao_common/data/festenao_db.dart';
 
 DbArtist? dbArtistFromSnapshot(
-        RecordSnapshot<String, Map<String, Object?>>? snapshot) =>
-    snapshot?.cv<DbArtist>();
+  RecordSnapshot<String, Map<String, Object?>>? snapshot,
+) => snapshot?.cv<DbArtist>();
 
 class AttributeInfo {
   // artist:<xxx>

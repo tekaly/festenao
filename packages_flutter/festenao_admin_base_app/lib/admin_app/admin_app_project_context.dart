@@ -29,7 +29,9 @@ extension FestenaoAdminAppProjectContextExt on FestenaoAdminAppProjectContext {
   /// Firestore database context
   FirestoreDatabaseContext get firestoreDatabaseContext =>
       FirestoreDatabaseContext(
-          firestore: firestore, rootDocument: _rootDocumentRef);
+        firestore: firestore,
+        rootDocument: _rootDocumentRef,
+      );
   String get pathProjectId => projectId;
   /*
   @Deprecated('do not use, grab and release instead')
@@ -69,12 +71,13 @@ abstract class FestenaoAdminAppProjectContextBase
   @override
   final FirebaseStorage storage;
 
-  FestenaoAdminAppProjectContextBase(
-      {required this.firestorePath,
-      required this.storageBucket,
-      required this.storagePath,
-      required this.firestore,
-      required this.storage});
+  FestenaoAdminAppProjectContextBase({
+    required this.firestorePath,
+    required this.storageBucket,
+    required this.storagePath,
+    required this.firestore,
+    required this.storage,
+  });
 }
 
 /// Compat mode or single project mode
@@ -84,14 +87,15 @@ class SingleFestenaoAdminAppProjectContext
   final String projectId;
   final SyncedDb syncedDb;
 
-  SingleFestenaoAdminAppProjectContext(
-      {required this.projectId,
-      required this.syncedDb,
-      required super.firestore,
-      required super.storage,
-      required super.storageBucket,
-      required super.firestorePath,
-      required super.storagePath});
+  SingleFestenaoAdminAppProjectContext({
+    required this.projectId,
+    required this.syncedDb,
+    required super.firestore,
+    required super.storage,
+    required super.storageBucket,
+    required super.firestorePath,
+    required super.storagePath,
+  });
 }
 
 /// By project id
@@ -114,16 +118,19 @@ class _ByProjectIdAdminAppProjectContext
   // final String userId;
 
   _ByProjectIdAdminAppProjectContext({required this.projectId})
-      : super(
-            firestore: globalFestenaoAdminAppFirebaseContext.firestore,
-            storage: globalFestenaoAdminAppFirebaseContext.storage,
-            firestorePath: url.join(
-                globalFestenaoAppFirebaseContext.firestoreRootPath,
-                projectPathPart,
-                projectId),
-            storageBucket: globalFestenaoAppFirebaseContext.storageBucket,
-            storagePath: url.join(
-                globalFestenaoAppFirebaseContext.storageRootPath,
-                projectPathPart,
-                projectId));
+    : super(
+        firestore: globalFestenaoAdminAppFirebaseContext.firestore,
+        storage: globalFestenaoAdminAppFirebaseContext.storage,
+        firestorePath: url.join(
+          globalFestenaoAppFirebaseContext.firestoreRootPath,
+          projectPathPart,
+          projectId,
+        ),
+        storageBucket: globalFestenaoAppFirebaseContext.storageBucket,
+        storagePath: url.join(
+          globalFestenaoAppFirebaseContext.storageRootPath,
+          projectPathPart,
+          projectId,
+        ),
+      );
 }

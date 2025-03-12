@@ -8,7 +8,7 @@ const eventTypes = [
   eventTypeArtist,
   eventTypeCoffee,
   eventTypeStage,
-  eventTypeIntimiste
+  eventTypeIntimiste,
 ];
 const eventTypeConcert = 'concert';
 const eventTypeBal = 'bal';
@@ -26,13 +26,13 @@ const eventTagClosed = 'closed'; // Typically for marker,
 class DbEvent extends DbStringRecordBase with DbArticleMixin {
   @override
   List<CvField> get fields => [
-        ...articleFields,
-        location,
-        day,
-        beginTime,
-        endTime,
-        artists,
-      ];
+    ...articleFields,
+    location,
+    day,
+    beginTime,
+    endTime,
+    artists,
+  ];
 
   /// DbLocation id
   final location = CvField<String>('location');

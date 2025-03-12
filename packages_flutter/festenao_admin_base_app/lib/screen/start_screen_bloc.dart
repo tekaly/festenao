@@ -20,26 +20,29 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
   String? _dbUserId;
   StartScreenBloc() {
     () async {
-      audiAddStreamSubscription(globalAuthBloc.state.listen((state) {
-        _lock.synchronized(() async {
-          var user = state.user;
-          var userId = user?.uid;
-          if (userId != null && userId != _dbUserId) {
-            _dbUserId = userId;
-            audiDispose(_dbSubscription);
-            add(StartScreenBlocState(projects: null, user: user));
-            _dbSubscription = audiAddStreamSubscription(
+      audiAddStreamSubscription(
+        globalAuthBloc.state.listen((state) {
+          _lock.synchronized(() async {
+            var user = state.user;
+            var userId = user?.uid;
+            if (userId != null && userId != _dbUserId) {
+              _dbUserId = userId;
+              audiDispose(_dbSubscription);
+              add(StartScreenBlocState(projects: null, user: user));
+              _dbSubscription = audiAddStreamSubscription(
                 globalProjectsDb.onProjects(userId: userId).listen((projects) {
-              add(StartScreenBlocState(projects: projects, user: user));
-            }));
-          } else {
-            _dbUserId = null;
-            if (userId == null) {
-              add(StartScreenBlocState(user: null, projects: null));
+                  add(StartScreenBlocState(projects: projects, user: user));
+                }),
+              );
+            } else {
+              _dbUserId = null;
+              if (userId == null) {
+                add(StartScreenBlocState(user: null, projects: null));
+              }
             }
-          }
-        });
-      }));
+          });
+        }),
+      );
     }();
   }
 }

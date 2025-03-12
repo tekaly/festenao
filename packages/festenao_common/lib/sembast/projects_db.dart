@@ -53,8 +53,9 @@ const projectsDbName = 'projects_v1.db';
 final dbProjectStore = cvStringStoreFactory.store<DbProject>('project');
 
 /// Project user store
-final dbProjectUserStore =
-    cvStringStoreFactory.store<DbProjectUser>('project_user');
+final dbProjectUserStore = cvStringStoreFactory.store<DbProjectUser>(
+  'project_user',
+);
 
 /// Projects db
 class ProjectsDb {
@@ -66,9 +67,7 @@ class ProjectsDb {
 
   /// ready state
   late final Future<void> ready = () async {
-    db = await factory.openDatabase(
-      projectsDbName,
-    );
+    db = await factory.openDatabase(projectsDbName);
     initDbProjectsBuilders();
   }();
 
@@ -85,14 +84,18 @@ class ProjectsDb {
   }
 
   /// on Projects
-  Stream<DbProject?> onProject(String projectId,
-      {required String userId}) async* {
+  Stream<DbProject?> onProject(
+    String projectId, {
+    required String userId,
+  }) async* {
     await ready;
     yield* _getProjectQuery(projectId, userId: userId).onRecord(db);
   }
 
-  Future<DbProject?> getProject(String projectId,
-      {required String userId}) async {
+  Future<DbProject?> getProject(
+    String projectId, {
+    required String userId,
+  }) async {
     await ready;
     return await _getProjectQuery(projectId, userId: userId).getRecord(db);
   }
@@ -107,33 +110,41 @@ class ProjectsDb {
 
   /// Delete Project
   Future<void> deleteProject(String projectId, {required String userId}) async {
-    await dbProjectStore.delete(db,
-        finder: _getProjectFinder(projectId, userId: userId));
+    await dbProjectStore.delete(
+      db,
+      finder: _getProjectFinder(projectId, userId: userId),
+    );
   }
 
   /// Query
   CvQueryRef<String, DbProject> getProjectsQuery({required String userId}) {
     return dbProjectStore.query(
-        finder: Finder(
-            filter: Filter.or([
-      Filter.equals(dbProjectModel.userId.name, userId),
-      // Filter.isNull(dbProjectModel.uid.name),
-    ])));
+      finder: Finder(
+        filter: Filter.or([
+          Filter.equals(dbProjectModel.userId.name, userId),
+          // Filter.isNull(dbProjectModel.uid.name),
+        ]),
+      ),
+    );
   }
 
   // Query
-  CvQueryRef<String, DbProject> _getProjectQuery(String projectId,
-      {required String userId}) {
+  CvQueryRef<String, DbProject> _getProjectQuery(
+    String projectId, {
+    required String userId,
+  }) {
     return dbProjectStore.query(
-        finder: _getProjectFinder(projectId, userId: userId));
+      finder: _getProjectFinder(projectId, userId: userId),
+    );
   }
 
   Finder _getProjectFinder(String projectId, {required String userId}) {
     return Finder(
-        filter: Filter.and([
-      Filter.equals(dbProjectModel.userId.name, userId),
-      Filter.equals(dbProjectModel.uid.name, projectId),
-    ]));
+      filter: Filter.and([
+        Filter.equals(dbProjectModel.userId.name, userId),
+        Filter.equals(dbProjectModel.uid.name, projectId),
+      ]),
+    );
   }
 }
 

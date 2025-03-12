@@ -33,112 +33,113 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
   Widget build(BuildContext context) {
     var bloc = this.bloc;
     return ValueStreamBuilder<AdminArtistEditScreenBlocState>(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
 
-          var artist = state?.artist;
-          var artistId = bloc.artistId;
-          var canSave = artistId == null || artist != null;
-          var article = artist;
-          return AdminScreenLayout(
-            appBar: AppBar(
-              actions: [
-                if (bloc.artistId != null)
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    tooltip: 'Supprimer',
-                    onPressed: () {
-                      _onDelete(context);
-                    },
-                  ),
-              ],
-              title: const Text('Artiste'),
-            ),
-            body: Builder(
-              builder: (context) {
-                if (!canSave) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                // devPrint('canSave $canSave $artistId $artist');
+        var artist = state?.artist;
+        var artistId = bloc.artistId;
+        var canSave = artistId == null || artist != null;
+        var article = artist;
+        return AdminScreenLayout(
+          appBar: AppBar(
+            actions: [
+              if (bloc.artistId != null)
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  tooltip: 'Supprimer',
+                  onPressed: () {
+                    _onDelete(context);
+                  },
+                ),
+            ],
+            title: const Text('Artiste'),
+          ),
+          body: Builder(
+            builder: (context) {
+              if (!canSave) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              // devPrint('canSave $canSave $artistId $artist');
 
-                return Stack(
-                  children: [
-                    ListView(children: [
+              return Stack(
+                children: [
+                  ListView(
+                    children: [
                       Form(
                         key: formKey,
                         child: BodyContainer(
                           child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (artist == null && artistId != null)
-                                  const ListTile(
-                                    title: Text('Non trouvé'),
-                                  )
-                                else ...[
-                                  ListTile(
-                                    title: Text(artist?.id ?? 'new'),
-                                  ),
-                                ],
-                                AppTextFieldTile(
-                                  controller: idController ??=
-                                      TextEditingController(text: artistId),
-                                  labelText: textIdLabel,
-                                ),
-                                getCommonWidgets(artist),
-                                AppTextFieldTile(
-                                  controller: nameController ??=
-                                      TextEditingController(
-                                          text: artist?.name.v),
-                                  labelText: textNameLabel,
-                                ),
-                                AppTextFieldTile(
-                                  emptyAllowed: true,
-                                  controller: subtitleController ??=
-                                      TextEditingController(
-                                          text: artist?.subtitle.v),
-                                  labelText: textSubtitleLabel,
-                                ),
-                                AppTextFieldTile(
-                                  controller: contentController ??=
-                                      TextEditingController(
-                                          text: artist?.content.v),
-                                  maxLines: 10,
-                                  labelText: 'Contenu',
-                                ),
-                                getBottomCommonWidgets(article),
-                                getImagesWidget(article, db: state!.db),
-                                getAttributesTile(article),
-                                getThumbailNameWidget(article),
-                                getThumbnailSelectorTile(article),
-                                getThumbnailPreviewTile(article),
-                                getImageNameWidget(article),
-                                getImageSelectorTile(article),
-                                getImagePreviewTile(article),
-                                const SizedBox(
-                                  height: 64,
-                                ),
-                              ]),
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (artist == null && artistId != null)
+                                const ListTile(title: Text('Non trouvé'))
+                              else ...[
+                                ListTile(title: Text(artist?.id ?? 'new')),
+                              ],
+                              AppTextFieldTile(
+                                controller:
+                                    idController ??= TextEditingController(
+                                      text: artistId,
+                                    ),
+                                labelText: textIdLabel,
+                              ),
+                              getCommonWidgets(artist),
+                              AppTextFieldTile(
+                                controller:
+                                    nameController ??= TextEditingController(
+                                      text: artist?.name.v,
+                                    ),
+                                labelText: textNameLabel,
+                              ),
+                              AppTextFieldTile(
+                                emptyAllowed: true,
+                                controller:
+                                    subtitleController ??=
+                                        TextEditingController(
+                                          text: artist?.subtitle.v,
+                                        ),
+                                labelText: textSubtitleLabel,
+                              ),
+                              AppTextFieldTile(
+                                controller:
+                                    contentController ??= TextEditingController(
+                                      text: artist?.content.v,
+                                    ),
+                                maxLines: 10,
+                                labelText: 'Contenu',
+                              ),
+                              getBottomCommonWidgets(article),
+                              getImagesWidget(article, db: state!.db),
+                              getAttributesTile(article),
+                              getThumbailNameWidget(article),
+                              getThumbnailSelectorTile(article),
+                              getThumbnailPreviewTile(article),
+                              getImageNameWidget(article),
+                              getImageSelectorTile(article),
+                              getImagePreviewTile(article),
+                              const SizedBox(height: 64),
+                            ],
+                          ),
                         ),
-                      )
-                    ]),
-                    LinearWait(
-                      showNotifier: saving,
-                    ),
-                  ],
-                );
-              },
-            ),
-            floatingActionButton: canSave
-                ? FloatingActionButton(
+                      ),
+                    ],
+                  ),
+                  LinearWait(showNotifier: saving),
+                ],
+              );
+            },
+          ),
+          floatingActionButton:
+              canSave
+                  ? FloatingActionButton(
                     onPressed: () => _onSave(context),
                     child: const Icon(Icons.save),
                   )
-                : null,
-          );
-        });
+                  : null,
+        );
+      },
+    );
   }
 
   final _saveLock = Lock();
@@ -153,10 +154,13 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
           var dbArtist = dbArtistStoreRef.record(idController!.text).cv();
           articleFromForm(dbArtist);
 
-          await bloc.save(AdminArticleEditData(
+          await bloc.save(
+            AdminArticleEditData(
               article: dbArtist,
               imageData: newImageData,
-              thumbailData: newThumbnailImageData));
+              thumbailData: newThumbnailImageData,
+            ),
+          );
           if (context.mounted) {
             Navigator.of(context).pop();
           }
@@ -180,8 +184,9 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
           var bloc = BlocProvider.of<AdminArtistEditScreenBloc>(context);
           await bloc.delete();
           if (context.mounted) {
-            Navigator.of(context)
-                .pop(AdminArtistEditScreenResult(deleted: true));
+            Navigator.of(
+              context,
+            ).pop(AdminArtistEditScreenResult(deleted: true));
           }
         } catch (e, st) {
           if (kDebugMode) {
@@ -208,17 +213,26 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
 }
 
 Future<AdminArtistEditScreenResult?> goToAdminArtistEditScreen(
-    BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext,
-    required String? artistId,
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+  required String? artistId,
 
-    /// Only for artistId = null
-    DbArtist? artist}) async {
-  return await Navigator.of(context)
-      .push<AdminArtistEditScreenResult?>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () => AdminArtistEditScreenBloc(
-            artistId: artistId, artist: artist, projectContext: projectContext),
-        child: const AdminArtistEditScreen());
-  }));
+  /// Only for artistId = null
+  DbArtist? artist,
+}) async {
+  return await Navigator.of(context).push<AdminArtistEditScreenResult?>(
+    MaterialPageRoute(
+      builder: (context) {
+        return BlocProvider(
+          blocBuilder:
+              () => AdminArtistEditScreenBloc(
+                artistId: artistId,
+                artist: artist,
+                projectContext: projectContext,
+              ),
+          child: const AdminArtistEditScreen(),
+        );
+      },
+    ),
+  );
 }

@@ -50,7 +50,9 @@ class AdminAppProjectContextDbBloc implements AutoDisposable {
           var userId =
               globalAuthBloc.state.value.user?.uid ?? 'service_account';
           return await multiProjectsDbBloc.grabContentDb(
-              userId: userId, projectId: _projectId);
+            userId: userId,
+            projectId: _projectId,
+          );
         }();
       });
     }();

@@ -31,9 +31,7 @@ class _AdminMetasScreenState extends State<AdminMetasScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<AdminMetasScreenBloc>(context);
     return AdminScreenLayout(
-      appBar: AppBar(
-        title: const Text('Metas'),
-      ),
+      appBar: AppBar(title: const Text('Metas')),
       body: ValueStreamBuilder<AdminMetaScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
@@ -42,10 +40,12 @@ class _AdminMetasScreenState extends State<AdminMetasScreen> {
               EntryTile(
                 label: textMetaGeneral,
                 onTap: () {
-                  goToAdminMetaGeneralEditScreen(context,
-                      projectContext: bloc.projectContext);
+                  goToAdminMetaGeneralEditScreen(
+                    context,
+                    projectContext: bloc.projectContext,
+                  );
                 },
-              )
+              ),
             ],
           );
         },
@@ -54,8 +54,10 @@ class _AdminMetasScreenState extends State<AdminMetasScreen> {
   }
 }
 
-Future<void> goToAdminMetasScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext}) async {
+Future<void> goToAdminMetasScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
   if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
@@ -63,10 +65,15 @@ Future<void> goToAdminMetasScreen(BuildContext context,
       contentPath: ProjectMetasContentPath(),
     );
   } else {
-    await Navigator.of(context).push<void>(MaterialPageRoute(
-        builder: (_) => BlocProvider(
-            blocBuilder: () =>
-                AdminMetasScreenBloc(projectContext: projectContext),
-            child: const AdminMetasScreen())));
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder:
+            (_) => BlocProvider(
+              blocBuilder:
+                  () => AdminMetasScreenBloc(projectContext: projectContext),
+              child: const AdminMetasScreen(),
+            ),
+      ),
+    );
   }
 }

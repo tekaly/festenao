@@ -10,31 +10,30 @@ Future<void> main(List<String> args) async {
   var now = DateTime.utc(2024, 1, 3);
   var sessionId = 'session_test_2';
   var controller = GoodieController(
-      firestore: firestore, firestorePath: 'session/$sessionId');
-  var day = CalendarDay.fromTimestamp(now);
-  var goodieId = await controller.findRandomGoodie(
-    now: now,
+    firestore: firestore,
+    firestorePath: 'session/$sessionId',
   );
+  var day = CalendarDay.fromTimestamp(now);
+  var goodieId = await controller.findRandomGoodie(now: now);
   // ignore: avoid_print
   print('goodieId: $goodieId');
 
-  // ignore: invalid_use_of_visible_for_testing_member
-  var config = controller.fsGoodiesConfigRef.cv()
-    ..goodies.v = [
-      CvGoodieConfig()
-        ..id.v = 'g1'
-        ..quantity.v = 2,
-      CvGoodieConfig()
-        ..id.v = 'g2'
-        ..quantity.v = 3,
-    ]
-    ..winningChance.v = 1;
+  var config =
+      // ignore: invalid_use_of_visible_for_testing_member
+      controller.fsGoodiesConfigRef.cv()
+        ..goodies.v = [
+          CvGoodieConfig()
+            ..id.v = 'g1'
+            ..quantity.v = 2,
+          CvGoodieConfig()
+            ..id.v = 'g2'
+            ..quantity.v = 3,
+        ]
+        ..winningChance.v = 1;
   await firestore.cvSet(config);
   var goodies = <String?>[];
   for (var i = 0; i < 6; i++) {
-    var goodie = await controller.findRandomGoodie(
-      now: now,
-    );
+    var goodie = await controller.findRandomGoodie(now: now);
     goodies.add(goodie);
   }
   // ignore: avoid_print

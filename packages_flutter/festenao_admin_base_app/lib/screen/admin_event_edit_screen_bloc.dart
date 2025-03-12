@@ -33,10 +33,11 @@ class AdminEventEditScreenBloc
   final String? eventId;
   final AdminEventEditScreenParam? param;
 
-  AdminEventEditScreenBloc(
-      {required this.eventId,
-      required this.param,
-      required super.projectContext}) {
+  AdminEventEditScreenBloc({
+    required this.eventId,
+    required this.param,
+    required super.projectContext,
+  }) {
     if (eventId == null) {
       // Creation
       add(AdminEventEditScreenBlocState(event: param?.event));

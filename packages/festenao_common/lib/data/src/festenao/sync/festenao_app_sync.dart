@@ -25,16 +25,19 @@ mixin FestenaoAppSyncMixin implements FestenaoAppSync {
   late FestenaoDb db;
 }
 
-typedef FestenaoAppSyncFetchExportMeta = Future<Map<String, Object?>>
-    Function();
+typedef FestenaoAppSyncFetchExportMeta =
+    Future<Map<String, Object?>> Function();
 typedef FestenaoAppSyncFetchExport = Future<String> Function(int changeId);
 
 /// Sync from export
 class FestenaoAppSyncExport
     with FestenaoAppSyncMixin
     implements FestenaoAppSync {
-  FestenaoAppSyncExport(FestenaoDb db,
-      {required this.fetchExport, required this.fetchExportMeta}) {
+  FestenaoAppSyncExport(
+    FestenaoDb db, {
+    required this.fetchExport,
+    required this.fetchExportMeta,
+  }) {
     this.db = db;
   }
 
@@ -56,8 +59,11 @@ class FestenaoAppSyncExport
       }
 
       var data = await fetchExport(newLastChangeId);
-      var sourceDb =
-          await importDatabaseAny(data, newDatabaseFactoryMemory(), 'export');
+      var sourceDb = await importDatabaseAny(
+        data,
+        newDatabaseFactoryMemory(),
+        'export',
+      );
       await databaseMerge(await db.database, sourceDatabase: sourceDb);
       await sourceDb.close();
     }

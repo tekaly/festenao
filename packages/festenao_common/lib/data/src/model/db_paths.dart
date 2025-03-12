@@ -13,9 +13,9 @@ var dbMetaGeneralRecordRef =
     dbMetaStoreRef.record('general').castV<DbMetaGeneral>();
 
 var _metaRefs = [dbMetaGeneralRecordRef];
-var _refMap = _metaRefs
-    .asMap()
-    .map((index, value) => MapEntry(_metaRefs[index].key, value));
+var _refMap = _metaRefs.asMap().map(
+  (index, value) => MapEntry(_metaRefs[index].key, value),
+);
 CvRecordRef<String, DbMeta>? refForMeta(String key) => _refMap[key];
 // Compat
 

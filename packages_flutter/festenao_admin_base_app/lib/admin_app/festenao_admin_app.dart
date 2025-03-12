@@ -35,8 +35,9 @@ class FestenaoAdminApp {
   Future<void> Function(BuildContext context)? goToLoginScreen;
 
   Future<Prefs> openPrefs() async {
-    var prefsFactory =
-        getPrefsFactory(packageName: 'com.tekartik.festenao.admin');
+    var prefsFactory = getPrefsFactory(
+      packageName: 'com.tekartik.festenao.admin',
+    );
     prefs = await prefsFactory.openPreferences('admin_prefs.db');
     return prefs;
   }
@@ -54,8 +55,9 @@ var _imageFormatMap = <ImageFormat, String>{
   ImageFormat.jpg: 'jpg',
   ImageFormat.png: 'png',
 };
-var _reverseImageFormatMap =
-    _imageFormatMap.map((key, value) => MapEntry(value, key));
+var _reverseImageFormatMap = _imageFormatMap.map(
+  (key, value) => MapEntry(value, key),
+);
 
 final _app = FestenaoAdminApp();
 FestenaoAdminApp get globalFestenaoAdminApp => _app;

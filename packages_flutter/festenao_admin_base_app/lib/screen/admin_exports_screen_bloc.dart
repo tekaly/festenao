@@ -10,8 +10,11 @@ class AdminExportsScreenBlocState {
   FestenaoExportMeta? metaDev;
   FestenaoExportMeta? metaProd;
 
-  AdminExportsScreenBlocState(this.list,
-      {required this.metaDev, required this.metaProd});
+  AdminExportsScreenBlocState(
+    this.list, {
+    required this.metaDev,
+    required this.metaProd,
+  });
 }
 
 class AdminExportsScreenBloc
@@ -33,11 +36,12 @@ class AdminExportsScreenBloc
       FestenaoExportMeta? metaDev;
       FestenaoExportMeta? metaProd;
 
-      var metaDevSnapshot = await firestore
-          .collection(firestoreMetaCollectionPath)
-          .doc(getFirestorePublishMetaDocumentName(true))
-          // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
-          .get();
+      var metaDevSnapshot =
+          await firestore
+              .collection(firestoreMetaCollectionPath)
+              .doc(getFirestorePublishMetaDocumentName(true))
+              // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
+              .get();
       /*firestore
           .doc(
               globalFestenaoAppFirebaseContext.getMetaExportFirestorePath(true))
@@ -45,24 +49,31 @@ class AdminExportsScreenBloc
       if (metaDevSnapshot.exists) {
         metaDev = metaDevSnapshot.data.cv<FestenaoExportMeta>();
       }
-      var metaProdSnapshot = await firestore
-          .collection(firestoreMetaCollectionPath)
-          .doc(getFirestorePublishMetaDocumentName(false))
-          // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
-          .get();
+      var metaProdSnapshot =
+          await firestore
+              .collection(firestoreMetaCollectionPath)
+              .doc(getFirestorePublishMetaDocumentName(false))
+              // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
+              .get();
       if (metaProdSnapshot.exists) {
         metaProd = metaProdSnapshot.data.cv<FestenaoExportMeta>();
       }
-      add(AdminExportsScreenBlocState(exports,
-          metaDev: metaDev, metaProd: metaProd));
+      add(
+        AdminExportsScreenBlocState(
+          exports,
+          metaDev: metaDev,
+          metaProd: metaProd,
+        ),
+      );
     }
 
     var query = firestore.collection(firestoreExportCollectionPath);
     if (firestore.service.supportsTrackChanges) {
       _artistSubscription ??= audiAddStreamSubscription(
-          query.onSnapshotSupport().listen((event) async {
-        await addExports(event.docs.cv<FsExport>());
-      }));
+        query.onSnapshotSupport().listen((event) async {
+          await addExports(event.docs.cv<FsExport>());
+        }),
+      );
     } else {
       await addExports(await query.cvGet<FsExport>());
     }

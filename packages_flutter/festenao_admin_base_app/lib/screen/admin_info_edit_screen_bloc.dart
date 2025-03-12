@@ -27,8 +27,11 @@ class AdminInfoEditScreenBloc
   final String? infoId;
   late final DbInfo? info;
 
-  AdminInfoEditScreenBloc(
-      {DbInfo? info, required this.infoId, required super.projectContext}) {
+  AdminInfoEditScreenBloc({
+    DbInfo? info,
+    required this.infoId,
+    required super.projectContext,
+  }) {
     if (infoId == null) {
       this.info = info;
       // Creation

@@ -27,13 +27,13 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<ProjectsScreenBloc>(context);
     return ValueStreamBuilder(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
-          return FestenaoAdminAppScaffold(
-            appBar: AppBar(
-                title: const Text('Project') // appIntl(context).ProjectsTitle),
-                /*actions: [
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
+        return FestenaoAdminAppScaffold(
+          appBar: AppBar(
+            title: const Text('Project'), // appIntl(context).ProjectsTitle),
+            /*actions: [
                 IconButton(
                     onPressed: () {
                       ContentNavigator.of(context)
@@ -41,26 +41,27 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                     },
                     icon: const Icon(Icons.settings)),
               ],*/
-                // automaticallyImplyLeading: false,
-                ),
-            body: Builder(builder: (context) {
+            // automaticallyImplyLeading: false,
+          ),
+          body: Builder(
+            builder: (context) {
               if (state == null) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
               var projects = state.projects;
               return WithHeaderFooterListView.builder(
-                  footer: state.user == null
-                      ? const BodyContainer(
+                footer:
+                    state.user == null
+                        ? const BodyContainer(
                           child: BodyHPadding(
-                              child: Center(
-                                  child: Column(
-                          children: [
-                            Text(
-                                'Not signed in'), // appIntl(context).notSignedInInfo),
-                            SizedBox(height: 8),
-                            /*
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Not signed in',
+                                  ), // appIntl(context).notSignedInInfo),
+                                  SizedBox(height: 8),
+                                  /*
                             ElevatedButton(
                                 onPressed: () {
                                   Navigator.of(context).push<void>(
@@ -74,17 +75,20 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                                 },
                                 child:
                                     Text(appIntl(context).signInButtonLabel)),*/
-                          ],
-                        ))))
-                      : null,
-                  itemCount: projects.length,
-                  itemBuilder: (context, index) {
-                    var project = projects[index];
-                    return BodyContainer(
-                      child: ListTile(
-                        leading: ProjectLeading(project: project),
-                        trailing: const TrailingArrow(),
-                        /*Row(
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                        : null,
+                itemCount: projects.length,
+                itemBuilder: (context, index) {
+                  var project = projects[index];
+                  return BodyContainer(
+                    child: ListTile(
+                      leading: ProjectLeading(project: project),
+                      trailing: const TrailingArrow(),
+                      /*Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
@@ -101,38 +105,43 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                                 icon: Icon(Icons.edit))*/
                           ],
                         ),*/
-                        title: Text(project.name.v ?? project.fsId),
-                        onTap: () async {
-                          if (bloc.selectMode) {
-                            Navigator.of(context).pop(
-                                SelectProjectResult(projectId: project.fsId));
-                          } else {
-                            await goToProjectViewScreen(context,
-                                projectId: project.fsId);
-                          }
-                          //  await goToNotesScreen(context, Project.ref);
-                        },
-                      ),
-                    );
-                  });
-            }),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () async {
-                await goToProjectEditScreen(context, project: null);
-              },
-              child: const Icon(Icons.add),
-            ),
-          );
-        });
+                      title: Text(project.name.v ?? project.fsId),
+                      onTap: () async {
+                        if (bloc.selectMode) {
+                          Navigator.of(
+                            context,
+                          ).pop(SelectProjectResult(projectId: project.fsId));
+                        } else {
+                          await goToProjectViewScreen(
+                            context,
+                            projectId: project.fsId,
+                          );
+                        }
+                        //  await goToNotesScreen(context, Project.ref);
+                      },
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              await goToProjectEditScreen(context, project: null);
+            },
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
+    );
   }
 }
 
 /// Go to Projects screen
-Future<Object?> goToProjectsScreen(
-  BuildContext context,
-) async {
-  return await ContentNavigator.of(context)
-      .pushPath<Object?>(ProjectsContentPath());
+Future<Object?> goToProjectsScreen(BuildContext context) async {
+  return await ContentNavigator.of(
+    context,
+  ).pushPath<Object?>(ProjectsContentPath());
   /*<Object?>(MaterialPageRoute(
       builder: (_) => BlocProvider(
           blocBuilder: () => ProjectsScreenBloc(),
@@ -149,13 +158,16 @@ class SelectProjectResult {
 }
 
 /// Go to Projects screen
-Future<SelectProjectResult?> selectProject(
-  BuildContext context,
-) async {
-  var result = await Navigator.of(context).push<Object?>(MaterialPageRoute(
-      builder: (_) => BlocProvider(
-          blocBuilder: () => ProjectsScreenBloc(selectMode: true),
-          child: const ProjectsScreen())));
+Future<SelectProjectResult?> selectProject(BuildContext context) async {
+  var result = await Navigator.of(context).push<Object?>(
+    MaterialPageRoute(
+      builder:
+          (_) => BlocProvider(
+            blocBuilder: () => ProjectsScreenBloc(selectMode: true),
+            child: const ProjectsScreen(),
+          ),
+    ),
+  );
   if (result is SelectProjectResult) {
     return result;
   }

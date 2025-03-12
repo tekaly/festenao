@@ -34,13 +34,15 @@ class AdminUsersScreenBloc
   AdminUsersScreenBloc({required this.param}) {
     var fsDb = globalFestenaoFirestoreDatabase.projectDb;
 
-    audiAddStreamSubscription(fsDb
-        .fsEntityUserAccessCollectionRef(param.id)
-        .onSnapshots(fsDb.firestore)
-        .listen((list) async {
-      users = list;
-      trigger();
-    }));
+    audiAddStreamSubscription(
+      fsDb
+          .fsEntityUserAccessCollectionRef(param.id)
+          .onSnapshots(fsDb.firestore)
+          .listen((list) async {
+            users = list;
+            trigger();
+          }),
+    );
   }
 
   @override

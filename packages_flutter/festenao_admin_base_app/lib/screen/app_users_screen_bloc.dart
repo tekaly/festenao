@@ -31,38 +31,42 @@ class FsAppUsersScreenBloc
   /// Projects screen bloc
   FsAppUsersScreenBloc({this.selectMode = false}) {
     () async {
-      audiAddStreamSubscription(globalTkCmsFbIdentityBloc.state.listen((state) {
-        _lock.synchronized(() async {
-          var identity = state.identity;
+      audiAddStreamSubscription(
+        globalTkCmsFbIdentityBloc.state.listen((state) {
+          _lock.synchronized(() async {
+            var identity = state.identity;
 
-          var userId =
-              (identity is TkCmsFbIdentityUser) ? identity.user.uid : null;
-          if (identity != null &&
-              (userId != _dbUserId || _firestoreSubscription == null)) {
-            _dbUserId = userId;
+            var userId =
+                (identity is TkCmsFbIdentityUser) ? identity.user.uid : null;
+            if (identity != null &&
+                (userId != _dbUserId || _firestoreSubscription == null)) {
+              _dbUserId = userId;
 
-            audiDispose(_firestoreSubscription);
+              audiDispose(_firestoreSubscription);
 
-            /// Build from firestore
-            var fsDb = globalFestenaoFirestoreDatabase.appDb;
-            var app = globalFestenaoFirestoreDatabase.app;
-            _firestoreSubscription = audiAddStreamSubscription(fsDb
-                .fsEntityUserAccessCollectionRef(app)
-                .onSnapshots(fsDb.firestore)
-                .listen((list) {
-              _fsLock.synchronized(() async {
-                add(FsAppUsersScreenBlocState(projects: list));
-                // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
-              });
-            }));
-          } else {
-            if (userId == null) {
-              _dbUserId = null;
-              add(FsAppUsersScreenBlocState(projects: []));
+              /// Build from firestore
+              var fsDb = globalFestenaoFirestoreDatabase.appDb;
+              var app = globalFestenaoFirestoreDatabase.app;
+              _firestoreSubscription = audiAddStreamSubscription(
+                fsDb
+                    .fsEntityUserAccessCollectionRef(app)
+                    .onSnapshots(fsDb.firestore)
+                    .listen((list) {
+                      _fsLock.synchronized(() async {
+                        add(FsAppUsersScreenBlocState(projects: list));
+                        // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
+                      });
+                    }),
+              );
+            } else {
+              if (userId == null) {
+                _dbUserId = null;
+                add(FsAppUsersScreenBlocState(projects: []));
+              }
             }
-          }
-        });
-      }));
+          });
+        }),
+      );
     }();
   }
 }

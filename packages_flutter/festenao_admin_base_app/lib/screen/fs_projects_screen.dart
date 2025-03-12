@@ -25,13 +25,13 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<FsProjectsScreenBloc>(context);
     return ValueStreamBuilder(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
-          return FestenaoAdminAppScaffold(
-            appBar: AppBar(
-                title: const Text('Project') // appIntl(context).ProjectsTitle),
-                /*actions: [
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
+        return FestenaoAdminAppScaffold(
+          appBar: AppBar(
+            title: const Text('Project'), // appIntl(context).ProjectsTitle),
+            /*actions: [
                 IconButton(
                     onPressed: () {
                       ContentNavigator.of(context)
@@ -39,26 +39,27 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
                     },
                     icon: const Icon(Icons.settings)),
               ],*/
-                // automaticallyImplyLeading: false,
-                ),
-            body: Builder(builder: (context) {
+            // automaticallyImplyLeading: false,
+          ),
+          body: Builder(
+            builder: (context) {
               if (state == null) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
               var projects = state.projects;
               return WithHeaderFooterListView.builder(
-                  footer: state.user == null
-                      ? const BodyContainer(
+                footer:
+                    state.user == null
+                        ? const BodyContainer(
                           child: BodyHPadding(
-                              child: Center(
-                                  child: Column(
-                          children: [
-                            Text(
-                                'Not signed in'), // appIntl(context).notSignedInInfo),
-                            SizedBox(height: 8),
-                            /*
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Not signed in',
+                                  ), // appIntl(context).notSignedInInfo),
+                                  SizedBox(height: 8),
+                                  /*
                             ElevatedButton(
                                 onPressed: () {
                                   Navigator.of(context).push<void>(
@@ -72,17 +73,20 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
                                 },
                                 child:
                                     Text(appIntl(context).signInButtonLabel)),*/
-                          ],
-                        ))))
-                      : null,
-                  itemCount: projects.length,
-                  itemBuilder: (context, index) {
-                    var project = projects[index];
-                    return BodyContainer(
-                      child: ListTile(
-                        //leading: ProjectLeading(project: project),
-                        //trailing: const TrailingArrow(),
-                        /*Row(
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
+                        : null,
+                itemCount: projects.length,
+                itemBuilder: (context, index) {
+                  var project = projects[index];
+                  return BodyContainer(
+                    child: ListTile(
+                      //leading: ProjectLeading(project: project),
+                      //trailing: const TrailingArrow(),
+                      /*Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
@@ -99,50 +103,62 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
                                 icon: Icon(Icons.edit))*/
                           ],
                         ),*/
-                        title: Text(project.name.v ?? project.id),
-                        onTap: () async {
-                          if (bloc.selectMode) {
-                            Navigator.of(context).pop(
-                                SelectProjectResult(projectId: project.id));
-                          } else {
-                            await goToProjectViewScreen(context,
-                                projectId: project.id);
-                          }
-                          //  await goToNotesScreen(context, Project.ref);
-                        },
-                      ),
-                    );
-                  });
-            }),
-            floatingActionButton: FloatingActionButton(
-              onPressed: () async {
-                await goToProjectEditScreen(context, project: null);
-              },
-              child: const Icon(Icons.add),
-            ),
-          );
-        });
+                      title: Text(project.name.v ?? project.id),
+                      onTap: () async {
+                        if (bloc.selectMode) {
+                          Navigator.of(
+                            context,
+                          ).pop(SelectProjectResult(projectId: project.id));
+                        } else {
+                          await goToProjectViewScreen(
+                            context,
+                            projectId: project.id,
+                          );
+                        }
+                        //  await goToNotesScreen(context, Project.ref);
+                      },
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              await goToProjectEditScreen(context, project: null);
+            },
+            child: const Icon(Icons.add),
+          ),
+        );
+      },
+    );
   }
 }
 
 /// Go to Projects screen
-Future<Object?> goToFsProjectsScreen(
-  BuildContext context,
-) async {
-  return Navigator.of(context).push((MaterialPageRoute(
-      builder: (_) => BlocProvider(
-          blocBuilder: () => FsProjectsScreenBloc(),
-          child: const FsProjectsScreen()))));
+Future<Object?> goToFsProjectsScreen(BuildContext context) async {
+  return Navigator.of(context).push(
+    (MaterialPageRoute(
+      builder:
+          (_) => BlocProvider(
+            blocBuilder: () => FsProjectsScreenBloc(),
+            child: const FsProjectsScreen(),
+          ),
+    )),
+  );
 }
 
 /// Go to Projects screen
-Future<SelectProjectResult?> selectFsProject(
-  BuildContext context,
-) async {
-  var result = await Navigator.of(context).push<Object?>(MaterialPageRoute(
-      builder: (_) => BlocProvider(
-          blocBuilder: () => ProjectsScreenBloc(selectMode: true),
-          child: const FsProjectsScreen())));
+Future<SelectProjectResult?> selectFsProject(BuildContext context) async {
+  var result = await Navigator.of(context).push<Object?>(
+    MaterialPageRoute(
+      builder:
+          (_) => BlocProvider(
+            blocBuilder: () => ProjectsScreenBloc(selectMode: true),
+            child: const FsProjectsScreen(),
+          ),
+    ),
+  );
   if (result is SelectProjectResult) {
     return result;
   }

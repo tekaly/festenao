@@ -25,8 +25,11 @@ class AdminImageEditData {
   Uint8List? imageData;
   final ImageFormat imageFormat;
 
-  AdminImageEditData(
-      {required this.image, this.imageData, required this.imageFormat});
+  AdminImageEditData({
+    required this.image,
+    this.imageData,
+    required this.imageFormat,
+  });
 }
 
 class AdminImageEditScreen extends StatefulWidget {
@@ -45,7 +48,8 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
   TextEditingController? copyrightController;
   TextEditingController? blurHashController;
   final _imageFormat = BehaviorSubject<ImageFormat>.seeded(
-      globalFestenaoAdminApp.prefsImageFormat);
+    globalFestenaoAdminApp.prefsImageFormat,
+  );
 
   @override
   void dispose() {
@@ -73,237 +77,267 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
     var bloc = this.bloc;
     var param = bloc.param;
     return ValueStreamBuilder<AdminImageEditScreenBlocState>(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
 
-          var image = state?.image;
-          var imageId = bloc.imageId;
-          var canSave = snapshot.hasData; // imageId == null || image != null;
-          return AdminScreenLayout(
-            appBar: AppBar(
-              actions: [
-                if (bloc.imageId != null)
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    tooltip: 'Supprimer',
-                    onPressed: () {
-                      _onDelete(context);
-                    },
-                  ),
-              ],
-              title: const Text('Image'),
-            ),
-            body: Builder(
-              builder: (context) {
-                if (!canSave) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
-                // devPrint('canSave $canSave $eventId $event');
+        var image = state?.image;
+        var imageId = bloc.imageId;
+        var canSave = snapshot.hasData; // imageId == null || image != null;
+        return AdminScreenLayout(
+          appBar: AppBar(
+            actions: [
+              if (bloc.imageId != null)
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  tooltip: 'Supprimer',
+                  onPressed: () {
+                    _onDelete(context);
+                  },
+                ),
+            ],
+            title: const Text('Image'),
+          ),
+          body: Builder(
+            builder: (context) {
+              if (!canSave) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              // devPrint('canSave $canSave $eventId $event');
 
-                return Stack(
-                  children: [
-                    ListView(children: [
+              return Stack(
+                children: [
+                  ListView(
+                    children: [
                       Form(
                         key: formKey,
                         child: BodyContainer(
-                          child: Column(children: [
-                            if (image == null && imageId != null)
-                              const ListTile(
-                                title: Text('Non trouvé'),
-                              )
-                            else ...[
-                              ListTile(
-                                title: Text(imageId ?? 'new'),
-                              ),
-                            ],
-                            AppTextFieldTile(
-                              controller: idController ??=
-                                  TextEditingController(
-                                      text: imageId ?? param?.newImageId),
-                              labelText: textIdLabel,
-                            ),
-                            AppTextFieldTile(
-                              controller: nameController ??=
-                                  TextEditingController(text: image?.name.v),
-                              emptyAllowed: true,
-                              labelText: textNameLabel,
-                            ),
-                            AppTextFieldTile(
-                              controller: copyrightController ??=
-                                  TextEditingController(
-                                      text: image?.copyright.v),
-                              emptyAllowed: true,
-                              labelText: textCopyrightLabel,
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: AppTextFieldTile(
-                                    controller: widthController ??=
-                                        TextEditingController(
-                                            text: (image?.width.v ??
-                                                    param?.options?.width.v)
-                                                ?.toString()),
-                                    emptyAllowed: true,
-                                    labelText: textWidthLabel,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: AppTextFieldTile(
-                                    controller: heightController ??=
-                                        TextEditingController(
-                                            text: (image?.height.v ??
-                                                    param?.options?.height.v)
-                                                ?.toString()),
-                                    validator: (text) => null,
-                                    labelText: textHeightLabel,
-                                  ),
-                                ),
-                                Expanded(
-                                  child: AppTextFieldTile(
-                                    readOnly: true,
-                                    controller: blurHashController ??=
-                                        TextEditingController(
-                                            text: image?.blurHash.v),
-                                    labelText: textBlurHashLabel,
-                                    validator: (text) => null,
-                                  ),
-                                ),
+                          child: Column(
+                            children: [
+                              if (image == null && imageId != null)
+                                const ListTile(title: Text('Non trouvé'))
+                              else ...[
+                                ListTile(title: Text(imageId ?? 'new')),
                               ],
-                            ),
-                            ValueStreamBuilder<ImageFormat>(
+                              AppTextFieldTile(
+                                controller:
+                                    idController ??= TextEditingController(
+                                      text: imageId ?? param?.newImageId,
+                                    ),
+                                labelText: textIdLabel,
+                              ),
+                              AppTextFieldTile(
+                                controller:
+                                    nameController ??= TextEditingController(
+                                      text: image?.name.v,
+                                    ),
+                                emptyAllowed: true,
+                                labelText: textNameLabel,
+                              ),
+                              AppTextFieldTile(
+                                controller:
+                                    copyrightController ??=
+                                        TextEditingController(
+                                          text: image?.copyright.v,
+                                        ),
+                                emptyAllowed: true,
+                                labelText: textCopyrightLabel,
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: AppTextFieldTile(
+                                      controller:
+                                          widthController ??=
+                                              TextEditingController(
+                                                text:
+                                                    (image?.width.v ??
+                                                            param
+                                                                ?.options
+                                                                ?.width
+                                                                .v)
+                                                        ?.toString(),
+                                              ),
+                                      emptyAllowed: true,
+                                      labelText: textWidthLabel,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: AppTextFieldTile(
+                                      controller:
+                                          heightController ??=
+                                              TextEditingController(
+                                                text:
+                                                    (image?.height.v ??
+                                                            param
+                                                                ?.options
+                                                                ?.height
+                                                                .v)
+                                                        ?.toString(),
+                                              ),
+                                      validator: (text) => null,
+                                      labelText: textHeightLabel,
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: AppTextFieldTile(
+                                      readOnly: true,
+                                      controller:
+                                          blurHashController ??=
+                                              TextEditingController(
+                                                text: image?.blurHash.v,
+                                              ),
+                                      labelText: textBlurHashLabel,
+                                      validator: (text) => null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              ValueStreamBuilder<ImageFormat>(
                                 stream: _imageFormat,
                                 builder: (context, snapshot) {
                                   return Row(
                                     children: [
                                       Expanded(
                                         child: RadioListTile<ImageFormat>(
-                                            value: ImageFormat.jpg,
-                                            groupValue:
-                                                _imageFormat.valueOrNull,
-                                            onChanged: (_) {
-                                              _setFormat(ImageFormat.jpg);
-                                            },
-                                            title: const Text('JPG')),
+                                          value: ImageFormat.jpg,
+                                          groupValue: _imageFormat.valueOrNull,
+                                          onChanged: (_) {
+                                            _setFormat(ImageFormat.jpg);
+                                          },
+                                          title: const Text('JPG'),
+                                        ),
                                       ),
                                       Expanded(
                                         child: RadioListTile<ImageFormat>(
-                                            value: ImageFormat.png,
-                                            groupValue:
-                                                _imageFormat.valueOrNull,
-                                            onChanged: (_) {
-                                              _setFormat(ImageFormat.png);
-                                            },
-                                            title: const Text('PNG')),
+                                          value: ImageFormat.png,
+                                          groupValue: _imageFormat.valueOrNull,
+                                          onChanged: (_) {
+                                            _setFormat(ImageFormat.png);
+                                          },
+                                          title: const Text('PNG'),
+                                        ),
                                       ),
                                     ],
                                   );
-                                }),
-                            getAdminImageSelectorTile(),
-                            getPreviewImage(),
-                            ElevatedButton(
-                                onPressed: () async {
-                                  await appDownloadImage(DownloadImageInfo(
-                                      filename: nameController!.text,
-                                      data: imageBytes!.value!));
                                 },
-                                child: const Text('Download image')),
-                            const SizedBox(
-                              height: 64,
-                            ),
-                          ]),
+                              ),
+                              getAdminImageSelectorTile(),
+                              getPreviewImage(),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await appDownloadImage(
+                                    DownloadImageInfo(
+                                      filename: nameController!.text,
+                                      data: imageBytes!.value!,
+                                    ),
+                                  );
+                                },
+                                child: const Text('Download image'),
+                              ),
+                              const SizedBox(height: 64),
+                            ],
+                          ),
                         ),
-                      )
-                    ]),
-                    LinearWait(
-                      showNotifier: saving,
-                    ),
-                  ],
-                );
-              },
-            ),
-            floatingActionButton: canSave
-                ? FloatingActionButton(
+                      ),
+                    ],
+                  ),
+                  LinearWait(showNotifier: saving),
+                ],
+              );
+            },
+          ),
+          floatingActionButton:
+              canSave
+                  ? FloatingActionButton(
                     onPressed: () => _onSave(context),
                     child: const Icon(Icons.save),
                   )
-                : null,
-          );
-        });
+                  : null,
+        );
+      },
+    );
   }
 
   Widget getAdminImageSelectorTile() => TilePadding(
-        child: Builder(builder: (context) {
-          return ElevatedButton(
-            onPressed: () async {
-              {
-                ImageEncoding encoding;
-                switch (_imageFormat.value) {
-                  case ImageFormat.jpg:
-                    encoding = ImageEncodingJpg(quality: 50);
-                    break;
-                  case ImageFormat.png:
-                    encoding = const ImageEncodingPng();
-                    break;
-                }
-                var result = await pickCropImage(context,
-                    options: PickCropImageOptions(
-                        width: parseInt(widthController!.text),
-                        height: parseInt(heightController!.text),
-                        encoding: encoding));
-                if (result != null) {
-                  //print('Selected $result');
-                  imageBytes!.value = newImageData = result.bytes;
-                  widthController!.text = result.width.toString();
-                  heightController!.text = result.height.toString();
-                  blurHashController!.text =
-                      await festenaoBlurHashEncode(result.bytes);
-                }
-                return;
+    child: Builder(
+      builder: (context) {
+        return ElevatedButton(
+          onPressed: () async {
+            {
+              ImageEncoding encoding;
+              switch (_imageFormat.value) {
+                case ImageFormat.jpg:
+                  encoding = ImageEncodingJpg(quality: 50);
+                  break;
+                case ImageFormat.png:
+                  encoding = const ImageEncodingPng();
+                  break;
               }
-            },
-            child: const Text('Selection image'),
-          );
-        }),
-      );
+              var result = await pickCropImage(
+                context,
+                options: PickCropImageOptions(
+                  width: parseInt(widthController!.text),
+                  height: parseInt(heightController!.text),
+                  encoding: encoding,
+                ),
+              );
+              if (result != null) {
+                //print('Selected $result');
+                imageBytes!.value = newImageData = result.bytes;
+                widthController!.text = result.width.toString();
+                heightController!.text = result.height.toString();
+                blurHashController!.text = await festenaoBlurHashEncode(
+                  result.bytes,
+                );
+              }
+              return;
+            }
+          },
+          child: const Text('Selection image'),
+        );
+      },
+    ),
+  );
 
   Widget getPreviewImage([String? imageId]) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4.0),
-        child: TilePadding(
-          child: ValueListenableBuilder<Uint8List?>(
-              valueListenable: imageBytes ??= () {
-                var valueNotifier = ValueNotifier<Uint8List?>(null);
+    padding: const EdgeInsets.symmetric(vertical: 4.0),
+    child: TilePadding(
+      child: ValueListenableBuilder<Uint8List?>(
+        valueListenable:
+            imageBytes ??= () {
+              var valueNotifier = ValueNotifier<Uint8List?>(null);
 
-                if (imageId != null) {
-                  () async {
-                    var db = await dbBloc.grabDatabase();
-                    var image = await dbImageStoreRef.record(imageId).get(db);
-                    if (image != null) {
-                      var imageUrl = Uri.parse(getImageUrl(
+              if (imageId != null) {
+                () async {
+                  var db = await dbBloc.grabDatabase();
+                  var image = await dbImageStoreRef.record(imageId).get(db);
+                  if (image != null) {
+                    var imageUrl = Uri.parse(
+                      getImageUrl(
                         image.name.v!,
                         storageBucket: projectContext.storageBucket,
-                      ));
-                      // print('imageUrl: $imageUrl');
-                      var bytes = await httpClientFactory
-                          .newClient()
-                          .readBytes(imageUrl);
-                      valueNotifier.value = bytes;
-                    }
-                  }();
-                }
-                return valueNotifier;
-              }(),
-              builder: (context, snapshot, _) {
-                if (snapshot == null) {
-                  return const Text('Pas d\'image');
-                }
-                return Image.memory(snapshot);
-              }),
-        ),
-      );
+                      ),
+                    );
+                    // print('imageUrl: $imageUrl');
+                    var bytes = await httpClientFactory.newClient().readBytes(
+                      imageUrl,
+                    );
+                    valueNotifier.value = bytes;
+                  }
+                }();
+              }
+              return valueNotifier;
+            }(),
+        builder: (context, snapshot, _) {
+          if (snapshot == null) {
+            return const Text('Pas d\'image');
+          }
+          return Image.memory(snapshot);
+        },
+      ),
+    ),
+  );
 
   final _saveLock = Lock();
 
@@ -317,10 +351,13 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
           var dbImage = DbImage();
 
           imageFromForm(dbImage);
-          await bloc.saveImage(AdminImageEditData(
+          await bloc.saveImage(
+            AdminImageEditData(
               image: dbImage,
               imageData: newImageData,
-              imageFormat: _imageFormat.value));
+              imageFormat: _imageFormat.value,
+            ),
+          );
           if (context.mounted) {
             Navigator.of(context).pop();
           }
@@ -353,8 +390,9 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
           var bloc = BlocProvider.of<AdminImageEditScreenBloc>(context);
           await bloc.delete();
           if (context.mounted) {
-            Navigator.of(context)
-                .pop(AdminImageEditScreenResult(deleted: true));
+            Navigator.of(
+              context,
+            ).pop(AdminImageEditScreenResult(deleted: true));
           }
         } catch (e, st) {
           if (kDebugMode) {
@@ -376,17 +414,26 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
 }
 
 Future<AdminImageEditScreenResult?> goToAdminImageEditScreen(
-    BuildContext context,
-    {required String? imageId,
-    AdminImageEditScreenParam? param,
-    required FestenaoAdminAppProjectContext projectContext}) async {
-  var result = await Navigator.of(context)
-      .push<Object?>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () => AdminImageEditScreenBloc(
-            imageId: imageId, param: param, projectContext: projectContext),
-        child: const AdminImageEditScreen());
-  }));
+  BuildContext context, {
+  required String? imageId,
+  AdminImageEditScreenParam? param,
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
+  var result = await Navigator.of(context).push<Object?>(
+    MaterialPageRoute(
+      builder: (context) {
+        return BlocProvider(
+          blocBuilder:
+              () => AdminImageEditScreenBloc(
+                imageId: imageId,
+                param: param,
+                projectContext: projectContext,
+              ),
+          child: const AdminImageEditScreen(),
+        );
+      },
+    ),
+  );
   if (result is AdminImageEditScreenResult) {
     return result;
   }

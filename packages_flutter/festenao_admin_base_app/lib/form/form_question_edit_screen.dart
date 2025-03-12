@@ -54,72 +54,71 @@ class _AdminFormQuestionEditScreenState
           var dbEntity = state?.fsEntity;
           //var dbUserAccess = state?.dbUserAccess;
           if (dbEntity != null) {
-            _nameController ??= TextEditingController(
-              text: dbEntity.name.v,
-            ); //
+            _nameController ??= TextEditingController(text: dbEntity.name.v); //
             _textController ??= TextEditingController(
-                text: dbEntity.text.v); // dbEntity.name.v);
+              text: dbEntity.text.v,
+            ); // dbEntity.name.v);
             _slugController ??= TextEditingController(text: dbEntity.slug.v);
           }
           return Scaffold(
-            appBar: AppBar(
-              title: Text('${bloc.entityName} 2'),
-            ),
-            body: dbEntity == null
-                ? const Center(child: CircularProgressIndicator())
-                : Stack(
-                    children: [
-                      ListView(
-                        children: [
-                          const SizedBox(height: 16),
-                          BodyContainer(
-                            child: Column(
-                              children: [
-                                BodyHPadding(
-                                  child: TextFormField(
-                                    controller: _nameController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Name',
-                                      hintText: 'Name',
+            appBar: AppBar(title: Text('${bloc.entityName} 2')),
+            body:
+                dbEntity == null
+                    ? const Center(child: CircularProgressIndicator())
+                    : Stack(
+                      children: [
+                        ListView(
+                          children: [
+                            const SizedBox(height: 16),
+                            BodyContainer(
+                              child: Column(
+                                children: [
+                                  BodyHPadding(
+                                    child: TextFormField(
+                                      controller: _nameController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Name',
+                                        hintText: 'Name',
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                BodyHPadding(
-                                  child: TextFormField(
-                                    controller: _slugController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Slug',
-                                      hintText: 'slug',
+                                  const SizedBox(height: 16),
+                                  BodyHPadding(
+                                    child: TextFormField(
+                                      controller: _slugController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Slug',
+                                        hintText: 'slug',
+                                      ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                BodyHPadding(
-                                  child: TextFormField(
-                                    controller: _textController,
-                                    decoration: const InputDecoration(
-                                      labelText: 'Texte',
-                                      hintText: 'Texte',
+                                  const SizedBox(height: 16),
+                                  BodyHPadding(
+                                    child: TextFormField(
+                                      controller: _textController,
+                                      decoration: const InputDecoration(
+                                        labelText: 'Texte',
+                                        hintText: 'Texte',
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      BusyIndicator(busy: busyStream),
-                    ],
-                  ),
-            floatingActionButton: (dbEntity != null)
-                ? FloatingActionButton(
-                    onPressed: () {
-                      _saveAndClose(dbEntity);
-                    },
-                    child: const Icon(Icons.save),
-                  )
-                : null,
+                          ],
+                        ),
+                        BusyIndicator(busy: busyStream),
+                      ],
+                    ),
+            floatingActionButton:
+                (dbEntity != null)
+                    ? FloatingActionButton(
+                      onPressed: () {
+                        _saveAndClose(dbEntity);
+                      },
+                      child: const Icon(Icons.save),
+                    )
+                    : null,
           );
         },
       ),
@@ -175,11 +174,12 @@ class DbUserAccessWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var text = dbUserAccess.isAdmin
-        ? 'admin'
-        : (dbUserAccess.isWrite
-            ? 'write'
-            : (dbUserAccess.isRead ? 'read' : ''));
+    var text =
+        dbUserAccess.isAdmin
+            ? 'admin'
+            : (dbUserAccess.isWrite
+                ? 'write'
+                : (dbUserAccess.isRead ? 'read' : ''));
     if (text.isEmpty) {
       return const SizedBox();
     }
@@ -194,17 +194,18 @@ class DbUserAccessWidget extends StatelessWidget {
 Future<void> goToAdminFormQuestionEditScreen<T extends TkCmsFsDocEntity>(
   BuildContext context, {
   required TkCmsFirestoreDatabaseServiceEntityAccessor<FsFormQuestion>
-      entityAccess,
+  entityAccess,
   required String? entityId,
 }) async {
   await Navigator.of(context).push<void>(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder: () => DocEntityEditScreenBloc<FsFormQuestion>(
-            entityAccess: entityAccess,
-            entityId: entityId,
-          ),
+          blocBuilder:
+              () => DocEntityEditScreenBloc<FsFormQuestion>(
+                entityAccess: entityAccess,
+                entityId: entityId,
+              ),
           child: const AdminFormQuestionEditScreen(),
         );
       },

@@ -31,37 +31,40 @@ class FsProjectsScreenBloc
   /// Projects screen bloc
   FsProjectsScreenBloc({this.selectMode = false}) {
     () async {
-      audiAddStreamSubscription(globalTkCmsFbIdentityBloc.state.listen((state) {
-        _lock.synchronized(() async {
-          var identity = state.identity;
+      audiAddStreamSubscription(
+        globalTkCmsFbIdentityBloc.state.listen((state) {
+          _lock.synchronized(() async {
+            var identity = state.identity;
 
-          var userId =
-              (identity is TkCmsFbIdentityUser) ? identity.user.uid : null;
-          if (identity != null &&
-              (userId != _dbUserId || _firestoreSubscription == null)) {
-            _dbUserId = userId;
+            var userId =
+                (identity is TkCmsFbIdentityUser) ? identity.user.uid : null;
+            if (identity != null &&
+                (userId != _dbUserId || _firestoreSubscription == null)) {
+              _dbUserId = userId;
 
-            audiDispose(_firestoreSubscription);
+              audiDispose(_firestoreSubscription);
 
-            /// Build from firestore
-            var fsDb = globalFestenaoFirestoreDatabase.projectDb;
-            _firestoreSubscription = audiAddStreamSubscription(fsDb
-                .fsEntityCollectionRef
-                .onSnapshotsSupport(fsDb.firestore)
-                .listen((list) {
-              _fsLock.synchronized(() async {
-                add(FsProjectsScreenBlocState(projects: list));
-                // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
-              });
-            }));
-          } else {
-            if (userId == null) {
-              _dbUserId = null;
-              add(FsProjectsScreenBlocState(projects: []));
+              /// Build from firestore
+              var fsDb = globalFestenaoFirestoreDatabase.projectDb;
+              _firestoreSubscription = audiAddStreamSubscription(
+                fsDb.fsEntityCollectionRef
+                    .onSnapshotsSupport(fsDb.firestore)
+                    .listen((list) {
+                      _fsLock.synchronized(() async {
+                        add(FsProjectsScreenBlocState(projects: list));
+                        // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
+                      });
+                    }),
+              );
+            } else {
+              if (userId == null) {
+                _dbUserId = null;
+                add(FsProjectsScreenBlocState(projects: []));
+              }
             }
-          }
-        });
-      }));
+          });
+        }),
+      );
     }();
   }
 }

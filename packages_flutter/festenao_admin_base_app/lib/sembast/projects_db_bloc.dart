@@ -37,17 +37,22 @@ class _SingleProjectDbBloc implements SingleProjectDbBloc {
 
 /// Enforced single app projectId
 abstract class EnforcedSingleProjectDbBloc extends MultiProjectsDbBloc {
-  factory EnforcedSingleProjectDbBloc(
-          {required String app, required String projectId}) =>
-      _EnforcedProjectsDbBloc(app: app, enforcedProjectId: projectId);
+  factory EnforcedSingleProjectDbBloc({
+    required String app,
+    required String projectId,
+  }) => _EnforcedProjectsDbBloc(app: app, enforcedProjectId: projectId);
 }
 
 /// Multi projects db bloc
 abstract class MultiProjectsDbBloc implements ProjectsDbBloc {
-  Future<GrabbedContentDb> grabContentDb(
-      {required String userId, required String projectId});
-  Future<GrabbedContentDb?> grabContentDbOrNull(
-      {required String userId, required String projectId});
+  Future<GrabbedContentDb> grabContentDb({
+    required String userId,
+    required String projectId,
+  });
+  Future<GrabbedContentDb?> grabContentDbOrNull({
+    required String userId,
+    required String projectId,
+  });
   Future<void> releaseContentDb(GrabbedContentDb contentDb);
 
   factory MultiProjectsDbBloc({required String app}) =>
@@ -61,8 +66,10 @@ class _EnforcedProjectsDbBloc extends _ProjectsDbBloc
     implements EnforcedSingleProjectDbBloc {
   final String? enforcedProjectId;
 
-  _EnforcedProjectsDbBloc(
-      {required super.app, required this.enforcedProjectId});
+  _EnforcedProjectsDbBloc({
+    required super.app,
+    required this.enforcedProjectId,
+  });
 }
 
 class _ProjectsDbBloc implements MultiProjectsDbBloc {
@@ -72,10 +79,14 @@ class _ProjectsDbBloc implements MultiProjectsDbBloc {
   final _lock = Lock();
   final _map = <String, _ContentDbInfo>{};
   @override
-  Future<GrabbedContentDb> grabContentDb(
-      {required String userId, required String projectId}) async {
-    var contentDb =
-        await grabContentDbOrNull(projectId: projectId, userId: userId);
+  Future<GrabbedContentDb> grabContentDb({
+    required String userId,
+    required String projectId,
+  }) async {
+    var contentDb = await grabContentDbOrNull(
+      projectId: projectId,
+      userId: userId,
+    );
     if (contentDb == null) {
       throw StateError('ContentDb not found for $projectId');
     }
@@ -84,8 +95,10 @@ class _ProjectsDbBloc implements MultiProjectsDbBloc {
 
   String _key(String userId, String projectId) => '$userId/$projectId';
   @override
-  Future<GrabbedContentDb?> grabContentDbOrNull(
-      {required String userId, required String projectId}) async {
+  Future<GrabbedContentDb?> grabContentDbOrNull({
+    required String userId,
+    required String projectId,
+  }) async {
     var key = _key(userId, projectId);
     return await _lock.synchronized(() async {
       var info = _map[key];
@@ -95,22 +108,26 @@ class _ProjectsDbBloc implements MultiProjectsDbBloc {
       }
 
       await globalProjectsDb.ready;
-      var dbProject =
-          await globalProjectsDb.getProject(projectId, userId: userId);
+      var dbProject = await globalProjectsDb.getProject(
+        projectId,
+        userId: userId,
+      );
       if (dbProject == null) {
         return null;
       }
 
       var contentDb = ContentDb(
-          projectId: projectId,
-          firestoreDatabaseContext: FirestoreDatabaseContext(
-              firestore: gFsDatabaseService.firestore,
-              rootDocument: gFsDatabaseService
-                  .firestoreDatabaseContext.rootDocument!
-                  .collection(fsProjectCollectionInfo.id)
-                  .doc(projectId)),
-          sembastDatabaseContext:
-              globalSembastDatabasesContext.db('content.db'));
+        projectId: projectId,
+        firestoreDatabaseContext: FirestoreDatabaseContext(
+          firestore: gFsDatabaseService.firestore,
+          rootDocument: gFsDatabaseService
+              .firestoreDatabaseContext
+              .rootDocument!
+              .collection(fsProjectCollectionInfo.id)
+              .doc(projectId),
+        ),
+        sembastDatabaseContext: globalSembastDatabasesContext.db('content.db'),
+      );
       await contentDb.ready;
       info = _map[key] = _ContentDbInfo(key: key, contentDb: contentDb);
       return info;

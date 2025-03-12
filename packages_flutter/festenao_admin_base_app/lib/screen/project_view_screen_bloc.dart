@@ -19,13 +19,13 @@ class ProjectViewScreenBlocState {
   /// Project view screen bloc state
   final TkCmsFsUserAccess? fsUserAccess;
 
-  ProjectViewScreenBlocState(
-      {this.project,
-      this.user,
-      this.fsProject,
-      this.fsUserAccess,
-      bool? dbProjectReady})
-      : dbProjectReady = dbProjectReady ?? (project != null);
+  ProjectViewScreenBlocState({
+    this.project,
+    this.user,
+    this.fsProject,
+    this.fsUserAccess,
+    bool? dbProjectReady,
+  }) : dbProjectReady = dbProjectReady ?? (project != null);
 }
 
 class ProjectViewScreenBloc
@@ -45,43 +45,59 @@ class ProjectViewScreenBloc
         firebaseUser = user;
         var fsDb = globalFestenaoFirestoreDatabase.projectDb;
         var firestore = globalFestenaoFirestoreDatabase.firestore;
-        audiAddStreamSubscription(globalProjectsDb
-            .onProject(projectId, userId: user.uid)
-            .listen((event) {
-          var dbProject = event;
-          if (dbProject == null) {
-            fsSubscription = audiAddStreamSubscription(streamJoin2OrError(
-                    fsDb.fsEntityRef(projectId).onSnapshotSupport(firestore),
-                    fsDb
-                        .fsUserEntityAccessRef(userId, projectId)
-                        .onSnapshotSupport(firestore))
-                .listen((event) {
-              var values = event.values;
-              var fsProject = values.$1;
-              var fsUserAccess = values.$2;
-              add(ProjectViewScreenBlocState(
+        audiAddStreamSubscription(
+          globalProjectsDb.onProject(projectId, userId: user.uid).listen((
+            event,
+          ) {
+            var dbProject = event;
+            if (dbProject == null) {
+              fsSubscription = audiAddStreamSubscription(
+                streamJoin2OrError(
+                  fsDb.fsEntityRef(projectId).onSnapshotSupport(firestore),
+                  fsDb
+                      .fsUserEntityAccessRef(userId, projectId)
+                      .onSnapshotSupport(firestore),
+                ).listen((event) {
+                  var values = event.values;
+                  var fsProject = values.$1;
+                  var fsUserAccess = values.$2;
+                  add(
+                    ProjectViewScreenBlocState(
+                      project: dbProject,
+                      user: user,
+                      fsProject: fsProject,
+                      fsUserAccess: fsUserAccess,
+                      dbProjectReady: true,
+                    ),
+                  );
+                }),
+              );
+            } else {
+              add(
+                ProjectViewScreenBlocState(
                   project: dbProject,
                   user: user,
-                  fsProject: fsProject,
-                  fsUserAccess: fsUserAccess,
-                  dbProjectReady: true));
-            }));
-          } else {
-            add(ProjectViewScreenBlocState(
-                project: dbProject, user: user, dbProjectReady: true));
-          }
-        }));
+                  dbProjectReady: true,
+                ),
+              );
+            }
+          }),
+        );
       }
     }();
   }
 
   Future<void> deleteProject(DbProject project) async {
-    await globalFestenaoFirestoreDatabase.projectDb
-        .deleteEntity(project.fsId, userId: userId);
+    await globalFestenaoFirestoreDatabase.projectDb.deleteEntity(
+      project.fsId,
+      userId: userId,
+    );
   }
 
   Future<void> leaveProject(DbProject project) async {
-    await globalFestenaoFirestoreDatabase.projectDb
-        .leaveEntity(project.fsId, userId: userId);
+    await globalFestenaoFirestoreDatabase.projectDb.leaveEntity(
+      project.fsId,
+      userId: userId,
+    );
   }
 }

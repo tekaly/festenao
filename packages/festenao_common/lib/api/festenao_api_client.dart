@@ -13,9 +13,10 @@ class FestenaoAmpService {
   late final basePath = httpsAmpUri.path;
   Client get client => _client;
   late final Client _client;
-  FestenaoAmpService(
-      {HttpClientFactory? httpClientFactory, required this.httpsAmpUri})
-      : httpClientFactory = httpClientFactory ?? httpClientFactoryUniversal;
+  FestenaoAmpService({
+    HttpClientFactory? httpClientFactory,
+    required this.httpsAmpUri,
+  }) : httpClientFactory = httpClientFactory ?? httpClientFactoryUniversal;
 
   Future<void> initClient() async {
     _client = httpClientFactory.newClient();
@@ -39,14 +40,15 @@ class FestenaoAmpService {
 }
 
 class FestenaoApiService extends TkCmsApiServiceBaseV2 {
-  FestenaoApiService(
-      {HttpClientFactory? httpClientFactory,
-      super.httpsApiUri,
-      super.callableApi,
-      super.app})
-      : super(
-            apiVersion: apiVersion2,
-            httpClientFactory: httpClientFactory ?? httpClientFactoryUniversal);
+  FestenaoApiService({
+    HttpClientFactory? httpClientFactory,
+    super.httpsApiUri,
+    super.callableApi,
+    super.app,
+  }) : super(
+         apiVersion: apiVersion2,
+         httpClientFactory: httpClientFactory ?? httpClientFactoryUniversal,
+       );
 }
 
 abstract class AmpRequest {

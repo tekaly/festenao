@@ -10,6 +10,8 @@ class FestenaoDataGlobalsOptions {
   String get appRootPath => 'app/$sourceId';
 
   /// Global options
-  FestenaoDataGlobalsOptions(
-      {required this.fbProjectId, required this.sourceId});
+  FestenaoDataGlobalsOptions({
+    required this.fbProjectId,
+    required this.sourceId,
+  });
 }

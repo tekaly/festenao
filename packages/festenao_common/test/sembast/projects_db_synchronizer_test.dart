@@ -24,19 +24,24 @@ Future<void> main() async {
     projectsDb = ProjectsDb(name: 'my_projects', factory: dbFactory);
     await projectsDb.ready;
     fsProjectsDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
-        entityCollectionInfo: projectCollectionInfo,
-        firestore: firestore,
-        rootDocument: fsAppRoot('test'));
+      entityCollectionInfo: projectCollectionInfo,
+      firestore: firestore,
+      rootDocument: fsAppRoot('test'),
+    );
   });
   test('syncOne', () async {
     var synchronizer = ProjectsDbSingleProjectAutoSynchronizer(
-        projectsDb: projectsDb,
-        fsProjects: fsProjectsDb,
-        projectId: testProjectId,
-        userId: userId);
+      projectsDb: projectsDb,
+      fsProjects: fsProjectsDb,
+      projectId: testProjectId,
+      userId: userId,
+    );
     var fsProject = FsProject()..name.setValue('test project');
     var projectUid = await fsProjectsDb.createEntity(
-        userId: userId, entity: fsProject, entityId: projectId);
+      userId: userId,
+      entity: fsProject,
+      entityId: projectId,
+    );
     // ignore: avoid_print
     print('projectUid: $projectUid');
     await sleep(1000);

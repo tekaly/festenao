@@ -17,7 +17,8 @@ class AdminMetaGeneralEditScreenBloc
     extends AutoDisposeStateBaseBloc<AdminMetaGeneralEditScreenBlocState> {
   final FestenaoAdminAppProjectContext projectContext;
   late final _dbBloc = audiAddDisposable(
-      AdminAppProjectContextDbBloc(projectContext: projectContext));
+    AdminAppProjectContextDbBloc(projectContext: projectContext),
+  );
 
   AdminMetaGeneralEditScreenBloc({required this.projectContext}) {
     () async {
@@ -59,30 +60,32 @@ class _AdminMetaGeneralEditScreenState
     final bloc = BlocProvider.of<AdminMetaGeneralEditScreenBloc>(context);
 
     return ValueStreamBuilder(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
-          return AdminScreenLayout(
-            appBar: AppBar(
-              title: const Text('Meta General'),
-            ),
-            body: Builder(builder: (context) {
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
+        return AdminScreenLayout(
+          appBar: AppBar(title: const Text('Meta General')),
+          body: Builder(
+            builder: (context) {
               if (state == null) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
               var meta = state.meta;
               var textFields = <CvField>[];
               if (!controllerInitialized) {
                 tagsController = audiAddTextEditingController(
-                    TextEditingController(text: meta.tags.v?.join(', ')));
+                  TextEditingController(text: meta.tags.v?.join(', ')),
+                );
                 for (var field in meta.fields) {
                   if (field is! CvListField) {
                     textFields.add(field);
-                    controllers.add(audiAddTextEditingController(
+                    controllers.add(
+                      audiAddTextEditingController(
                         TextEditingController(
-                            text: field.valueOrNull?.toString() ?? '')));
+                          text: field.valueOrNull?.toString() ?? '',
+                        ),
+                      ),
+                    );
                   }
                 }
               }
@@ -90,28 +93,32 @@ class _AdminMetaGeneralEditScreenState
               var children = <Widget>[];
               for (var i = 0; i < textFields.length; i++) {
                 var field = textFields[i];
-                children.add(AppTextFieldTile(
-                  labelText: field.name,
-                  controller: controllers[i],
-                ));
+                children.add(
+                  AppTextFieldTile(
+                    labelText: field.name,
+                    controller: controllers[i],
+                  ),
+                );
               }
-              children.add(AppTextFieldTile(
-                labelText: meta.tags.name,
-                controller: tagsController,
-              ));
+              children.add(
+                AppTextFieldTile(
+                  labelText: meta.tags.name,
+                  controller: tagsController,
+                ),
+              );
               return Stack(
                 children: [
                   ListView(children: children),
-                  BusyIndicator(
-                    busy: busyStream,
-                  )
+                  BusyIndicator(busy: busyStream),
                 ],
               );
-            }),
-            floatingActionButton: FloatingActionButton(
-              onPressed: state == null
-                  ? null
-                  : () async {
+            },
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed:
+                state == null
+                    ? null
+                    : () async {
                       await busyAction(() async {
                         var meta = state.meta;
                         for (var i = 0; i < meta.fields.length; i++) {
@@ -132,18 +139,28 @@ class _AdminMetaGeneralEditScreenState
                       //await goToAdminUserEditScreen(context, userId: null);
                       //await bloc.refresh();
                     },
-              child: const Icon(Icons.save),
-            ),
-          );
-        });
+            child: const Icon(Icons.save),
+          ),
+        );
+      },
+    );
   }
 }
 
-Future<void> goToAdminMetaGeneralEditScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(
-      builder: (_) => BlocProvider(
-          blocBuilder: () =>
-              AdminMetaGeneralEditScreenBloc(projectContext: projectContext),
-          child: const AdminMetaGeneralEditScreen())));
+Future<void> goToAdminMetaGeneralEditScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
+  await Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder:
+          (_) => BlocProvider(
+            blocBuilder:
+                () => AdminMetaGeneralEditScreenBloc(
+                  projectContext: projectContext,
+                ),
+            child: const AdminMetaGeneralEditScreen(),
+          ),
+    ),
+  );
 }

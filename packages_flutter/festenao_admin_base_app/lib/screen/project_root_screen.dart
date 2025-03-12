@@ -44,36 +44,40 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
     var bloc = BlocProvider.of<ProjectRootScreenBloc>(context);
 
     return ValueStreamBuilder(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
-          var project = state?.project;
-          var projectName = project?.name.v;
-          /*
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
+        var project = state?.project;
+        var projectName = project?.name.v;
+        /*
           var noteDescription = note?.description.v;
           var noteContent = note?.content.v;*/
 
-          var children = <Widget>[
-            BodyHPadding(
-                child: Text(projectName ?? '',
-                    style: Theme.of(context).textTheme.headlineSmall)),
-            if (project != null)
-              ListTile(
-                leading: ProjectLeading(project: project),
-                title: Text(intl.projectTypeSynced),
-                subtitle: accessText(intl, project),
-              ),
-          ];
+        var children = <Widget>[
+          BodyHPadding(
+            child: Text(
+              projectName ?? '',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ),
+          if (project != null)
+            ListTile(
+              leading: ProjectLeading(project: project),
+              title: Text(intl.projectTypeSynced),
+              subtitle: accessText(intl, project),
+            ),
+        ];
 
-          return FestenaoAdminAppScaffold(
-            appBar: AppBar(
-              // Here we take the value from the MyHomePage object that
-              // was created by the App.build method, and use it to set
-              // our appbar title.
-              title: Text(projectName ?? ''),
-              actions: project == null
-                  ? null
-                  : <Widget>[
+        return FestenaoAdminAppScaffold(
+          appBar: AppBar(
+            // Here we take the value from the MyHomePage object that
+            // was created by the App.build method, and use it to set
+            // our appbar title.
+            title: Text(projectName ?? ''),
+            actions:
+                project == null
+                    ? null
+                    : <Widget>[
                       /*
                       if (project.isRemote)
                         IconButton(
@@ -83,14 +87,15 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                                   project: project);
                             }),*/
                     ],
-            ),
-            body: project == null
-                ? const Center(child: CircularProgressIndicator())
-                : ListView(
+          ),
+          body:
+              project == null
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
                     children: [
                       BodyContainer(
-                          child: BodyHPadding(
-                        child: Column(
+                        child: BodyHPadding(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Row(),
@@ -98,38 +103,49 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                               EntryTile(
                                 label: 'Metas',
                                 onTap: () {
-                                  goToAdminMetasScreen(context,
-                                      projectContext:
-                                          ByProjectIdAdminAppProjectContext(
-                                              projectId: bloc.projectId));
+                                  goToAdminMetasScreen(
+                                    context,
+                                    projectContext:
+                                        ByProjectIdAdminAppProjectContext(
+                                          projectId: bloc.projectId,
+                                        ),
+                                  );
                                 },
                               ),
                               EntryTile(
                                 label: 'Infos',
                                 onTap: () {
-                                  goToAdminInfosScreen(context,
-                                      projectContext: bloc.projectContext);
+                                  goToAdminInfosScreen(
+                                    context,
+                                    projectContext: bloc.projectContext,
+                                  );
                                 },
                               ),
                               EntryTile(
                                 label: 'Artists',
                                 onTap: () {
-                                  goToAdminArtistsScreen(context,
-                                      projectContext: bloc.projectContext);
+                                  goToAdminArtistsScreen(
+                                    context,
+                                    projectContext: bloc.projectContext,
+                                  );
                                 },
                               ),
                               EntryTile(
                                 label: 'Events',
                                 onTap: () {
-                                  goToAdminEventsScreen(context,
-                                      projectContext: bloc.projectContext);
+                                  goToAdminEventsScreen(
+                                    context,
+                                    projectContext: bloc.projectContext,
+                                  );
                                 },
                               ),
                               EntryTile(
                                 label: 'Images',
                                 onTap: () {
-                                  goToAdminImagesScreen(context,
-                                      projectContext: bloc.projectContext);
+                                  goToAdminImagesScreen(
+                                    context,
+                                    projectContext: bloc.projectContext,
+                                  );
                                 },
                               ),
                               EntryTile(
@@ -154,51 +170,69 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                               EntryTile(
                                 label: 'Questions',
                                 onTap: () async {
-                                  await goToAdminFormQuestionsScreen(context,
-                                      entityAccess: fbFsDocFormQuestionAccess(
-                                          bloc.projectContext
-                                              .firestoreDatabaseContext));
+                                  await goToAdminFormQuestionsScreen(
+                                    context,
+                                    entityAccess: fbFsDocFormQuestionAccess(
+                                      bloc
+                                          .projectContext
+                                          .firestoreDatabaseContext,
+                                    ),
+                                  );
                                 },
                               ),
                               EntryTile(
                                 label: 'Questions (raw doc)',
                                 onTap: () async {
-                                  await goToDocEntitiesScreen(context,
-                                      entityAccess: fbFsDocFormQuestionAccess(
-                                          bloc.projectContext
-                                              .firestoreDatabaseContext));
+                                  await goToDocEntitiesScreen(
+                                    context,
+                                    entityAccess: fbFsDocFormQuestionAccess(
+                                      bloc
+                                          .projectContext
+                                          .firestoreDatabaseContext,
+                                    ),
+                                  );
                                 },
                               ),
                               const SizedBox(height: 64),
-                            ]),
-                      ))
+                            ],
+                          ),
+                        ),
+                      ),
                     ],
                   ),
-            //new Column(children: children),
-          );
-        });
+          //new Column(children: children),
+        );
+      },
+    );
   }
 }
 
-Future<void> goToProjectRootScreen(BuildContext context,
-    {required String projectId}) async {
+Future<void> goToProjectRootScreen(
+  BuildContext context, {
+  required String projectId,
+}) async {
   var cn = ContentNavigator.of(context);
   await cn.pushPath<void>(
-      RootSyncedProjectContentPath()..project.value = projectId);
+    RootSyncedProjectContentPath()..project.value = projectId,
+  );
 }
 
-Future<void> popAndGoToProjectRootScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext}) async {
+Future<void> popAndGoToProjectRootScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
   var cn = ContentNavigator.of(context);
   cn.popUntilPathOrPush(
-      context,
-      AdminAppRootProjectContextPath()
-        ..project.value = projectContext.projectId);
+    context,
+    AdminAppRootProjectContextPath()..project.value = projectContext.projectId,
+  );
 }
 
-Future<void> popAndGoToProjectSubScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext,
-    required AdminAppRootProjectContextPath contentPath}) async {
+Future<void> popAndGoToProjectSubScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+  required AdminAppRootProjectContextPath contentPath,
+}) async {
   var projectId = projectContext.projectId;
   var cn = ContentNavigator.of(context);
   final routeName = Navigator.of(context).widget.pages.last.name;

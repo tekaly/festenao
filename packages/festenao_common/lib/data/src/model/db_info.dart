@@ -10,9 +10,7 @@ const infoTypePlaylist = 'playlist';
 /// Info id decided by the app
 class DbInfo extends DbStringRecordBase with DbArticleMixin {
   @override
-  List<CvField> get fields => [
-        ...articleFields,
-      ];
+  List<CvField> get fields => [...articleFields];
 
   @override
   String get articleKind => articleKindInfo;

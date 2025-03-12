@@ -10,13 +10,14 @@ class AdminScreenLayout extends StatefulWidget {
   final Widget? floatingActionButton;
   final ValueNotifier<bool>? waiting;
   final bool useDrawer;
-  const AdminScreenLayout(
-      {super.key,
-      this.appBar,
-      this.useDrawer = false,
-      this.body,
-      this.floatingActionButton,
-      this.waiting});
+  const AdminScreenLayout({
+    super.key,
+    this.appBar,
+    this.useDrawer = false,
+    this.body,
+    this.floatingActionButton,
+    this.waiting,
+  });
 
   @override
   State<AdminScreenLayout> createState() => _AdminScreenLayoutState();
@@ -36,7 +37,7 @@ class _AdminScreenLayoutState extends State<AdminScreenLayout> {
               body: widget.body,
               floatingActionButton: widget.floatingActionButton,
             ),
-          )
+          ),
         ],
       );
     }

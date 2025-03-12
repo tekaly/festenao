@@ -16,12 +16,11 @@ class LinearWait extends StatelessWidget {
       return (show ?? true) ? const LinearProgressIndicator() : Container();
     } else {
       return ValueListenableBuilder<bool>(
-          valueListenable: showNotifier!,
-          builder: (context, saving, _) {
-            return LinearWait(
-              show: saving,
-            );
-          });
+        valueListenable: showNotifier!,
+        builder: (context, saving, _) {
+          return LinearWait(show: saving);
+        },
+      );
     }
   }
 }

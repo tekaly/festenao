@@ -22,22 +22,28 @@ class _FsEntityListScreenState extends State<FsEntityListScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('All entities')),
       body: FirestoreListView(
-        query: globalEntityDatabase.projectDb.fsEntityCollectionRef
-            .raw(globalEntityDatabase.firestore),
+        query: globalEntityDatabase.projectDb.fsEntityCollectionRef.raw(
+          globalEntityDatabase.firestore,
+        ),
         itemBuilder: (BuildContext context, DocumentSnapshot doc) {
           return ListTile(title: Text(doc.ref.id));
         },
       ),
-      floatingActionButton: FloatingActionButton(onPressed: () {
-        globalEntityDatabase.projectDb
-            .createEntity(userId: userId, entity: FsProject()..name.v = 'test');
-      }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          globalEntityDatabase.projectDb.createEntity(
+            userId: userId,
+            entity: FsProject()..name.v = 'test',
+          );
+        },
+      ),
     );
   }
 }
 
 /// Go to the entity list screen
 Future<void> goToFsEntityListScreen(BuildContext context) async {
-  await Navigator.of(context).push<void>(
-      MaterialPageRoute(builder: (_) => const FsEntityListScreen()));
+  await Navigator.of(
+    context,
+  ).push<void>(MaterialPageRoute(builder: (_) => const FsEntityListScreen()));
 }

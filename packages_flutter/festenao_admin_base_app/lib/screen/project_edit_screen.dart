@@ -82,112 +82,118 @@ class ProjectEditScreenState extends AutoDisposeBaseState<ProjectEditScreen>
     var bloc = BlocProvider.of<ProjectEditScreenBloc>(context);
 
     return ValueStreamBuilder(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
-          if (state != null && !_gotInitialProject) {
-            _gotInitialProject = true;
-            initialProject = state.project ?? DbProject();
-            _nameController = audiAddTextEditingController(
-                TextEditingController(text: initialProject.name.v));
-          }
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
+        if (state != null && !_gotInitialProject) {
+          _gotInitialProject = true;
+          initialProject = state.project ?? DbProject();
+          _nameController = audiAddTextEditingController(
+            TextEditingController(text: initialProject.name.v),
+          );
+        }
 
-          var hasChanges = _hasChanges;
+        var hasChanges = _hasChanges;
 
-          return PopScope(
-            canPop: hasChanges,
-            onPopInvokedWithResult: (didPop, result) async {
-              if (didPop) {
-                return;
+        return PopScope(
+          canPop: hasChanges,
+          onPopInvokedWithResult: (didPop, result) async {
+            if (didPop) {
+              return;
+            }
+            if (!_hasChanges) {
+              Navigator.pop(context, result);
+              return;
+            }
+            var dialogResult = await showUnsavedChangesDialog(context);
+            if (dialogResult == UnsavedChangesDialogResult.save) {
+              if (context.mounted) {
+                await _saveAndExit(context);
               }
-              if (!_hasChanges) {
-                Navigator.pop(context, result);
-                return;
+            } else if (dialogResult == UnsavedChangesDialogResult.discard) {
+              if (context.mounted) {
+                Navigator.pop(context);
               }
-              var dialogResult = await showUnsavedChangesDialog(context);
-              if (dialogResult == UnsavedChangesDialogResult.save) {
-                if (context.mounted) {
-                  await _saveAndExit(context);
-                }
-              } else if (dialogResult == UnsavedChangesDialogResult.discard) {
-                if (context.mounted) {
-                  Navigator.pop(context);
-                }
-              }
-            },
-            child: Scaffold(
-              appBar: AppBar(
-                // Here we take the value from the MyHomePage object that
-                // was created by the App.build method, and use it to set
-                // our appbar title.
-                title: Text(intl.projectEditTitle),
-              ),
-              body: Stack(
-                children: [
-                  Form(
-                      key: formKey,
-                      child: ListView(children: <Widget>[
-                        BodyContainer(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(
-                                height: 16,
-                              ),
-                              BodyHPadding(
-                                child: TextFormField(
-                                  decoration: const InputDecoration(
-                                    hintText: 'Project name',
-                                    labelText: 'Name',
-                                  ),
-                                  validator: (value) {
-                                    if (value == null || value.trim().isEmpty) {
-                                      return intl.nameRequired;
-                                    }
-                                    return null;
-                                  },
-                                  controller: _nameController,
-                                  maxLines: 1,
+            }
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              // Here we take the value from the MyHomePage object that
+              // was created by the App.build method, and use it to set
+              // our appbar title.
+              title: Text(intl.projectEditTitle),
+            ),
+            body: Stack(
+              children: [
+                Form(
+                  key: formKey,
+                  child: ListView(
+                    children: <Widget>[
+                      BodyContainer(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
+                            BodyHPadding(
+                              child: TextFormField(
+                                decoration: const InputDecoration(
+                                  hintText: 'Project name',
+                                  labelText: 'Name',
                                 ),
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty) {
+                                    return intl.nameRequired;
+                                  }
+                                  return null;
+                                },
+                                controller: _nameController,
+                                maxLines: 1,
                               ),
-                              const SizedBox(
-                                height: 16,
-                              ),
-                              const SizedBox(
-                                height: 64,
-                              ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 16),
+                            const SizedBox(height: 64),
+                          ],
                         ),
-                      ])),
-                  BusyIndicator(busy: busyStream)
-                ],
-              ),
+                      ),
+                    ],
+                  ),
+                ),
+                BusyIndicator(busy: busyStream),
+              ],
+            ),
 
-              floatingActionButton: FloatingActionButton(
-                //onPressed: _incrementCounter,
-                //tooltip: 'Save',
-                onPressed: _gotInitialProject
-                    ? () async {
+            floatingActionButton: FloatingActionButton(
+              //onPressed: _incrementCounter,
+              //tooltip: 'Save',
+              onPressed:
+                  _gotInitialProject
+                      ? () async {
                         if (formKey.currentState!.validate()) {
                           await _saveAndExit(context);
                         }
                       }
-                    : null,
-                child: const Icon(Icons.save),
-              ), // This trailing comma makes auto-formatting nicer for build methods.
-            ),
-          );
-        });
+                      : null,
+              child: const Icon(Icons.save),
+            ), // This trailing comma makes auto-formatting nicer for build methods.
+          ),
+        );
+      },
+    );
   }
 }
 
-Future<void> goToProjectEditScreen(BuildContext context,
-    {required DbProject? project}) async {
-  await Navigator.of(context).push(MaterialPageRoute<void>(builder: (context) {
-    return BlocProvider(
-      blocBuilder: () => ProjectEditScreenBloc(project: project),
-      child: const ProjectEditScreen(),
-    );
-  }));
+Future<void> goToProjectEditScreen(
+  BuildContext context, {
+  required DbProject? project,
+}) async {
+  await Navigator.of(context).push(
+    MaterialPageRoute<void>(
+      builder: (context) {
+        return BlocProvider(
+          blocBuilder: () => ProjectEditScreenBloc(project: project),
+          child: const ProjectEditScreen(),
+        );
+      },
+    ),
+  );
 }

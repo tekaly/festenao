@@ -5,8 +5,13 @@ class EntryTile extends StatefulWidget {
   final String? value;
   final VoidCallback? onTap;
   final VoidCallback? onLongPress;
-  const EntryTile(
-      {super.key, this.label, this.value, this.onTap, this.onLongPress});
+  const EntryTile({
+    super.key,
+    this.label,
+    this.value,
+    this.onTap,
+    this.onLongPress,
+  });
 
   @override
   State<EntryTile> createState() => _EntryTileState();

@@ -30,8 +30,10 @@ class AdminExportViewScreenBloc
   StreamSubscription? _exportSubscription;
   var firestore = globalFestenaoAdminAppFirebaseContext.firestore;
 
-  AdminExportViewScreenBloc(
-      {required this.exportId, required this.projectContext}) {
+  AdminExportViewScreenBloc({
+    required this.exportId,
+    required this.projectContext,
+  }) {
     refresh();
   }
 
@@ -40,13 +42,17 @@ class AdminExportViewScreenBloc
       audiDispose(_exportSubscription);
       _exportSubscription = null;
     }
-    _exportSubscription ??= audiAddStreamSubscription(firestore
-        .collection(firestoreExportCollectionPath)
-        .doc(exportId)
-        .onSnapshotSupport()
-        .listen((snapshot) {
-      add(AdminExportViewScreenBlocState(fsExport: snapshot.cv<FsExport>()));
-    }));
+    _exportSubscription ??= audiAddStreamSubscription(
+      firestore
+          .collection(firestoreExportCollectionPath)
+          .doc(exportId)
+          .onSnapshotSupport()
+          .listen((snapshot) {
+            add(
+              AdminExportViewScreenBlocState(fsExport: snapshot.cv<FsExport>()),
+            );
+          }),
+    );
   }
 }
 
@@ -67,92 +73,110 @@ class _AdminExportViewScreenState extends State<AdminExportViewScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<AdminExportViewScreenBloc>(context);
     return ValueStreamBuilder<AdminExportViewScreenBlocState>(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
 
-          var export = state?.fsExport;
+        var export = state?.fsExport;
 
-          var canView = state != null;
-          return AdminScreenLayout(
-            appBar: AppBar(
-              title: const Text('Export V2'),
-            ),
-            body: ValueStreamBuilder<AdminExportViewScreenBlocState>(
-              stream: bloc.state,
-              builder: (context, snapshot) {
-                var state = snapshot.data;
-                if (!canView) {
-                  return const Center(
-                    child: CircularProgressIndicator(),
-                  );
-                }
+        var canView = state != null;
+        return AdminScreenLayout(
+          appBar: AppBar(title: const Text('Export V2')),
+          body: ValueStreamBuilder<AdminExportViewScreenBlocState>(
+            stream: bloc.state,
+            builder: (context, snapshot) {
+              var state = snapshot.data;
+              if (!canView) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                var export = state!.fsExport;
-                var exportId = state.exportId;
-                return ListView(children: [
+              var export = state!.fsExport;
+              var exportId = state.exportId;
+              return ListView(
+                children: [
                   BodyContainer(
-                    child: Column(children: [
-                      if (export == null)
-                        const InfoTile(
-                          value: 'Not found',
-                        )
-                      else ...[
-                        InfoTile(label: textIdLabel, value: exportId ?? ''),
-                        InfoTile(
+                    child: Column(
+                      children: [
+                        if (export == null)
+                          const InfoTile(value: 'Not found')
+                        else ...[
+                          InfoTile(label: textIdLabel, value: exportId ?? ''),
+                          InfoTile(
                             label: textVersion,
-                            value: export.version.v?.toString() ?? ''),
-                        InfoTile(
+                            value: export.version.v?.toString() ?? '',
+                          ),
+                          InfoTile(
                             label: textChangeId,
-                            value: export.changeId.v?.toString() ?? ''),
-                        InfoTile(
+                            value: export.changeId.v?.toString() ?? '',
+                          ),
+                          InfoTile(
                             label: textTimestamp,
-                            value: export.timestamp.v?.toIso8601String() ?? ''),
-                        InfoTile(
+                            value: export.timestamp.v?.toIso8601String() ?? '',
+                          ),
+                          InfoTile(
                             label: textSize,
-                            value: export.size.v?.toString() ?? ''),
+                            value: export.size.v?.toString() ?? '',
+                          ),
+                        ],
                       ],
-                    ]),
-                  )
-                ]);
-              },
-            ),
-            floatingActionButton: export != null
-                ? FloatingActionButton(
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+          floatingActionButton:
+              export != null
+                  ? FloatingActionButton(
                     onPressed: () {
                       _onEdit(context, export.id);
                     },
                     child: const Icon(Icons.edit),
                   )
-                : null,
-          );
-        });
+                  : null,
+        );
+      },
+    );
   }
 
   Future<void> _onEdit(BuildContext context, String exportId) async {
     var bloc = BlocProvider.of<AdminExportViewScreenBloc>(context);
-    await goToAdminExportEditScreen(context,
-        projectContext: bloc.projectContext, exportId: exportId);
+    await goToAdminExportEditScreen(
+      context,
+      projectContext: bloc.projectContext,
+      exportId: exportId,
+    );
     if (context.mounted) {
       await bloc.refresh();
     }
   }
 }
 
-Future<void> goToAdminExportViewScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext,
-    required String exportId}) async {
+Future<void> goToAdminExportViewScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+  required String exportId,
+}) async {
   if (festenaoUseContentPathNavigation) {
-    await ContentNavigator.of(context).pushPath<void>(ProjectExportContentPath()
-      ..project.value = projectContext.projectId
-      ..sub.value = exportId);
+    await ContentNavigator.of(context).pushPath<void>(
+      ProjectExportContentPath()
+        ..project.value = projectContext.projectId
+        ..sub.value = exportId,
+    );
   } else {
-    await Navigator.of(context)
-        .push<void>(MaterialPageRoute(builder: (context) {
-      return BlocProvider(
-          blocBuilder: () => AdminExportViewScreenBloc(
-              projectContext: projectContext, exportId: exportId),
-          child: const AdminExportViewScreen());
-    }));
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) {
+          return BlocProvider(
+            blocBuilder:
+                () => AdminExportViewScreenBloc(
+                  projectContext: projectContext,
+                  exportId: exportId,
+                ),
+            child: const AdminExportViewScreen(),
+          );
+        },
+      ),
+    );
   }
 }

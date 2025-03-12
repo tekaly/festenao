@@ -22,8 +22,12 @@ class ProjectRootScreenBloc
   ProjectRootScreenBloc({required this.projectId}) {
     () async {
       if (globalProjectsDbBloc is SingleProjectDbBloc) {
-        add(ProjectRootScreenBlocState(
-            project: DbProject()..uid.v = 'compat', user: null));
+        add(
+          ProjectRootScreenBlocState(
+            project: DbProject()..uid.v = 'compat',
+            user: null,
+          ),
+        );
         return;
       }
 
@@ -33,12 +37,14 @@ class ProjectRootScreenBloc
       } else {
         firebaseUser = user;
 
-        audiAddStreamSubscription(globalProjectsDb
-            .onProject(projectId, userId: user.uid)
-            .listen((event) {
-          var project = event;
-          add(ProjectRootScreenBlocState(project: project, user: user));
-        }));
+        audiAddStreamSubscription(
+          globalProjectsDb.onProject(projectId, userId: user.uid).listen((
+            event,
+          ) {
+            var project = event;
+            add(ProjectRootScreenBlocState(project: project, user: user));
+          }),
+        );
       }
     }();
   }

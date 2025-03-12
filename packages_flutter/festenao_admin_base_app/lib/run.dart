@@ -30,12 +30,13 @@ import 'l10n/app_intl.dart';
 import 'prefs/local_prefs.dart';
 import 'sembast/projects_db_bloc.dart';
 
-Future<void> festenaoRunApp(
-    {ContentNavigatorDef? contentNavigatorDef,
-    AppFlavorContext? appFlavorContext,
-    String? packageName,
-    String? singleProjectId,
-    FirebaseContext? firebaseContext}) async {
+Future<void> festenaoRunApp({
+  ContentNavigatorDef? contentNavigatorDef,
+  AppFlavorContext? appFlavorContext,
+  String? packageName,
+  String? singleProjectId,
+  FirebaseContext? firebaseContext,
+}) async {
   if (kDebugMode) {
     gDebugLogFirestore = true;
   }
@@ -55,7 +56,9 @@ Future<void> festenaoRunApp(
 
   globalTkCmsAdminAppFirebaseContext = firebaseContext;
   var fsDatabase = FestenaoFirestoreDatabase(
-      firebaseContext: firebaseContext, flavorContext: appFlavorContext);
+    firebaseContext: firebaseContext,
+    flavorContext: appFlavorContext,
+  );
   gFsDatabaseService = fsDatabase;
   globalTkCmsAdminAppFlavorContext = appFlavorContext;
 
@@ -63,42 +66,44 @@ Future<void> festenaoRunApp(
   gAuthBloc = TkCmsAuthBloc.local(db: fsDatabase, prefs: prefs);
   globalPackageName = 'tekaly.festenao';
   globalFestenaoAppFirebaseContext = FestenaoAppFirebaseContext(
-      storageBucket: 'festenao.bucket',
-      storageRootPath: 'app/festenao',
-      firestoreRootPath: 'app/festenao');
+    storageBucket: 'festenao.bucket',
+    storageRootPath: 'app/festenao',
+    firestoreRootPath: 'app/festenao',
+  );
   gDebugUsername = 'admin';
   gDebugPassword = '__admin__'; // irrelevant
   globalProjectsDb = ProjectsDb(
-      factory: globalSembastDatabaseFactory,
-      name:
-          '${globalTkCmsAdminAppFlavorContext.uniqueAppName}_$projectsDbName');
+    factory: globalSembastDatabaseFactory,
+    name: '${globalTkCmsAdminAppFlavorContext.uniqueAppName}_$projectsDbName',
+  );
   await globalProjectsDb.ready;
 
   /// Global prefs (last entered values)
   var app = globalTkCmsAdminAppFlavorContext.uniqueAppName;
   await globalFestenaoAdminApp.openPrefs();
-  globalProjectsDbBloc = singleProjectId == null
-      ? MultiProjectsDbBloc(
-          app: app,
-        )
-      : EnforcedSingleProjectDbBloc(app: app, projectId: singleProjectId);
+  globalProjectsDbBloc =
+      singleProjectId == null
+          ? MultiProjectsDbBloc(app: app)
+          : EnforcedSingleProjectDbBloc(app: app, projectId: singleProjectId);
 
   initFestenaoFsBuilders();
 
   // TODO remove
   fsProjectSyncedDb = SyncedEntitiesDb<TkCmsFsProject>(
-      entityAccess: tkCmsFsProjectAccess,
-      options: SyncedEntitiesOptions(
-          sembastDatabaseContext: SembastDatabaseContext(
-              factory: globalSembastDatabaseFactory, path: '.')));
+    entityAccess: tkCmsFsProjectAccess,
+    options: SyncedEntitiesOptions(
+      sembastDatabaseContext: SembastDatabaseContext(
+        factory: globalSembastDatabaseFactory,
+        path: '.',
+      ),
+    ),
+  );
 
   initFestenaoDbBuilders();
   sleep(300).then((_) {
     webSplashHide();
   }).unawait();
-  runApp(FestenaoAdminApp(
-    contentNavigatorDef: contentNavigatorDef,
-  ));
+  runApp(FestenaoAdminApp(contentNavigatorDef: contentNavigatorDef));
 }
 
 /// Festenao admin app
@@ -114,22 +119,24 @@ class FestenaoAdminApp extends StatelessWidget {
     return ContentNavigator(
       def: contentNavigatorDef ?? festenaoAdminAppContentNavigatorDef,
       observers: [routeAwareObserver],
-      child: Builder(builder: (context) {
-        var cn = ContentNavigator.of(context);
-        return MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          title: 'Festenao admin',
-          theme: themeData1(),
-          //navigatorObservers: [cn.routeObserver],
-          routerDelegate: cn.routerDelegate,
-          routeInformationParser: cn.routeInformationParser,
-          supportedLocales: festenaoAdminAppSupportedLocales,
-          //locale: Locale(getCurrentLocale()),
-          localizationsDelegates: const [
-            ...festenaoAdminAppAllLocalizationsDelegates,
-          ],
-        );
-      }),
+      child: Builder(
+        builder: (context) {
+          var cn = ContentNavigator.of(context);
+          return MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: 'Festenao admin',
+            theme: themeData1(),
+            //navigatorObservers: [cn.routeObserver],
+            routerDelegate: cn.routerDelegate,
+            routeInformationParser: cn.routeInformationParser,
+            supportedLocales: festenaoAdminAppSupportedLocales,
+            //locale: Locale(getCurrentLocale()),
+            localizationsDelegates: const [
+              ...festenaoAdminAppAllLocalizationsDelegates,
+            ],
+          );
+        },
+      ),
     );
   }
 }

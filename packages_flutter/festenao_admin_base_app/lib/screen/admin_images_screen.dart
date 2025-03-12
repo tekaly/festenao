@@ -22,15 +22,17 @@ class AdminImagesScreenBlocState {
 class AdminImagesScreenBloc
     extends AutoDisposeStateBaseBloc<AdminImagesScreenBlocState> {
   late final _dbBloc = audiAddDisposable(
-      AdminAppProjectContextDbBloc(projectContext: projectContext));
+    AdminAppProjectContextDbBloc(projectContext: projectContext),
+  );
   final FestenaoAdminAppProjectContext projectContext;
   AdminImagesScreenBloc({required this.projectContext}) {
     () async {
       var db = await _dbBloc.grabDatabase();
       audiAddStreamSubscription(
-          dbImageStoreRef.query().onRecords(db).listen((records) {
-        add(AdminImagesScreenBlocState(records));
-      }));
+        dbImageStoreRef.query().onRecords(db).listen((records) {
+          add(AdminImagesScreenBlocState(records));
+        }),
+      );
     }();
   }
 }
@@ -47,48 +49,56 @@ class _AdminImagesScreenState extends State<AdminImagesScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<AdminImagesScreenBloc>(context);
     return AdminScreenLayout(
-      appBar: AppBar(
-        title: const Text('Images'),
-      ),
+      appBar: AppBar(title: const Text('Images')),
       body: ValueStreamBuilder<AdminImagesScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
           var list = snapshot.data?.list;
           if (list == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
           return ListView.builder(
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                var image = list[index];
-                var aspectRatio = max(.25,
-                        min(4, (image.width.v ?? 1) / (image.height.v ?? 1)))
-                    .toDouble();
-                return ListTile(
-                  leading: SizedBox(
-                      width: 32,
-                      height: 32,
-                      child: image.blurHash.v != null
+            itemCount: list.length,
+            itemBuilder: (context, index) {
+              var image = list[index];
+              var aspectRatio =
+                  max(
+                    .25,
+                    min(4, (image.width.v ?? 1) / (image.height.v ?? 1)),
+                  ).toDouble();
+              return ListTile(
+                leading: SizedBox(
+                  width: 32,
+                  height: 32,
+                  child:
+                      image.blurHash.v != null
                           ? AspectRatio(
-                              aspectRatio: aspectRatio,
-                              child: BlurHash(hash: image.blurHash.v!))
-                          : null),
-                  title: Text(image.id),
-                  subtitle: Text(image.name.v ?? '?'),
-                  onTap: () {
-                    goToAdminImageScreen(context,
-                        imageId: image.id, projectContext: bloc.projectContext);
-                  },
-                );
-              });
+                            aspectRatio: aspectRatio,
+                            child: BlurHash(hash: image.blurHash.v!),
+                          )
+                          : null,
+                ),
+                title: Text(image.id),
+                subtitle: Text(image.name.v ?? '?'),
+                onTap: () {
+                  goToAdminImageScreen(
+                    context,
+                    imageId: image.id,
+                    projectContext: bloc.projectContext,
+                  );
+                },
+              );
+            },
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          var result = await goToAdminImageEditScreen(context,
-              imageId: null, projectContext: bloc.projectContext);
+          var result = await goToAdminImageEditScreen(
+            context,
+            imageId: null,
+            projectContext: bloc.projectContext,
+          );
           if (result != null) {}
         },
         child: const Icon(Icons.add),
@@ -97,8 +107,10 @@ class _AdminImagesScreenState extends State<AdminImagesScreen> {
   }
 }
 
-Future<void> goToAdminImagesScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext}) async {
+Future<void> goToAdminImagesScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
   if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
@@ -106,12 +118,16 @@ Future<void> goToAdminImagesScreen(BuildContext context,
       contentPath: ProjectImagesContentPath(),
     );
   } else {
-    await Navigator.of(context)
-        .push<void>(MaterialPageRoute(builder: (context) {
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminImagesScreenBloc(projectContext: projectContext),
-          child: const AdminImagesScreen());
-    }));
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) {
+          return BlocProvider(
+            blocBuilder:
+                () => AdminImagesScreenBloc(projectContext: projectContext),
+            child: const AdminImagesScreen(),
+          );
+        },
+      ),
+    );
   }
 }

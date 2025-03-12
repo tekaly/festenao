@@ -39,13 +39,19 @@ void main() {
       var day = CalendarDay(text: '2023-07-25');
       var time = CalendarTime(text: '10:00');
       expect(
-          day.toDateTime(time).toIso8601String(), '2023-07-25T10:00:00.000Z');
+        day.toDateTime(time).toIso8601String(),
+        '2023-07-25T10:00:00.000Z',
+      );
       time = CalendarTime(text: '24:00');
       expect(
-          day.toDateTime(time).toIso8601String(), '2023-07-26T00:00:00.000Z');
+        day.toDateTime(time).toIso8601String(),
+        '2023-07-26T00:00:00.000Z',
+      );
       time = CalendarTime(text: '49:00');
       expect(
-          day.toDateTime(time).toIso8601String(), '2023-07-27T01:00:00.000Z');
+        day.toDateTime(time).toIso8601String(),
+        '2023-07-27T01:00:00.000Z',
+      );
     });
   });
 }

@@ -6,13 +6,14 @@ import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
 /// Class that maps Scaffold widget with some customizations (appBar, body, footer, drawer, floatingActionButton, bottomNavigationBar,...)
 class FestenaoAdminAppScaffold extends StatefulWidget {
-  const FestenaoAdminAppScaffold(
-      {super.key,
-      this.appBar,
-      this.body,
-      this.footer,
-      this.drawer,
-      this.floatingActionButton});
+  const FestenaoAdminAppScaffold({
+    super.key,
+    this.appBar,
+    this.body,
+    this.footer,
+    this.drawer,
+    this.floatingActionButton,
+  });
 
   final AppBar? appBar;
   final Widget? body;
@@ -51,8 +52,9 @@ class DebugAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DebugAppBar({super.key, required this.appBar});
 
   Future<void> _goToPath(BuildContext context, String path) async {
-    await ContentNavigator.of(context)
-        .pushPath<void>(ContentPath.fromString(path));
+    await ContentNavigator.of(
+      context,
+    ).pushPath<void>(ContentPath.fromString(path));
   }
 
   @override
@@ -89,20 +91,21 @@ class DebugAppBar extends StatelessWidget implements PreferredSizeWidget {
               ),
             ),
             SizedBox(
-                height: _appBarHeight,
-                child: IconButton(
-                  onPressed: () async {
-                    var newPath = await muiGetString(context, value: routeName);
-                    if (newPath != null && context.mounted) {
-                      await _goToPath(context, newPath);
-                    }
-                  },
-                  icon: const Icon(Icons.edit),
-                  iconSize: 16,
-                )),
+              height: _appBarHeight,
+              child: IconButton(
+                onPressed: () async {
+                  var newPath = await muiGetString(context, value: routeName);
+                  if (newPath != null && context.mounted) {
+                    await _goToPath(context, newPath);
+                  }
+                },
+                icon: const Icon(Icons.edit),
+                iconSize: 16,
+              ),
+            ),
           ],
         ),
-        if (appBar != null) appBar
+        if (appBar != null) appBar,
       ],
     );
     /*AppBar(
@@ -124,7 +127,9 @@ class DebugAppBar extends StatelessWidget implements PreferredSizeWidget {
     assert(_useAppBar);
     var size = appBar?.preferredSize;
     return Size(
-        size?.width ?? double.infinity, (size?.height ?? 0) + _appBarHeight);
+      size?.width ?? double.infinity,
+      (size?.height ?? 0) + _appBarHeight,
+    );
   }
 }
 

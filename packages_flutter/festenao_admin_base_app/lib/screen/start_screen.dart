@@ -27,42 +27,43 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<StartScreenBloc>(context);
     return ValueStreamBuilder(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
-          return FestenaoAdminAppScaffold(
-            appBar: AppBar(
-              title: const Text('Festenao'), // appIntl(context).ProjectsTitle),
-              actions: [
-                IconButton(
-                    onPressed: () {
-                      goToAuthScreen(context);
-                    },
-                    icon: const Icon(Icons.person)),
-              ],
-              // automaticallyImplyLeading: false,
-            ),
-            body: Builder(builder: (context) {
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
+        return FestenaoAdminAppScaffold(
+          appBar: AppBar(
+            title: const Text('Festenao'), // appIntl(context).ProjectsTitle),
+            actions: [
+              IconButton(
+                onPressed: () {
+                  goToAuthScreen(context);
+                },
+                icon: const Icon(Icons.person),
+              ),
+            ],
+            // automaticallyImplyLeading: false,
+          ),
+          body: Builder(
+            builder: (context) {
               if (state == null) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
               var projects = state.projects;
               return WithHeaderFooterListView.builder(
-                  footer: BodyContainer(
-                    child: Column(children: [
+                footer: BodyContainer(
+                  child: Column(
+                    children: [
                       if (state.user == null)
                         const BodyContainer(
-                            child: BodyHPadding(
-                                child: Center(
-                                    child: Column(
-                          children: [
-                            ListTile(
-                                title: Text(
-                                    'Not signed in')), // appIntl(context).notSignedInInfo),
-                            SizedBox(height: 8),
-                            /*
+                          child: BodyHPadding(
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  ListTile(
+                                    title: Text('Not signed in'),
+                                  ), // appIntl(context).notSignedInInfo),
+                                  SizedBox(height: 8),
+                                  /*
                               ElevatedButton(
                                   onPressed: () {
                                     Navigator.of(context).push<void>(
@@ -76,8 +77,11 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                                   },
                                   child:
                                       Text(appIntl(context).signInButtonLabel)),*/
-                          ],
-                        ))))
+                                ],
+                              ),
+                            ),
+                          ),
+                        )
                       else
                         EntryTile(
                           label: 'All projects',
@@ -88,24 +92,27 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                       if (kDebugMode) ...[
                         const SizedBox(height: 64),
                         ListTile(
-                            title: const Text('Debug'),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                  MaterialPageRoute<void>(
-                                      builder: (_) =>
-                                          festenaoAdminDebugScreen));
-                            })
-                      ]
-                    ]),
+                          title: const Text('Debug'),
+                          onTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute<void>(
+                                builder: (_) => festenaoAdminDebugScreen,
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ],
                   ),
-                  itemCount: projects?.length ?? 0,
-                  itemBuilder: (context, index) {
-                    var project = projects![index];
-                    return BodyContainer(
-                      child: ListTile(
-                        leading: ProjectLeading(project: project),
-                        trailing: const TrailingArrow(),
-                        /*Row(
+                ),
+                itemCount: projects?.length ?? 0,
+                itemBuilder: (context, index) {
+                  var project = projects![index];
+                  return BodyContainer(
+                    child: ListTile(
+                      leading: ProjectLeading(project: project),
+                      trailing: const TrailingArrow(),
+                      /*Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
@@ -122,18 +129,23 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                                 icon: Icon(Icons.edit))*/
                           ],
                         ),*/
-                        title: Text(project.name.v ?? project.fsId),
-                        onTap: () async {
-                          await goToProjectRootScreen(context,
-                              projectId: project.fsId);
+                      title: Text(project.name.v ?? project.fsId),
+                      onTap: () async {
+                        await goToProjectRootScreen(
+                          context,
+                          projectId: project.fsId,
+                        );
 
-                          //  await goToNotesScreen(context, Project.ref);
-                        },
-                      ),
-                    );
-                  });
-            }),
-          );
-        });
+                        //  await goToNotesScreen(context, Project.ref);
+                      },
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 }

@@ -21,12 +21,10 @@ class PopupSubMenuItem<T> extends PopupMenuEntry<T> {
   final void Function(T value)? onSelected;
 
   @override
-  double get height =>
-      kMinInteractiveDimension; //Does not actually affect anything
+  double get height => kMinInteractiveDimension; //Does not actually affect anything
 
   @override
-  bool represents(T? value) =>
-      false; //Our submenu does not represent any specific value for the parent menu
+  bool represents(T? value) => false; //Our submenu does not represent any specific value for the parent menu
 
   @override
   State createState() => _PopupSubMenuState<T>();
@@ -49,29 +47,33 @@ class _PopupSubMenuState<T> extends State<PopupSubMenuItem<T>> {
         }
         widget.onSelected?.call(value);
       },
-      offset: Offset
-          .zero, //TODO This is the most complex part - to calculate the correct position of the submenu being populated. For my purposes is does not matter where exactly to display it (Offset.zero will open submenu at the poistion where you tapped the item in the parent menu). Others might think of some value more appropriate to their needs.
+      offset:
+          Offset
+              .zero, //TODO This is the most complex part - to calculate the correct position of the submenu being populated. For my purposes is does not matter where exactly to display it (Offset.zero will open submenu at the poistion where you tapped the item in the parent menu). Others might think of some value more appropriate to their needs.
       itemBuilder: (BuildContext context) {
         return widget.items
             .map(
               (item) => PopupMenuItem<T>(
                 value: item,
-                child: Text(item
-                    .toString()), //MEthod toString() of class T should be overridden to repesent something meaningful
+                child: Text(
+                  item.toString(),
+                ), //MEthod toString() of class T should be overridden to repesent something meaningful
               ),
             )
             .toList();
       },
       child: Padding(
         padding: const EdgeInsets.only(
-            left: 16.0, right: 8.0, top: 12.0, bottom: 12.0),
+          left: 16.0,
+          right: 8.0,
+          top: 12.0,
+          bottom: 12.0,
+        ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.max,
           children: <Widget>[
-            Expanded(
-              child: Text(widget.title),
-            ),
+            Expanded(child: Text(widget.title)),
             Icon(
               Icons.arrow_right,
               size: 24.0,
@@ -153,10 +155,11 @@ extension MenuItemListFlutterExt on List<MenuItemBase> {
 
   Widget popupMenu(BuildContext context) {
     return PopupMenuButton<MenuItem>(
-        onSelected: (item) {
-          // print('item: $item');
-          item.onPressed?.call();
-        },
-        itemBuilder: (_) => entries(context));
+      onSelected: (item) {
+        // print('item: $item');
+        item.onPressed?.call();
+      },
+      itemBuilder: (_) => entries(context),
+    );
   }
 }

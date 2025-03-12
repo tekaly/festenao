@@ -24,11 +24,11 @@ class AdminUserScreenBloc
   AdminUserScreenBloc({required this.projectId, required this.userId}) {
     var fsDb = globalFestenaoFirestoreDatabase.projectDb;
     var userAccessRef = fsDb.fsEntityUserAccessRef(projectId, userId);
-    audiAddStreamSubscription(userAccessRef.onSnapshot(fsDb.firestore).listen((
-      snapshot,
-    ) {
-      user = snapshot;
-      trigger();
-    }));
+    audiAddStreamSubscription(
+      userAccessRef.onSnapshot(fsDb.firestore).listen((snapshot) {
+        user = snapshot;
+        trigger();
+      }),
+    );
   }
 }

@@ -31,14 +31,16 @@ class AdminInfosScreenBloc
     extends AutoDisposeStateBaseBloc<AdminInfosScreenBlocState> {
   final FestenaoAdminAppProjectContext projectContext;
   late final _dbBloc = audiAddDisposable(
-      AdminAppProjectContextDbBloc(projectContext: projectContext));
+    AdminAppProjectContextDbBloc(projectContext: projectContext),
+  );
   late StreamSubscription _infoSubscription;
 
   AdminInfosScreenBloc({required this.projectContext}) {
     () async {
       var db = await _dbBloc.grabDatabase();
-      _infoSubscription =
-          dbInfoStoreRef.query().onRecords(db).listen((records) {
+      _infoSubscription = dbInfoStoreRef.query().onRecords(db).listen((
+        records,
+      ) {
         add(AdminInfosScreenBlocState(records));
       });
     }();
@@ -64,52 +66,52 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<AdminInfosScreenBloc>(context);
     return AdminScreenLayout(
-      appBar: AppBar(
-        title: const Text('Infos'),
-      ),
+      appBar: AppBar(title: const Text('Infos')),
       body: ValueStreamBuilder<AdminInfosScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
           var list = snapshot.data?.list;
           if (list == null) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
           return ListView.builder(
-              itemCount: list.length,
-              itemBuilder: (context, index) {
-                var info = list[index];
-                return ListTile(
-                  title: Text(info.nameOrId),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        info.type.v ?? '',
-                      ),
-                      Text(
-                        info.subtitle.v ?? '',
-                      ),
-                    ],
-                  ),
-                  onTap: () {
-                    if (widget.param?.selectMode ?? false) {
-                      Navigator.of(context)
-                          .pop(AdminInfoScreenResult(info: info));
-                    } else {
-                      goToAdminInfoScreen(context,
-                          infoId: info.id, projectContext: bloc.projectContext);
-                    }
-                  },
-                );
-              });
+            itemCount: list.length,
+            itemBuilder: (context, index) {
+              var info = list[index];
+              return ListTile(
+                title: Text(info.nameOrId),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(info.type.v ?? ''),
+                    Text(info.subtitle.v ?? ''),
+                  ],
+                ),
+                onTap: () {
+                  if (widget.param?.selectMode ?? false) {
+                    Navigator.of(
+                      context,
+                    ).pop(AdminInfoScreenResult(info: info));
+                  } else {
+                    goToAdminInfoScreen(
+                      context,
+                      infoId: info.id,
+                      projectContext: bloc.projectContext,
+                    );
+                  }
+                },
+              );
+            },
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          goToAdminInfoEditScreen(context,
-              infoId: null, projectContext: bloc.projectContext);
+          goToAdminInfoEditScreen(
+            context,
+            infoId: null,
+            projectContext: bloc.projectContext,
+          );
         },
         child: const Icon(Icons.add),
       ),
@@ -117,8 +119,10 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
   }
 }
 
-Future<void> goToAdminInfosScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext}) async {
+Future<void> goToAdminInfosScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
   if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
@@ -126,27 +130,38 @@ Future<void> goToAdminInfosScreen(BuildContext context,
       contentPath: ProjectInfosContentPath(),
     );
   } else {
-    await Navigator.of(context)
-        .push<void>(MaterialPageRoute(builder: (context) {
-      return BlocProvider(
-          blocBuilder: () =>
-              AdminInfosScreenBloc(projectContext: projectContext),
-          child: const AdminInfosScreen());
-    }));
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) {
+          return BlocProvider(
+            blocBuilder:
+                () => AdminInfosScreenBloc(projectContext: projectContext),
+            child: const AdminInfosScreen(),
+          );
+        },
+      ),
+    );
   }
 }
 
-Future<AdminInfoScreenResult?> selectInfo(BuildContext context,
-    {String? infoType,
-    required FestenaoAdminAppProjectContext projectContext}) async {
-  var result = await Navigator.of(context)
-      .push<Object?>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () => AdminInfosScreenBloc(projectContext: projectContext),
-        child: AdminInfosScreen(
-          param: AdminInfosScreenParam(selectMode: true, infoType: infoType),
-        ));
-  }));
+Future<AdminInfoScreenResult?> selectInfo(
+  BuildContext context, {
+  String? infoType,
+  required FestenaoAdminAppProjectContext projectContext,
+}) async {
+  var result = await Navigator.of(context).push<Object?>(
+    MaterialPageRoute(
+      builder: (context) {
+        return BlocProvider(
+          blocBuilder:
+              () => AdminInfosScreenBloc(projectContext: projectContext),
+          child: AdminInfosScreen(
+            param: AdminInfosScreenParam(selectMode: true, infoType: infoType),
+          ),
+        );
+      },
+    ),
+  );
   if (result is AdminInfoScreenResult) {
     return result;
   }

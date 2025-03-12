@@ -15,17 +15,17 @@ Future<void> main() async {
         'answerEmptyAllowed': false,
         'answerType': 'text_2',
         'answerChoices': [
-          {'id': 'text_3', 'text': 'text_4'}
+          {'id': 'text_3', 'text': 'text_4'},
         ],
         'answerIntMin': 5,
         'answerIntMax': 6,
-        'answerIntPresets': [7]
+        'answerIntPresets': [7],
       });
       expect(_fill<FsForm>(), {
         'title': 'text_1',
         'questions': [
-          {'id': 'text_2', 'subFormId': 'text_3'}
-        ]
+          {'id': 'text_2', 'subFormId': 'text_3'},
+        ],
       });
       expect(_fill<CvFormQuestionResponse>(), {
         'id': 'text_1',
@@ -42,9 +42,9 @@ Future<void> main() async {
             'text': 'text_10',
             'choiceId': 'text_11',
             'choiceIds': ['text_12'],
-            'subForm': [{}]
-          }
-        ]
+            'subForm': [{}],
+          },
+        ],
       });
       expect(_fill<FsFormQuestion>(), {
         'name': 'text_1',
@@ -55,20 +55,20 @@ Future<void> main() async {
           'answerEmptyAllowed': false,
           'answerType': 'text_6',
           'answerChoices': [
-            {'id': 'text_7', 'text': 'text_8'}
+            {'id': 'text_7', 'text': 'text_8'},
           ],
           'answerIntMin': 9,
           'answerIntMax': 10,
-          'answerIntPresets': [11]
+          'answerIntPresets': [11],
         },
-        'proposedAnswerId': 'text_12'
+        'proposedAnswerId': 'text_12',
       });
       expect(cvNewModel<FsFormFull>().fields.map((e) => e.key), [
         'title',
         'questions',
         'formQuestions',
         'formSubForms',
-        'formProposedAnswers'
+        'formProposedAnswers',
       ]);
     });
   });

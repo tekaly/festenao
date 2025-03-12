@@ -13,8 +13,11 @@ class AdminArtistEditScreenBlocState {
   final DbArtist? artist;
   final Database db;
 
-  AdminArtistEditScreenBlocState(
-      {String? artistId, this.artist, required this.db}) {
+  AdminArtistEditScreenBlocState({
+    String? artistId,
+    this.artist,
+    required this.db,
+  }) {
     this.artistId = artistId ?? artist?.id;
   }
 }
@@ -31,8 +34,11 @@ class AdminArtistEditScreenBloc
   final String? artistId;
   final DbArtist? artist;
 
-  AdminArtistEditScreenBloc(
-      {required this.artistId, this.artist, required super.projectContext}) {
+  AdminArtistEditScreenBloc({
+    required this.artistId,
+    this.artist,
+    required super.projectContext,
+  }) {
     () async {
       var db = await projectDb;
       if (artistId == null) {
@@ -41,8 +47,13 @@ class AdminArtistEditScreenBloc
       } else {
         var artist = (await dbArtistStoreRef.record(artistId!).get(db));
 
-        add(AdminArtistEditScreenBlocState(
-            artist: artist, artistId: artistId, db: db));
+        add(
+          AdminArtistEditScreenBlocState(
+            artist: artist,
+            artistId: artistId,
+            db: db,
+          ),
+        );
       }
     }();
   }

@@ -7,8 +7,10 @@ class DbLocation extends DbStringRecordBase {
   final name = CvField<String>('name');
 
   /// Attributes/Links
-  final attributes =
-      CvModelListField<CvAttribute>('attributes', (_) => CvAttribute());
+  final attributes = CvModelListField<CvAttribute>(
+    'attributes',
+    (_) => CvAttribute(),
+  );
 
   @override
   List<CvField> get fields => [name, attributes];

@@ -12,7 +12,9 @@ class CenteredLeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-        mainAxisAlignment: MainAxisAlignment.center, children: [child]);
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [child],
+    );
   }
 }
 
@@ -26,14 +28,11 @@ class IconLeading extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CenteredLeading(
-        child: SizedBox(
-            width: size ?? leadingIconSize,
-            height: size ?? leadingIconSize,
-            child: Center(
-              child: Icon(
-                iconData,
-                color: color,
-              ),
-            )));
+      child: SizedBox(
+        width: size ?? leadingIconSize,
+        height: size ?? leadingIconSize,
+        child: Center(child: Icon(iconData, color: color)),
+      ),
+    );
   }
 }

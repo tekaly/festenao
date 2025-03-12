@@ -31,15 +31,15 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
-      child: ImagePreview(
-        imageId: imageId,
-        dbBloc: dbBloc,
-      ),
+      child: ImagePreview(imageId: imageId, dbBloc: dbBloc),
     );
   }
 
-  Widget getImagesPreview(
-      {required String? articleId, String? articleKind, VoidCallback? onTap}) {
+  Widget getImagesPreview({
+    required String? articleId,
+    String? articleKind,
+    VoidCallback? onTap,
+  }) {
     articleKind ??= this.articleKind;
     if (articleId == null) {
       return Container();
@@ -47,30 +47,35 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
     var children = <Widget>[];
 
     for (var imageOption in globalFestenaoAppOptions.images.v!) {
-      var imageId =
-          articleKindToImageId(articleKind, imageOption.type.v!, articleId);
+      var imageId = articleKindToImageId(
+        articleKind,
+        imageOption.type.v!,
+        articleId,
+      );
       // devPrint('imageId: $imageId');
-      children.add(ListTile(
-          onTap: onTap ??
+      children.add(
+        ListTile(
+          onTap:
+              onTap ??
               () {
-                goToAdminImageEditScreen(context,
-                    imageId: imageId,
-                    param: AdminImageEditScreenParam(options: imageOption),
-                    projectContext: projectContext);
+                goToAdminImageEditScreen(
+                  context,
+                  imageId: imageId,
+                  param: AdminImageEditScreenParam(options: imageOption),
+                  projectContext: projectContext,
+                );
               },
           title: Text(imageId),
           subtitle: SizedBox(
-              height: 64,
-              child: ImagePreview(
-                imageId: imageId,
-                dbBloc: dbBloc,
-              ))));
+            height: 64,
+            child: ImagePreview(imageId: imageId, dbBloc: dbBloc),
+          ),
+        ),
+      );
     }
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
-      child: Column(
-        children: children,
-      ),
+      child: Column(children: children),
     );
   }
 
@@ -83,9 +88,7 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
   }
 
   Widget getCommonTiles(DbArticle? article) {
-    return Column(
-      children: [getTypeTile(article), getTagsTile(article)],
-    );
+    return Column(children: [getTypeTile(article), getTagsTile(article)]);
   }
 
   Widget getTagsTile(DbArticle? article) {
@@ -104,11 +107,9 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
       child: Container(
-          constraints: const BoxConstraints(maxHeight: 128),
-          child: ImagePreview(
-            imageId: imageId,
-            dbBloc: dbBloc,
-          )),
+        constraints: const BoxConstraints(maxHeight: 128),
+        child: ImagePreview(imageId: imageId, dbBloc: dbBloc),
+      ),
     );
   }
 
@@ -118,11 +119,11 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
       return Container();
     }
     return TilePadding(
-        child: MarkdownBody(
-      onTapLink: (url, _, __) {
-        //launch(url);
-      },
-      styleSheet: MarkdownStyleSheet(
+      child: MarkdownBody(
+        onTapLink: (url, _, _) {
+          //launch(url);
+        },
+        styleSheet: MarkdownStyleSheet(
           //textScaleFactor: dc.smallFontSizeRatio,
           tableBorder: TableBorder.all(color: Colors.transparent),
           p: const TextStyle(
@@ -144,10 +145,12 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
             //color: Colors.black,
             // fontFamily: garageGothicFontFamily,
             fontSize: 18,
-          )),
-      data: md!,
-      shrinkWrap: false,
-    ));
+          ),
+        ),
+        data: md!,
+        shrinkWrap: false,
+      ),
+    );
   }
 
   List<MenuItem> imagesMenuItems({DbArticle? dbArticle, String? articleId}) {
@@ -163,19 +166,29 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
     }
     for (var options in globalFestenaoAppOptions.images.v!) {
       var choice = _SizeMenuChoice(options);
-      items.add(MenuItem(
+      items.add(
+        MenuItem(
           title: choice.toString(),
           onPressed: () {
-            goToAdminImageEditScreen(context,
-                imageId: null,
-                param: AdminImageEditScreenParam(
-                    newImageId: articleKindToImageId(
-                        articleKind, options.type.v!, articleId!),
-                    image: DbImage()
+            goToAdminImageEditScreen(
+              context,
+              imageId: null,
+              param: AdminImageEditScreenParam(
+                newImageId: articleKindToImageId(
+                  articleKind,
+                  options.type.v!,
+                  articleId!,
+                ),
+                image:
+                    DbImage()
                       ..width.v = choice.options.width.v
-                      ..height.v = choice.options.height.v),
-                projectContext: projectContext);
-          }));
+                      ..height.v = choice.options.height.v,
+              ),
+              projectContext: projectContext,
+            );
+          },
+        ),
+      );
     }
     return items;
   }
@@ -190,30 +203,40 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
     if (globalFestenaoAppOptions.images.valueOrNull == null) {
       return Container();
     }
-    return PopupMenuButton(onSelected: (choice) {
-      // devPrint('$choice ${this.dbArticle}');
-      // devPrint('$choice $dbArticle');
-      if (choice is _SizeMenuChoice) {
-        var options = choice.options;
-        goToAdminImageEditScreen(context,
+    return PopupMenuButton(
+      onSelected: (choice) {
+        // devPrint('$choice ${this.dbArticle}');
+        // devPrint('$choice $dbArticle');
+        if (choice is _SizeMenuChoice) {
+          var options = choice.options;
+          goToAdminImageEditScreen(
+            context,
             imageId: null,
             param: AdminImageEditScreenParam(
-                newImageId: articleKindToImageId(
-                    articleKind, options.type.v!, articleId!),
-                image: DbImage()
-                  ..width.v = choice.options.width.v
-                  ..height.v = choice.options.height.v),
-            projectContext: projectContext);
-      }
-    }, itemBuilder: (context) {
-      var choices = <_MenuChoice>[];
-      for (var options in globalFestenaoAppOptions.images.v!) {
-        choices.add(_SizeMenuChoice(options));
-      }
-      return choices
-          .map((e) => PopupMenuItem<_MenuChoice>(value: e, child: Text('$e')))
-          .toList();
-    });
+              newImageId: articleKindToImageId(
+                articleKind,
+                options.type.v!,
+                articleId!,
+              ),
+              image:
+                  DbImage()
+                    ..width.v = choice.options.width.v
+                    ..height.v = choice.options.height.v,
+            ),
+            projectContext: projectContext,
+          );
+        }
+      },
+      itemBuilder: (context) {
+        var choices = <_MenuChoice>[];
+        for (var options in globalFestenaoAppOptions.images.v!) {
+          choices.add(_SizeMenuChoice(options));
+        }
+        return choices
+            .map((e) => PopupMenuItem<_MenuChoice>(value: e, child: Text('$e')))
+            .toList();
+      },
+    );
   }
 }
 

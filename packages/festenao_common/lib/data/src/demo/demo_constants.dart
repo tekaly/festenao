@@ -15,4 +15,6 @@ var demoAppRootPath = devRootPath;
 const demoAppPackageName = 'com_festenao_demo';
 
 var demoDataGlobalsOptions = FestenaoDataGlobalsOptions(
-    fbProjectId: demoFbProjectId, sourceId: demoSourceId);
+  fbProjectId: demoFbProjectId,
+  sourceId: demoSourceId,
+);

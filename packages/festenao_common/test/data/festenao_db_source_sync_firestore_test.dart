@@ -29,7 +29,7 @@ void main() {
       await (dbArtistStoreRef.record('a1').cv()..name.v = 'test1').put(db);
       var syncRecords = await festenaoDb.getSyncRecords();
       expect(syncRecords.map((r) => r.toMap()), [
-        {'store': 'artist', 'key': 'a1', 'dirty': true}
+        {'store': 'artist', 'key': 'a1', 'dirty': true},
       ]);
       var stat = await sync.syncUp();
       syncRecords = await festenaoDb.getSyncRecords();
@@ -46,22 +46,26 @@ void main() {
           'syncTimestamp': syncRecord.syncTimestamp.v,
           'syncId': syncRecord.syncId.v,
           'syncChangeId': 1,
-        }
+        },
       ]);
       expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
-      var sourceRecord = (await source
-          .getSourceRecord(FestenaoDataSourceRef(store: 'artist', key: 'a1')))!;
+      var sourceRecord =
+          (await source.getSourceRecord(
+            FestenaoDataSourceRef(store: 'artist', key: 'a1'),
+          ))!;
       expect(
-          sourceRecord,
-          FaoSourceRecord()
-            ..syncId.v = sourceRecord.syncId.v
-            ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-            ..syncChangeId.v = 1
-            ..record.v = (FaoSourceRecordData()
-              ..store.v = dbArtistStoreRef.name
-              ..key.v = 'a1'
-              ..deleted.v = false
-              ..value.v = {'name': 'test1'}));
+        sourceRecord,
+        FaoSourceRecord()
+          ..syncId.v = sourceRecord.syncId.v
+          ..syncTimestamp.v = sourceRecord.syncTimestamp.v
+          ..syncChangeId.v = 1
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = dbArtistStoreRef.name
+                ..key.v = 'a1'
+                ..deleted.v = false
+                ..value.v = {'name': 'test1'}),
+      );
       var sourceMeta = (await source.getMetaInfo())!;
       expect(sourceMeta.toMap(), {'lastChangeId': 1});
       // Sync again
@@ -96,22 +100,26 @@ void main() {
             'syncTimestamp': syncRecord.syncTimestamp.v,
             'syncId': syncRecord.syncId.v,
             'syncChangeId': 1,
-          }
+          },
         ]);
         expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
-        var sourceRecord = (await source.getSourceRecord(
-            FestenaoDataSourceRef(store: 'artist', key: 'a1')))!;
+        var sourceRecord =
+            (await source.getSourceRecord(
+              FestenaoDataSourceRef(store: 'artist', key: 'a1'),
+            ))!;
         expect(
-            sourceRecord,
-            FaoSourceRecord()
-              ..syncId.v = sourceRecord.syncId.v
-              ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-              ..syncChangeId.v = 1
-              ..record.v = (FaoSourceRecordData()
-                ..store.v = dbArtistStoreRef.name
-                ..key.v = 'a1'
-                ..deleted.v = false
-                ..value.v = {'name': 'test1'}));
+          sourceRecord,
+          FaoSourceRecord()
+            ..syncId.v = sourceRecord.syncId.v
+            ..syncTimestamp.v = sourceRecord.syncTimestamp.v
+            ..syncChangeId.v = 1
+            ..record.v =
+                (FaoSourceRecordData()
+                  ..store.v = dbArtistStoreRef.name
+                  ..key.v = 'a1'
+                  ..deleted.v = false
+                  ..value.v = {'name': 'test1'}),
+        );
         var sourceMeta = (await source.getMetaInfo())!;
         expect(sourceMeta.toMap(), {'lastChangeId': 1});
       }
@@ -132,7 +140,7 @@ void main() {
       await (dbImageStoreRef.record('a1').cv()..name.v = 'test1').put(db);
       var syncRecords = await festenaoDb.getSyncRecords();
       expect(syncRecords.map((r) => r.toMap()), [
-        {'store': 'image', 'key': 'a1', 'dirty': true}
+        {'store': 'image', 'key': 'a1', 'dirty': true},
       ]);
       var stat = await sync.syncUp();
       syncRecords = await festenaoDb.getSyncRecords();
@@ -149,22 +157,26 @@ void main() {
           'syncTimestamp': syncRecord.syncTimestamp.v,
           'syncId': syncRecord.syncId.v,
           'syncChangeId': 1,
-        }
+        },
       ]);
       expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
-      var sourceRecord = (await source.getSourceRecord(
-          FestenaoDataSourceRef(store: storeName, key: 'a1')))!;
+      var sourceRecord =
+          (await source.getSourceRecord(
+            FestenaoDataSourceRef(store: storeName, key: 'a1'),
+          ))!;
       expect(
-          sourceRecord,
-          FaoSourceRecord()
-            ..syncId.v = sourceRecord.syncId.v
-            ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-            ..syncChangeId.v = 1
-            ..record.v = (FaoSourceRecordData()
-              ..store.v = storeName
-              ..key.v = 'a1'
-              ..deleted.v = false
-              ..value.v = {'name': 'test1'}));
+        sourceRecord,
+        FaoSourceRecord()
+          ..syncId.v = sourceRecord.syncId.v
+          ..syncTimestamp.v = sourceRecord.syncTimestamp.v
+          ..syncChangeId.v = 1
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = storeName
+                ..key.v = 'a1'
+                ..deleted.v = false
+                ..value.v = {'name': 'test1'}),
+      );
       var sourceMeta = (await source.getMetaInfo())!;
       expect(sourceMeta.toMap(), {'lastChangeId': 1});
       // Sync again
@@ -176,13 +188,17 @@ void main() {
     });
 
     test('syncOneFromRemote', () async {
-      var sourceRecord = (await source.putSourceRecord(FaoSourceRecord()
-        //..syncId.v = sourceRecord.syncId.v
-        // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-        ..record.v = (FaoSourceRecordData()
-          ..store.v = dbArtistStoreRef.name
-          ..key.v = 'a1'
-          ..value.v = {'name': 'test1'})))!;
+      var sourceRecord =
+          (await source.putSourceRecord(
+            FaoSourceRecord()
+              //..syncId.v = sourceRecord.syncId.v
+              // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
+              ..record.v =
+                  (FaoSourceRecordData()
+                    ..store.v = dbArtistStoreRef.name
+                    ..key.v = 'a1'
+                    ..value.v = {'name': 'test1'}),
+          ))!;
       expect(sourceRecord.syncId.v, isNotNull);
       expect(sourceRecord.syncTimestamp.v, isNotNull);
 
@@ -196,8 +212,10 @@ void main() {
       expect(stat, FaoSyncStat(localUpdatedCount: 1));
 
       var metaInfo = (await festenaoDb.getSyncMetaInfo())!;
-      expect(metaInfo.toMap(),
-          {'lastChangeId': 1, 'lastTimestamp': metaInfo.lastTimestamp.v});
+      expect(metaInfo.toMap(), {
+        'lastChangeId': 1,
+        'lastTimestamp': metaInfo.lastTimestamp.v,
+      });
 
       /// again
       stat = await sync.syncDown();
@@ -205,13 +223,17 @@ void main() {
     });
 
     test('syncOneImageFromRemote', () async {
-      var sourceRecord = (await source.putSourceRecord(FaoSourceRecord()
-        //..syncId.v = sourceRecord.syncId.v
-        // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-        ..record.v = (FaoSourceRecordData()
-          ..store.v = dbImageStoreRef.name
-          ..key.v = 'a1'
-          ..value.v = {'name': 'test1'})))!;
+      var sourceRecord =
+          (await source.putSourceRecord(
+            FaoSourceRecord()
+              //..syncId.v = sourceRecord.syncId.v
+              // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
+              ..record.v =
+                  (FaoSourceRecordData()
+                    ..store.v = dbImageStoreRef.name
+                    ..key.v = 'a1'
+                    ..value.v = {'name': 'test1'}),
+          ))!;
       expect(sourceRecord.syncId.v, isNotNull);
       expect(sourceRecord.syncTimestamp.v, isNotNull);
 
@@ -224,11 +246,14 @@ void main() {
       var stat = await sync.syncDown();
       expect(stat, FaoSyncStat(localUpdatedCount: 1));
 
-      expect((await dbImageStoreRef.find(await festenaoDb.database)),
-          [dbImageStoreRef.record('a1').cv()..name.v = 'test1']);
+      expect((await dbImageStoreRef.find(await festenaoDb.database)), [
+        dbImageStoreRef.record('a1').cv()..name.v = 'test1',
+      ]);
       var metaInfo = (await festenaoDb.getSyncMetaInfo())!;
-      expect(metaInfo.toMap(),
-          {'lastChangeId': 1, 'lastTimestamp': metaInfo.lastTimestamp.v});
+      expect(metaInfo.toMap(), {
+        'lastChangeId': 1,
+        'lastTimestamp': metaInfo.lastTimestamp.v,
+      });
 
       /// again
       stat = await sync.syncDown();
@@ -248,61 +273,77 @@ void main() {
     });
 
     test('syncUpdateFromRemote', () async {
-      await source.putSourceRecord(FaoSourceRecord()
-        //..syncId.v = sourceRecord.syncId.v
-        // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-        ..record.v = (FaoSourceRecordData()
-          ..store.v = dbArtistStoreRef.name
-          ..key.v = 'a1'
-          ..value.v = {'name': 'test1'}));
+      await source.putSourceRecord(
+        FaoSourceRecord()
+          //..syncId.v = sourceRecord.syncId.v
+          // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = dbArtistStoreRef.name
+                ..key.v = 'a1'
+                ..value.v = {'name': 'test1'}),
+      );
 
       /// Full sync
       var stat = await sync.syncDown();
       expect(stat, FaoSyncStat(localUpdatedCount: 1));
 
       /// update
-      await source.putSourceRecord(FaoSourceRecord()
-        //..syncId.v = sourceRecord.syncId.v
-        // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-        ..record.v = (FaoSourceRecordData()
-          ..store.v = dbArtistStoreRef.name
-          ..key.v = 'a1'
-          ..value.v = {'name': 'test2'}));
+      await source.putSourceRecord(
+        FaoSourceRecord()
+          //..syncId.v = sourceRecord.syncId.v
+          // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = dbArtistStoreRef.name
+                ..key.v = 'a1'
+                ..value.v = {'name': 'test2'}),
+      );
       stat = await sync.syncDown();
       expect(stat, FaoSyncStat(localUpdatedCount: 1));
     });
 
     test('newVersionSyncUpdateFromRemote', () async {
       //debugFaoSync = true;
-      await source.putMetaInfo(CvMetaInfoRecord()
-        ..version.v = 1
-        ..lastChangeId.v = 1
-        ..minIncrementalChangeId.v = 0);
-      await source.putRawRecord(FaoSourceRecord()
-        ..syncId.v = '1'
-        ..syncChangeId.v = 1
-        ..syncTimestamp.v = Timestamp(1, 0)
-        ..record.v = (FaoSourceRecordData()
-          ..store.v = dbArtistStoreRef.name
-          ..key.v = 'a1'
-          ..value.v = {'name': 'test1'}));
+      await source.putMetaInfo(
+        CvMetaInfoRecord()
+          ..version.v = 1
+          ..lastChangeId.v = 1
+          ..minIncrementalChangeId.v = 0,
+      );
+      await source.putRawRecord(
+        FaoSourceRecord()
+          ..syncId.v = '1'
+          ..syncChangeId.v = 1
+          ..syncTimestamp.v = Timestamp(1, 0)
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = dbArtistStoreRef.name
+                ..key.v = 'a1'
+                ..value.v = {'name': 'test1'}),
+      );
 
       var stat = await sync.syncDown();
       expect(stat, FaoSyncStat(localUpdatedCount: 1));
 
       // We just change the version and the data
-      await source.putMetaInfo(CvMetaInfoRecord()
-        ..version.v = 2
-        ..lastChangeId.v = 1
-        ..minIncrementalChangeId.v = 0);
-      await source.putRawRecord(FaoSourceRecord()
-        ..syncId.v = '1'
-        ..syncChangeId.v = 1
-        ..syncTimestamp.v = Timestamp(1, 0)
-        ..record.v = (FaoSourceRecordData()
-          ..store.v = dbArtistStoreRef.name
-          ..key.v = 'a1'
-          ..value.v = {'name': 'test2'}));
+      await source.putMetaInfo(
+        CvMetaInfoRecord()
+          ..version.v = 2
+          ..lastChangeId.v = 1
+          ..minIncrementalChangeId.v = 0,
+      );
+      await source.putRawRecord(
+        FaoSourceRecord()
+          ..syncId.v = '1'
+          ..syncChangeId.v = 1
+          ..syncTimestamp.v = Timestamp(1, 0)
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = dbArtistStoreRef.name
+                ..key.v = 'a1'
+                ..value.v = {'name': 'test2'}),
+      );
       stat = await sync.syncDown();
       expect(stat, FaoSyncStat(localUpdatedCount: 1));
     });

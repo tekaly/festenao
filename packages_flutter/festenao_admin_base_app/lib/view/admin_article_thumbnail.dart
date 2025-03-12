@@ -8,19 +8,23 @@ class AdminArticleThumbnail extends StatelessWidget {
   final AdminAppProjectContextDbBloc dbBloc;
   final DbArticle article;
 
-  const AdminArticleThumbnail(
-      {super.key, required this.article, required this.dbBloc});
+  const AdminArticleThumbnail({
+    super.key,
+    required this.article,
+    required this.dbBloc,
+  });
 
   @override
   Widget build(BuildContext context) {
-    var imageId = (article.thumbnail.v?.isNotEmpty ?? false)
-        ? article.thumbnail.v!
-        : articleKindToImageId(
-            article.articleKind, imageTypeThumbnail, article.id);
+    var imageId =
+        (article.thumbnail.v?.isNotEmpty ?? false)
+            ? article.thumbnail.v!
+            : articleKindToImageId(
+              article.articleKind,
+              imageTypeThumbnail,
+              article.id,
+            );
 
-    return ImageThumbnailPreview(
-      imageId: imageId,
-      dbBloc: dbBloc,
-    );
+    return ImageThumbnailPreview(imageId: imageId, dbBloc: dbBloc);
   }
 }

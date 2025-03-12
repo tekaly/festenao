@@ -11,7 +11,7 @@ const articleTagInProgress = 'in_progress';
 const articleTags = [
   articleTagHidden,
   articleTagCancelled,
-  articleTagInProgress
+  articleTagInProgress,
 ];
 const imageKind = 'image';
 
@@ -49,8 +49,10 @@ mixin DbArticleMixin on DbStringRecord implements DbArticle {
 
   /// Attributes/Links
   @override
-  final attributes =
-      CvModelListField<CvAttribute>('attributes', (_) => CvAttribute());
+  final attributes = CvModelListField<CvAttribute>(
+    'attributes',
+    (_) => CvAttribute(),
+  );
 
   /// DbImage id
   @override
@@ -65,17 +67,17 @@ mixin DbArticleMixin on DbStringRecord implements DbArticle {
   final squareImage = CvField<String>('squareImage');
 
   List<CvField> get articleFields => [
-        name,
-        author,
-        type,
-        subtitle,
-        content,
-        tags,
-        attributes,
-        image,
-        thumbnail,
-        squareImage,
-      ];
+    name,
+    author,
+    type,
+    subtitle,
+    content,
+    tags,
+    attributes,
+    image,
+    thumbnail,
+    squareImage,
+  ];
 }
 
 // Helpers
@@ -94,9 +96,7 @@ typedef DbArticleCommon = DbArticle;
 abstract class DbArticleCommonBase extends DbStringRecordBase
     with DbArticleMixin {
   @override
-  List<CvField> get fields => [
-        ...articleFields,
-      ];
+  List<CvField> get fields => [...articleFields];
 }
 
 abstract class DbArticle extends DbStringRecord {
@@ -127,9 +127,11 @@ List<String> getArticleKindTags(String articleKind) {
 final _articleKindTagsMap = {
   articleKindArtist: artistTags,
   articleKindEvent: eventTags,
-  articleKindInfo: infoTags
-}.map((key, value) =>
-    MapEntry<String, List<String>>(key, [...value, ...articleTags]));
+  articleKindInfo: infoTags,
+}.map(
+  (key, value) =>
+      MapEntry<String, List<String>>(key, [...value, ...articleTags]),
+);
 final _articleKindTypesMap = {
   articleKindArtist: artistTypes,
   articleKindInfo: infoTypes,

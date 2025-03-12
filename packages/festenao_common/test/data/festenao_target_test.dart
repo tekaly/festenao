@@ -5,7 +5,9 @@ void main() {
   group('festenao_target', () {
     test('api', () async {
       expect(
-          [devTarget, stagingTarget, prodTarget], ['dev', 'staging', 'prod']);
+        [devTarget, stagingTarget, prodTarget],
+        ['dev', 'staging', 'prod'],
+      );
     });
   });
 }

@@ -11,10 +11,11 @@ Future<FilePickerResult?> ioPickImageFileLinux(BuildContext context) async {
     var bytes = await result.readAsBytes();
     return FilePickerResult([
       PlatformFile(
-          path: result.path,
-          name: result.name,
-          bytes: bytes,
-          size: bytes.length)
+        path: result.path,
+        name: result.name,
+        bytes: bytes,
+        size: bytes.length,
+      ),
     ]);
   }
 }

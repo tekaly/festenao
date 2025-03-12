@@ -49,16 +49,19 @@ class ProjectEditScreenBloc
     if (isCreate) {
       var fsProject = FsProject()..name.setValue(project.name.v);
       var userId = firebaseUser!.uid;
-      var projectUid =
-          await fsDb.projectDb.createEntity(userId: userId, entity: fsProject);
+      var projectUid = await fsDb.projectDb.createEntity(
+        userId: userId,
+        entity: fsProject,
+      );
       var userProjectAccess = await fsDb.projectDb
           .fsUserEntityAccessRef(userId, projectUid)
           .get(firestore);
-      var newDbProject = DbProject()
-        ..fromFirestore(
+      var newDbProject =
+          DbProject()..fromFirestore(
             fsProject: fsProject,
             projectAccess: userProjectAccess,
-            userId: userId);
+            userId: userId,
+          );
       await globalProjectsDb.addProject(newDbProject);
     } else {
       await firestore.cvRunTransaction((txn) async {

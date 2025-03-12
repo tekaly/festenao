@@ -9,16 +9,17 @@ class AppTextFieldTile extends StatelessWidget {
   final FormFieldValidator<String>? validator;
   final bool readOnly;
   final ValueChanged<String>? onChanged;
-  const AppTextFieldTile(
-      {super.key,
-      required this.labelText,
-      this.hintText,
-      this.controller,
-      this.maxLines = 1,
-      this.emptyAllowed = false,
-      this.validator,
-      this.readOnly = false,
-      this.onChanged});
+  const AppTextFieldTile({
+    super.key,
+    required this.labelText,
+    this.hintText,
+    this.controller,
+    this.maxLines = 1,
+    this.emptyAllowed = false,
+    this.validator,
+    this.readOnly = false,
+    this.onChanged,
+  });
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -38,7 +39,8 @@ class AppTextFieldTile extends StatelessWidget {
           // code when the user saves the form.
         },
         onChanged: onChanged,
-        validator: validator ??
+        validator:
+            validator ??
             (String? value) {
               if (emptyAllowed) {
                 return null;

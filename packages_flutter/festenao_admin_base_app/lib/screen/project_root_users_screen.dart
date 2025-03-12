@@ -30,9 +30,7 @@ class _AdminUsersScreenState extends AutoDisposeBaseState<AdminUsersScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<AdminUsersScreenBloc>(context);
     return AdminScreenLayout(
-      appBar: AppBar(
-        title: const Text('Users'),
-      ),
+      appBar: AppBar(title: const Text('Users')),
       body: StreamBuilder<AdminUsersScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
@@ -58,8 +56,11 @@ class _AdminUsersScreenState extends AutoDisposeBaseState<AdminUsersScreen> {
                     subtitle: Text(user.toMap().toString()),
                     trailing: const TrailingArrow(),
                     onTap: () {
-                      goToAdminUserScreen(context,
-                          projectId: bloc.param.id, userId: user.id);
+                      goToAdminUserScreen(
+                        context,
+                        projectId: bloc.param.id,
+                        userId: user.id,
+                      );
                     },
                   ),
                 );
@@ -71,9 +72,13 @@ class _AdminUsersScreenState extends AutoDisposeBaseState<AdminUsersScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          await goToAdminUserEditScreen(context,
-              param: AdminUserEditScreenParam(
-                  projectId: bloc.param.id, userId: null));
+          await goToAdminUserEditScreen(
+            context,
+            param: AdminUserEditScreenParam(
+              projectId: bloc.param.id,
+              userId: null,
+            ),
+          );
         },
         child: const Icon(Icons.add),
       ),
@@ -82,9 +87,13 @@ class _AdminUsersScreenState extends AutoDisposeBaseState<AdminUsersScreen> {
 }
 
 /// Push to avoid going to root
-Future<void> goToAdminUsersScreen(BuildContext context,
-    {required String projectId}) async {
-  await popAndGoToProjectSubScreen(context,
-      projectContext: ByProjectIdAdminAppProjectContext(projectId: projectId),
-      contentPath: ProjectUsersContentPath());
+Future<void> goToAdminUsersScreen(
+  BuildContext context, {
+  required String projectId,
+}) async {
+  await popAndGoToProjectSubScreen(
+    context,
+    projectContext: ByProjectIdAdminAppProjectContext(projectId: projectId),
+    contentPath: ProjectUsersContentPath(),
+  );
 }

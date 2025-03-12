@@ -54,8 +54,11 @@ class FestenaoTestServerContext
   @override
   final FfServer? ffServer;
 
-  FestenaoTestServerContext(
-      {required this.apiService, this.ffServer, required this.ampService});
+  FestenaoTestServerContext({
+    required this.apiService,
+    this.ffServer,
+    required this.ampService,
+  });
 
   @override
   Future<void> close() async {
@@ -84,10 +87,10 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
   var ffServer = await ff.serve();
   var ffContext =
       firebaseFunctionsContextSimOrNull = await ffServicesContext.init(
-    firebaseApp: ffServerContext.firebaseApp,
-    ffServer: ffServer,
-    serverApp: ffServerApp,
-  );
+        firebaseApp: ffServerContext.firebaseApp,
+        ffServer: ffServer,
+        serverApp: ffServerApp,
+      );
   var commandUri = ffServer.uri.replace(path: ffServerApp.command);
   var apiService = FestenaoApiService(
     callableApi: ffContext.functionsCall.callable(ffServerApp.callCommand),
@@ -98,11 +101,16 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
   await apiService.initClient();
   var ampUri = ffServer.uri.replace(path: ffServerApp.ampCommand);
   var ampService = FestenaoAmpService(
-      httpsAmpUri: ampUri, httpClientFactory: httpClientFactory);
+    httpsAmpUri: ampUri,
+    httpClientFactory: httpClientFactory,
+  );
   await ampService.initClient();
 
   return FestenaoTestServerContext(
-      apiService: apiService, ffServer: ffServer, ampService: ampService);
+    apiService: apiService,
+    ffServer: ffServer,
+    ampService: ampService,
+  );
 }
 
 Future<void> main() async {
@@ -111,7 +119,8 @@ Future<void> main() async {
 }
 
 void testFestenaoServerGroup(
-    Future<FestenaoTestServerContext> Function() initAllContext) {
+  Future<FestenaoTestServerContext> Function() initAllContext,
+) {
   late FestenaoTestServerContext context;
   late FestenaoApiService apiService;
   late FestenaoAmpService ampService;

@@ -240,5 +240,5 @@ var dayOfWeekFr = {
   DateTime.thursday: 'Jeudi',
   DateTime.friday: 'Vendredi',
   DateTime.saturday: 'Samedi',
-  DateTime.sunday: 'Dimanche'
+  DateTime.sunday: 'Dimanche',
 };

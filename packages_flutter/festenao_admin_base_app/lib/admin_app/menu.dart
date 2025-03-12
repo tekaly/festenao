@@ -52,26 +52,31 @@ final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
     await goToAdminFormQuestionsScreen(
       muiBuildContext,
       entityAccess: fbFsDocFormQuestionAccess(
-          gFsDatabaseService.firestoreDatabaseContext),
+        gFsDatabaseService.firestoreDatabaseContext,
+      ),
     );
   });
   muiItem('Question basic entity', () async {
     await goToBasicEntitiesScreen(
       muiBuildContext,
-      entityAccess:
-          fbFsFormQuestionAccess(gFsDatabaseService.firestoreDatabaseContext),
+      entityAccess: fbFsFormQuestionAccess(
+        gFsDatabaseService.firestoreDatabaseContext,
+      ),
     );
   });
   muiItem('Question doc entity', () async {
     await goToDocEntitiesScreen(
       muiBuildContext,
       entityAccess: fbFsDocFormQuestionAccess(
-          gFsDatabaseService.firestoreDatabaseContext),
+        gFsDatabaseService.firestoreDatabaseContext,
+      ),
     );
   });
   muiItem('Firestore explorer', () async {
-    await goToFsDocumentRootScreen(muiBuildContext,
-        firestore: globalFestenaoAdminAppFirebaseContext.firestore);
+    await goToFsDocumentRootScreen(
+      muiBuildContext,
+      firestore: globalFestenaoAdminAppFirebaseContext.firestore,
+    );
   });
   muiItem('FsProject list screen', () async {
     await goToFsProjectsScreen(muiBuildContext);

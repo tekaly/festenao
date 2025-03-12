@@ -24,19 +24,22 @@ class ProjectsDbSingleProjectAutoSynchronizer with AutoDisposeMixin {
     audiDisposeAll();
   }
 
-  ProjectsDbSingleProjectAutoSynchronizer(
-      {required this.projectsDb,
-      required this.fsProjects,
-      required this.projectId,
-      required this.userId}) {
+  ProjectsDbSingleProjectAutoSynchronizer({
+    required this.projectsDb,
+    required this.fsProjects,
+    required this.projectId,
+    required this.userId,
+  }) {
     () async {
-      audiAddStreamSubscription(streamJoin2OrError(
-              projectsDb.onProject(projectId, userId: userId),
-              dbProjectStore.record(projectId).onRecord(projectsDb.db))
-          .listen((dbProject) {
-        // ignore: avoid_print
-        print('dbProject: $dbProject');
-      }));
+      audiAddStreamSubscription(
+        streamJoin2OrError(
+          projectsDb.onProject(projectId, userId: userId),
+          dbProjectStore.record(projectId).onRecord(projectsDb.db),
+        ).listen((dbProject) {
+          // ignore: avoid_print
+          print('dbProject: $dbProject');
+        }),
+      );
     }();
   }
 }

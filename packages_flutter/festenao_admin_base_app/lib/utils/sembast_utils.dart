@@ -5,10 +5,11 @@ import 'package:tkcms_common/tkcms_firestore.dart';
 /// Extension for [DbProject]
 extension DbProjectUtils on DbProject {
   /// Update the [DbProject] from a [FsProject]
-  void fromFirestore(
-      {required FsProject fsProject,
-      required TkCmsFsUserAccess projectAccess,
-      required String userId}) {
+  void fromFirestore({
+    required FsProject fsProject,
+    required TkCmsFsUserAccess projectAccess,
+    required String userId,
+  }) {
     name.v = fsProject.name.v;
     uid.v = fsProject.id;
     this.userId.v = userId;

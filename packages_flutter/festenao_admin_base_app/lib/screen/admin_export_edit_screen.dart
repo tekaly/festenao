@@ -34,125 +34,131 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
   Widget build(BuildContext context) {
     var bloc = BlocProvider.of<AdminExportEditScreenBloc>(context);
     return ValueStreamBuilder<AdminExportEditScreenBlocState>(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          var state = snapshot.data;
+      stream: bloc.state,
+      builder: (context, snapshot) {
+        var state = snapshot.data;
 
-          var export = state?.fsExport;
+        var export = state?.fsExport;
 
-          var canSave = export != null;
+        var canSave = export != null;
 
-          if (canSave) {
-            if (export.changeId.v == state!.metaInfo.lastChangeId.v) {
-              exportNotifier = ValueNotifier<bool>(export.timestamp.v == null);
-            }
-
-            publishDevNotifier = ValueNotifier<bool>(true);
-            publishProdNotifier = ValueNotifier<bool>(true);
+        if (canSave) {
+          if (export.changeId.v == state!.metaInfo.lastChangeId.v) {
+            exportNotifier = ValueNotifier<bool>(export.timestamp.v == null);
           }
-          return AdminScreenLayout(
-            appBar: AppBar(
-              title: const Text('Export v2'),
-            ),
-            body: Stack(
-              children: [
-                ValueStreamBuilder<AdminExportEditScreenBlocState>(
-                  stream: bloc.state,
-                  builder: (context, snapshot) {
-                    var state = snapshot.data;
-                    if (!canSave) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
 
-                    var export = state?.fsExport;
-                    var exportId = bloc.exportId;
-                    if (export == null) {
-                      return Container();
-                    }
-                    return ListView(children: [
+          publishDevNotifier = ValueNotifier<bool>(true);
+          publishProdNotifier = ValueNotifier<bool>(true);
+        }
+        return AdminScreenLayout(
+          appBar: AppBar(title: const Text('Export v2')),
+          body: Stack(
+            children: [
+              ValueStreamBuilder<AdminExportEditScreenBlocState>(
+                stream: bloc.state,
+                builder: (context, snapshot) {
+                  var state = snapshot.data;
+                  if (!canSave) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  var export = state?.fsExport;
+                  var exportId = bloc.exportId;
+                  if (export == null) {
+                    return Container();
+                  }
+                  return ListView(
+                    children: [
                       Form(
                         key: formKey,
-                        child: Column(children: [
-                          if (canSave && exportId != null) ...[
-                            if (!export.exists)
-                              const ListTile(
-                                title: Text('Not found'),
-                              )
-                          ] else ...[
-                            ListTile(
-                              title: Text(exportId ?? 'New export'),
-                            ),
-                          ],
-                          if (export.version.v != null)
+                        child: Column(
+                          children: [
+                            if (canSave && exportId != null) ...[
+                              if (!export.exists)
+                                const ListTile(title: Text('Not found')),
+                            ] else ...[
+                              ListTile(title: Text(exportId ?? 'New export')),
+                            ],
+                            if (export.version.v != null)
+                              InfoTile(
+                                label: textVersion,
+                                value: export.version.v?.toString() ?? '?',
+                              ),
                             InfoTile(
-                              label: textVersion,
-                              value: export.version.v?.toString() ?? '?',
+                              label: textChangeId,
+                              value: export.changeId.v?.toString() ?? '?',
                             ),
-                          InfoTile(
-                            label: textChangeId,
-                            value: export.changeId.v?.toString() ?? '?',
-                          ),
-                          if (export.timestamp.v != null)
-                            InfoTile(
-                              label: textTimestamp,
-                              value:
-                                  export.timestamp.v?.toIso8601String() ?? '?',
-                            ),
-                          if (export.size.v != null)
-                            InfoTile(
-                              label: textSize,
-                              value: export.size.v?.toString() ?? '?',
-                            ),
-                          if (exportNotifier != null)
-                            ValueListenableBuilder<bool>(
+                            if (export.timestamp.v != null)
+                              InfoTile(
+                                label: textTimestamp,
+                                value:
+                                    export.timestamp.v?.toIso8601String() ??
+                                    '?',
+                              ),
+                            if (export.size.v != null)
+                              InfoTile(
+                                label: textSize,
+                                value: export.size.v?.toString() ?? '?',
+                              ),
+                            if (exportNotifier != null)
+                              ValueListenableBuilder<bool>(
                                 valueListenable: exportNotifier!,
                                 builder: (context, value, _) {
                                   return SwitchListTile(
-                                      title: const Text(textExport),
-                                      value: value,
-                                      onChanged: (value) =>
-                                          exportNotifier!.value = value);
-                                }),
-                          if (publishDevNotifier != null)
-                            ValueListenableBuilder<bool>(
+                                    title: const Text(textExport),
+                                    value: value,
+                                    onChanged:
+                                        (value) =>
+                                            exportNotifier!.value = value,
+                                  );
+                                },
+                              ),
+                            if (publishDevNotifier != null)
+                              ValueListenableBuilder<bool>(
                                 valueListenable: publishDevNotifier!,
                                 builder: (context, value, _) {
                                   return SwitchListTile(
-                                      title: const Text(textPublishDev),
-                                      value: value,
-                                      onChanged: (value) =>
-                                          publishDevNotifier!.value = value);
-                                }),
-                          if (publishProdNotifier != null)
-                            ValueListenableBuilder<bool>(
+                                    title: const Text(textPublishDev),
+                                    value: value,
+                                    onChanged:
+                                        (value) =>
+                                            publishDevNotifier!.value = value,
+                                  );
+                                },
+                              ),
+                            if (publishProdNotifier != null)
+                              ValueListenableBuilder<bool>(
                                 valueListenable: publishProdNotifier!,
                                 builder: (context, value, _) {
                                   return SwitchListTile(
-                                      title: const Text(textPublishProd),
-                                      value: value,
-                                      onChanged: (value) =>
-                                          publishProdNotifier!.value = value);
-                                }),
-                        ]),
-                      )
-                    ]);
-                  },
-                ),
-                LinearWait(
-                  showNotifier: saving,
-                ),
-              ],
-            ),
-            floatingActionButton: canSave
-                ? FloatingActionButton(
+                                    title: const Text(textPublishProd),
+                                    value: value,
+                                    onChanged:
+                                        (value) =>
+                                            publishProdNotifier!.value = value,
+                                  );
+                                },
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+              LinearWait(showNotifier: saving),
+            ],
+          ),
+          floatingActionButton:
+              canSave
+                  ? FloatingActionButton(
                     onPressed: () => _onSave(context),
                     child: const Icon(Icons.save),
                   )
-                : null,
-          );
-        });
+                  : null,
+        );
+      },
+    );
   }
 
   final _saveLock = Lock();
@@ -169,10 +175,11 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
             //  ..name.v = _nameController!.text
 
             var data = AdminExportEditData(
-                fsExport: fsExport,
-                export: exportNotifier?.value == true,
-                publish: publishProdNotifier?.value == true,
-                publishDev: publishDevNotifier?.value == true);
+              fsExport: fsExport,
+              export: exportNotifier?.value == true,
+              publish: publishProdNotifier?.value == true,
+              publishDev: publishDevNotifier?.value == true,
+            );
             await bloc.save(data);
             if (context.mounted) {
               Navigator.of(context).pop();
@@ -191,13 +198,23 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
   }
 }
 
-Future<void> goToAdminExportEditScreen(BuildContext context,
-    {required FestenaoAdminAppProjectContext projectContext,
-    required String? exportId}) async {
-  await Navigator.of(context).push<void>(MaterialPageRoute(builder: (context) {
-    return BlocProvider(
-        blocBuilder: () => AdminExportEditScreenBloc(
-            projectContext: projectContext, exportId: exportId),
-        child: const AdminExportEditScreen());
-  }));
+Future<void> goToAdminExportEditScreen(
+  BuildContext context, {
+  required FestenaoAdminAppProjectContext projectContext,
+  required String? exportId,
+}) async {
+  await Navigator.of(context).push<void>(
+    MaterialPageRoute(
+      builder: (context) {
+        return BlocProvider(
+          blocBuilder:
+              () => AdminExportEditScreenBloc(
+                projectContext: projectContext,
+                exportId: exportId,
+              ),
+          child: const AdminExportEditScreen(),
+        );
+      },
+    ),
+  );
 }

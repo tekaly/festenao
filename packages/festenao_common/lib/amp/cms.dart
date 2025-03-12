@@ -33,34 +33,43 @@ class Page {
     var charsetElement = htmlFactory.createElementTag('meta');
     charsetElement.attributes['charset'] = 'utf-8';
     headElement.append(charsetElement);
-    headElement.append(htmlFactory.createElementTag('meta')
-      ..attributes['name'] = 'viewport'
-      ..attributes['content'] =
-          'width=device-width,minimum-scale=1,initial-scale=1');
+    headElement.append(
+      htmlFactory.createElementTag('meta')
+        ..attributes['name'] = 'viewport'
+        ..attributes['content'] =
+            'width=device-width,minimum-scale=1,initial-scale=1',
+    );
 
     headElement.append(htmlFactory.createElementHtml(boilerPlate1));
     headElement.append(htmlFactory.createElementHtml(boilerPlate2));
     headElement.append(htmlFactory.createElementHtml(baseJs));
 
-    headElement.append(htmlFactory.createElementHtml(
-        '<link href="https://fonts.googleapis.com/css?family=Karla:400,700" rel="stylesheet">'));
+    headElement.append(
+      htmlFactory.createElementHtml(
+        '<link href="https://fonts.googleapis.com/css?family=Karla:400,700" rel="stylesheet">',
+      ),
+    );
 
     htmlElement.append(headElement);
 
     // Body
     var bodyElement = htmlFactory.createElementTag('body');
 
-    bodyElement.append(htmlFactory.createElementTag('div')
-      ..innerHtml = '<a href="cms/amp">amp</a');
+    bodyElement.append(
+      htmlFactory.createElementTag('div')
+        ..innerHtml = '<a href="cms/amp">amp</a',
+    );
     //bodyElement.append(spaceElement());
 
     if (title != null) {
-      bodyElement
-          .append(htmlFactory.createElementTag('h1')..innerHtml = title!);
+      bodyElement.append(
+        htmlFactory.createElementTag('h1')..innerHtml = title!,
+      );
     }
     if (content != null) {
-      bodyElement
-          .append(htmlFactory.createElementTag('div')..innerHtml = content!);
+      bodyElement.append(
+        htmlFactory.createElementTag('div')..innerHtml = content!,
+      );
     }
 
     htmlElement.append(bodyElement);
