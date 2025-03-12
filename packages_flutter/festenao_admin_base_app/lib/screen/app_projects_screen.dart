@@ -1,6 +1,5 @@
 import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
-import 'package:festenao_admin_base_app/screen/app_user_edit_screen.dart';
-import 'package:festenao_admin_base_app/screen/app_users_screen_bloc.dart';
+import 'package:festenao_admin_base_app/screen/project_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
 import 'package:flutter/material.dart';
@@ -9,29 +8,29 @@ import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
-import 'app_user_edit_screen_bloc.dart';
+import 'app_projects_screen_bloc.dart';
+import 'projects_screen_bloc.dart';
 
 /// Projects screen
-class FsAppUsersScreen extends StatefulWidget {
+class FsProjectsScreen extends StatefulWidget {
   /// Projects screen
-  const FsAppUsersScreen({super.key});
+  const FsProjectsScreen({super.key});
 
   @override
-  State<FsAppUsersScreen> createState() => _FsAppUsersScreenState();
+  State<FsProjectsScreen> createState() => _FsProjectsScreenState();
 }
 
-class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
+class _FsProjectsScreenState extends State<FsProjectsScreen> {
   @override
   Widget build(BuildContext context) {
-    var bloc = BlocProvider.of<FsAppUsersScreenBloc>(context);
+    var bloc = BlocProvider.of<FsProjectsScreenBloc>(context);
     return ValueStreamBuilder(
       stream: bloc.state,
       builder: (context, snapshot) {
         var state = snapshot.data;
-        var userId = state?.user?.uid;
         return FestenaoAdminAppScaffold(
           appBar: AppBar(
-            title: const Text('Users'), // appIntl(context).ProjectsTitle),
+            title: const Text('Project'), // appIntl(context).ProjectsTitle),
             /*actions: [
                 IconButton(
                     onPressed: () {
@@ -104,7 +103,7 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                                 icon: Icon(Icons.edit))*/
                           ],
                         ),*/
-                      title: Text(project.id),
+                      title: Text(project.name.v ?? project.id),
                       onTap: () async {
                         if (bloc.selectMode) {
                           Navigator.of(
@@ -124,18 +123,12 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
               );
             },
           ),
-          floatingActionButton:
-              (userId != null)
-                  ? FloatingActionButton(
-                    onPressed: () async {
-                      await goToAppUserEditScreen(
-                        context,
-                        param: AppUserEditScreenParam(userId: userId),
-                      );
-                    },
-                    child: const Icon(Icons.add),
-                  )
-                  : null,
+          floatingActionButton: FloatingActionButton(
+            onPressed: () async {
+              await goToProjectEditScreen(context, project: null);
+            },
+            child: const Icon(Icons.add),
+          ),
         );
       },
     );
@@ -143,29 +136,26 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
 }
 
 /// Go to Projects screen
-Future<Object?> goToFsAppUsersScreen(
-  BuildContext context, {
-  String? app,
-}) async {
-  return Navigator.of(context).push<Object?>(
-    MaterialPageRoute(
+Future<Object?> goToFsProjectsScreen(BuildContext context) async {
+  return Navigator.of(context).push(
+    (MaterialPageRoute(
       builder:
           (_) => BlocProvider(
-            blocBuilder: () => FsAppUsersScreenBloc(selectMode: true, app: app),
-            child: const FsAppUsersScreen(),
+            blocBuilder: () => FsProjectsScreenBloc(),
+            child: const FsProjectsScreen(),
           ),
-    ),
+    )),
   );
 }
 
-/// Go to Users screen
-Future<SelectProjectResult?> selectFsAppUser(BuildContext context) async {
+/// Go to Projects screen
+Future<SelectProjectResult?> selectFsProject(BuildContext context) async {
   var result = await Navigator.of(context).push<Object?>(
     MaterialPageRoute(
       builder:
           (_) => BlocProvider(
-            blocBuilder: () => FsAppUsersScreenBloc(selectMode: true),
-            child: const FsAppUsersScreen(),
+            blocBuilder: () => ProjectsScreenBloc(selectMode: true),
+            child: const FsProjectsScreen(),
           ),
     ),
   );

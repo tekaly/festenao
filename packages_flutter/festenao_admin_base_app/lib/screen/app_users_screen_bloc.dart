@@ -1,6 +1,6 @@
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_common/festenao_firestore.dart';
-import 'package:tkcms_admin_app/auth/fb_identity_bloc.dart';
+
 import 'package:tkcms_common/tkcms_audi.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_common.dart';
@@ -27,9 +27,10 @@ class FsAppUsersScreenBloc
   late final _lock = Lock(); // globalProjectsBloc.syncLock;
   final _fsLock = Lock();
   final bool selectMode;
+  final String? app;
 
   /// Projects screen bloc
-  FsAppUsersScreenBloc({this.selectMode = false}) {
+  FsAppUsersScreenBloc({this.selectMode = false, this.app}) {
     () async {
       audiAddStreamSubscription(
         globalTkCmsFbIdentityBloc.state.listen((state) {
@@ -46,7 +47,7 @@ class FsAppUsersScreenBloc
 
               /// Build from firestore
               var fsDb = globalFestenaoFirestoreDatabase.appDb;
-              var app = globalFestenaoFirestoreDatabase.app;
+              var app = this.app ?? globalFestenaoFirestoreDatabase.app;
               _firestoreSubscription = audiAddStreamSubscription(
                 fsDb
                     .fsEntityUserAccessCollectionRef(app)

@@ -84,7 +84,7 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
     appDb = TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp>(
       entityCollectionInfo: tkCmsFsAppCollectionInfo,
       firestore: firestore,
-      rootDocument: fsAppRoot(app),
+      rootDocument: null,
     );
   }
 
