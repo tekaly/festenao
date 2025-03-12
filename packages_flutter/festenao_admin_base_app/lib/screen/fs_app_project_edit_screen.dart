@@ -1,9 +1,8 @@
+import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
+import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/unsaved_changes_dialog.dart';
-import 'package:festenao_common/festenao_firestore.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
@@ -12,71 +11,69 @@ import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
-import 'admin_app_scaffold.dart';
-import 'fs_app_edit_screen_bloc.dart';
+import '../sembast/projects_db.dart';
+import 'fs_app_project_edit_screen_bloc.dart';
 
 //import 'package:sqflite/src/utils.dart';
-class FsAppEditScreenResult {
-  final bool modified;
+class FsAppProjectEditData {
+  final String? projectId; // Null for creation with auto generation
+  final FsProject project;
 
-  FsAppEditScreenResult({required this.modified});
-
-  @override
-  String toString() => 'FsAppEditScreenResult(modified: $modified)';
+  FsAppProjectEditData({required this.projectId, required this.project});
 }
 
-class FsAppEditScreen extends StatefulWidget {
-  const FsAppEditScreen({super.key});
+class FsAppProjectEditScreen extends StatefulWidget {
+  const FsAppProjectEditScreen({super.key});
 
   @override
-  FsAppEditScreenState createState() => FsAppEditScreenState();
+  FsAppProjectEditScreenState createState() => FsAppProjectEditScreenState();
 }
 
-class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
-    with AutoDisposedBusyScreenStateMixin<FsAppEditScreen> {
+class FsAppProjectEditScreenState
+    extends AutoDisposeBaseState<FsAppProjectEditScreen>
+    with AutoDisposedBusyScreenStateMixin<FsAppProjectEditScreen> {
   final formKey = GlobalKey<FormState>();
   TextEditingController? _nameController;
-  TextEditingController? _idController; // New only
+  TextEditingController? _idController;
 
-  bool _gotInitialApp = false;
-  late TkCmsFsApp initialApp;
+  bool _gotInitialProject = false;
+  late FsProject initialProject;
 
   bool get _hasChanges {
-    if (!_gotInitialApp) {
+    if (!_gotInitialProject) {
       return false;
     }
-    var app = _appFromInput.app;
-    var appId = _appFromInput.appId;
-    return (app.name.v?.trimmedNonEmpty() !=
-            initialApp.name.v?.trimmedNonEmpty()) &&
-        appId != initialApp.idOrNull;
+    var project = _projectFromInput;
+    return (project.project.name.v?.trimmedNonEmpty() !=
+        initialProject.name.v?.trimmedNonEmpty());
   }
 
-  FsAppEditData get _appFromInput {
+  FsAppProjectEditData get _projectFromInput {
+    var projectId =
+        bloc.isCreate ? _idController?.text.trimmedNonEmpty() : bloc.projectId;
     var name = _nameController!.text.trimmedNonEmpty();
-    var id = _idController!.text.trim();
-    var app = initialApp.clone();
-    app.name.v = name;
-    return FsAppEditData(appId: id, app: app);
+    var project = initialProject.clone();
+    project.name.v = name;
+    return FsAppProjectEditData(projectId: projectId, project: project);
   }
 
-  bool _isEmptyApp(TkCmsFsApp app) {
-    return app.name.v?.trimmedNonEmpty() == null;
+  bool _isEmptyProject(FsProject project) {
+    return project.name.v?.trimmedNonEmpty() == null;
   }
 
   Future<void> _saveAndExit(BuildContext context) async {
-    var appEditData = _appFromInput;
-    if (_isEmptyApp(appEditData.app)) {
+    var project = _projectFromInput;
+    if (_isEmptyProject(project.project)) {
       return;
     }
     var result = await busyAction(() async {
-      var bloc = this.bloc;
-      await bloc.saveApp(appEditData);
+      var bloc = BlocProvider.of<FsAppProjectEditScreenBloc>(context);
+      await bloc.saveProject(project);
     });
     if (!result.busy) {
       if (result.error == null) {
         if (context.mounted) {
-          Navigator.pop(context, FsAppEditScreenResult(modified: true));
+          Navigator.pop(context);
         }
       } else {
         if (kDebugMode) {
@@ -89,7 +86,8 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
     }
   }
 
-  FsAppEditScreenBloc get bloc => BlocProvider.of<FsAppEditScreenBloc>(context);
+  FsAppProjectEditScreenBloc get bloc =>
+      BlocProvider.of<FsAppProjectEditScreenBloc>(context);
 
   @override
   Widget build(BuildContext context) {
@@ -100,14 +98,14 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
       stream: bloc.state,
       builder: (context, snapshot) {
         var state = snapshot.data;
-        if (state != null && !_gotInitialApp) {
-          _gotInitialApp = true;
-          initialApp = state.app ?? TkCmsFsApp();
+        if (state != null && !_gotInitialProject) {
+          _gotInitialProject = true;
+          initialProject = state.project ?? FsProject();
           _nameController = audiAddTextEditingController(
-            TextEditingController(text: initialApp.name.v),
+            TextEditingController(text: initialProject.name.v),
           );
           _idController = audiAddTextEditingController(
-            TextEditingController(text: bloc.param.appId),
+            TextEditingController(text: bloc.projectId),
           );
         }
 
@@ -134,12 +132,12 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
               }
             }
           },
-          child: FestenaoAdminAppScaffold(
+          child: Scaffold(
             appBar: AppBar(
               // Here we take the value from the MyHomePage object that
               // was created by the App.build method, and use it to set
               // our appbar title.
-              title: Text('FsApp ${bloc.isCreate ? 'create' : 'edit'}'),
+              title: Text(intl.projectEditTitle),
             ),
             body: Stack(
               children: [
@@ -154,9 +152,9 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
                             const SizedBox(height: 16),
                             BodyHPadding(
                               child: TextFormField(
-                                readOnly: bloc.param.appId != null,
+                                readOnly: !bloc.isCreate,
                                 decoration: const InputDecoration(
-                                  hintText: 'App id',
+                                  hintText: 'Project id',
                                   labelText: 'ID',
                                 ),
                                 validator: (value) {
@@ -173,7 +171,7 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
                             BodyHPadding(
                               child: TextFormField(
                                 decoration: const InputDecoration(
-                                  hintText: 'App name',
+                                  hintText: 'Project name',
                                   labelText: 'Name',
                                 ),
                                 validator: (value) {
@@ -186,6 +184,7 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
                                 maxLines: 1,
                               ),
                             ),
+                            const SizedBox(height: 16),
                             const SizedBox(height: 64),
                           ],
                         ),
@@ -201,7 +200,7 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
               //onPressed: _incrementCounter,
               //tooltip: 'Save',
               onPressed:
-                  _gotInitialApp
+                  _gotInitialProject
                       ? () async {
                         if (formKey.currentState!.validate()) {
                           await _saveAndExit(context);
@@ -217,27 +216,19 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
   }
 }
 
-Future<FsAppEditScreenResult?> goToFsAppEditScreen(
+Future<void> goToFsAppProjectEditScreen(
   BuildContext context, {
-
-  /// null for new
   required String? appId,
+  required FsProject? project,
 }) async {
-  var result = await Navigator.of(context).push(
-    MaterialPageRoute<Object?>(
-      builder: (context) {
-        return BlocProvider(
-          blocBuilder:
-              () => FsAppEditScreenBloc(
-                param: FsAppEditScreenParam(appId: appId),
-              ),
-          child: const FsAppEditScreen(),
-        );
-      },
-    ),
+  await festenaoPushScreen<void>(
+    context,
+    builder: (context) {
+      return BlocProvider(
+        blocBuilder:
+            () => FsAppProjectEditScreenBloc(project: project, appId: appId),
+        child: const FsAppProjectEditScreen(),
+      );
+    },
   );
-  if (result is FsAppEditScreenResult) {
-    return result;
-  }
-  return null;
 }

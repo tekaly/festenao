@@ -1,10 +1,12 @@
 import 'package:festenao_admin_base_app/auth/auth.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
+import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/form/form_questions_screen.dart';
 import 'package:festenao_admin_base_app/form/fs_form_info.dart';
 import 'package:festenao_admin_base_app/prefs/local_prefs.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_projects_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_users_screen.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_view_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_apps_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_entity_list_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
@@ -16,8 +18,11 @@ import 'package:tkcms_admin_app/screen/basic_entities_screen.dart';
 import 'package:tkcms_admin_app/screen/debug_screen.dart';
 import 'package:tkcms_admin_app/screen/doc_entities_screen.dart';
 
+/// Default debug menu
+var festenaoAdminDebugScreen = festenaoAdminDebugScreenDefault;
+
 /// Festenao admin menu
-final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
+final festenaoAdminDebugScreenDefault = muiScreenWidget('Festenao debug', () {
   muiItem('Auth', () {
     goToAuthScreen(muiBuildContext);
   });
@@ -80,7 +85,7 @@ final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
     );
   });
   muiItem('FsProject list screen', () async {
-    await goToFsProjectsScreen(muiBuildContext);
+    await goToFsAppProjectsScreen(muiBuildContext);
   });
   muiItem('FsApp list screen', () async {
     await goToFsAppsScreen(muiBuildContext);
@@ -97,5 +102,33 @@ final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
   });
   muiItem('App users list screen', () async {
     await goToFsAppUsersScreen(muiBuildContext);
+  });
+
+  var defaultAppId = globalFestenaoFirestoreDatabase.appId;
+  var appId = defaultAppId;
+  muiItem('View app ${globalFestenaoFirestoreDatabase.appId}', () async {
+    await goToFsAppViewScreen(muiBuildContext, appId: defaultAppId);
+  });
+  muiItem('View custom appId', () async {
+    await goToFsAppViewScreen(muiBuildContext, appId: appId);
+  });
+  muiItem('View custom appId users', () async {
+    await goToFsAppUsersScreen(muiBuildContext, appId: appId);
+  });
+  muiItem('View custom appId projects', () async {
+    await goToFsAppProjectsScreen(muiBuildContext, appId: appId);
+  });
+  muiItem('Prompt custom appId', () async {
+    var newAppId = await muiGetString(
+      muiBuildContext,
+      title: 'App id',
+      value: appId,
+    );
+    if (newAppId != null) {
+      appId = newAppId;
+    }
+  });
+  muiItem('Show custom appId', () async {
+    await muiSnack(muiBuildContext, 'appId: $appId');
   });
 });

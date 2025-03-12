@@ -1,16 +1,15 @@
-import 'package:festenao_admin_base_app/auth/auth_bloc.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_common/data/src/import.dart';
-import 'package:tekartik_firebase_auth_local/auth_local.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
+import 'package:tkcms_common/tkcms_auth.dart';
 
 class StartScreenBlocState {
-  final FirebaseUser? user;
+  final TkCmsFbIdentity? identity;
 
-  /// Projects
+  /// Projects (for user only)
   final List<DbProject>? projects;
 
-  StartScreenBlocState({required this.user, required this.projects});
+  StartScreenBlocState({required this.identity, required this.projects});
 }
 
 class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
@@ -21,24 +20,35 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
   StartScreenBloc() {
     () async {
       audiAddStreamSubscription(
-        globalAuthBloc.state.listen((state) {
+        globalTkCmsFbIdentityBloc.state.listen((state) {
           _lock.synchronized(() async {
-            var user = state.user;
-            var userId = user?.uid;
-            if (userId != null && userId != _dbUserId) {
-              _dbUserId = userId;
-              audiDispose(_dbSubscription);
-              add(StartScreenBlocState(projects: null, user: user));
-              _dbSubscription = audiAddStreamSubscription(
-                globalProjectsDb.onProjects(userId: userId).listen((projects) {
-                  add(StartScreenBlocState(projects: projects, user: user));
-                }),
-              );
+            var identity = state.identity;
+            if (identity is TkCmsFbIdentityUser) {
+              var user = identity.user;
+              var userId = user.uid;
+              if (userId != _dbUserId) {
+                _dbUserId = userId;
+                audiDispose(_dbSubscription);
+
+                /// Show identification first, if db projects are not synchronized yet
+                add(StartScreenBlocState(projects: null, identity: identity));
+                _dbSubscription = audiAddStreamSubscription(
+                  globalProjectsDb.onProjects(userId: userId).listen((
+                    projects,
+                  ) {
+                    add(
+                      StartScreenBlocState(
+                        projects: projects,
+                        identity: identity,
+                      ),
+                    );
+                  }),
+                );
+              }
             } else {
               _dbUserId = null;
-              if (userId == null) {
-                add(StartScreenBlocState(user: null, projects: null));
-              }
+
+              add(StartScreenBlocState(identity: identity, projects: null));
             }
           });
         }),

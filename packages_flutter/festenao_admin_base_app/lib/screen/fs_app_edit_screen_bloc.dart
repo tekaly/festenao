@@ -34,6 +34,9 @@ class FsAppEditScreenBloc
   //late final _lock = Lock(); //
   final FsAppEditScreenParam param;
 
+  /// True for app creation
+  bool get isCreate => param.appId == null;
+
   //late StreamSubscription _studiesSubscription;
 
   FsAppEditScreenBloc({required this.param}) {
@@ -44,10 +47,15 @@ class FsAppEditScreenBloc
         if (_fbIdentity == null) {
           add(FsAppEditScreenBlocState(identity: null, app: null));
         } else {
-          var appId = param.appId ?? globalFestenaoFirestoreDatabase.app;
+          var appId = param.appId;
           var fsDb = globalFestenaoFirestoreDatabase.appDb;
           var firestore = globalFestenaoFirestoreDatabase.firestore;
-          var app = await fsDb.fsEntityRef(appId).get(firestore);
+          TkCmsFsApp app;
+          if (isCreate) {
+            app = TkCmsFsApp();
+          } else {
+            app = await fsDb.fsEntityRef(appId!).get(firestore);
+          }
           if (!disposed) {
             add(FsAppEditScreenBlocState(identity: _fbIdentity, app: app));
           }

@@ -107,6 +107,7 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                             param: FsAppUserEditScreenParam(
                               userId: userId,
                               appId: bloc.appId,
+                              projectId: bloc.projectId,
                             ),
                           );
                           bloc.refresh();
@@ -129,6 +130,7 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                         param: FsAppUserEditScreenParam(
                           userId: null,
                           appId: bloc.appId,
+                          projectId: bloc.projectId,
                         ),
                       );
 
@@ -147,12 +149,14 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
 Future<Object?> goToFsAppUsersScreen(
   BuildContext context, {
   String? appId,
+  String? projectId,
 }) async {
   return Navigator.of(context).push<Object?>(
     MaterialPageRoute(
       builder:
           (_) => BlocProvider(
-            blocBuilder: () => FsAppUsersScreenBloc(appId: appId),
+            blocBuilder:
+                () => FsAppUsersScreenBloc(appId: appId, projectId: projectId),
             child: const FsAppUsersScreen(),
           ),
     ),
@@ -163,13 +167,18 @@ Future<Object?> goToFsAppUsersScreen(
 Future<FsAppUserSelectResult?> selectFsAppUser(
   BuildContext context, {
   String? appId,
+  String? projectId,
 }) async {
   var result = await Navigator.of(context).push<Object?>(
     MaterialPageRoute(
       builder:
           (_) => BlocProvider(
             blocBuilder:
-                () => FsAppUsersScreenBloc(selectMode: true, appId: appId),
+                () => FsAppUsersScreenBloc(
+                  selectMode: true,
+                  appId: appId,
+                  projectId: projectId,
+                ),
             child: const FsAppUsersScreen(),
           ),
     ),

@@ -93,6 +93,7 @@ class _FsAppsScreenState extends State<FsAppsScreen> {
                   return BodyContainer(
                     child: ListTile(
                       title: Text(app.name.v ?? app.id),
+                      subtitle: Text(app.id),
                       onTap: () async {
                         if (bloc.selectMode) {
                           Navigator.of(

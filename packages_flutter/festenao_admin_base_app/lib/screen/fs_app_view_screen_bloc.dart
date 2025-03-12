@@ -5,65 +5,138 @@ import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_common.dart';
 
 class FsAppViewScreenBlocState {
-  final TkCmsFbIdentity? identify;
+  final TkCmsFbIdentity? identity;
   final TkCmsFsApp? app;
 
-  FsAppViewScreenBlocState({this.app, this.identify});
+  FsAppViewScreenBlocState({this.app, this.identity});
 }
 
-class FsAppViewScreenBloc
-    extends AutoDisposeStateBaseBloc<FsAppViewScreenBlocState> {
-  final String appId;
+abstract class FsAppBlocRawBase<T extends Object>
+    extends AutoDisposeStateBaseBloc<T> {
+  Firestore get firestore => ffdb.firestore;
+  TkCmsFbIdentity? fbIdentity;
 
-  final _lock = Lock();
+  String? get userId => firebaseUser?.uid;
+
+  /// Null for service account
+  FirebaseUser? get firebaseUser =>
+      (fbIdentity is TkCmsFbIdentityUser)
+          ? (fbIdentity as TkCmsFbIdentityUser).user
+          : null;
+
+  /// Nul for app create only
+  final String? appId;
+
+  String get appIdOrDefault => appId ?? globalFestenaoFirestoreDatabase.appId;
+
+  /// Projects screen bloc
+  FsAppBlocRawBase({required this.appId});
+  late final identityLock = Lock(); // globalProjectsBloc.syncLock;
+  final fsLock = Lock();
+
+  late final FestenaoFirestoreDatabase ffdb = () {
+    if (appIdOrDefault == globalFestenaoFirestoreDatabase.appId) {
+      return globalFestenaoFirestoreDatabase;
+    }
+    return globalFestenaoFirestoreDatabase.copyWithAppId(appIdOrDefault);
+  }();
+
+  /// App or project user helper
+  CvCollectionReference<TkCmsFsUserAccess> appOrProjectUserAccessCollectionRef({
+    String? projectId,
+  }) {
+    var ffdb = this.ffdb;
+    if (projectId != null) {
+      return ffdb.projectDb.fsEntityUserAccessCollectionRef(projectId);
+    } else {
+      return ffdb.appDb.fsEntityUserAccessCollectionRef(appIdOrDefault);
+    }
+  }
+
+  /// App or project user helper
+  TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity> appOrProjectAccess({
+    String? projectId,
+  }) {
+    var ffdb = this.ffdb;
+    if (projectId != null) {
+      return ffdb.projectDb;
+    } else {
+      return ffdb.appDb;
+    }
+  }
+}
+
+abstract class FsAppBlocBase<T extends Object> extends FsAppBlocRawBase<T> {
   // ignore: cancel_subscriptions
   StreamSubscription? fsSubscription;
-  String get userId => firebaseUser!.uid;
-  FirebaseUser? firebaseUser;
-  TkCmsFbIdentity? _fbIdentity;
 
   void refresh() {
-    assert(_fbIdentity != null);
-
-    /// Build from firestore
-    var fsDb = globalFestenaoFirestoreDatabase.appDb;
-    var firestore = globalFestenaoFirestoreDatabase.firestore;
+    assert(fbIdentity != null);
+    var ffdb = this.ffdb;
+    var firestore = ffdb.firestore;
 
     if (firestore.service.supportsTrackChanges && fsSubscription != null) {
       return;
     }
     audiDispose(fsSubscription);
-
-    fsSubscription = audiAddStreamSubscription(
-      fsDb.fsEntityRef(appId).onSnapshotSupport(fsDb.firestore).listen((app) {
-        add(FsAppViewScreenBlocState(app: app, identify: _fbIdentity));
-        // var AppsUser = await dbAppUserStore.record(userId).get(AppsDb.db);
-      }),
-    );
+    handleRefresh();
   }
 
-  FsAppViewScreenBloc({required this.appId}) {
+  @protected
+  void handleRefresh();
+  @protected
+  void handleNoIdentity();
+
+  /// Projects screen bloc
+  FsAppBlocBase({required super.appId}) {
     () async {
       audiAddStreamSubscription(
         globalTkCmsFbIdentityBloc.state.listen((state) {
-          _lock.synchronized(() async {
+          identityLock.synchronized(() async {
             var identity = state.identity;
 
-            if (identity != null && (_fbIdentity != identity)) {
-              _fbIdentity = identity;
+            if (identity != null && (fbIdentity != identity)) {
+              fbIdentity = identity;
 
               refresh();
             } else {
               if (identity == null) {
-                _fbIdentity = null;
-
-                add(FsAppViewScreenBlocState(app: null, identify: identity));
+                fbIdentity = null;
+                handleNoIdentity();
               }
             }
           });
         }),
       );
     }();
+  }
+}
+
+class FsAppViewScreenBloc extends FsAppBlocBase<FsAppViewScreenBlocState> {
+  String get _appId => appId!;
+
+  FsAppViewScreenBloc({required String appId}) : super(appId: appId);
+
+  @override
+  void handleRefresh() {
+    /// Build from firestore
+    var fsDb = ffdb.appDb;
+    var firestore = globalFestenaoFirestoreDatabase.firestore;
+
+    if (firestore.service.supportsTrackChanges && fsSubscription != null) {
+      return;
+    }
+    fsSubscription = audiAddStreamSubscription(
+      fsDb.fsEntityRef(_appId).onSnapshotSupport(fsDb.firestore).listen((app) {
+        add(FsAppViewScreenBlocState(app: app, identity: fbIdentity));
+        // var AppsUser = await dbAppUserStore.record(userId).get(AppsDb.db);
+      }),
+    );
+  }
+
+  @override
+  void handleNoIdentity() {
+    add(FsAppViewScreenBlocState(app: null, identity: null));
   }
 
   /// Raw delete (no child delete)

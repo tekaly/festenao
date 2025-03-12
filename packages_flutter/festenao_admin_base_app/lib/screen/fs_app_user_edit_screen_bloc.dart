@@ -1,14 +1,18 @@
-import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_view_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
 
-import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
 class FsAppUserEditScreenParam {
+  final String? projectId; // Optional projectId - default is app user
   final String? appId; // Optional appId
   /// Null for creation
   final String? userId;
-  FsAppUserEditScreenParam({required this.userId, this.appId});
+  FsAppUserEditScreenParam({
+    required this.userId,
+    this.appId,
+    required this.projectId,
+  });
 }
 
 class FsAppUserEditScreenBlocState {
@@ -18,24 +22,24 @@ class FsAppUserEditScreenBlocState {
 }
 
 class FsAppUserEditScreenBloc
-    extends AutoDisposeStateBaseBloc<FsAppUserEditScreenBlocState> {
+    extends FsAppBlocRawBase<FsAppUserEditScreenBlocState> {
   /// Null for creation
 
   final FsAppUserEditScreenParam param;
 
   //late StreamSubscription _studiesSubscription;
 
-  FsAppUserEditScreenBloc({required this.param}) {
+  FsAppUserEditScreenBloc({required this.param}) : super(appId: param.appId) {
     () async {
       if (!disposed) {
         var userId = param.userId;
         if (userId == null) {
           add(FsAppUserEditScreenBlocState(null));
         } else {
-          var appId = _appId;
-          var fsDb = globalFestenaoFirestoreDatabase.appDb;
-          var userAccessRef = fsDb.fsEntityUserAccessRef(appId, userId);
-          var userAccess = await userAccessRef.get(fsDb.firestore);
+          var userAccessRef = appOrProjectUserAccessCollectionRef(
+            projectId: param.projectId,
+          ).doc(userId);
+          var userAccess = await userAccessRef.get(firestore);
           if (!disposed) {
             add(FsAppUserEditScreenBlocState(userAccess));
           }
@@ -43,18 +47,24 @@ class FsAppUserEditScreenBloc
       }
     }();
   }
-
-  String get _appId => param.appId ?? globalFestenaoFirestoreDatabase.appId;
   Future<void> save(AdminUserEditData data) async {
     var userId = data.userId ?? param.userId!;
 
-    var appId = _appId;
-    var fsDb = globalFestenaoFirestoreDatabase.appDb;
+    var appId = appIdOrDefault;
+    var projectId = param.projectId;
+
+    String entityId;
+    if (projectId != null) {
+      entityId = projectId;
+    } else {
+      entityId = appId;
+    }
+    var fsDb = appOrProjectAccess(projectId: projectId);
     var userAccess = data.user;
     userAccess.fixAccess();
 
     await fsDb.setEntityUserAccess(
-      entityId: appId,
+      entityId: entityId,
       userId: userId,
       userAccess: userAccess,
     );

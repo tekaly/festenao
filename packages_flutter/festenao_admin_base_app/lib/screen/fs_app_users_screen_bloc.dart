@@ -1,9 +1,7 @@
-import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_view_screen_bloc.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 
-import 'package:tkcms_common/tkcms_audi.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
-import 'package:tkcms_common/tkcms_common.dart';
 
 /// Projects screen bloc state
 class FsAppUsersScreenBlocState {
@@ -18,40 +16,22 @@ class FsAppUsersScreenBlocState {
 }
 
 /// Projects screen bloc
-class FsAppUsersScreenBloc
-    extends AutoDisposeStateBaseBloc<FsAppUsersScreenBlocState> {
-  // ignore: cancel_subscriptions
-  StreamSubscription? _firestoreSubscription;
-
-  late final _lock = Lock(); // globalProjectsBloc.syncLock;
-  final _fsLock = Lock();
+class FsAppUsersScreenBloc extends FsAppBlocBase<FsAppUsersScreenBlocState> {
   final bool selectMode;
-  final String? appId;
-  TkCmsFbIdentity? _fbIdentity;
+  final String? projectId;
 
-  String get _appId => appId ?? globalFestenaoFirestoreDatabase.app;
-  void refresh() {
-    assert(_fbIdentity != null);
-
+  @override
+  void handleRefresh() {
     /// Build from firestore
-    var fsDb = globalFestenaoFirestoreDatabase.appDb;
-    var firestore = globalFestenaoFirestoreDatabase.firestore;
+    var fsDb = ffdb.appDb;
 
-    if (firestore.service.supportsTrackChanges &&
-        _firestoreSubscription != null) {
-      return;
-    }
-    audiDispose(_firestoreSubscription);
-
-    var appId = _appId;
-    var coll = fsDb.fsEntityUserAccessCollectionRef(appId);
-
-    _firestoreSubscription = audiAddStreamSubscription(
+    var coll = appOrProjectUserAccessCollectionRef(projectId: projectId);
+    fsSubscription = audiAddStreamSubscription(
       coll.onSnapshotsSupport(fsDb.firestore).listen((list) {
-        _fsLock.synchronized(() async {
+        fsLock.synchronized(() async {
           add(
             FsAppUsersScreenBlocState(
-              identity: _fbIdentity,
+              identity: fbIdentity,
               userAccessList: list,
             ),
           );
@@ -62,30 +42,9 @@ class FsAppUsersScreenBloc
   }
 
   /// Projects screen bloc
-  FsAppUsersScreenBloc({this.selectMode = false, this.appId}) {
-    () async {
-      audiAddStreamSubscription(
-        globalTkCmsFbIdentityBloc.state.listen((state) {
-          _lock.synchronized(() async {
-            var identity = state.identity;
-            if (identity != null && (_fbIdentity != identity)) {
-              _fbIdentity = identity;
-
-              refresh();
-            } else {
-              if (identity == null) {
-                _fbIdentity = null;
-                add(
-                  FsAppUsersScreenBlocState(
-                    identity: identity,
-                    userAccessList: [],
-                  ),
-                );
-              }
-            }
-          });
-        }),
-      );
-    }();
+  FsAppUsersScreenBloc({this.selectMode = false, super.appId, this.projectId});
+  @override
+  void handleNoIdentity() {
+    add(FsAppUsersScreenBlocState(identity: null, userAccessList: []));
   }
 }

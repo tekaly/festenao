@@ -12,7 +12,7 @@ void initFestenaoFsBuilders() {
 }
 
 /// Main entity database
-class FsProject extends TkCmsFsEntity {
+class FsProject extends TkCmsFsProject {
   @override
   CvFields get fields => [...super.fields];
 }
@@ -51,10 +51,10 @@ final userPrvCollectionInfo =
 
 /// Main entity database
 class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
-  /// Project database
+  /// Project database - different for each app
   late TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> projectDb;
 
-  /// App database (and user access if any)
+  /// App database (and user access if any) - same for all apps
   late TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp> appDb;
 
   /// User private database
@@ -91,6 +91,14 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   /// Project collection reference
   CvCollectionReference<FsProject> get fsProjectCollection =>
       projectDb.fsEntityCollectionRef;
+
+  /// Copy with a different appId
+  FestenaoFirestoreDatabase copyWithAppId(String appId) {
+    return FestenaoFirestoreDatabase(
+      firebaseContext: firebaseContext,
+      flavorContext: flavorContext.copyWithAppId(appId),
+    );
+  }
 }
 
 /// Global entity database
