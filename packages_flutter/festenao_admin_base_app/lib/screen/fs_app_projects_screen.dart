@@ -8,7 +8,7 @@ import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
-import 'app_projects_screen_bloc.dart';
+import 'fs_app_projects_screen_bloc.dart';
 import 'projects_screen_bloc.dart';
 
 /// Projects screen
@@ -49,7 +49,7 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
               var projects = state.projects;
               return WithHeaderFooterListView.builder(
                 footer:
-                    state.user == null
+                    state.identify == null
                         ? const BodyContainer(
                           child: BodyHPadding(
                             child: Center(

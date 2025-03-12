@@ -12,9 +12,18 @@ import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
+import 'admin_app_scaffold.dart';
 import 'fs_app_edit_screen_bloc.dart';
 
 //import 'package:sqflite/src/utils.dart';
+class FsAppEditScreenResult {
+  final bool modified;
+
+  FsAppEditScreenResult({required this.modified});
+
+  @override
+  String toString() => 'FsAppEditScreenResult(modified: $modified)';
+}
 
 class FsAppEditScreen extends StatefulWidget {
   const FsAppEditScreen({super.key});
@@ -36,16 +45,19 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
     if (!_gotInitialApp) {
       return false;
     }
-    var app = _appFromInput;
+    var app = _appFromInput.app;
+    var appId = _appFromInput.appId;
     return (app.name.v?.trimmedNonEmpty() !=
-        initialApp.name.v?.trimmedNonEmpty());
+            initialApp.name.v?.trimmedNonEmpty()) &&
+        appId != initialApp.idOrNull;
   }
 
-  TkCmsFsApp get _appFromInput {
+  FsAppEditData get _appFromInput {
     var name = _nameController!.text.trimmedNonEmpty();
+    var id = _idController!.text.trim();
     var app = initialApp.clone();
     app.name.v = name;
-    return app;
+    return FsAppEditData(appId: id, app: app);
   }
 
   bool _isEmptyApp(TkCmsFsApp app) {
@@ -53,18 +65,18 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
   }
 
   Future<void> _saveAndExit(BuildContext context) async {
-    var app = _appFromInput;
-    if (_isEmptyApp(app)) {
+    var appEditData = _appFromInput;
+    if (_isEmptyApp(appEditData.app)) {
       return;
     }
     var result = await busyAction(() async {
       var bloc = this.bloc;
-      await bloc.saveApp(FsAppEditData(appId: bloc.param.appId, app: app));
+      await bloc.saveApp(appEditData);
     });
     if (!result.busy) {
       if (result.error == null) {
         if (context.mounted) {
-          Navigator.pop(context);
+          Navigator.pop(context, FsAppEditScreenResult(modified: true));
         }
       } else {
         if (kDebugMode) {
@@ -122,7 +134,7 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
               }
             }
           },
-          child: Scaffold(
+          child: FestenaoAdminAppScaffold(
             appBar: AppBar(
               // Here we take the value from the MyHomePage object that
               // was created by the App.build method, and use it to set
@@ -142,7 +154,7 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
                             const SizedBox(height: 16),
                             BodyHPadding(
                               child: TextFormField(
-                                readOnly: bloc.param.appId == null,
+                                readOnly: bloc.param.appId != null,
                                 decoration: const InputDecoration(
                                   hintText: 'App id',
                                   labelText: 'ID',
@@ -205,14 +217,14 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
   }
 }
 
-Future<void> goToFsAppEditScreen(
+Future<FsAppEditScreenResult?> goToFsAppEditScreen(
   BuildContext context, {
 
   /// null for new
   required String? appId,
 }) async {
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(
+  var result = await Navigator.of(context).push(
+    MaterialPageRoute<Object?>(
       builder: (context) {
         return BlocProvider(
           blocBuilder:
@@ -224,4 +236,8 @@ Future<void> goToFsAppEditScreen(
       },
     ),
   );
+  if (result is FsAppEditScreenResult) {
+    return result;
+  }
+  return null;
 }

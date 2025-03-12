@@ -1,5 +1,4 @@
-import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
-import 'package:festenao_admin_base_app/screen/app_user_edit_screen_bloc.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/text_validator.dart';
@@ -26,14 +25,14 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
   late final BehaviorSubject<bool> _admin;
   var formKey = GlobalKey<FormState>();
 
-  AppUserEditScreenBloc get bloc =>
-      BlocProvider.of<AppUserEditScreenBloc>(context);
+  FsAppUserEditScreenBloc get bloc =>
+      BlocProvider.of<FsAppUserEditScreenBloc>(context);
   @override
   Widget build(BuildContext context) {
     var bloc = this.bloc;
-    return AdminScreenLayout(
+    return FestenaoAdminAppScaffold(
       appBar: AppBar(title: const Text('User')),
-      body: ValueStreamBuilder<AppUserEditScreenBlocState>(
+      body: ValueStreamBuilder<FsAppUserEditScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
           if (snapshot.data == null) {
@@ -246,20 +245,20 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
 
 Future<void> goToAppUserEditScreen(
   BuildContext context, {
-  required AppUserEditScreenParam param,
+  required FsAppUserEditScreenParam param,
 }) async {
   await _goToAppUserEditScreen(context, param: param);
 }
 
 Future<void> _goToAppUserEditScreen(
   BuildContext context, {
-  required AppUserEditScreenParam param,
+  required FsAppUserEditScreenParam param,
 }) async {
   await Navigator.of(context).push(
     MaterialPageRoute<void>(
       builder: (_) {
-        return BlocProvider<AppUserEditScreenBloc>(
-          blocBuilder: () => AppUserEditScreenBloc(param: param),
+        return BlocProvider<FsAppUserEditScreenBloc>(
+          blocBuilder: () => FsAppUserEditScreenBloc(param: param),
           child: const AppUserEditScreen(),
         );
       },

@@ -4,55 +4,57 @@ import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_blo
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
-class AppUserEditScreenParam {
+class FsAppUserEditScreenParam {
+  final String? appId; // Optional appId
   /// Null for creation
   final String? userId;
-  AppUserEditScreenParam({required this.userId});
+  FsAppUserEditScreenParam({required this.userId, this.appId});
 }
 
-class AppUserEditScreenBlocState {
+class FsAppUserEditScreenBlocState {
   final TkCmsFsUserAccess? user;
 
-  AppUserEditScreenBlocState(this.user);
+  FsAppUserEditScreenBlocState(this.user);
 }
 
-class AppUserEditScreenBloc
-    extends AutoDisposeStateBaseBloc<AppUserEditScreenBlocState> {
+class FsAppUserEditScreenBloc
+    extends AutoDisposeStateBaseBloc<FsAppUserEditScreenBlocState> {
   /// Null for creation
 
-  final AppUserEditScreenParam param;
+  final FsAppUserEditScreenParam param;
 
   //late StreamSubscription _studiesSubscription;
 
-  AppUserEditScreenBloc({required this.param}) {
+  FsAppUserEditScreenBloc({required this.param}) {
     () async {
       if (!disposed) {
         var userId = param.userId;
         if (userId == null) {
-          add(AppUserEditScreenBlocState(null));
+          add(FsAppUserEditScreenBlocState(null));
         } else {
-          var app = globalFestenaoFirestoreDatabase.app;
+          var appId = _appId;
           var fsDb = globalFestenaoFirestoreDatabase.appDb;
-          var userAccessRef = fsDb.fsEntityUserAccessRef(app, userId);
+          var userAccessRef = fsDb.fsEntityUserAccessRef(appId, userId);
           var userAccess = await userAccessRef.get(fsDb.firestore);
           if (!disposed) {
-            add(AppUserEditScreenBlocState(userAccess));
+            add(FsAppUserEditScreenBlocState(userAccess));
           }
         }
       }
     }();
   }
 
+  String get _appId => param.appId ?? globalFestenaoFirestoreDatabase.appId;
   Future<void> save(AdminUserEditData data) async {
     var userId = data.userId ?? param.userId!;
 
-    var app = globalFestenaoFirestoreDatabase.app;
+    var appId = _appId;
     var fsDb = globalFestenaoFirestoreDatabase.appDb;
     var userAccess = data.user;
     userAccess.fixAccess();
 
     await fsDb.setEntityUserAccess(
-      entityId: app,
+      entityId: appId,
       userId: userId,
       userAccess: userAccess,
     );

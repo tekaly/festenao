@@ -1,4 +1,5 @@
 import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_edit_screen.dart';
 
 import 'package:festenao_admin_base_app/screen/fs_app_view_screen.dart';
 import 'package:flutter/material.dart';
@@ -10,12 +11,12 @@ import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 import 'fs_apps_screen_bloc.dart';
 
 class FsAppsScreenSelectResult {
-  final String app;
+  final String appId;
 
-  FsAppsScreenSelectResult({required this.app});
+  FsAppsScreenSelectResult({required this.appId});
 
   @override
-  String toString() => 'FsAppsScreenSelectResult($app)';
+  String toString() => 'FsAppsScreenSelectResult($appId)';
 }
 
 /// Apps screen
@@ -91,33 +92,20 @@ class _FsAppsScreenState extends State<FsAppsScreen> {
                   var app = apps[index];
                   return BodyContainer(
                     child: ListTile(
-                      //leading: AppLeading(app: app),
-                      //trailing: const TrailingArrow(),
-                      /*Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  //goToNotesScreen(context, App.ref);
-                                  goToAppViewScreen(context,
-                                      appRef: app.ref);
-                                },
-                                icon: const Icon(Icons.arrow_forward_ios)),
-                            /*  IconButton(
-                                onPressed: () {
-                                  //_goToNotes(context, App.id);
-                                },
-                                icon: Icon(Icons.edit))*/
-                          ],
-                        ),*/
                       title: Text(app.name.v ?? app.id),
                       onTap: () async {
                         if (bloc.selectMode) {
                           Navigator.of(
                             context,
-                          ).pop(FsAppsScreenSelectResult(app: app.id));
+                          ).pop(FsAppsScreenSelectResult(appId: app.id));
                         } else {
-                          await goToAppViewScreen(context, appId: app.id);
+                          var result = await goToFsAppViewScreen(
+                            context,
+                            appId: app.id,
+                          );
+                          if (context.mounted && (result?.modified ?? false)) {
+                            bloc.refresh();
+                          }
                         }
                         //  await goToNotesScreen(context, App.ref);
                       },
@@ -129,7 +117,10 @@ class _FsAppsScreenState extends State<FsAppsScreen> {
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
-              //await goToAppEditScreen(context, app: null);
+              var result = await goToFsAppEditScreen(context, appId: null);
+              if (mounted && (result?.modified ?? false)) {
+                bloc.refresh();
+              }
             },
             child: const Icon(Icons.add),
           ),

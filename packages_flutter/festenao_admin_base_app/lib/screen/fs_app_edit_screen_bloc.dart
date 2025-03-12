@@ -21,8 +21,7 @@ class FsAppEditScreenBlocState {
 }
 
 class FsAppEditData {
-  /// Optional for creation
-  final String? appId;
+  final String appId;
   final TkCmsFsApp app;
 
   FsAppEditData({required this.appId, required this.app});
@@ -58,7 +57,7 @@ class FsAppEditScreenBloc
   }
 
   Future<void> saveApp(FsAppEditData data) async {
-    var appId = data.appId ?? param.appId!;
+    var appId = data.appId;
 
     var fsDb = globalFestenaoFirestoreDatabase.appDb;
     var firestore = globalFestenaoFirestoreDatabase.firestore;

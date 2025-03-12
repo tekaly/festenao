@@ -14,8 +14,10 @@ import 'fs_app_view_screen_bloc.dart';
 
 class FsAppViewResult {
   final bool deleted;
+  final bool modified;
 
-  FsAppViewResult({required this.deleted});
+  FsAppViewResult({required this.deleted, bool? modified})
+    : modified = modified ?? deleted;
 }
 
 class FsAppViewScreen extends StatefulWidget {
@@ -27,6 +29,7 @@ class FsAppViewScreen extends StatefulWidget {
 
 class FsAppViewScreenState extends AutoDisposeBaseState<FsAppViewScreen>
     with AutoDisposedBusyScreenStateMixin<FsAppViewScreen> {
+  var _modified = false;
   Future<void> _confirmAndDelete(BuildContext context, TkCmsFsApp app) async {
     var intl = festenaoAdminAppIntl(context);
     var bloc = BlocProvider.of<FsAppViewScreenBloc>(context);
@@ -106,97 +109,122 @@ class FsAppViewScreenState extends AutoDisposeBaseState<FsAppViewScreen>
             ),
         ];
 
-        return Scaffold(
-          appBar: AppBar(
-            // Here we take the value from the MyHomePage object that
-            // was created by the App.build method, and use it to set
-            // our appbar title.
-            title: Text(appName),
-            actions:
-                app == null
-                    ? null
-                    : <Widget>[
-                      if (canDelete)
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
-                            await _confirmAndDelete(context, app);
-                          },
-                        ),
-                    ],
-          ),
-          body:
-              state == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView(
-                    children: [
-                      BodyContainer(
-                        child: BodyHPadding(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Row(),
-                              ...children,
-                              Center(
-                                child: IntrinsicWidth(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      ...[
-                                        const SizedBox(height: 24),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: colorError,
+        return PopScope(
+          canPop: !_modified,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) {
+              return;
+            }
+            if (_modified) {
+              if (result is FsAppViewResult && !result.modified) {
+                Navigator.pop(
+                  context,
+                  FsAppViewResult(deleted: false, modified: true),
+                );
+                return;
+              }
+            }
+            Navigator.pop(context, result);
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              // Here we take the value from the MyHomePage object that
+              // was created by the App.build method, and use it to set
+              // our appbar title.
+              title: Text(appName),
+              actions:
+                  app == null
+                      ? null
+                      : <Widget>[
+                        if (canDelete)
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () async {
+                              await _confirmAndDelete(context, app);
+                            },
+                          ),
+                      ],
+            ),
+            body:
+                state == null
+                    ? const Center(child: CircularProgressIndicator())
+                    : ListView(
+                      children: [
+                        BodyContainer(
+                          child: BodyHPadding(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Row(),
+                                ...children,
+                                Center(
+                                  child: IntrinsicWidth(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        ...[
+                                          const SizedBox(height: 24),
+                                          ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: colorError,
+                                            ),
+                                            onPressed:
+                                                canDelete
+                                                    ? () {
+                                                      _confirmAndDelete(
+                                                        context,
+                                                        app,
+                                                      );
+                                                    }
+                                                    : null,
+                                            child: const Text('Delete app'),
                                           ),
-                                          onPressed:
-                                              canDelete
-                                                  ? () {
-                                                    _confirmAndDelete(
-                                                      context,
-                                                      app,
-                                                    );
-                                                  }
-                                                  : null,
-                                          child: const Text('Delete app'),
-                                        ),
+                                        ],
                                       ],
-                                    ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                              const SizedBox(height: 64),
-                            ],
+                                const SizedBox(height: 64),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
 
-          //new Column(children: children),
-          floatingActionButton:
-              canEdit
-                  ? FloatingActionButton(
-                    //onPressed: _incrementCounter,
-                    tooltip: 'Edit',
-                    onPressed: () async {
-                      await goToFsAppEditScreen(context, appId: app.id);
-                    },
-                    child: const Icon(Icons.edit),
-                  )
-                  : null, // This trailing comma makes auto-formatting nicer for build methods.
+            //new Column(children: children),
+            floatingActionButton:
+                canEdit
+                    ? FloatingActionButton(
+                      //onPressed: _incrementCounter,
+                      tooltip: 'Edit',
+                      onPressed: () async {
+                        var result = await goToFsAppEditScreen(
+                          context,
+                          appId: app.id,
+                        );
+                        if (mounted && (result?.modified ?? false)) {
+                          _modified = true;
+                          bloc.refresh();
+                        }
+                      },
+                      child: const Icon(Icons.edit),
+                    )
+                    : null, // This trailing comma makes auto-formatting nicer for build methods.
+          ),
         );
       },
     );
   }
 }
 
-Future<Object?> goToAppViewScreen(
+Future<FsAppViewResult?> goToFsAppViewScreen(
   BuildContext context, {
   required String appId,
-}) {
-  return Navigator.of(context).push(
-    (MaterialPageRoute(
+}) async {
+  var result = await Navigator.of(context).push(
+    (MaterialPageRoute<Object?>(
       builder:
           (_) => BlocProvider(
             blocBuilder: () => FsAppViewScreenBloc(appId: appId),
@@ -204,4 +232,8 @@ Future<Object?> goToAppViewScreen(
           ),
     )),
   );
+  if (result is FsAppViewResult) {
+    return result;
+  }
+  return null;
 }

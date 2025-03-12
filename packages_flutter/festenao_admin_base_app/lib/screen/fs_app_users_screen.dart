@@ -1,15 +1,13 @@
 import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
-import 'package:festenao_admin_base_app/screen/app_user_edit_screen.dart';
-import 'package:festenao_admin_base_app/screen/app_users_screen_bloc.dart';
-import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
-import 'package:festenao_admin_base_app/screen/projects_screen.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_user_edit_screen.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_users_screen_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
-import 'app_user_edit_screen_bloc.dart';
+import 'fs_app_user_edit_screen_bloc.dart';
 
 /// Projects screen
 class FsAppUsersScreen extends StatefulWidget {
@@ -20,6 +18,15 @@ class FsAppUsersScreen extends StatefulWidget {
   State<FsAppUsersScreen> createState() => _FsAppUsersScreenState();
 }
 
+class FsAppUserSelectResult {
+  final String userId;
+
+  FsAppUserSelectResult({required this.userId});
+
+  @override
+  String toString() => 'FsAppUserSelectResult(projectRef: $userId)';
+}
+
 class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
   @override
   Widget build(BuildContext context) {
@@ -28,10 +35,12 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
       stream: bloc.state,
       builder: (context, snapshot) {
         var state = snapshot.data;
-        var userId = state?.user?.uid;
+
         return FestenaoAdminAppScaffold(
           appBar: AppBar(
-            title: const Text('Users'), // appIntl(context).ProjectsTitle),
+            title: const Text(
+              'FsApp Users',
+            ), // appIntl(context).ProjectsTitle),
             /*actions: [
                 IconButton(
                     onPressed: () {
@@ -47,10 +56,10 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
               if (state == null) {
                 return const Center(child: CircularProgressIndicator());
               }
-              var projects = state.projects;
+              var userAccessList = state.userAccessList;
               return WithHeaderFooterListView.builder(
                 footer:
-                    state.user == null
+                    state.identity == null
                         ? const BodyContainer(
                           child: BodyHPadding(
                             child: Center(
@@ -80,41 +89,27 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                           ),
                         )
                         : null,
-                itemCount: projects.length,
+                itemCount: userAccessList.length,
                 itemBuilder: (context, index) {
-                  var project = projects[index];
+                  var userAccess = userAccessList[index];
+                  var userId = userAccess.id;
                   return BodyContainer(
                     child: ListTile(
-                      //leading: ProjectLeading(project: project),
-                      //trailing: const TrailingArrow(),
-                      /*Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                                onPressed: () {
-                                  //goToNotesScreen(context, Project.ref);
-                                  goToProjectViewScreen(context,
-                                      projectRef: project.ref);
-                                },
-                                icon: const Icon(Icons.arrow_forward_ios)),
-                            /*  IconButton(
-                                onPressed: () {
-                                  //_goToNotes(context, Project.id);
-                                },
-                                icon: Icon(Icons.edit))*/
-                          ],
-                        ),*/
-                      title: Text(project.id),
+                      title: Text(userAccess.id),
                       onTap: () async {
                         if (bloc.selectMode) {
                           Navigator.of(
                             context,
-                          ).pop(SelectProjectResult(projectId: project.id));
+                          ).pop(FsAppUserSelectResult(userId: userId));
                         } else {
-                          await goToProjectViewScreen(
+                          await goToAppUserEditScreen(
                             context,
-                            projectId: project.id,
+                            param: FsAppUserEditScreenParam(
+                              userId: userId,
+                              appId: bloc.appId,
+                            ),
                           );
+                          bloc.refresh();
                         }
                         //  await goToNotesScreen(context, Project.ref);
                       },
@@ -125,13 +120,19 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
             },
           ),
           floatingActionButton:
-              (userId != null)
+              (state?.identity != null)
                   ? FloatingActionButton(
                     onPressed: () async {
-                      await goToAppUserEditScreen(
+                      // ignore: unused_local_variable
+                      var result = await goToAppUserEditScreen(
                         context,
-                        param: AppUserEditScreenParam(userId: userId),
+                        param: FsAppUserEditScreenParam(
+                          userId: null,
+                          appId: bloc.appId,
+                        ),
                       );
+
+                      bloc.refresh();
                     },
                     child: const Icon(Icons.add),
                   )
@@ -145,13 +146,13 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
 /// Go to Projects screen
 Future<Object?> goToFsAppUsersScreen(
   BuildContext context, {
-  String? app,
+  String? appId,
 }) async {
   return Navigator.of(context).push<Object?>(
     MaterialPageRoute(
       builder:
           (_) => BlocProvider(
-            blocBuilder: () => FsAppUsersScreenBloc(selectMode: true, app: app),
+            blocBuilder: () => FsAppUsersScreenBloc(appId: appId),
             child: const FsAppUsersScreen(),
           ),
     ),
@@ -159,17 +160,21 @@ Future<Object?> goToFsAppUsersScreen(
 }
 
 /// Go to Users screen
-Future<SelectProjectResult?> selectFsAppUser(BuildContext context) async {
+Future<FsAppUserSelectResult?> selectFsAppUser(
+  BuildContext context, {
+  String? appId,
+}) async {
   var result = await Navigator.of(context).push<Object?>(
     MaterialPageRoute(
       builder:
           (_) => BlocProvider(
-            blocBuilder: () => FsAppUsersScreenBloc(selectMode: true),
+            blocBuilder:
+                () => FsAppUsersScreenBloc(selectMode: true, appId: appId),
             child: const FsAppUsersScreen(),
           ),
     ),
   );
-  if (result is SelectProjectResult) {
+  if (result is FsAppUserSelectResult) {
     return result;
   }
   return null;

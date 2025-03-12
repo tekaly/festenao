@@ -3,8 +3,8 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/form/form_questions_screen.dart';
 import 'package:festenao_admin_base_app/form/fs_form_info.dart';
 import 'package:festenao_admin_base_app/prefs/local_prefs.dart';
-import 'package:festenao_admin_base_app/screen/app_projects_screen.dart';
-import 'package:festenao_admin_base_app/screen/app_users_screen.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_projects_screen.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_users_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_apps_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_entity_list_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
@@ -87,12 +87,12 @@ final festenaoAdminDebugScreen = muiScreenWidget('Festenao debug', () {
   });
   muiItem('Select FsApp and view users', () async {
     var result = await selectFsApp(muiBuildContext);
-    var app = result?.app;
+    var appId = result?.appId;
     if (muiBuildContext.mounted) {
-      await muiSnack(muiBuildContext, 'app $app');
+      await muiSnack(muiBuildContext, 'appId $appId');
     }
-    if (app != null && muiBuildContext.mounted) {
-      await goToFsAppUsersScreen(muiBuildContext);
+    if (appId != null && muiBuildContext.mounted) {
+      await goToFsAppUsersScreen(muiBuildContext, appId: appId);
     }
   });
   muiItem('App users list screen', () async {
