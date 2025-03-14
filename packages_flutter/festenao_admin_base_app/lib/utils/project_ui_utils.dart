@@ -4,6 +4,15 @@ import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
 String accessString(AppLocalizations intl, TkCmsCvUserAccessCommon access) {
+  var text = _accessString(intl, access);
+  var role = access.role.v?.trimmedNonEmpty();
+  if (role != null) {
+    return '$text ($role)';
+  }
+  return text;
+}
+
+String _accessString(AppLocalizations intl, TkCmsCvUserAccessCommon access) {
   return access.isAdmin
       ? intl.projectAccessAdmin
       : (access.isWrite

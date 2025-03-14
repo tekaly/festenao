@@ -1,6 +1,7 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
+import 'package:festenao_admin_base_app/view/app_path.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
@@ -100,6 +101,7 @@ class FsAppProjectViewScreenState
           var noteContent = note?.content.v;*/
 
         var children = <Widget>[
+          AppPathTile(appPath: bloc.appPath),
           BodyHPadding(
             child: Text(
               projectName ?? '',
@@ -239,6 +241,7 @@ class FsAppProjectViewScreenState
                         project: fsProject,
                         appId: bloc.appId,
                       );
+                      bloc.refresh();
                     },
                     child: const Icon(Icons.edit),
                   )

@@ -6,7 +6,35 @@ enable-beta-ecosystems: true
 
 updates:
   - package-ecosystem: "pub"
-    directory: "festenao_admin_base_app"
+    directory: "."
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages/festenao_blur_hash"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages/festenao_common"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages/festenao_support"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_admin_base_app"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_audio_player"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_base_app"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_firebase_flutter"
     schedule:
       interval: "monthly"
   - package-ecosystem: "github-actions"

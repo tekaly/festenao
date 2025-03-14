@@ -98,7 +98,7 @@ abstract class FsAppBlocBase<T extends Object> extends FsAppBlocRawBase<T> {
             if (identity != null && (fbIdentity != identity)) {
               fbIdentity = identity;
 
-              refresh();
+              handleRefresh();
             } else {
               if (identity == null) {
                 fbIdentity = null;

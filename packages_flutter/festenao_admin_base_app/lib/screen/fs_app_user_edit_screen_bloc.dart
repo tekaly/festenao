@@ -3,6 +3,8 @@ import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_blo
 
 import 'package:tkcms_common/tkcms_firestore.dart';
 
+import 'fs_apps_screen_bloc.dart';
+
 class FsAppUserEditScreenParam {
   final String? projectId; // Optional projectId - default is app user
   final String? appId; // Optional appId
@@ -26,6 +28,12 @@ class FsAppUserEditScreenBloc
   /// Null for creation
 
   final FsAppUserEditScreenParam param;
+
+  String get appPath => appIdProjectIdUserIdAppPath(
+    appIdOrDefault,
+    param.projectId,
+    param.userId,
+  );
 
   //late StreamSubscription _studiesSubscription;
 

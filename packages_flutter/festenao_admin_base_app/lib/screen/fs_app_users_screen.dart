@@ -1,6 +1,10 @@
+import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_user_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_users_screen_bloc.dart';
+import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
+import 'package:festenao_admin_base_app/view/app_path.dart';
+import 'package:festenao_admin_base_app/view/not_signed_in_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
@@ -30,6 +34,7 @@ class FsAppUserSelectResult {
 class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
   @override
   Widget build(BuildContext context) {
+    var intl = festenaoAdminAppIntl(context);
     var bloc = BlocProvider.of<FsAppUsersScreenBloc>(context);
     return ValueStreamBuilder(
       stream: bloc.state,
@@ -58,6 +63,9 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
               }
               var userAccessList = state.userAccessList;
               return WithHeaderFooterListView.builder(
+                header: BodyContainer(
+                  child: Column(children: [AppPathTile(appPath: bloc.appPath)]),
+                ),
                 footer:
                     state.identity == null
                         ? const BodyContainer(
@@ -65,9 +73,7 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                             child: Center(
                               child: Column(
                                 children: [
-                                  Text(
-                                    'Not signed in',
-                                  ), // appIntl(context).notSignedInInfo),
+                                  IdentityWarningTile(), // appIntl(context).notSignedInInfo),
                                   SizedBox(height: 8),
                                   /*
                             ElevatedButton(
@@ -96,13 +102,14 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                   return BodyContainer(
                     child: ListTile(
                       title: Text(userAccess.id),
+                      subtitle: Text(accessString(intl, userAccess)),
                       onTap: () async {
                         if (bloc.selectMode) {
                           Navigator.of(
                             context,
                           ).pop(FsAppUserSelectResult(userId: userId));
                         } else {
-                          await goToAppUserEditScreen(
+                          var result = await goToAppUserEditScreen(
                             context,
                             param: FsAppUserEditScreenParam(
                               userId: userId,
@@ -110,7 +117,9 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                               projectId: bloc.projectId,
                             ),
                           );
-                          bloc.refresh();
+                          if (result?.modified ?? false) {
+                            bloc.refresh();
+                          }
                         }
                         //  await goToNotesScreen(context, Project.ref);
                       },

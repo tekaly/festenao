@@ -4,6 +4,7 @@ import 'package:festenao_common/festenao_firestore.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 
 import 'fs_app_view_screen_bloc.dart';
+import 'fs_apps_screen_bloc.dart';
 
 /// Projects screen bloc state
 class FsAppProjectsScreenBlocState {
@@ -52,4 +53,6 @@ class FsAppProjectsScreenBloc
 
   /// Projects screen bloc
   FsAppProjectsScreenBloc({this.selectMode = false, super.appId});
+
+  String get appPath => appIdAppPath(appIdOrDefault);
 }

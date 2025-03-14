@@ -16,6 +16,36 @@ class FsAppsScreenBlocState {
   FsAppsScreenBlocState({required this.apps, required this.identity});
 }
 
+/// Information path
+String appIdAppPath(String appId) {
+  return 'app/$appId';
+}
+
+/// Information path
+String appIdProjectIdUserIdAppPath(
+  String appId,
+  String? projectId,
+  String? userId,
+) {
+  var sb = StringBuffer();
+  sb.write(appIdProjectIdAppPath(appId, projectId));
+
+  if (userId != null) {
+    sb.write('/user/$userId');
+  }
+  return sb.toString();
+}
+
+/// Information path
+String appIdProjectIdAppPath(String appId, String? projectId) {
+  var sb = StringBuffer();
+  sb.write(appIdAppPath(appId));
+  if (projectId != null) {
+    sb.write('/project/$projectId');
+  }
+  return sb.toString();
+}
+
 /// Apps screen bloc
 class FsAppsScreenBloc extends AutoDisposeStateBaseBloc<FsAppsScreenBlocState> {
   // ignore: cancel_subscriptions

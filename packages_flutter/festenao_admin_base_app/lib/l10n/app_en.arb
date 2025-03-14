@@ -15,6 +15,10 @@
   "@projectAccessRead": {
     "description": "Project access read"
   },
+  "projectAccessRole": "Role",
+  "@projectAccessRole": {
+    "description": "User project access role"
+  },
   "@projectAccessReadWrite": {
     "description": "Project access read/write"
   },

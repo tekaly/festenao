@@ -21,6 +21,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectAccessRead => 'Reader access';
 
   @override
+  String get projectAccessRole => 'Role';
+
+  @override
   String get projectAccessWrite => 'Editor access';
 
   @override

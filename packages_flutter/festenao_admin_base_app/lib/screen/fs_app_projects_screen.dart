@@ -1,6 +1,7 @@
 import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_project_view_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
+import 'package:festenao_admin_base_app/view/app_path.dart';
 import 'package:festenao_admin_base_app/view/not_signed_in_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
@@ -49,6 +50,9 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
               }
               var projects = state.projects;
               return WithHeaderFooterListView.builder(
+                header: BodyContainer(
+                  child: Column(children: [AppPathTile(appPath: bloc.appPath)]),
+                ),
                 footer:
                     state.identity == null
                         ? const BodyContainer(

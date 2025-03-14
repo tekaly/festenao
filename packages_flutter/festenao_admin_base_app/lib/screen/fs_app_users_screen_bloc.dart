@@ -3,6 +3,8 @@ import 'package:festenao_common/festenao_firestore.dart';
 
 import 'package:tkcms_common/tkcms_auth.dart';
 
+import 'fs_apps_screen_bloc.dart';
+
 /// Projects screen bloc state
 class FsAppUsersScreenBlocState {
   /// User
@@ -43,6 +45,8 @@ class FsAppUsersScreenBloc extends FsAppBlocBase<FsAppUsersScreenBlocState> {
 
   /// Projects screen bloc
   FsAppUsersScreenBloc({this.selectMode = false, super.appId, this.projectId});
+
+  String get appPath => appIdProjectIdAppPath(appIdOrDefault, projectId);
   @override
   void handleNoIdentity() {
     add(FsAppUsersScreenBlocState(identity: null, userAccessList: []));

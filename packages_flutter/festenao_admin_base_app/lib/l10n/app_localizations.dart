@@ -122,6 +122,12 @@ abstract class AppLocalizations {
   /// **'Reader access'**
   String get projectAccessRead;
 
+  /// User project access role
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get projectAccessRole;
+
   /// No description provided for @projectAccessWrite.
   ///
   /// In en, this message translates to:

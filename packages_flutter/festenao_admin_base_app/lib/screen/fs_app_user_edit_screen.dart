@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
@@ -6,8 +7,17 @@ import 'package:festenao_admin_base_app/view/text_field.dart';
 
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
+import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
+
+import '../view/app_path.dart';
+
+class AppUserEditResult {
+  final bool modified;
+
+  AppUserEditResult({required this.modified});
+}
 
 class AppUserEditScreen extends StatefulWidget {
   const AppUserEditScreen({super.key});
@@ -18,6 +28,7 @@ class AppUserEditScreen extends StatefulWidget {
 
 class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
   late final TextEditingController idController;
+  late final TextEditingController roleController;
 
   var _initialized = false;
   late final BehaviorSubject<bool> _read;
@@ -30,6 +41,7 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
   @override
   Widget build(BuildContext context) {
     var bloc = this.bloc;
+    var intl = festenaoAdminAppIntl(context);
     return FestenaoAdminAppScaffold(
       appBar: AppBar(title: const Text('User')),
       body: ValueStreamBuilder<FsAppUserEditScreenBlocState>(
@@ -55,6 +67,9 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
             idController = audiAddTextEditingController(
               TextEditingController(text: userId),
             );
+            roleController = audiAddTextEditingController(
+              TextEditingController(text: user?.role.v),
+            );
           }
 
           return Stack(
@@ -64,58 +79,42 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
                 child: ListView(
                   children: [
                     const SizedBox(height: 16),
+
+                    BodyContainer(
+                      child: Column(
+                        children: [
+                          AppPathTile(appPath: bloc.appPath),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AppTextFieldTile(
+                                  readOnly: bloc.param.userId != null,
+                                  labelText: 'User ID',
+                                  controller: idController,
+                                  validator: fieldNonEmptyValidator,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     BodyContainer(
                       child: Row(
                         children: [
                           Expanded(
                             child: AppTextFieldTile(
-                              readOnly: bloc.param.userId != null,
-                              labelText: 'User ID',
-                              controller: idController,
-                              validator: fieldNonEmptyValidator,
+                              //readOnly: !globalTkCmsFbIdentityBloc.hasAdminCredentials,
+                              labelText: intl.projectAccessRole,
+                              controller: roleController,
                             ),
                           ),
-                          /*
-                            AppTextButton(
-                                text: 'Info',
-                                onPressed: () async {
-
-                                  await waitingAction(() async {
-                                    var info = await fbGaelFunctionsClient
-                                        .adminGetUserInfo(
-                                            ApiGaelAdminUserInfoRequest()
-                                              ..userId.v = idController!.text);
-                                    nameController!.text = info.name.v ?? '';
-                                    emailController!.text = info.email.v ?? '';
-                                  });
-
-
-                                })*/
                         ],
                       ),
                     ),
                     const SizedBox(height: 16),
 
-                    /*
-                    BodyContainer(
-                      child: AppTextFieldTile(
-                        labelText: 'User name',
-                        controller: nameController ??= TextEditingController(
-                          text: user?.name.v,
-                        ),
-                        validator: fieldNonEmptyValidator,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    BodyContainer(
-                      child: AppTextFieldTile(
-                        labelText: textUserEmailLabel,
-                        controller: emailController ??= TextEditingController(
-                          text: user?.email.v,
-                        ),
-                        validator: fieldNonEmptyValidator,
-                      ),
-                    ),*/
                     BodyContainer(
                       child: BehaviorSubjectBuilder(
                         subject: _admin,
@@ -133,7 +132,7 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
                                         _read.value = true;
                                       }
                                     },
-                            title: const Text('Admin'),
+                            title: Text(intl.projectAccessAdmin),
                           );
                         },
                       ),
@@ -156,7 +155,7 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
                                         _read.value = true;
                                       }
                                     },
-                            title: const Text('Write'),
+                            title: Text(intl.projectAccessWrite),
                           );
                         },
                       ),
@@ -178,7 +177,7 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
                                         _admin.value = false;
                                       }
                                     },
-                            title: const Text('Read'),
+                            title: Text(intl.projectAccessRead),
                           );
                         },
                       ),
@@ -210,19 +209,21 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
   Future _onSave(BuildContext context) async {
     formKey.currentState!.save();
     if (formKey.currentState!.validate()) {
-      var userId = idController.text;
+      var userId = idController.text.trim();
+      var role = roleController.text.trimmedNonEmpty();
       var fsUserAccess =
           TkCmsFsUserAccess()
             ..write.v = _write.value
             ..admin.v = _admin.value
-            ..read.v = _read.value;
+            ..read.v = _read.value
+            ..role.v = role;
 
       var bloc = this.bloc;
       if (await waitingAction(() async {
         await bloc.save(AdminUserEditData(userId: userId)..user = fsUserAccess);
       })) {
         if (context.mounted) {
-          Navigator.pop(context);
+          Navigator.pop(context, AppUserEditResult(modified: true));
         }
       }
     }
@@ -243,19 +244,19 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
   }
 }
 
-Future<void> goToAppUserEditScreen(
+Future<AppUserEditResult?> goToAppUserEditScreen(
   BuildContext context, {
   required FsAppUserEditScreenParam param,
 }) async {
-  await _goToAppUserEditScreen(context, param: param);
+  return await _goToAppUserEditScreen(context, param: param);
 }
 
-Future<void> _goToAppUserEditScreen(
+Future<AppUserEditResult?> _goToAppUserEditScreen(
   BuildContext context, {
   required FsAppUserEditScreenParam param,
 }) async {
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(
+  var result = await Navigator.of(context).push(
+    MaterialPageRoute<Object>(
       builder: (_) {
         return BlocProvider<FsAppUserEditScreenBloc>(
           blocBuilder: () => FsAppUserEditScreenBloc(param: param),
@@ -264,4 +265,8 @@ Future<void> _goToAppUserEditScreen(
       },
     ),
   );
+  if (result is AppUserEditResult) {
+    return result;
+  }
+  return null;
 }
