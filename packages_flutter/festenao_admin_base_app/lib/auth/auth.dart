@@ -6,7 +6,7 @@ var useFirebaseAuth = false;
 
 /// Firebase auth service
 /// Can be overriden with FirebaseUiAuthServiceFlutter when using firebase ui auth on flutter
-FirebaseUiAuthService globalAuthFlutterUiService = FirebaseUiAuthServiceBasic();
+FirebaseUiAuthService globalAuthFlutterUiService = firebaseUiAuthServiceBasic;
 
 /// Go to auth screen
 Future<void> goToAuthScreen(BuildContext context) async {
