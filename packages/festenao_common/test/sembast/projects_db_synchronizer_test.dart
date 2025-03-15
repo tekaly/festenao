@@ -30,6 +30,25 @@ Future<void> main() async {
     );
   });
   test('syncOne', () async {
+    var synchronizer = ProjectsDbSynchronizer(
+      projectsDb: projectsDb,
+      fsProjects: fsProjectsDb,
+    );
+    var fsProject = FsProject()..name.setValue('test project');
+    var projectUid = await fsProjectsDb.createEntity(
+      userId: userId,
+      entity: fsProject,
+      entityId: projectId,
+    );
+    expect(projectUid, projectId);
+    await synchronizer.syncOne(userId: userId, projectId: projectId);
+    expect(await projectsDb.getProject(projectId, userId: userId), isNotNull);
+    await fsProjectsDb.deleteEntity(projectUid, userId: userId);
+    await synchronizer.syncOne(userId: userId, projectId: projectId);
+    expect(await projectsDb.getProject(projectId, userId: userId), isNull);
+    synchronizer.dispose();
+  });
+  test('autoSyncOne', () async {
     var synchronizer = ProjectsDbSingleProjectAutoSynchronizer(
       projectsDb: projectsDb,
       fsProjects: fsProjectsDb,

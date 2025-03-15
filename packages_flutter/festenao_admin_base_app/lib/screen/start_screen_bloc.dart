@@ -1,4 +1,5 @@
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
@@ -6,10 +7,17 @@ import 'package:tkcms_common/tkcms_auth.dart';
 class StartScreenBlocState {
   final TkCmsFbIdentity? identity;
 
+  /// Enforced project id if any
+  final String? enforcedProjectId;
+
   /// Projects (for user only)
   final List<DbProject>? projects;
 
-  StartScreenBlocState({required this.identity, required this.projects});
+  StartScreenBlocState({
+    required this.identity,
+    required this.projects,
+    this.enforcedProjectId,
+  });
 }
 
 class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
@@ -28,6 +36,20 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
               var userId = user.uid;
               if (userId != _dbUserId) {
                 _dbUserId = userId;
+
+                if (globalProjectsDbBloc is EnforcedSingleProjectDbBloc) {
+                  var dbBloc =
+                      globalProjectsDbBloc as EnforcedSingleProjectDbBloc;
+                  var projectId = dbBloc.enforcedProjectId;
+                  add(
+                    StartScreenBlocState(
+                      projects: null,
+                      enforcedProjectId: projectId,
+                      identity: identity,
+                    ),
+                  );
+                  return;
+                }
                 audiDispose(_dbSubscription);
 
                 /// Show identification first, if db projects are not synchronized yet

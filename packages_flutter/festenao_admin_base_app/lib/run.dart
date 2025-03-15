@@ -64,7 +64,7 @@ Future<void> festenaoRunApp({
 
   globalEntityDatabase = fsDatabase;
   gAuthBloc = TkCmsAuthBloc.local(db: fsDatabase, prefs: prefs);
-  globalPackageName = 'tekaly.festenao';
+  globalPackageName = packageName;
   globalFestenaoAppFirebaseContext = FestenaoAppFirebaseContext(
     storageBucket: 'festenao.bucket',
     storageRootPath: 'app/festenao',

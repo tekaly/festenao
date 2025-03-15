@@ -98,13 +98,24 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                         const IdentityInfoTile(),
                         const SizedBox(height: 32),
 
-                        if (identity is TkCmsFbIdentityUser)
+                        if (identity is TkCmsFbIdentityUser) ...[
+                          if (state.enforcedProjectId != null)
+                            GoToTile(
+                              titleLabel: 'My project',
+                              onTap: () {
+                                goToProjectRootScreen(
+                                  context,
+                                  projectId: state.enforcedProjectId!,
+                                );
+                              },
+                            ),
                           GoToTile(
                             titleLabel: 'All projects',
                             onTap: () {
                               goToProjectsScreen(context);
                             },
                           ),
+                        ],
                       ],
                       const TilePadding(child: Divider()),
                       if (hasAdminCredentials) ...[

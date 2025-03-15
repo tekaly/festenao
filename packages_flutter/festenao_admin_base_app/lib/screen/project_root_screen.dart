@@ -10,6 +10,8 @@ import 'package:festenao_admin_base_app/screen/project_root_users_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/view/entry_tile.dart';
+import 'package:festenao_admin_base_app/view/info_tile.dart';
+import 'package:festenao_admin_base_app/view/not_signed_in_tile.dart';
 import 'package:festenao_admin_base_app/view/tile_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
@@ -49,6 +51,7 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
         var state = snapshot.data;
         var project = state?.project;
         var projectName = project?.name.v;
+
         /*
           var noteDescription = note?.description.v;
           var noteContent = note?.content.v;*/
@@ -66,6 +69,7 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
               title: Text(intl.projectTypeSynced),
               subtitle: accessText(intl, project),
             ),
+          const IdentityInfoTile(),
         ];
 
         return FestenaoAdminAppScaffold(
@@ -89,115 +93,126 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                     ],
           ),
           body:
-              project == null
-                  ? const Center(child: CircularProgressIndicator())
+              state == null
+                  ? (const Center(child: CircularProgressIndicator()))
                   : ListView(
                     children: [
-                      BodyContainer(
-                        child: BodyHPadding(
+                      if (project == null)
+                        BodyContainer(
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               const Row(),
                               ...children,
-                              EntryTile(
-                                label: 'Metas',
-                                onTap: () {
-                                  goToAdminMetasScreen(
-                                    context,
-                                    projectContext:
-                                        ByProjectIdAdminAppProjectContext(
-                                          projectId: bloc.projectId,
-                                        ),
-                                  );
-                                },
-                              ),
-                              EntryTile(
-                                label: 'Infos',
-                                onTap: () {
-                                  goToAdminInfosScreen(
-                                    context,
-                                    projectContext: bloc.projectContext,
-                                  );
-                                },
-                              ),
-                              EntryTile(
-                                label: 'Artists',
-                                onTap: () {
-                                  goToAdminArtistsScreen(
-                                    context,
-                                    projectContext: bloc.projectContext,
-                                  );
-                                },
-                              ),
-                              EntryTile(
-                                label: 'Events',
-                                onTap: () {
-                                  goToAdminEventsScreen(
-                                    context,
-                                    projectContext: bloc.projectContext,
-                                  );
-                                },
-                              ),
-                              EntryTile(
-                                label: 'Images',
-                                onTap: () {
-                                  goToAdminImagesScreen(
-                                    context,
-                                    projectContext: bloc.projectContext,
-                                  );
-                                },
-                              ),
-                              EntryTile(
-                                label: 'Publish',
-                                onTap: () async {
-                                  await goToAdminExportsScreen(
-                                    context,
-                                    projectContext: bloc.projectContext,
-                                  );
-                                },
-                              ),
-                              EntryTile(
-                                label: 'Users',
-                                onTap: () async {
-                                  await goToAdminUsersScreen(
-                                    context,
-                                    projectId: bloc.projectId,
-                                  );
-                                },
-                              ),
-                              const TilePadding(child: Divider()),
-                              EntryTile(
-                                label: 'Questions',
-                                onTap: () async {
-                                  await goToAdminFormQuestionsScreen(
-                                    context,
-                                    entityAccess: fbFsDocFormQuestionAccess(
-                                      bloc
-                                          .projectContext
-                                          .firestoreDatabaseContext,
-                                    ),
-                                  );
-                                },
-                              ),
-                              EntryTile(
-                                label: 'Questions (raw doc)',
-                                onTap: () async {
-                                  await goToDocEntitiesScreen(
-                                    context,
-                                    entityAccess: fbFsDocFormQuestionAccess(
-                                      bloc
-                                          .projectContext
-                                          .firestoreDatabaseContext,
-                                    ),
-                                  );
-                                },
-                              ),
-                              const SizedBox(height: 64),
+                              const InfoTile(label: 'no access'),
                             ],
                           ),
+                        )
+                      else
+                        BodyContainer(
+                          child: BodyHPadding(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Row(),
+                                ...children,
+                                EntryTile(
+                                  label: 'Metas',
+                                  onTap: () {
+                                    goToAdminMetasScreen(
+                                      context,
+                                      projectContext:
+                                          ByProjectIdAdminAppProjectContext(
+                                            projectId: bloc.projectId,
+                                          ),
+                                    );
+                                  },
+                                ),
+                                EntryTile(
+                                  label: 'Infos',
+                                  onTap: () {
+                                    goToAdminInfosScreen(
+                                      context,
+                                      projectContext: bloc.projectContext,
+                                    );
+                                  },
+                                ),
+                                EntryTile(
+                                  label: 'Artists',
+                                  onTap: () {
+                                    goToAdminArtistsScreen(
+                                      context,
+                                      projectContext: bloc.projectContext,
+                                    );
+                                  },
+                                ),
+                                EntryTile(
+                                  label: 'Events',
+                                  onTap: () {
+                                    goToAdminEventsScreen(
+                                      context,
+                                      projectContext: bloc.projectContext,
+                                    );
+                                  },
+                                ),
+                                EntryTile(
+                                  label: 'Images',
+                                  onTap: () {
+                                    goToAdminImagesScreen(
+                                      context,
+                                      projectContext: bloc.projectContext,
+                                    );
+                                  },
+                                ),
+                                EntryTile(
+                                  label: 'Publish',
+                                  onTap: () async {
+                                    await goToAdminExportsScreen(
+                                      context,
+                                      projectContext: bloc.projectContext,
+                                    );
+                                  },
+                                ),
+                                EntryTile(
+                                  label: 'Users',
+                                  onTap: () async {
+                                    await goToAdminUsersScreen(
+                                      context,
+                                      projectId: bloc.projectId,
+                                    );
+                                  },
+                                ),
+                                const TilePadding(child: Divider()),
+                                EntryTile(
+                                  label: 'Questions',
+                                  onTap: () async {
+                                    await goToAdminFormQuestionsScreen(
+                                      context,
+                                      entityAccess: fbFsDocFormQuestionAccess(
+                                        bloc
+                                            .projectContext
+                                            .firestoreDatabaseContext,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                EntryTile(
+                                  label: 'Questions (raw doc)',
+                                  onTap: () async {
+                                    await goToDocEntitiesScreen(
+                                      context,
+                                      entityAccess: fbFsDocFormQuestionAccess(
+                                        bloc
+                                            .projectContext
+                                            .firestoreDatabaseContext,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 64),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
                     ],
                   ),
           //new Column(children: children),

@@ -146,6 +146,23 @@ class ProjectsDb {
       ]),
     );
   }
+
+  Finder getProjectFinder({required String userId, required String projectId}) {
+    return Finder(
+      filter: Filter.and([
+        Filter.equals(dbProjectModel.userId.name, userId),
+        Filter.equals(dbProjectModel.uid.name, projectId),
+      ]),
+    );
+  }
+
+  Future<void> clear() async {
+    await ready;
+    await db.transaction((txn) async {
+      await dbProjectStore.delete(txn);
+      await dbProjectUserStore.delete(txn);
+    });
+  }
 }
 
 /// Global Projects db

@@ -37,6 +37,7 @@ class _SingleProjectDbBloc implements SingleProjectDbBloc {
 
 /// Enforced single app projectId
 abstract class EnforcedSingleProjectDbBloc extends MultiProjectsDbBloc {
+  String get enforcedProjectId;
   factory EnforcedSingleProjectDbBloc({
     required String app,
     required String projectId,
@@ -64,7 +65,8 @@ class ProjectsDbBloc {}
 
 class _EnforcedProjectsDbBloc extends _ProjectsDbBloc
     implements EnforcedSingleProjectDbBloc {
-  final String? enforcedProjectId;
+  @override
+  final String enforcedProjectId;
 
   _EnforcedProjectsDbBloc({
     required super.app,

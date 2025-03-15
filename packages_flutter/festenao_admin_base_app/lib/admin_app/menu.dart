@@ -11,6 +11,7 @@ import 'package:festenao_admin_base_app/screen/fs_apps_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_entity_list_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
+import 'package:festenao_common/sembast/projects_db.dart';
 import 'package:tekaly_firestore_explorer/firestore_explorer.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tkcms_admin_app/firebase/database_service.dart';
@@ -23,6 +24,11 @@ var festenaoAdminDebugScreen = festenaoAdminDebugScreenDefault;
 
 /// Festenao admin menu
 final festenaoAdminDebugScreenDefault = muiScreenWidget('Festenao debug', () {
+  muiMenu('Projects db', () {
+    muiItem('Clear local projects db', () async {
+      await globalProjectsDb.clear();
+    });
+  });
   muiItem('Auth', () {
     goToAuthScreen(muiBuildContext);
   });
