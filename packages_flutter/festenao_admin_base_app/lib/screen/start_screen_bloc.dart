@@ -18,6 +18,9 @@ class StartScreenBlocState {
     required this.projects,
     this.enforcedProjectId,
   });
+
+  @override
+  String toString() => 'identity $identity ${enforcedProjectId ?? projects}';
 }
 
 class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {

@@ -17,7 +17,8 @@ class IdentityWarningTile extends StatelessWidget {
 }
 
 class IdentityInfoTile extends StatelessWidget {
-  const IdentityInfoTile({super.key});
+  final VoidCallback? onTap;
+  const IdentityInfoTile({super.key, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -34,6 +35,7 @@ class IdentityInfoTile extends StatelessWidget {
           var identity = state.identity as TkCmsFbIdentity;
           if (identity is TkCmsFbIdentityUser) {
             return ListTile(
+              onTap: onTap,
               leading: const Icon(Icons.person),
               title: Text(
                 identity.user.email ??
@@ -45,6 +47,7 @@ class IdentityInfoTile extends StatelessWidget {
           } else if (identity is TkCmsFbIdentityServiceAccount) {
             var projectId = identity.projectId;
             return ListTile(
+              onTap: onTap,
               leading: const Icon(Icons.api),
               title: const Text('Service account'),
               subtitle: projectId == null ? null : Text(projectId),
@@ -52,12 +55,14 @@ class IdentityInfoTile extends StatelessWidget {
           } else {
             return ListTile(
               leading: const Icon(Icons.person),
+              onTap: onTap,
               title: const Text('Unknown identity'),
               subtitle: Text(identity.toString()),
             );
           }
         } else {
           return ListTile(
+            onTap: onTap,
             leading: const Icon(Icons.warning),
             title: Text(intl.notSignedInInfo),
           );

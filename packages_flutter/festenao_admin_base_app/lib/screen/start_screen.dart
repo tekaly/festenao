@@ -68,13 +68,17 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                   child: Column(
                     children: [
                       if (identity == null)
-                        const BodyContainer(
+                        BodyContainer(
                           child: BodyHPadding(
                             child: Center(
                               child: Column(
                                 children: [
-                                  IdentityInfoTile(), // appIntl(context).notSignedInInfo),
-                                  SizedBox(height: 8),
+                                  IdentityInfoTile(
+                                    onTap: () {
+                                      goToAuthScreen(context);
+                                    },
+                                  ), // appIntl(context).notSignedInInfo),
+                                  const SizedBox(height: 8),
                                   /*
                               ElevatedButton(
                                   onPressed: () {
