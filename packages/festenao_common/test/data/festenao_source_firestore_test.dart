@@ -2,6 +2,7 @@ import 'package:festenao_common/data/src/festenao/model/source_meta_info.dart';
 import 'package:festenao_common/data/src/festenao/model/source_record.dart';
 import 'package:festenao_common/data/src/festenao/sync/festenao_source.dart';
 import 'package:festenao_common/data/src/festenao/sync/festenao_source_firestore.dart';
+import 'package:tekaly_sembast_synced/synced_db.dart';
 import 'package:tekartik_firebase_firestore/firestore.dart' as fb;
 import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart';
 import 'package:tekartik_firebase_local/firebase_local.dart';
@@ -25,14 +26,13 @@ void main() {
       source = newInMemoryFestenaoSource();
     });
     test('putRecord', () async {
-      var record =
-          (await source.putSourceRecord(
-            FaoSourceRecord()
-              ..record.v =
-                  (FaoSourceRecordData()
-                    ..store.v = 'test'
-                    ..key.v = '1'),
-          ))!;
+      var record = (await source.putSourceRecord(
+        FaoSourceRecord()
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = 'test'
+                ..key.v = '1'),
+      ));
       expect(record.toMap(), {
         'syncId': record.syncId.v,
         'syncTimestamp': record.syncTimestamp.v,
@@ -44,15 +44,14 @@ void main() {
       expect(record.syncTimestamp.v, isNotNull);
       expect(record.recordStore, 'test');
       expect(record.syncChangeId.v, 1);
-      record =
-          (await source.putSourceRecord(
-            FaoSourceRecord()
-              ..record.v =
-                  (FaoSourceRecordData()
-                    ..store.v = 'test'
-                    ..key.v = '1')
-              ..syncId.v = syncId,
-          ))!;
+      record = (await source.putSourceRecord(
+        FaoSourceRecord()
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = 'test'
+                ..key.v = '1')
+          ..syncId.v = syncId,
+      ));
       expect(record.toMap(), {
         'syncId': record.syncId.v,
         'syncTimestamp': record.syncTimestamp.v,
@@ -62,15 +61,14 @@ void main() {
       expect(record.syncId.v, syncId);
       expect(record.syncChangeId.v, 2);
       // Changing!
-      record =
-          (await source.putSourceRecord(
-            FaoSourceRecord()
-              ..record.v =
-                  (FaoSourceRecordData()
-                    ..store.v = 'test2'
-                    ..key.v = '2')
-              ..syncId.v = syncId,
-          ))!;
+      record = (await source.putSourceRecord(
+        FaoSourceRecord()
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = 'test2'
+                ..key.v = '2')
+          ..syncId.v = syncId,
+      ));
       expect(record.syncChangeId.v, 3);
       expect(record.syncId.v, isNot(syncId));
       expect(record.syncTimestamp.v, isNotNull);
@@ -97,7 +95,7 @@ void main() {
                 ..key.v = '1')
           ..syncId.v = syncId,
       );
-      var newSyncId = record!.syncId.v;
+      var newSyncId = record.syncId.v;
       record = (await source.getSourceRecord(ref))!;
       expect(record.syncId.v, newSyncId);
       expect(newSyncId, isNot(syncId));
@@ -132,7 +130,7 @@ void main() {
       );
       list = (await source.getSourceRecordList()).list;
       expect(list, hasLength(1));
-      expect(list.first.syncId.v, record?.syncId.v);
+      expect(list.first.syncId.v, record.syncId.v);
       var record2 = await source.putSourceRecord(
         FaoSourceRecord()
           ..record.v =
@@ -143,10 +141,7 @@ void main() {
       );
       list = (await source.getSourceRecordList()).list;
       // print(list);
-      expect(list.map((e) => e.syncId.v), [
-        record?.syncId.v,
-        record2?.syncId.v,
-      ]);
+      expect(list.map((e) => e.syncId.v), [record.syncId.v, record2.syncId.v]);
       //list = await source.getSourceRecordList(limit: 1);
       //expect(list.map((e) => e.syncId.v), [record?.syncId.v]);
       /*
@@ -172,11 +167,10 @@ void main() {
       info = await source.putMetaInfo(
         CvMetaInfoRecord()..minIncrementalChangeId.v = 2,
       );
-      expect(info!.minIncrementalChangeId.v!, 2);
-      info =
-          (await source.putMetaInfo(
-            CvMetaInfoRecord()..minIncrementalChangeId.v = 3,
-          ))!;
+      expect(info.minIncrementalChangeId.v!, 2);
+      info = (await source.putMetaInfo(
+        CvMetaInfoRecord()..minIncrementalChangeId.v = 3,
+      ));
       expect(info.minIncrementalChangeId.v, 3);
       try {
         await source.putMetaInfo(

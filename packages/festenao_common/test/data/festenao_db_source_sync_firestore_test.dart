@@ -188,17 +188,16 @@ void main() {
     });
 
     test('syncOneFromRemote', () async {
-      var sourceRecord =
-          (await source.putSourceRecord(
-            FaoSourceRecord()
-              //..syncId.v = sourceRecord.syncId.v
-              // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-              ..record.v =
-                  (FaoSourceRecordData()
-                    ..store.v = dbArtistStoreRef.name
-                    ..key.v = 'a1'
-                    ..value.v = {'name': 'test1'}),
-          ))!;
+      var sourceRecord = (await source.putSourceRecord(
+        FaoSourceRecord()
+          //..syncId.v = sourceRecord.syncId.v
+          // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = dbArtistStoreRef.name
+                ..key.v = 'a1'
+                ..value.v = {'name': 'test1'}),
+      ));
       expect(sourceRecord.syncId.v, isNotNull);
       expect(sourceRecord.syncTimestamp.v, isNotNull);
 
@@ -223,17 +222,16 @@ void main() {
     });
 
     test('syncOneImageFromRemote', () async {
-      var sourceRecord =
-          (await source.putSourceRecord(
-            FaoSourceRecord()
-              //..syncId.v = sourceRecord.syncId.v
-              // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-              ..record.v =
-                  (FaoSourceRecordData()
-                    ..store.v = dbImageStoreRef.name
-                    ..key.v = 'a1'
-                    ..value.v = {'name': 'test1'}),
-          ))!;
+      var sourceRecord = (await source.putSourceRecord(
+        FaoSourceRecord()
+          //..syncId.v = sourceRecord.syncId.v
+          // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
+          ..record.v =
+              (FaoSourceRecordData()
+                ..store.v = dbImageStoreRef.name
+                ..key.v = 'a1'
+                ..value.v = {'name': 'test1'}),
+      ));
       expect(sourceRecord.syncId.v, isNotNull);
       expect(sourceRecord.syncTimestamp.v, isNotNull);
 
