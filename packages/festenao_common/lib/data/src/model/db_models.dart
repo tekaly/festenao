@@ -19,6 +19,7 @@ void initFestenaoDbBuilders() {
     cvAddConstructor(CvAttribute.new);
     cvAddConstructor(DbRecordMap.new);
     cvAddConstructor(DbSyncMetaInfo.new);
+    cvAddConstructor(CvSyncedSourceRecordData.new);
     /*
     cvAddBuilder<DbMeta>((map) {
       refForMeta(map)
