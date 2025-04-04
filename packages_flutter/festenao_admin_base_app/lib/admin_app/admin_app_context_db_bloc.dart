@@ -6,7 +6,7 @@ import 'package:tekartik_app_rx_bloc/auto_dispose_base_bloc.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 
 /// Short life context per screen
-class AdminAppProjectContextDbBloc implements AutoDisposable {
+class AdminAppProjectContextDbBloc with AutoDisposableMixin {
   final FestenaoAdminAppProjectContext projectContext;
 
   AdminAppProjectContextDbBloc({required this.projectContext});
@@ -60,7 +60,7 @@ class AdminAppProjectContextDbBloc implements AutoDisposable {
   }
 
   @override
-  void audiDispose() {
+  void selfDispose() {
     var projectsDbBloc = globalProjectsDbBloc;
     if (projectsDbBloc is MultiProjectsDbBloc) {
       var grabbedContextDb = _grabbedContentDb;
