@@ -18,19 +18,21 @@ const colorGrey = Colors.grey;
 
 /// Dart theme
 ThemeData poppinsThemeData1() {
-  return ThemeData(textTheme: GoogleFonts.poppinsTextTheme());
+  return themeData1(fontFamily: GoogleFonts.poppins().fontFamily);
 }
 
 /// Dark theme
-ThemeData themeData1({TextTheme? textTheme}) {
+ThemeData themeData1({TextTheme? textTheme, String? fontFamily}) {
   var themeData = ThemeData(
+    fontFamily: fontFamily,
+    textTheme: textTheme,
     colorScheme: ColorScheme.fromSeed(
       seedColor: colorBlue,
       brightness: Brightness.dark,
     ),
     visualDensity: VisualDensity.adaptivePlatformDensity,
   );
-  textTheme ??= themeData.textTheme;
+  textTheme = themeData.textTheme;
 
   themeData = themeData.copyWith(
     snackBarTheme: SnackBarThemeData(
