@@ -48,7 +48,7 @@ void main() {
           'syncChangeId': 1,
         },
       ]);
-      expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
+      expect(stat, FaoSyncStat(remoteCreatedCount: 1));
       var sourceRecord =
           (await source.getSourceRecord(
             FestenaoDataSourceRef(store: 'artist', key: 'a1'),
@@ -159,7 +159,7 @@ void main() {
           'syncChangeId': 1,
         },
       ]);
-      expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
+      expect(stat, FaoSyncStat(remoteCreatedCount: 1));
       var sourceRecord =
           (await source.getSourceRecord(
             FestenaoDataSourceRef(store: storeName, key: 'a1'),
@@ -208,7 +208,7 @@ void main() {
 
       /// Full sync
       var stat = await sync.syncDown();
-      expect(stat, FaoSyncStat(localUpdatedCount: 1));
+      expect(stat, FaoSyncStat(localCreatedCount: 1));
 
       var metaInfo = (await festenaoDb.getSyncMetaInfo())!;
       expect(metaInfo.toMap(), {
@@ -242,7 +242,7 @@ void main() {
 
       /// Full sync
       var stat = await sync.syncDown();
-      expect(stat, FaoSyncStat(localUpdatedCount: 1));
+      expect(stat, FaoSyncStat(localCreatedCount: 1));
 
       expect((await dbImageStoreRef.find(await festenaoDb.database)), [
         dbImageStoreRef.record('a1').cv()..name.v = 'test1',
@@ -262,7 +262,7 @@ void main() {
       var db = await festenaoDb.database;
       await (dbArtistStoreRef.record('a1').cv()..name.v = 'test1').put(db);
       var stat = await sync.syncUp();
-      expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
+      expect(stat, FaoSyncStat(remoteCreatedCount: 1));
       await (dbArtistStoreRef.record('a1').cv()..name.v = 'test2').put(db);
       stat = await sync.syncUp();
       expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
@@ -284,7 +284,7 @@ void main() {
 
       /// Full sync
       var stat = await sync.syncDown();
-      expect(stat, FaoSyncStat(localUpdatedCount: 1));
+      expect(stat, FaoSyncStat(localCreatedCount: 1));
 
       /// update
       await source.putSourceRecord(
@@ -322,7 +322,7 @@ void main() {
       );
 
       var stat = await sync.syncDown();
-      expect(stat, FaoSyncStat(localUpdatedCount: 1));
+      expect(stat, FaoSyncStat(localCreatedCount: 1));
 
       // We just change the version and the data
       await source.putMetaInfo(
@@ -351,10 +351,10 @@ void main() {
       var db = await festenaoDb.database;
       await (dbArtistStoreRef.record('a2').cv()).put(db);
       var stat = await sync.sync();
-      expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
+      expect(stat, FaoSyncStat(remoteCreatedCount: 1));
       await (dbArtistStoreRef.record('a1').cv()).put(db);
       stat = await sync.sync();
-      expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
+      expect(stat, FaoSyncStat(remoteCreatedCount: 1));
     });
   });
 }
