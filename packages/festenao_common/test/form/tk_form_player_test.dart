@@ -1,5 +1,5 @@
 import 'package:festenao_common/form/tk_form.dart';
-import 'package:festenao_common/src/tk_form/test/tk_form_test_helper.dart';
+import 'package:festenao_common/form/tk_form_test.dart';
 import 'package:test/test.dart';
 
 Future<void> main() async {

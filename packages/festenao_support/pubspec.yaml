@@ -8,7 +8,7 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  fs_shim:
+  fs_shim: ">=2.3.3+1"
   tkcms_support:
     git:
       url: https://github.com/tekartikprj/tkcms.git
@@ -24,7 +24,7 @@ dependencies:
       url: https://github.com/tekartikprj/tkcms.git
       ref: dart3a
       path: packages/tkcms_common
-  dev_build:
+  dev_build: ">=1.1.2"
 
 dev_dependencies:
   lints: ">=5.0.0"

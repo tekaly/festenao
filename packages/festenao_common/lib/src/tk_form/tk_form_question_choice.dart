@@ -13,12 +13,12 @@ abstract class TkFormPlayerQuestionChoice {
   factory TkFormPlayerQuestionChoice({
     required String id,
     required String text,
-    required bool allowOther,
+    bool? allowOther,
   }) {
     return _TkFormPlayerQuestionChoice(
       id: id,
       text: text,
-      allowOther: allowOther,
+      allowOther: allowOther ?? false,
     );
   }
 }

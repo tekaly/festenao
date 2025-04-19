@@ -71,6 +71,36 @@ abstract class TkFormPlayerQuestionChoiceOptions
 
   /// For choice and multi choice
   List<TkFormPlayerQuestionChoice>? get choices;
+
+  factory TkFormPlayerQuestionChoiceOptions({
+    List<TkFormPlayerQuestionChoice>? choices,
+    bool? emptyAllowed,
+  }) {
+    return _TkFormPlayerQuestionChoiceOptions(
+      choices: choices,
+      emptyAllowed: emptyAllowed,
+    );
+  }
+}
+
+/// Question options choice
+class _TkFormPlayerQuestionChoiceOptions extends TkFormPlayerQuestionOptionsBase
+    implements TkFormPlayerQuestionChoiceOptions {
+  _TkFormPlayerQuestionChoiceOptions({this.choices, super.emptyAllowed});
+
+  @override
+  final List<TkFormPlayerQuestionChoice>? choices;
+
+  /// Any choice that support other...TO test
+  @override
+  bool get choiceAllowOther {
+    if (isTypeChoice) {
+      if (choices?.firstWhereOrNull((choice) => choice.allowOther) != null) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 /// Helper extension

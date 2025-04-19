@@ -37,6 +37,18 @@ updates:
     directory: "packages_flutter/festenao_firebase_flutter"
     schedule:
       interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_icon"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_icon/example"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_theme"
+    schedule:
+      interval: "monthly"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

@@ -10,4 +10,7 @@ workspace:
   - packages_flutter/festenao_audio_player
   - packages_flutter/festenao_base_app
   - packages_flutter/festenao_firebase_flutter
+  - packages_flutter/festenao_theme
+  - packages_flutter/festenao_icon
+  - packages_flutter/festenao_icon/example
 
