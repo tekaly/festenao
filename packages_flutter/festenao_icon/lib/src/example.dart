@@ -1,3 +1,4 @@
+import 'package:festenao_icon/icon.dart';
 import 'package:festenao_icon/src/mood.dart';
 import 'package:flutter/material.dart';
 
@@ -17,6 +18,7 @@ class FestenaoAllIcons extends StatelessWidget {
       festenaoIconMoodSet5Filled,
       festenaoIconMoodSet3Filled,
       festenaoIconMoodSetFilled,
+      festenaoIconFrequencySet5,
     ];
     return Column(
       children: [

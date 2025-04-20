@@ -1,7 +1,8 @@
 export 'src/example.dart' show FestenaoAllIcons;
+export 'src/frequency.dart' show festenaoIconFrequencySet5;
+export 'src/icon_set.dart' show FestenaoIconAndColor, FestenaoIconSet;
 export 'src/mood.dart'
     show
-        FestenaoIconSet,
         festenaoIconMoodSet3,
         festenaoIconMoodSet5,
         festenaoIconMoodSet3Filled,

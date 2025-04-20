@@ -1,4 +1,3 @@
-import 'package:festenao_base_app/form/src/screen/form_end_screen.dart';
 import 'package:festenao_base_app/form/src/view/app_scaffold.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_common/form/tk_form.dart';
@@ -6,22 +5,22 @@ import 'package:festenao_common/form/tk_form_db.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/delayed_display.dart';
-import 'package:tekartik_app_navigator_flutter/page_route.dart';
 import 'package:tekartik_common_utils/list_utils.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
+import 'package:tkcms_user_app/theme/theme1.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
 import 'package:tkcms_user_app/view/body_container.dart';
 import 'package:tkcms_user_app/view/busy_screen_state_mixin.dart';
 import 'package:tkcms_user_app/view/rx_busy_indicator.dart';
 
-import '../theme/theme.dart';
 import 'end_screen.dart';
-import 'form_screen.dart';
+import 'form_question_screen_bloc.dart';
+import 'form_screen_controller.dart';
 import 'text_field_screen.dart';
-import 'tk_form_question_screen_bloc.dart';
 
 var debugQuestionScreen = false; // devWarning(true);
 
+// ignore: unused_element
 void _log(String message) {
   if (debugQuestionScreen) {
     // ignore: avoid_print
@@ -29,70 +28,10 @@ void _log(String message) {
   }
 }
 
-class QuestionPlayerScreenBlocState {
-  final TkFormPlayerQuestionBlocState playerState;
-
-  QuestionPlayerScreenBlocState({required this.playerState});
-  @override
-  String toString() {
-    var question = playerState.question;
-    return question.toString();
-  }
-}
-
-class QuestionPlayerScreenBloc
-    extends AutoDisposeStateBaseBloc<QuestionPlayerScreenBlocState>
-    implements SurveyPlayerBloc {
-  /// Question player
-  late final questionPlayer = player.getQuestionPlayer(questionIndex);
-  late final surveyBloc = globalSurveyPlayerFormBloc;
-  final int questionIndex;
-
-  TkFormPlayer? _tkFormPlayer;
-  QuestionPlayerScreenBloc({
-    required this.questionIndex,
-    TkFormPlayer? player,
-  }) {
-    _tkFormPlayer = player;
-    _init();
-  }
-
-  Future<void> _init() async {
-    TkFormPlayerFormBlocState formState;
-    if (_tkFormPlayer == null) {
-      if (debugQuestionScreen) {
-        _log('waiting for surveyBloc');
-      }
-      formState = await surveyBloc.state.first;
-      if (debugQuestionScreen) {
-        _log('got state $formState');
-      }
-    } else {
-      formState = TkFormPlayerFormBlocState(form: _tkFormPlayer!.form);
-    }
-    try {
-      var tkQuestion = player.getQuestion(questionIndex);
-
-      add(
-        QuestionPlayerScreenBlocState(
-          playerState: TkFormPlayerQuestionBlocState(
-            form: formState,
-            question: tkQuestion,
-          ),
-        ),
-      );
-    } catch (e) {
-      addError('Question not found $e');
-    }
-  }
-
-  @override
-  TkFormPlayer get player => _tkFormPlayer ?? surveyBloc.player;
-}
-
 class QuestionScreen extends StatefulWidget {
-  final int questionIndex;
-  const QuestionScreen({super.key, required this.questionIndex});
+  final FormScreenController screenController;
+
+  const QuestionScreen({super.key, required this.screenController});
 
   @override
   State<QuestionScreen> createState() => _QuestionScreenState();
@@ -106,7 +45,7 @@ class _QuestionScreenState extends AutoDisposeBaseState<QuestionScreen>
       BlocProvider.of<QuestionPlayerScreenBloc>(context);
 
   /// Only valid during build
-  int get questionIndex => widget.questionIndex;
+  int get questionIndex => bloc.questionIndex;
   final _smallScreen = BehaviorSubject.seeded(false);
   final canGoNextSubject = BehaviorSubject.seeded(false);
   final formKey = GlobalKey<FormState>();
@@ -393,9 +332,9 @@ class _QuestionScreenState extends AutoDisposeBaseState<QuestionScreen>
   }
 
   void _goToNext() {
-    goToQuestionOrEndScreen(
+    widget.screenController.goToQuestionOrEndScreen(
       context,
-      player: bloc.player,
+
       questionIndex: questionIndex + 1,
     );
   }
@@ -693,7 +632,7 @@ class _QuestionScreenState extends AutoDisposeBaseState<QuestionScreen>
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 choicesSelected.contains(choice.id)
-                                    ? colorTealSelected
+                                    ? colorBlueSelected
                                     : null,
                           ),
                           child: Text(choice.text),
@@ -802,44 +741,6 @@ class _QuestionScreenState extends AutoDisposeBaseState<QuestionScreen>
           validator: validator,
         );
       },
-    );
-  }
-}
-
-Future<void> goToQuestionScreen(
-  BuildContext context, {
-  required int questionIndex,
-  required TkFormPlayer player,
-}) async {
-  await Navigator.of(context).push(
-    NoAnimationMaterialPageRoute<void>(
-      builder: (context) {
-        return BlocProvider(
-          blocBuilder:
-              () => QuestionPlayerScreenBloc(
-                questionIndex: questionIndex,
-                player: player,
-              ),
-          child: QuestionScreen(questionIndex: questionIndex),
-        );
-      },
-    ),
-  );
-}
-
-Future<void> goToQuestionOrEndScreen(
-  BuildContext context, {
-  required TkFormPlayer player,
-  required int questionIndex,
-}) async {
-  var count = player.questionCount;
-  if (questionIndex >= count) {
-    await goToFormEndScreen(context, player: player);
-  } else {
-    await goToQuestionScreen(
-      context,
-      questionIndex: questionIndex,
-      player: player,
     );
   }
 }

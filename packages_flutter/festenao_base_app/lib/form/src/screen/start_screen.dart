@@ -10,7 +10,7 @@ import 'package:tkcms_user_app/view/body_container.dart';
 
 import 'debug_screen.dart';
 import 'form_screen.dart';
-import 'question_screen.dart';
+import 'form_screen_controller.dart';
 
 class DebugOnInitState {
   var _done = false;
@@ -134,12 +134,17 @@ class _StartScreenState extends State<StartScreen> {
                                                 .state
                                                 .first;
                                             if (context.mounted) {
-                                              await goToQuestionOrEndScreen(
-                                                context,
-                                                player: player,
-                                                questionIndex: 0,
-                                                //
-                                              );
+                                              var screenController =
+                                                  FormScreenControllerBase(
+                                                    player: player,
+                                                  );
+                                              await screenController
+                                                  .goToQuestionOrEndScreen(
+                                                    context,
+
+                                                    questionIndex: 0,
+                                                    //
+                                                  );
                                             }
                                           },
                                           child: const Text(

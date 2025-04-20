@@ -2,11 +2,20 @@ import 'package:festenao_base_app/form/src/app/app_bloc.dart';
 import 'package:festenao_base_app/form/src/screen/tk_form_question_screen_bloc.dart';
 import 'package:festenao_common/form/tk_form.dart';
 import 'package:festenao_common/form/tk_form_db.dart';
+import 'package:flutter/material.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
 
+import 'form_screen_controller.dart';
+
 abstract class SurveyPlayerBloc {
   TkFormPlayer get player;
+}
+
+abstract class FormScreenStateBase<T extends StatefulWidget>
+    extends AutoDisposeBaseState<T> {
+  final FormScreenController screenController;
+  FormScreenStateBase({required this.screenController});
 }
 
 abstract class AppFormPlayerBloc

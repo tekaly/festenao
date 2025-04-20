@@ -1,20 +1,20 @@
 import 'package:festenao_base_app/form/src/view/app_scaffold.dart';
-import 'package:festenao_common/form/tk_form.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/delayed_display.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
-import 'package:tekartik_app_navigator_flutter/page_route.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
 import 'package:tkcms_user_app/view/body_container.dart';
 import 'package:tkcms_user_app/view/busy_screen_state_mixin.dart';
 import 'package:tkcms_user_app/view/rx_busy_indicator.dart';
 
 import 'form_bloc.dart';
+import 'form_screen_controller.dart';
 import 'thank_you_screen.dart';
 
 class FormEndScreen extends StatefulWidget {
-  const FormEndScreen({super.key});
+  final FormScreenController screenController;
+  const FormEndScreen({super.key, required this.screenController});
 
   @override
   State<FormEndScreen> createState() => _FormEndScreenState();
@@ -170,20 +170,4 @@ class _FormEndScreenState extends State<FormEndScreen>
       ),
     );
   }
-}
-
-Future<void> goToFormEndScreen(
-  BuildContext context, {
-  required TkFormPlayer player,
-}) async {
-  await Navigator.of(context).push(
-    NoAnimationMaterialPageRoute<void>(
-      builder: (context) {
-        return BlocProvider(
-          blocBuilder: () => FormPlayerBloc(player: player),
-          child: const FormEndScreen(),
-        );
-      },
-    ),
-  );
 }

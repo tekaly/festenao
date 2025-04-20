@@ -1,5 +1,4 @@
 import 'package:festenao_base_app/form/src/app/app_bloc.dart';
-import 'package:festenao_base_app/form/src/screen/form_start_screen.dart';
 import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_common/festenao_sembast.dart';
 import 'package:festenao_common/form/tk_form.dart';
@@ -10,7 +9,7 @@ import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 // ignore: depend_on_referenced_packages
 import 'package:tekartik_firebase_firestore/utils/auto_id_generator.dart';
 
-import 'question_screen.dart';
+import 'form_screen_controller.dart';
 import 'thank_you_screen.dart';
 
 class UserDebugScreen extends StatefulWidget {
@@ -71,20 +70,41 @@ class _UserDebugScreenState extends State<UserDebugScreen> {
           ],
           form: TkFormPlayerFormBase(id: 'f1', name: 'Form1'),
         );
-        //globalSurveyPlayerFormBloc = SurveyPlayerFormBlocMemory(player: player);
-        await goToQuestionScreen(context, questionIndex: 0, player: player);
+        var screenController = FormScreenControllerBase(player: player);
+        await screenController.goToQuestionScreen(context, questionIndex: 0);
       });
       muiItem('One question form empty allowed', () async {
         var player = oneQuestionFormEmptyAllowedPlayer();
 
+        var screenController = FormScreenControllerBase(player: player);
+        await screenController.goToQuestionScreen(context, questionIndex: 0);
+      });
+      muiItem('One question multi choice', () async {
+        var player = TestFormPlayer(
+          id: 'test',
+          questions: [
+            TkFormPlayerQuestion(
+              id: 'q1',
+              text: 'My name is?',
+              options: TkFormPlayerQuestionChoiceOptions(
+                choices: [
+                  TkFormPlayerQuestionChoice(id: 'c1', text: 'Choice 1'),
+                  TkFormPlayerQuestionChoice(id: 'c2', text: 'Choice 2'),
+                ],
+              ),
+            ),
+          ],
+          form: TkFormPlayerFormBase(id: 'f1', name: 'Form1'),
+        );
         //globalSurveyPlayerFormBloc = SurveyPlayerFormBlocMemory(player: player);
-        await goToQuestionScreen(context, questionIndex: 0, player: player);
+        var screenController = FormScreenControllerBase(player: player);
+        await screenController.goToQuestionScreen(context, questionIndex: 0);
       });
       muiItem('start form screen', () async {
         var player = oneQuestionFormEmptyAllowedPlayer();
-
+        var screenController = FormScreenControllerBase(player: player);
         //globalSurveyPlayerFormBloc = SurveyPlayerFormBlocMemory(player: player);
-        await goToFormStartScreen(context, player: player);
+        await screenController.goToFormStartScreen(context);
       });
       muiItem('Choice question form', () async {
         var player = TestFormPlayer(
@@ -103,7 +123,8 @@ class _UserDebugScreenState extends State<UserDebugScreen> {
           ],
           form: TkFormPlayerFormBase(id: 'f1', name: 'Form1'),
         );
-        await goToQuestionScreen(context, questionIndex: 0, player: player);
+        var screenController = FormScreenControllerBase(player: player);
+        await screenController.goToQuestionScreen(context, questionIndex: 0);
       });
       muiItem('Multi question form', () async {
         var player = TestFormPlayer(
@@ -128,7 +149,8 @@ class _UserDebugScreenState extends State<UserDebugScreen> {
           form: TkFormPlayerFormBase(id: 'f1', name: 'Form1'),
         );
         //globalSurveyPlayerFormBloc = SurveyPlayerFormBlocMemory(player: player);
-        await goToQuestionScreen(context, questionIndex: 0, player: player);
+        var screenController = FormScreenControllerBase(player: player);
+        await screenController.goToQuestionScreen(context, questionIndex: 0);
         if (muiBuildContext.mounted) {
           await muiSnack(muiBuildContext, 'Done');
         }

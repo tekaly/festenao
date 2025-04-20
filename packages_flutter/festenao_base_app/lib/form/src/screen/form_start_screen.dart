@@ -1,6 +1,5 @@
 import 'package:festenao_base_app/form/src/view/app_scaffold.dart';
 import 'package:festenao_common/data/src/import.dart';
-import 'package:festenao_common/form/tk_form.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/delayed_display.dart';
@@ -10,7 +9,7 @@ import 'package:tkcms_user_app/view/body_container.dart';
 
 import 'debug_screen.dart';
 import 'form_bloc.dart';
-import 'question_screen.dart';
+import 'form_screen_controller.dart';
 
 class DebugOnInitState {
   var _done = false;
@@ -37,7 +36,8 @@ typedef DebugOnInitBuildContextCallback =
 DebugOnInitState? startScreenDebugOnInit;
 
 class FormStartScreen extends StatefulWidget {
-  const FormStartScreen({super.key});
+  final FormScreenController screenController;
+  const FormStartScreen({super.key, required this.screenController});
 
   @override
   State<FormStartScreen> createState() => _FormStartScreenState();
@@ -100,12 +100,13 @@ class _FormStartScreenState extends State<FormStartScreen> {
                                     child: ElevatedButton(
                                       onPressed: () async {
                                         if (context.mounted) {
-                                          await goToQuestionOrEndScreen(
-                                            context,
-                                            player: player,
-                                            questionIndex: 0,
-                                            //
-                                          );
+                                          await widget.screenController
+                                              .goToQuestionOrEndScreen(
+                                                context,
+
+                                                questionIndex: 0,
+                                                //
+                                              );
                                         }
                                       },
                                       child: const Text(
@@ -140,20 +141,4 @@ class _FormStartScreenState extends State<FormStartScreen> {
       },
     );
   }
-}
-
-Future<void> goToFormStartScreen(
-  BuildContext context, {
-  required TkFormPlayer player,
-}) async {
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (context) {
-        return BlocProvider(
-          blocBuilder: () => FormPlayerBloc(player: player),
-          child: const FormStartScreen(),
-        );
-      },
-    ),
-  );
 }

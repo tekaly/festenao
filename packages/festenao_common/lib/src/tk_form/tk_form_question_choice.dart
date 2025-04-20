@@ -14,6 +14,7 @@ abstract class TkFormPlayerQuestionChoice {
     required String id,
     required String text,
     bool? allowOther,
+    bool? multi,
   }) {
     return _TkFormPlayerQuestionChoice(
       id: id,

@@ -27,18 +27,22 @@ class AppScaffold extends StatelessWidget {
           );
         }
 
-        if (constraints.maxWidth > 640 || constraints.maxHeight > 840) {
-          return Center(
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(32),
-                color: Theme.of(context).scaffoldBackgroundColor,
-              ),
-              width: min(600, constraints.maxWidth),
-              height: min(800, constraints.maxHeight),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: scaffold(),
+        if ((min(constraints.maxWidth, constraints.maxHeight) > 640) &&
+            (constraints.maxWidth > 640 || constraints.maxHeight > 840)) {
+          return Container(
+            color: Colors.black,
+            child: Center(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                ),
+                width: min(600, constraints.maxWidth),
+                height: min(800, constraints.maxHeight),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: scaffold(),
+                ),
               ),
             ),
           );
