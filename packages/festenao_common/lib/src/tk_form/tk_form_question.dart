@@ -65,7 +65,7 @@ abstract class TkFormPlayerQuestionBase implements TkFormPlayerQuestion {
 
 /// Multi or single choice
 abstract class TkFormPlayerQuestionChoiceOptions
-    extends TkFormPlayerQuestionOptions {
+    implements TkFormPlayerQuestionOptions {
   /// Choice allow other
   bool get choiceAllowOther;
 
@@ -76,11 +76,13 @@ abstract class TkFormPlayerQuestionChoiceOptions
     List<TkFormPlayerQuestionChoice>? choices,
     bool? emptyAllowed,
     bool? multi,
+    List<String>? tags,
   }) {
     return _TkFormPlayerQuestionChoiceOptions(
       choices: choices,
       emptyAllowed: emptyAllowed,
       multi: multi ?? false,
+      tags: tags,
     );
   }
 }
@@ -93,6 +95,7 @@ class _TkFormPlayerQuestionChoiceOptions extends TkFormPlayerQuestionOptionsBase
     this.choices,
     super.emptyAllowed,
     this.multi = false,
+    super.tags,
   });
 
   /// Is type choice multi
@@ -211,18 +214,23 @@ abstract class TkFormPlayerQuestionOptions {
 
   /// True if empty answer is allowed
   bool get emptyAllowed;
+
+  List<String>? get tags;
 }
 
 /// Question options base
 class TkFormPlayerQuestionOptionsBase
     with TkFormPlayerQuestionOptionsMixin
     implements TkFormPlayerQuestionOptions {
+  @override
+  final List<String>? tags;
+
   /// empty Allowed
   @override
   final bool emptyAllowed;
 
   /// Constructor
-  TkFormPlayerQuestionOptionsBase({bool? emptyAllowed})
+  TkFormPlayerQuestionOptionsBase({bool? emptyAllowed, this.tags})
     : emptyAllowed = emptyAllowed ?? false;
 }
 
@@ -243,6 +251,8 @@ mixin TkFormPlayerQuestionOptionsMixin implements TkFormPlayerQuestionOptions {
   @override
   bool get emptyAllowed => false;
 
+  @override
+  List<String>? get tags => null;
   @override
   String toString() {
     var sb = StringBuffer();

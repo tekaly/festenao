@@ -2,12 +2,12 @@ import 'package:festenao_base_app/form/src/view/app_scaffold.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_common/form/tk_form.dart';
 import 'package:festenao_common/form/tk_form_db.dart';
+import 'package:festenao_theme/theme.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/delayed_display.dart';
 import 'package:tekartik_common_utils/list_utils.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
-import 'package:tkcms_user_app/theme/theme1.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
 import 'package:tkcms_user_app/view/body_container.dart';
 import 'package:tkcms_user_app/view/busy_screen_state_mixin.dart';
@@ -632,7 +632,7 @@ class _QuestionScreenState extends AutoDisposeBaseState<QuestionScreen>
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 choicesSelected.contains(choice.id)
-                                    ? colorBlueSelected
+                                    ? colorFestenaoFormBlueSelected
                                     : null,
                           ),
                           child: Text(choice.text),

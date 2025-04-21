@@ -7,6 +7,9 @@ const colorBlue = Colors.blue;
 /// Festenao theme
 const colorBlueSelected = Color(0xff1b2177);
 
+/// Form color blue selected response
+final colorFestenaoFormBlueSelected = Colors.blue[300];
+
 /// Festenao theme
 const colorWhite = Colors.white;
 
