@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/delayed_display.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
-import 'package:tekartik_common_utils/dev_utils.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
 import 'package:tkcms_user_app/view/body_container.dart';
 import 'package:tkcms_user_app/view/busy_screen_state_mixin.dart';
@@ -135,9 +134,6 @@ class _FormEndScreenState extends State<FormEndScreen>
                                                         },
                                                       ),
                                                       (route) {
-                                                        devPrint(
-                                                          'Route: ${route.settings.name} ${stopAtNext ? 'stop' : ''}',
-                                                        );
                                                         if (stopAtNext) {
                                                           return true;
                                                         }
