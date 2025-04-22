@@ -4,8 +4,13 @@ import 'package:festenao_common/form/tk_form.dart';
 class TkFormPlayerQuestionBlocState {
   final TkFormPlayerFormBlocState form;
   final TkFormPlayerQuestion question;
+  final TkFormPlayerQuestionAnswer? answer;
 
-  TkFormPlayerQuestionBlocState({required this.form, required this.question});
+  TkFormPlayerQuestionBlocState({
+    required this.form,
+    required this.question,
+    required this.answer,
+  });
 }
 
 class TkFormPlayerQuestionBloc

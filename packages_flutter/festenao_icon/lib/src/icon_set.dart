@@ -13,6 +13,17 @@ class FestenaoIconAndColor {
 
   /// Constructor
   FestenaoIconAndColor(this.icon, this.color);
+
+  /// Widget
+  Icon iconWidget({double? size}) {
+    size ??= _kDefaultSize;
+    return Icon(
+      fill: 1,
+      icon, // Or Icons.sentiment_very_satisfied
+      color: color, // Apply your desired color here
+      size: size, // Adjust size as needed
+    );
+  }
 }
 
 /// Festenao icon set with color helpers
@@ -79,6 +90,9 @@ var colorsRedToGreenSet5 = [
   Colors.lightGreen,
   Colors.green,
 ];
+
+/// Color sets
+var colorsRedToGreenSet3 = [Colors.red, Colors.yellow, Colors.green];
 
 /// Build helpers
 extension FestenaoIconDataListExt on List<IconData> {

@@ -2,6 +2,8 @@ name: _
 publish_to: none
 environment:
   sdk: ^3.7.0
+dependencies:
+  archive: ">=4.0.0"
 workspace:
   - packages/festenao_blur_hash
   - packages/festenao_common
@@ -13,4 +15,5 @@ workspace:
   - packages_flutter/festenao_theme
   - packages_flutter/festenao_icon
   - packages_flutter/festenao_icon/example
+  - packages_flutter/festenao_markdown
 

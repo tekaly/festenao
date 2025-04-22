@@ -6,18 +6,18 @@ import 'icon_set.dart';
 
 /// Festenao icon set with color
 final festenaoIconMoodSet3 = [
-  FestenaoIconAndColor(Icons.sentiment_satisfied, Colors.green),
-  FestenaoIconAndColor(Icons.sentiment_neutral, Colors.yellow),
   FestenaoIconAndColor(Icons.sentiment_dissatisfied, Colors.red),
+  FestenaoIconAndColor(Icons.sentiment_neutral, Colors.yellow),
+  FestenaoIconAndColor(Icons.sentiment_satisfied, Colors.green),
 ];
 
 /// Festenao icon set with color
 final festenaoIconMoodSet5 = [
-  FestenaoIconAndColor(Icons.sentiment_very_satisfied, Colors.green),
-  FestenaoIconAndColor(Icons.sentiment_satisfied, Colors.lightGreen),
-  FestenaoIconAndColor(Icons.sentiment_neutral, Colors.yellow),
-  FestenaoIconAndColor(Icons.sentiment_dissatisfied, Colors.orange),
   FestenaoIconAndColor(Icons.sentiment_very_dissatisfied, Colors.red),
+  FestenaoIconAndColor(Icons.sentiment_dissatisfied, Colors.orange),
+  FestenaoIconAndColor(Icons.sentiment_neutral, Colors.yellow),
+  FestenaoIconAndColor(Icons.sentiment_satisfied, Colors.lightGreen),
+  FestenaoIconAndColor(Icons.sentiment_very_satisfied, Colors.green),
 ];
 
 /// Festenao icon set with color
@@ -25,18 +25,16 @@ final festenaoIconMoodSet5Filled = [
   Symbols.sentiment_extremely_dissatisfied,
   Symbols.sentiment_dissatisfied,
   Symbols.sentiment_neutral,
-  Symbols.sentiment_very_satisfied,
   Symbols.sentiment_satisfied,
+  Symbols.sentiment_very_satisfied,
 ].toFestenaoIconAndColor(colorsRedToGreenSet5);
 
 /// Festenao icon set with color
 final festenaoIconMoodSet3Filled = [
-  FestenaoIconAndColor(Symbols.sentiment_satisfied, Colors.green),
-
-  FestenaoIconAndColor(Symbols.sentiment_neutral, Colors.yellow),
-
-  FestenaoIconAndColor(Symbols.sentiment_dissatisfied, Colors.red),
-];
+  Symbols.sentiment_dissatisfied,
+  Symbols.sentiment_neutral,
+  Symbols.sentiment_satisfied,
+].toFestenaoIconAndColor(colorsRedToGreenSet3);
 
 /// Festenao icon set with color
 final festenaoIconMoodSetFilled = [

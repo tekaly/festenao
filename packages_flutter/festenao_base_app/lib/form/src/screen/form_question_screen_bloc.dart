@@ -57,12 +57,13 @@ class QuestionPlayerScreenBloc
     }
     try {
       var tkQuestion = player.getQuestion(questionIndex);
-
+      var tkAnswer = player.getAnswer(questionIndex);
       add(
         QuestionPlayerScreenBlocState(
           playerState: TkFormPlayerQuestionBlocState(
             form: formState,
             question: tkQuestion,
+            answer: tkAnswer,
           ),
         ),
       );
