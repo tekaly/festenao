@@ -73,6 +73,12 @@ class _UserDebugScreenState extends State<UserDebugScreen> {
         var screenController = FormScreenControllerBase(player: player);
         await screenController.goToQuestionScreen(context, questionIndex: 0);
       });
+      muiItem('One question form empty allowed from start', () async {
+        var player = oneQuestionFormEmptyAllowedPlayer();
+
+        var screenController = FormScreenControllerBase(player: player);
+        await screenController.goToFormStartScreen(context);
+      });
       muiItem('One question form empty allowed', () async {
         var player = oneQuestionFormEmptyAllowedPlayer();
 

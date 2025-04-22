@@ -13,11 +13,15 @@ abstract class TkFormPlayerQuestion {
   /// Question hint
   String? get hint;
 
+  /// Optional title
+  String? get title;
+
   /// Question options
   TkFormPlayerQuestionOptions get options;
 
   /// Constructor
   factory TkFormPlayerQuestion({
+    String? title,
     required String id,
     required String text,
     required TkFormPlayerQuestionOptions options,
@@ -28,6 +32,7 @@ abstract class TkFormPlayerQuestion {
       text: text,
       options: options,
       hint: hint,
+      title: title,
     );
   }
 }
@@ -38,11 +43,15 @@ class _TkFormPlayerQuestion extends TkFormPlayerQuestionBase {
     required super.text,
     required super.options,
     required super.hint,
+    required super.title,
   });
 }
 
 /// Question with options
 abstract class TkFormPlayerQuestionBase implements TkFormPlayerQuestion {
+  /// Optional title
+  @override
+  final String? title;
   @override
   final String id;
   @override
@@ -57,6 +66,7 @@ abstract class TkFormPlayerQuestionBase implements TkFormPlayerQuestion {
   /// Constructor
   TkFormPlayerQuestionBase({
     required this.id,
+    this.title,
     required this.text,
     required this.options,
     this.hint,
@@ -198,6 +208,24 @@ abstract class TkFormPlayerQuestionTextOptions
   }
 }
 
+/// Create class implementing TkFormPlayerQuestionInformationOptions
+class _TkFormPlayerQuestionInformationOptions
+    extends TkFormPlayerQuestionOptionsBase
+    implements TkFormPlayerQuestionInformationOptions {
+  @override
+  bool get isInformation => true;
+  _TkFormPlayerQuestionInformationOptions() : super(emptyAllowed: true);
+}
+
+/// Information
+abstract class TkFormPlayerQuestionInformationOptions
+    extends TkFormPlayerQuestionOptions {
+  /// Create factory using TkFormPlayerQuestionInformationOptions
+  factory TkFormPlayerQuestionInformationOptions() {
+    return _TkFormPlayerQuestionInformationOptions();
+  }
+}
+
 /// Question options
 abstract class TkFormPlayerQuestionOptions {
   /// Is type int
@@ -214,6 +242,9 @@ abstract class TkFormPlayerQuestionOptions {
 
   /// True if empty answer is allowed
   bool get emptyAllowed;
+
+  /// Information only, no answer
+  bool get isInformation;
 
   List<String>? get tags;
 }
@@ -251,6 +282,8 @@ mixin TkFormPlayerQuestionOptionsMixin implements TkFormPlayerQuestionOptions {
   @override
   bool get emptyAllowed => false;
 
+  @override
+  bool get isInformation => false;
   @override
   List<String>? get tags => null;
   @override

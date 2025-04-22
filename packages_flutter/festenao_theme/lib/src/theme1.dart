@@ -4,6 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 /// Festenao theme
 const colorBlue = Colors.blue;
 
+/// Festenao blue
+const colorFestenaoBlue = Colors.blue;
+
 /// Festenao theme
 const colorBlueSelected = Color(0xff1b2177);
 
@@ -65,6 +68,10 @@ ThemeData themeData1({TextTheme? textTheme, String? fontFamily}) {
         backgroundColor: colorBlue, // Button color
         foregroundColor: colorWhite,
       ),
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: colorFestenaoBlue,
+      foregroundColor: colorWhite,
     ),
   );
   return themeData;

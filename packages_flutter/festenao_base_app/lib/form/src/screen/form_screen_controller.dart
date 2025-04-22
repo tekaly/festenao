@@ -1,6 +1,7 @@
 import 'package:festenao_base_app/form/src/screen/question_screen.dart';
 import 'package:festenao_common/form/tk_form.dart';
 import 'package:flutter/material.dart';
+import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tekartik_app_navigator_flutter/page_route.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
 
@@ -28,6 +29,24 @@ abstract class FormScreenController {
     required int questionIndex,
   });
   Widget newStartScreen();
+}
+
+class FormQuestionContentPath extends ContentPathBase {
+  final question = ContentPathField('question');
+  @override
+  List<ContentPathField> get fields => [question];
+}
+
+class FormStartContentPath extends ContentPathBase {
+  final _part = ContentPathPart('start');
+  @override
+  List<ContentPathField> get fields => [_part];
+}
+
+class FormEndContentPath extends ContentPathBase {
+  final _part = ContentPathPart('end');
+  @override
+  List<ContentPathField> get fields => [_part];
 }
 
 class FormScreenControllerBase implements FormScreenController {
@@ -58,6 +77,10 @@ class FormScreenControllerBase implements FormScreenController {
             child: newQuestionScreen(),
           );
         },
+        settings:
+            (FormQuestionContentPath()..question.value = '$questionIndex')
+                .routeSettings()
+                .toRaw(),
       ),
     );
   }
@@ -77,6 +100,7 @@ class FormScreenControllerBase implements FormScreenController {
             child: newEndScreen(),
           );
         },
+        settings: FormEndContentPath().routeSettings().toRaw(),
       ),
     );
   }
@@ -109,6 +133,7 @@ class FormScreenControllerBase implements FormScreenController {
             child: newStartScreen(),
           );
         },
+        settings: FormStartContentPath().routeSettings().toRaw(),
       ),
     );
   }

@@ -10,6 +10,7 @@ export '../src/tk_form/tk_form_question.dart'
         TkFormPlayerQuestionIntOptions,
         TkFormPlayerQuestionChoiceOptions,
         TkFormPlayerQuestionOptions,
+        TkFormPlayerQuestionInformationOptions,
         TkFormPlayerQuestionOptionsDefault,
         TkFormPlayerQuestionOptionsBase,
         TkFormPlayerQuestionOptionsMixin,
