@@ -34,6 +34,10 @@ updates:
     schedule:
       interval: "monthly"
   - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_common_flutter"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
     directory: "packages_flutter/festenao_firebase_flutter"
     schedule:
       interval: "monthly"
@@ -46,7 +50,19 @@ updates:
     schedule:
       interval: "monthly"
   - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_markdown"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
     directory: "packages_flutter/festenao_theme"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_youtube_player"
+    schedule:
+      interval: "monthly"
+  - package-ecosystem: "pub"
+    directory: "packages_flutter/festenao_youtube_player/example/fyp_example"
     schedule:
       interval: "monthly"
   - package-ecosystem: "github-actions"

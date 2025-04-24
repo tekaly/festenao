@@ -27,3 +27,4 @@ doc/api/
 pubspec.lock
 .dart_tool
 pubspec_overrides.yaml
+/devtools_options.yaml

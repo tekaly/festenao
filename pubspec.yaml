@@ -16,4 +16,7 @@ workspace:
   - packages_flutter/festenao_icon
   - packages_flutter/festenao_icon/example
   - packages_flutter/festenao_markdown
+  - packages_flutter/festenao_common_flutter
+  - packages_flutter/festenao_youtube_player
+  - packages_flutter/festenao_youtube_player/example/fyp_example
 
