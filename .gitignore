@@ -28,3 +28,12 @@ pubspec.lock
 .dart_tool
 pubspec_overrides.yaml
 /devtools_options.yaml
+
+# platform project
+windows/
+linux/
+macos/
+android/
+ios/
+web/
+.metadata

@@ -19,4 +19,6 @@ workspace:
   - packages_flutter/festenao_common_flutter
   - packages_flutter/festenao_youtube_player
   - packages_flutter/festenao_youtube_player/example/fyp_example
+  - packages_flutter/festenao_lyrics_player
+  - packages_flutter/festenao_lyrics_player/example/flp_example
 
