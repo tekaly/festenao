@@ -26,6 +26,7 @@ class FestenaoYPlayerController extends FestenaoYoutubeControllerBase {
 
   /// Constructor for FestenaoYPlayerController.
   FestenaoYPlayerController({required this.options}) {
+    YPlayerInitializer.ensureInitialized();
     if (options.autoPlay) {
       ready.then((_) {
         yPlayerController?.play();

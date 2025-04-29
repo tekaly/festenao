@@ -76,6 +76,9 @@ abstract class LyricsDataController {
   /// 1 is normal
 
   void play({double speed = 1});
+
+  /// Update the controller at a given time
+  void update(Duration time);
 }
 
 /// Lyrics data controller extension (private)
@@ -151,6 +154,7 @@ class _LyricsDataController implements LyricsDataController {
   }
 
   var currentRef = LocatedLyricsDataItemRef.before();
+  @override
   void update(Duration time) {
     var newItemInfo = locatedLyricsData.locateItemInfo(time);
     var newRef = newItemInfo.ref;

@@ -46,11 +46,11 @@ class LyricsDataPlayerStyle {
   /// Default style
   static LyricsDataPlayerStyle get defaultDark => LyricsDataPlayerStyle(
     onTextStyle: const TextStyle(
-      color: Colors.white,
+      color: Colors.yellow,
       fontWeight: FontWeight.bold,
     ),
     offTextStyle: const TextStyle(
-      color: Colors.yellow,
+      color: Colors.white,
       fontWeight: FontWeight.bold,
     ),
   );
@@ -80,16 +80,14 @@ class LyricsDataPlayerMeta {
   final LyricsDataPlayerMetaSizeInfo sizeInfo;
 
   /// On text style
-  TextStyle get onTextStyle => TextStyle(
+  TextStyle get onTextStyle => style.onTextStyle.copyWith(
     fontSize: sizeInfo.fontSize,
-    color: Colors.black,
     fontWeight: FontWeight.bold,
   );
 
   /// Off text style
-  TextStyle get offTextStyle => TextStyle(
+  TextStyle get offTextStyle => style.offTextStyle.copyWith(
     fontSize: sizeInfo.fontSize,
-    color: Colors.grey,
     fontWeight: FontWeight.bold,
   );
 
@@ -146,7 +144,7 @@ class _LyricsDataPlayerState extends State<LyricsDataPlayer> {
         var meta = LyricsDataPlayerMeta(
           controller: widget.controller,
           sizeInfo: fontSize,
-          style: LyricsDataPlayerStyle.defaultLight,
+          style: widget.style,
         );
         return ScrollablePositionedList.builder(
           itemScrollController: widget.controller.itemScrollController,

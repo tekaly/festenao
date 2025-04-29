@@ -21,4 +21,5 @@ workspace:
   - packages_flutter/festenao_youtube_player/example/fyp_example
   - packages_flutter/festenao_lyrics_player
   - packages_flutter/festenao_lyrics_player/example/flp_example
+  - packages_flutter/festenao_media_base_app
 
