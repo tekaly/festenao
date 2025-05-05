@@ -3,7 +3,7 @@ import 'package:festenao_audio_player/src/import.dart';
 import 'package:flutter/material.dart';
 
 class AppAudioPlayerWidget extends StatefulWidget {
-  final AppAudioPlayerSong song;
+  final AppAudioPlayerSong? song;
   final AppAudioPlayer player;
 
   const AppAudioPlayerWidget({
@@ -19,7 +19,7 @@ class AppAudioPlayerWidget extends StatefulWidget {
 class _AppAudioPlayerWidgetState extends State<AppAudioPlayerWidget> {
   AppAudioPlayer get player => widget.player;
 
-  AppAudioPlayerSong get song => widget.song;
+  AppAudioPlayerSong? get song => widget.song;
 
   var _seeking = false;
   double? _seekValue;
@@ -48,7 +48,11 @@ class _AppAudioPlayerWidgetState extends State<AppAudioPlayerWidget> {
 
         IconButton(
           onPressed: () async {
-            await player.playSong(song);
+            if (song == null) {
+              await player.play();
+            } else {
+              await player.playSong(song!);
+            }
           },
           iconSize: 64,
           icon: const Icon(Icons.play_arrow),
