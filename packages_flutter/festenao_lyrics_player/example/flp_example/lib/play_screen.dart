@@ -49,7 +49,9 @@ class _PlayScreenState extends State<PlayScreen> {
             height: 150,
             child: LyricsDataPlayer(
               controller: controller,
-              style: LyricsDataPlayerStyle.defaultLight,
+              style: LyricsDataPlayerStyle.defaultLight.copyWith(
+                textScaler: TextScaler.linear(.3),
+              ),
             ),
           ),
         ],

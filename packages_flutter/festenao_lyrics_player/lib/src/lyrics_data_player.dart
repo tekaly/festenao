@@ -66,6 +66,19 @@ class LyricsDataPlayerStyle {
       fontWeight: FontWeight.bold,
     ),
   );
+
+  /// copy with
+  LyricsDataPlayerStyle copyWith({
+    TextStyle? onTextStyle,
+    TextStyle? offTextStyle,
+    TextScaler? textScaler,
+  }) {
+    return LyricsDataPlayerStyle(
+      onTextStyle: onTextStyle ?? this.onTextStyle,
+      offTextStyle: offTextStyle ?? this.offTextStyle,
+      textScaler: textScaler ?? this.textScaler,
+    );
+  }
 }
 
 /// LyricsDataPlayerMeta
@@ -206,6 +219,7 @@ class _LocatedLyricsDataLineWidgetState
       builder: (context, snapshot) {
         var state = snapshot.data ?? ControllerDataItemState();
         var on = state.on;
+        // devPrint('scaler: ${meta.style.textScaler}');
         return SizedBox(
           height: widget.meta.sizeInfo.height,
           //color: Colrs.blue.withValues(alpha: (lineIndex % 10) / 20),
@@ -270,7 +284,7 @@ class _LocatedLyricsDataPartWidgetState
           //color: Colors.red.withOpacity((itemRef.partIndex % 10) / 20),
           child: Text(
             itemInfo.text,
-            textScaler: TextScaler.noScaling,
+            textScaler: widget.meta.style.textScaler,
             style: on ? widget.meta.onTextStyle : widget.meta.offTextStyle,
 
             textAlign: TextAlign.center,
