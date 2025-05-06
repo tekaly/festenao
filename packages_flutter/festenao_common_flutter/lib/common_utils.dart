@@ -1,5 +1,3 @@
-// ignore_for_file: depend_on_referenced_packages
-
 export 'package:cv/cv_json.dart';
 export 'package:festenao_common/festenao_audi.dart';
 export 'package:tekartik_app_common_utils/common_utils_import.dart';

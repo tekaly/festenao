@@ -1,5 +1,3 @@
-// ignore_for_file: depend_on_referenced_packages
-
 export 'common_utils_flutter.dart';
 // Ui builder
 export 'package:tekartik_app_rx_utils/app_rx_utils.dart';
