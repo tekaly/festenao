@@ -46,11 +46,12 @@ class _PlayScreenState extends State<PlayScreen> {
         padding: const EdgeInsets.all(8),
         children: <Widget>[
           SizedBox(
-            height: 150,
+            height: 112,
             child: LyricsDataPlayer(
               controller: controller,
               style: LyricsDataPlayerStyle.defaultLight.copyWith(
-                textScaler: TextScaler.linear(.3),
+                textScaler: TextScaler.linear(.9),
+                lineCount: 2,
               ),
             ),
           ),

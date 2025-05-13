@@ -1,6 +1,6 @@
 name: festenao_lyrics_player
 description: "Flutter lyrics player"
-version: 0.0.1
+version: 0.1.0
 publish_to: none
 
 environment:

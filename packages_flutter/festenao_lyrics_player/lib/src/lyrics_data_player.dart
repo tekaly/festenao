@@ -36,11 +36,15 @@ class LyricsDataPlayerStyle {
   /// Text scaler (none by default), font size is 1/20th of the available width
   final TextScaler textScaler;
 
+  /// Line count to be displayed
+  final int? lineCount;
+
   /// Constructor
   LyricsDataPlayerStyle({
     required this.onTextStyle,
     required this.offTextStyle,
     this.textScaler = TextScaler.noScaling,
+    this.lineCount,
   });
 
   /// Default style
@@ -72,11 +76,13 @@ class LyricsDataPlayerStyle {
     TextStyle? onTextStyle,
     TextStyle? offTextStyle,
     TextScaler? textScaler,
+    int? lineCount,
   }) {
     return LyricsDataPlayerStyle(
       onTextStyle: onTextStyle ?? this.onTextStyle,
       offTextStyle: offTextStyle ?? this.offTextStyle,
       textScaler: textScaler ?? this.textScaler,
+      lineCount: lineCount ?? this.lineCount,
     );
   }
 }
@@ -112,15 +118,6 @@ class LyricsDataPlayerMeta {
   });
 }
 
-/*
-class LyricsDataPlayerMetaWidget extends StatefulWidget {
-  final LyricsData lyricsData;
-  const LyricsDataPlayerWidget({super.key, required this.lyricsData});
-
-  @override
-  State<LyricsDataPlayerWidget> createState() => _LyricsDataPlayerWidgetState();
-}*/
-
 /// LyricsDataPlayer
 ///
 /// Must be bounded in the screen
@@ -151,12 +148,10 @@ class _LyricsDataPlayerState extends State<LyricsDataPlayer> {
     var lines = locatedLyricsData.lines;
     return LayoutBuilder(
       builder: (context, constraints) {
-        // devPrint('LayoutBuilder: $constraints');
-
-        var fontSize = LyricsDataPlayerMetaSizeInfo(size: constraints.biggest);
+        var sizeInfo = LyricsDataPlayerMetaSizeInfo(size: constraints.biggest);
         var meta = LyricsDataPlayerMeta(
           controller: widget.controller,
-          sizeInfo: fontSize,
+          sizeInfo: sizeInfo,
           style: widget.style,
         );
         return ScrollablePositionedList.builder(
@@ -198,19 +193,26 @@ class _LocatedLyricsDataLineWidgetState
       widget.meta.controller.locatedLyricsData.getLine(widget.index);
   List<LocatedLyricsDataPart> get parts => line.parts;
   int get lineIndex => widget.index;
+  double? get lineHeight =>
+      meta.style.lineCount == null
+          ? null
+          : meta.sizeInfo.height / meta.style.lineCount!;
   @override
   Widget build(BuildContext context) {
     var parts = line.parts;
     if (parts.isNotEmpty) {
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          for (var i = 0; i < parts.length; i++)
-            LocatedLyricsDataPartWidget(
-              meta: widget.meta,
-              itemRef: LocatedLyricsDataItemRef(lineIndex, i),
-            ),
-        ],
+      return SizedBox(
+        height: lineHeight,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (var i = 0; i < parts.length; i++)
+              LocatedLyricsDataPartWidget(
+                meta: widget.meta,
+                itemRef: LocatedLyricsDataItemRef(lineIndex, i),
+              ),
+          ],
+        ),
       );
     }
     var itemRef = LocatedLyricsDataItemRef(lineIndex, -1);
@@ -221,7 +223,7 @@ class _LocatedLyricsDataLineWidgetState
         var on = state.on;
         // devPrint('scaler: ${meta.style.textScaler}');
         return SizedBox(
-          height: widget.meta.sizeInfo.height,
+          height: lineHeight,
           //color: Colrs.blue.withValues(alpha: (lineIndex % 10) / 20),
           child: Text(
             textScaler: meta.style.textScaler,
