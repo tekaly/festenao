@@ -1,6 +1,7 @@
 import 'package:festenao_common_flutter/common_utils_widget.dart';
 import 'package:festenao_lyrics_player/src/lyrics_data_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart'; // Import the package
 import 'package:tekaly_lyrics/utils/lyrics_data_located.dart';
 
@@ -39,11 +40,15 @@ class LyricsDataPlayerStyle {
   /// Line count to be displayed
   final int? lineCount;
 
+  /// Scroll duration
+  final Duration scrollDuration;
+
   /// Constructor
   LyricsDataPlayerStyle({
     required this.onTextStyle,
     required this.offTextStyle,
     this.textScaler = TextScaler.noScaling,
+    this.scrollDuration = const Duration(milliseconds: 300),
     this.lineCount,
   });
 
@@ -77,12 +82,14 @@ class LyricsDataPlayerStyle {
     TextStyle? offTextStyle,
     TextScaler? textScaler,
     int? lineCount,
+    Duration? scrollDuration,
   }) {
     return LyricsDataPlayerStyle(
       onTextStyle: onTextStyle ?? this.onTextStyle,
       offTextStyle: offTextStyle ?? this.offTextStyle,
       textScaler: textScaler ?? this.textScaler,
       lineCount: lineCount ?? this.lineCount,
+      scrollDuration: scrollDuration ?? this.scrollDuration,
     );
   }
 }
@@ -259,9 +266,11 @@ class LocatedLyricsDataPartWidget extends StatefulWidget {
 
 class _LocatedLyricsDataPartWidgetState
     extends State<LocatedLyricsDataPartWidget> {
+  LyricsDataPlayerMeta get meta => widget.meta;
+  LyricsDataPlayerStyle get style => meta.style;
   LocatedLyricsDataItemRef get itemRef => widget.itemRef;
   LocatedLyricsDataItemInfo get itemInfo =>
-      widget.meta.controller.locatedLyricsData.getItemInfo(widget.itemRef);
+      meta.controller.locatedLyricsData.getItemInfo(widget.itemRef);
   var _current = false;
   @override
   Widget build(BuildContext context) {
@@ -275,11 +284,13 @@ class _LocatedLyricsDataPartWidgetState
         var current = state.current;
         if (current && !_current) {
           _current = true;
-          widget.meta.controller.itemScrollController.scrollTo(
-            index: itemRef.lineIndex,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-          );
+          SchedulerBinding.instance.addPostFrameCallback((_) {
+            meta.controller.itemScrollController.scrollTo(
+              index: itemRef.lineIndex,
+              duration: style.scrollDuration,
+              curve: Curves.easeInOut,
+            );
+          });
         }
         // ignore: avoid_unnecessary_containers
         return Container(
@@ -288,7 +299,6 @@ class _LocatedLyricsDataPartWidgetState
             itemInfo.text,
             textScaler: widget.meta.style.textScaler,
             style: on ? widget.meta.onTextStyle : widget.meta.offTextStyle,
-
             textAlign: TextAlign.center,
           ),
         );
