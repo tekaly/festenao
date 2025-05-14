@@ -1,6 +1,6 @@
 name: festenao_lyrics_player
 description: "Flutter lyrics player"
-version: 0.1.1
+version: 0.1.2
 publish_to: none
 
 environment:
@@ -20,6 +20,7 @@ dependencies:
       url: https://github.com/tekartikprj/music
       ref: dart3a
       path: packages/lyrics
+    version: ">=1.0.1"
   scrollable_positioned_list:
 dev_dependencies:
   flutter_test:

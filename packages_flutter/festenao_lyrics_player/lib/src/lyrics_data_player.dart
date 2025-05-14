@@ -166,7 +166,7 @@ class _LyricsDataPlayerState extends State<LyricsDataPlayer> {
           itemBuilder: (context, index) {
             return LocatedLyricsDataLineWidget(meta: meta, index: index);
           },
-          itemCount: lines.length,
+          itemCount: lines.length + (widget.style.lineCount ?? 1) - 1,
         );
       },
     );
@@ -206,11 +206,18 @@ class _LocatedLyricsDataLineWidgetState
           : meta.sizeInfo.height / meta.style.lineCount!;
   @override
   Widget build(BuildContext context) {
+    Widget wrap(Widget child) {
+      return SizedBox(height: lineHeight, child: child);
+    }
+
+    if (lineIndex >= widget.meta.controller.locatedLyricsData.lines.length) {
+      return wrap(Container());
+    }
+
     var parts = line.parts;
     if (parts.isNotEmpty) {
-      return SizedBox(
-        height: lineHeight,
-        child: Row(
+      return wrap(
+        Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             for (var i = 0; i < parts.length; i++)
@@ -229,10 +236,8 @@ class _LocatedLyricsDataLineWidgetState
         var state = snapshot.data ?? ControllerDataItemState();
         var on = state.on;
         // devPrint('scaler: ${meta.style.textScaler}');
-        return SizedBox(
-          height: lineHeight,
-          //color: Colrs.blue.withValues(alpha: (lineIndex % 10) / 20),
-          child: Text(
+        return wrap(
+          Text(
             textScaler: meta.style.textScaler,
             line.text,
             style: on ? widget.meta.onTextStyle : widget.meta.offTextStyle,

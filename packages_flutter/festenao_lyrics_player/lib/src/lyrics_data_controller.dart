@@ -199,7 +199,7 @@ class _LyricsDataController implements LyricsDataController {
     _playing = true;
     _lock.synchronized(() async {
       while (_playing) {
-        await sleep(300);
+        await sleep(10);
         update(_sw.elapsed * speed);
       }
     });
