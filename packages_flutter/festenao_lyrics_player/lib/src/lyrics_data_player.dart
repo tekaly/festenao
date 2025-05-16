@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart'; // Import the package
 import 'package:tekaly_lyrics/utils/lyrics_data_located.dart';
+import 'package:tekartik_common_utils/stream/stream_join.dart';
 
 /// LyricsDataPlayerMetaSizeInfo
 class LyricsDataPlayerMetaSizeInfo {
@@ -195,15 +196,28 @@ class LocatedLyricsDataLineWidget extends StatefulWidget {
 
 class _LocatedLyricsDataLineWidgetState
     extends State<LocatedLyricsDataLineWidget> {
+  var _current = false;
   LyricsDataPlayerMeta get meta => widget.meta;
   LocatedLyricsDataLine get line =>
       widget.meta.controller.locatedLyricsData.getLine(widget.index);
   List<LocatedLyricsDataPart> get parts => line.parts;
+  LyricsDataController get controller => widget.meta.controller;
   int get lineIndex => widget.index;
   double? get lineHeight =>
       meta.style.lineCount == null
           ? null
           : meta.sizeInfo.height / meta.style.lineCount!;
+
+  void _scrollToMe() {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      meta.controller.itemScrollController.scrollTo(
+        index: lineIndex,
+        duration: widget.meta.style.scrollDuration,
+        curve: Curves.easeInOut,
+      );
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget wrap(Widget child) {
@@ -216,17 +230,56 @@ class _LocatedLyricsDataLineWidgetState
 
     var parts = line.parts;
     if (parts.isNotEmpty) {
-      return wrap(
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (var i = 0; i < parts.length; i++)
-              LocatedLyricsDataPartWidget(
-                meta: widget.meta,
-                itemRef: LocatedLyricsDataItemRef(lineIndex, i),
+      var itemRefs =
+          parts
+              .map(
+                (part) =>
+                    LocatedLyricsDataItemRef(lineIndex, parts.indexOf(part)),
+              )
+              .toList();
+      var streams =
+          itemRefs
+              .map(
+                (itemRef) =>
+                    widget.meta.controller.getItemStatusStream(itemRef),
+              )
+              .toList();
+      var stream = streamJoinAll(streams);
+
+      var initialData =
+          streams
+              .map((stream) => stream.valueOrNull ?? ControllerDataItemState())
+              .toList();
+      return StreamBuilder(
+        stream: stream,
+        initialData: initialData,
+        builder: (context, snapshot) {
+          var states = snapshot.data ?? initialData;
+          var on = states.any((state) => state.on);
+          if (on && !_current) {
+            _scrollToMe();
+          }
+          _current = on;
+          // devPrint('scaler: ${meta.style.textScaler}');
+          return wrap(
+            RichText(
+              textAlign: TextAlign.center,
+              textScaler: widget.meta.style.textScaler,
+              text: TextSpan(
+                children: [
+                  for (var i = 0; i < parts.length; i++)
+                    TextSpan(
+                      text: parts[i].partData.text,
+                      style:
+                          states[i].on
+                              ? widget.meta.onTextStyle
+                              : widget.meta.offTextStyle,
+                    ),
+                ],
               ),
-          ],
-        ),
+            ),
+          );
+        },
       );
     }
     var itemRef = LocatedLyricsDataItemRef(lineIndex, -1);
@@ -235,6 +288,11 @@ class _LocatedLyricsDataLineWidgetState
       builder: (context, snapshot) {
         var state = snapshot.data ?? ControllerDataItemState();
         var on = state.on;
+        var current = state.current;
+        if (current && !_current) {
+          _scrollToMe();
+        }
+        _current = current;
         // devPrint('scaler: ${meta.style.textScaler}');
         return wrap(
           Text(
@@ -298,14 +356,11 @@ class _LocatedLyricsDataPartWidgetState
           });
         }
         // ignore: avoid_unnecessary_containers
-        return Container(
-          //color: Colors.red.withOpacity((itemRef.partIndex % 10) / 20),
-          child: Text(
-            itemInfo.text,
-            textScaler: widget.meta.style.textScaler,
-            style: on ? widget.meta.onTextStyle : widget.meta.offTextStyle,
-            textAlign: TextAlign.center,
-          ),
+        return Text(
+          itemInfo.text,
+          textScaler: widget.meta.style.textScaler,
+          style: on ? widget.meta.onTextStyle : widget.meta.offTextStyle,
+          textAlign: TextAlign.center,
         );
       },
     );
