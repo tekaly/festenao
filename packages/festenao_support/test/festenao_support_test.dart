@@ -1,8 +1,0 @@
-import 'package:festenao_support/festenao_support.dart';
-import 'package:test/test.dart';
-
-void main() {
-  test('calculate', () {
-    expect(calculate(), 42);
-  });
-}
