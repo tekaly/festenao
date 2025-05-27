@@ -130,6 +130,11 @@ dependencies:
       url: https://github.com/tekartik/firebase_functions.dart
       ref: dart3a
       path: firebase_functions
+  tekartik_http:
+    git:
+      url: https://github.com/tekartik/http.dart
+      ref: dart3a
+      path: http
   # path: ^1.8.0
 
 dev_dependencies:
