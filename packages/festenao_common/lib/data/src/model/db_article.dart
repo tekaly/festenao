@@ -124,14 +124,15 @@ List<String> getArticleKindTags(String articleKind) {
   return _articleKindTagsMap[articleKind] ?? <String>[];
 }
 
-final _articleKindTagsMap = {
-  articleKindArtist: artistTags,
-  articleKindEvent: eventTags,
-  articleKindInfo: infoTags,
-}.map(
-  (key, value) =>
-      MapEntry<String, List<String>>(key, [...value, ...articleTags]),
-);
+final _articleKindTagsMap =
+    {
+      articleKindArtist: artistTags,
+      articleKindEvent: eventTags,
+      articleKindInfo: infoTags,
+    }.map(
+      (key, value) =>
+          MapEntry<String, List<String>>(key, [...value, ...articleTags]),
+    );
 final _articleKindTypesMap = {
   articleKindArtist: artistTypes,
   articleKindInfo: infoTypes,

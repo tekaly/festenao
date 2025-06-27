@@ -92,8 +92,9 @@ class _FormStartScreenState extends State<FormStartScreen> {
                                   Text(
                                     form.name,
                                     textAlign: TextAlign.center,
-                                    style:
-                                        Theme.of(context).textTheme.titleLarge,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleLarge,
                                   ),
                                   const SizedBox(height: 32),
                                   Center(
@@ -128,15 +129,14 @@ class _FormStartScreenState extends State<FormStartScreen> {
               );
             },
           ),
-          floatingActionButton:
-              kDebugMode
-                  ? FloatingActionButton(
-                    onPressed: () {
-                      goToUserDebugScreen(context);
-                    },
-                    child: const Icon(Icons.settings),
-                  )
-                  : null,
+          floatingActionButton: kDebugMode
+              ? FloatingActionButton(
+                  onPressed: () {
+                    goToUserDebugScreen(context);
+                  },
+                  child: const Icon(Icons.settings),
+                )
+              : null,
         );
       },
     );

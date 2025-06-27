@@ -80,10 +80,9 @@ class _DbQuestionOptionsChoice extends _DbQuestionOptions
   _DbQuestionOptionsChoice(super.dbSurveyQuestion) : super._();
 
   @override
-  List<TkFormPlayerQuestionChoice>? get choices =>
-      dbSurveyQuestion.choices.v
-          ?.map((dbChoice) => _DbQuestionChoice(dbChoice))
-          .toList();
+  List<TkFormPlayerQuestionChoice>? get choices => dbSurveyQuestion.choices.v
+      ?.map((dbChoice) => _DbQuestionChoice(dbChoice))
+      .toList();
 
   /// Only support text weird here but it is what it is...
   @override

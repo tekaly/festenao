@@ -39,19 +39,18 @@ class FestenaoUserDb {
     }
   }
 
-  Future<Database> get database =>
-      _database ??= () async {
-        var db = await databaseFactory.openDatabase(
-          name,
-          version: 2,
-          onVersionChanged: (db, oldVersion, newVersion) async {
-            if (oldVersion > 0 && oldVersion < 1) {
-              // Clear db
-              await dbClear(db);
-            }
-          },
-        );
-        // devPrint('${db.path}');
-        return db;
-      }();
+  Future<Database> get database => _database ??= () async {
+    var db = await databaseFactory.openDatabase(
+      name,
+      version: 2,
+      onVersionChanged: (db, oldVersion, newVersion) async {
+        if (oldVersion > 0 && oldVersion < 1) {
+          // Clear db
+          await dbClear(db);
+        }
+      },
+    );
+    // devPrint('${db.path}');
+    return db;
+  }();
 }

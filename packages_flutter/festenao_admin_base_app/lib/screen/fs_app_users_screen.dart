@@ -66,16 +66,15 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                 header: BodyContainer(
                   child: Column(children: [AppPathTile(appPath: bloc.appPath)]),
                 ),
-                footer:
-                    state.identity == null
-                        ? const BodyContainer(
-                          child: BodyHPadding(
-                            child: Center(
-                              child: Column(
-                                children: [
-                                  IdentityWarningTile(), // appIntl(context).notSignedInInfo),
-                                  SizedBox(height: 8),
-                                  /*
+                footer: state.identity == null
+                    ? const BodyContainer(
+                        child: BodyHPadding(
+                          child: Center(
+                            child: Column(
+                              children: [
+                                IdentityWarningTile(), // appIntl(context).notSignedInInfo),
+                                SizedBox(height: 8),
+                                /*
                             ElevatedButton(
                                 onPressed: () {
                                   Navigator.of(context).push<void>(
@@ -89,12 +88,12 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                                 },
                                 child:
                                     Text(appIntl(context).signInButtonLabel)),*/
-                                ],
-                              ),
+                              ],
                             ),
                           ),
-                        )
-                        : null,
+                        ),
+                      )
+                    : null,
                 itemCount: userAccessList.length,
                 itemBuilder: (context, index) {
                   var userAccess = userAccessList[index];
@@ -129,25 +128,24 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
               );
             },
           ),
-          floatingActionButton:
-              (state?.identity != null)
-                  ? FloatingActionButton(
-                    onPressed: () async {
-                      // ignore: unused_local_variable
-                      var result = await goToAppUserEditScreen(
-                        context,
-                        param: FsAppUserEditScreenParam(
-                          userId: null,
-                          appId: bloc.appId,
-                          projectId: bloc.projectId,
-                        ),
-                      );
+          floatingActionButton: (state?.identity != null)
+              ? FloatingActionButton(
+                  onPressed: () async {
+                    // ignore: unused_local_variable
+                    var result = await goToAppUserEditScreen(
+                      context,
+                      param: FsAppUserEditScreenParam(
+                        userId: null,
+                        appId: bloc.appId,
+                        projectId: bloc.projectId,
+                      ),
+                    );
 
-                      bloc.refresh();
-                    },
-                    child: const Icon(Icons.add),
-                  )
-                  : null,
+                    bloc.refresh();
+                  },
+                  child: const Icon(Icons.add),
+                )
+              : null,
         );
       },
     );
@@ -162,12 +160,11 @@ Future<Object?> goToFsAppUsersScreen(
 }) async {
   return Navigator.of(context).push<Object?>(
     MaterialPageRoute(
-      builder:
-          (_) => BlocProvider(
-            blocBuilder:
-                () => FsAppUsersScreenBloc(appId: appId, projectId: projectId),
-            child: const FsAppUsersScreen(),
-          ),
+      builder: (_) => BlocProvider(
+        blocBuilder: () =>
+            FsAppUsersScreenBloc(appId: appId, projectId: projectId),
+        child: const FsAppUsersScreen(),
+      ),
     ),
   );
 }
@@ -180,16 +177,14 @@ Future<FsAppUserSelectResult?> selectFsAppUser(
 }) async {
   var result = await Navigator.of(context).push<Object?>(
     MaterialPageRoute(
-      builder:
-          (_) => BlocProvider(
-            blocBuilder:
-                () => FsAppUsersScreenBloc(
-                  selectMode: true,
-                  appId: appId,
-                  projectId: projectId,
-                ),
-            child: const FsAppUsersScreen(),
-          ),
+      builder: (_) => BlocProvider(
+        blocBuilder: () => FsAppUsersScreenBloc(
+          selectMode: true,
+          appId: appId,
+          projectId: projectId,
+        ),
+        child: const FsAppUsersScreen(),
+      ),
     ),
   );
   if (result is FsAppUserSelectResult) {

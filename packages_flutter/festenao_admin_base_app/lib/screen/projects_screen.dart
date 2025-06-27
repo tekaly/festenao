@@ -50,18 +50,17 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               }
               var projects = state.projects;
               return WithHeaderFooterListView.builder(
-                footer:
-                    state.user == null
-                        ? const BodyContainer(
-                          child: BodyHPadding(
-                            child: Center(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Not signed in',
-                                  ), // appIntl(context).notSignedInInfo),
-                                  SizedBox(height: 8),
-                                  /*
+                footer: state.user == null
+                    ? const BodyContainer(
+                        child: BodyHPadding(
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Not signed in',
+                                ), // appIntl(context).notSignedInInfo),
+                                SizedBox(height: 8),
+                                /*
                             ElevatedButton(
                                 onPressed: () {
                                   Navigator.of(context).push<void>(
@@ -75,12 +74,12 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
                                 },
                                 child:
                                     Text(appIntl(context).signInButtonLabel)),*/
-                                ],
-                              ),
+                              ],
                             ),
                           ),
-                        )
-                        : null,
+                        ),
+                      )
+                    : null,
                 itemCount: projects.length,
                 itemBuilder: (context, index) {
                   var project = projects[index];
@@ -161,11 +160,10 @@ class SelectProjectResult {
 Future<SelectProjectResult?> selectProject(BuildContext context) async {
   var result = await Navigator.of(context).push<Object?>(
     MaterialPageRoute(
-      builder:
-          (_) => BlocProvider(
-            blocBuilder: () => ProjectsScreenBloc(selectMode: true),
-            child: const ProjectsScreen(),
-          ),
+      builder: (_) => BlocProvider(
+        blocBuilder: () => ProjectsScreenBloc(selectMode: true),
+        child: const ProjectsScreen(),
+      ),
     ),
   );
   if (result is SelectProjectResult) {

@@ -119,8 +119,9 @@ class ProjectsScreenBloc
                                     if (project.uid.isNotNull)
                                       project.fsId: project,
                                 };
-                                var toDelete =
-                                    dbProjects.map((e) => e.id).toSet();
+                                var toDelete = dbProjects
+                                    .map((e) => e.id)
+                                    .toSet();
                                 var toSet = <DbProject>[];
                                 for (var item in items) {
                                   if (item.error == null) {
@@ -136,24 +137,24 @@ class ProjectsScreenBloc
                                     if (existing != null) {
                                       if (fsProject.deleted.v != true) {
                                         toDelete.remove(existing.id);
-                                        var newDbProject =
-                                            DbProject()..fromFirestore(
-                                              fsProject: fsProject,
-                                              projectAccess: userProjectAccess,
-                                              userId: userId,
-                                            );
+                                        var newDbProject = DbProject()
+                                          ..fromFirestore(
+                                            fsProject: fsProject,
+                                            projectAccess: userProjectAccess,
+                                            userId: userId,
+                                          );
                                         if (existing.needUpdate(newDbProject)) {
                                           existing.copyFrom(newDbProject);
                                           toSet.add(existing);
                                         }
                                       }
                                     } else {
-                                      var newDbProject =
-                                          DbProject()..fromFirestore(
-                                            fsProject: fsProject,
-                                            projectAccess: userProjectAccess,
-                                            userId: userId,
-                                          );
+                                      var newDbProject = DbProject()
+                                        ..fromFirestore(
+                                          fsProject: fsProject,
+                                          projectAccess: userProjectAccess,
+                                          userId: userId,
+                                        );
                                       toSet.add(newDbProject);
                                     }
                                   }

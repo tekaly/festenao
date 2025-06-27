@@ -107,9 +107,8 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
                                   return SwitchListTile(
                                     title: const Text(textExport),
                                     value: value,
-                                    onChanged:
-                                        (value) =>
-                                            exportNotifier!.value = value,
+                                    onChanged: (value) =>
+                                        exportNotifier!.value = value,
                                   );
                                 },
                               ),
@@ -120,9 +119,8 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
                                   return SwitchListTile(
                                     title: const Text(textPublishDev),
                                     value: value,
-                                    onChanged:
-                                        (value) =>
-                                            publishDevNotifier!.value = value,
+                                    onChanged: (value) =>
+                                        publishDevNotifier!.value = value,
                                   );
                                 },
                               ),
@@ -133,9 +131,8 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
                                   return SwitchListTile(
                                     title: const Text(textPublishProd),
                                     value: value,
-                                    onChanged:
-                                        (value) =>
-                                            publishProdNotifier!.value = value,
+                                    onChanged: (value) =>
+                                        publishProdNotifier!.value = value,
                                   );
                                 },
                               ),
@@ -149,13 +146,12 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
               LinearWait(showNotifier: saving),
             ],
           ),
-          floatingActionButton:
-              canSave
-                  ? FloatingActionButton(
-                    onPressed: () => _onSave(context),
-                    child: const Icon(Icons.save),
-                  )
-                  : null,
+          floatingActionButton: canSave
+              ? FloatingActionButton(
+                  onPressed: () => _onSave(context),
+                  child: const Icon(Icons.save),
+                )
+              : null,
         );
       },
     );
@@ -207,11 +203,10 @@ Future<void> goToAdminExportEditScreen(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => AdminExportEditScreenBloc(
-                projectContext: projectContext,
-                exportId: exportId,
-              ),
+          blocBuilder: () => AdminExportEditScreenBloc(
+            projectContext: projectContext,
+            exportId: exportId,
+          ),
           child: const AdminExportEditScreen(),
         );
       },

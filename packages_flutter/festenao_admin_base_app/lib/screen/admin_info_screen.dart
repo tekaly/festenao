@@ -105,42 +105,41 @@ class _AdminInfoScreenState extends State<AdminInfoScreen>
                   // print('item: $item');
                   item.onPressed?.call();
                 },
-                itemBuilder:
-                    (_) => [
-                      ...[
-                        MenuItem(
-                          title: 'Duplicate -legacy-',
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            goToAdminInfoEditScreen(
-                              context,
-                              infoId: null,
-                              info: dbInfo,
-                              projectContext: bloc.projectContext,
-                            );
-                          },
-                        ),
-                        MenuItem(title: 'Edit', onPressed: () {}),
-                      ].map(
-                        (e) => PopupMenuItem<MenuItem>(
-                          onTap: e.onPressed,
-                          child: Text(e.title),
-                        ),
-                      ),
-                      PopupSubMenuItem<MenuItem>(
-                        title: 'Images',
-                        items: [
-                          ...imagesMenuItems(
-                            dbArticle: dbInfo,
-                            articleId: dbInfo?.id,
-                          ),
-                        ],
-                        onSelected: (sub) {
-                          // print('legacy sub: $sub');
-                          sub.onPressed?.call();
-                        },
+                itemBuilder: (_) => [
+                  ...[
+                    MenuItem(
+                      title: 'Duplicate -legacy-',
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        goToAdminInfoEditScreen(
+                          context,
+                          infoId: null,
+                          info: dbInfo,
+                          projectContext: bloc.projectContext,
+                        );
+                      },
+                    ),
+                    MenuItem(title: 'Edit', onPressed: () {}),
+                  ].map(
+                    (e) => PopupMenuItem<MenuItem>(
+                      onTap: e.onPressed,
+                      child: Text(e.title),
+                    ),
+                  ),
+                  PopupSubMenuItem<MenuItem>(
+                    title: 'Images',
+                    items: [
+                      ...imagesMenuItems(
+                        dbArticle: dbInfo,
+                        articleId: dbInfo?.id,
                       ),
                     ],
+                    onSelected: (sub) {
+                      // print('legacy sub: $sub');
+                      sub.onPressed?.call();
+                    },
+                  ),
+                ],
               ),
               if (state?.info != null) imagesPopupMenu(),
               if (bloc.infoId != null)
@@ -285,11 +284,10 @@ Future<void> goToAdminInfoScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminInfoScreenBloc(
-                  infoId: infoId,
-                  projectContext: projectContext,
-                ),
+            blocBuilder: () => AdminInfoScreenBloc(
+              infoId: infoId,
+              projectContext: projectContext,
+            ),
             child: const AdminInfoScreen(),
           );
         },

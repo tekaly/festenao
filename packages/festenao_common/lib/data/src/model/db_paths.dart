@@ -9,8 +9,9 @@ var dbSyncRecordStoreRef = cvIntStoreFactory.store<DbSyncRecord>('faoR');
 var dbSyncMetaStoreRef = cvStringStoreFactory.store<DbSyncMetaInfo>('faoM');
 
 var dbMetaStoreRef = cvStringStoreFactory.store<DbMeta>('meta');
-var dbMetaGeneralRecordRef =
-    dbMetaStoreRef.record('general').castV<DbMetaGeneral>();
+var dbMetaGeneralRecordRef = dbMetaStoreRef
+    .record('general')
+    .castV<DbMetaGeneral>();
 
 var _metaRefs = [dbMetaGeneralRecordRef];
 var _refMap = _metaRefs.asMap().map(

@@ -132,8 +132,8 @@ class _AppAudioPlayerWidgetState extends State<AppAudioPlayerWidget> {
                       });
                       if (duration != null) {
                         var position = Duration(
-                          milliseconds:
-                              (duration.inMilliseconds * value).toInt(),
+                          milliseconds: (duration.inMilliseconds * value)
+                              .toInt(),
                         );
                         await player.seek(position);
                         await player.resume();

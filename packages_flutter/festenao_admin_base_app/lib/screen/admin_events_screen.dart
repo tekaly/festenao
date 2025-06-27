@@ -83,23 +83,20 @@ class _AdminEventsScreenState extends State<AdminEventsScreen>
             //offset: Offset(100, 100),
             elevation: 5.0,
             // child: _menuIcon,
-            itemBuilder:
-                (context) => [
-                  PopupMenuItem<bool>(
-                    child: StatefulBuilder(
-                      builder:
-                          (bulderContext, doSetState) => SwitchListTile(
-                            //activeColor: kLeadingOrangeColor,
-                            value: bloc.showHidden, // isShow,
-                            onChanged:
-                                (value) => doSetState(() {
-                                  bloc.showHidden = value;
-                                }),
-                            title: const Text('Show hidden'),
-                          ),
-                    ),
+            itemBuilder: (context) => [
+              PopupMenuItem<bool>(
+                child: StatefulBuilder(
+                  builder: (bulderContext, doSetState) => SwitchListTile(
+                    //activeColor: kLeadingOrangeColor,
+                    value: bloc.showHidden, // isShow,
+                    onChanged: (value) => doSetState(() {
+                      bloc.showHidden = value;
+                    }),
+                    title: const Text('Show hidden'),
                   ),
-                ],
+                ),
+              ),
+            ],
           ),
           /*SwitchListTile(value: true, onChanged: (_) {
           print('onChanged');
@@ -179,8 +176,8 @@ Future<void> goToAdminEventsScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminEventsScreenBloc(projectContext: projectContext),
+            blocBuilder: () =>
+                AdminEventsScreenBloc(projectContext: projectContext),
             child: const AdminEventsScreen(),
           );
         },

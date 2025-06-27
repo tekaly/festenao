@@ -156,25 +156,24 @@ class FsAppProjectViewScreenState
                 ),
             ],
           ),
-          body:
-              fsProject == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView(
-                    children: [
-                      BodyContainer(
-                        child: BodyHPadding(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Row(),
-                              ...children,
-                              Center(
-                                child: IntrinsicWidth(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      /*
+          body: fsProject == null
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  children: [
+                    BodyContainer(
+                      child: BodyHPadding(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(),
+                            ...children,
+                            Center(
+                              child: IntrinsicWidth(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    /*
                                         if (project.isRemote) ...[
                                           const SizedBox(height: 24),
                                           ElevatedButton(
@@ -184,68 +183,66 @@ class FsAppProjectViewScreenState
                                               },
                                               child: Text(intl.projectShare)),
                                         ],*/
-                                      const SizedBox(height: 24),
+                                    const SizedBox(height: 24),
 
-                                      const SizedBox(height: 24),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: colorError,
-                                        ),
-                                        onPressed:
-                                            (canDelete)
-                                                ? () {
-                                                  _confirmAndDelete(
-                                                    context,
-                                                    fsProject,
-                                                  );
-                                                }
-                                                : null,
-                                        child: Text(
-                                          intl.projectDelete.toUpperCase(),
-                                        ),
+                                    const SizedBox(height: 24),
+                                    ElevatedButton(
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: colorError,
                                       ),
-                                      const SizedBox(height: 24),
-                                      ElevatedButton(
-                                        onPressed: () async {
-                                          await goToFsAppUsersScreen(
-                                            context,
-                                            projectId: fsProject.id,
-                                            appId: bloc.appId,
-                                          );
-                                        },
-                                        child: Text(
-                                          'Project users'.toUpperCase(),
-                                        ),
+                                      onPressed: (canDelete)
+                                          ? () {
+                                              _confirmAndDelete(
+                                                context,
+                                                fsProject,
+                                              );
+                                            }
+                                          : null,
+                                      child: Text(
+                                        intl.projectDelete.toUpperCase(),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        await goToFsAppUsersScreen(
+                                          context,
+                                          projectId: fsProject.id,
+                                          appId: bloc.appId,
+                                        );
+                                      },
+                                      child: Text(
+                                        'Project users'.toUpperCase(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 64),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 64),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
 
           //new Column(children: children),
-          floatingActionButton:
-              canEdit
-                  ? FloatingActionButton(
-                    //onPressed: _incrementCounter,
-                    tooltip: 'Edit',
-                    onPressed: () async {
-                      await goToFsAppProjectEditScreen(
-                        context,
-                        project: fsProject,
-                        appId: bloc.appId,
-                      );
-                      bloc.refresh();
-                    },
-                    child: const Icon(Icons.edit),
-                  )
-                  : null, // This trailing comma makes auto-formatting nicer for build methods.
+          floatingActionButton: canEdit
+              ? FloatingActionButton(
+                  //onPressed: _incrementCounter,
+                  tooltip: 'Edit',
+                  onPressed: () async {
+                    await goToFsAppProjectEditScreen(
+                      context,
+                      project: fsProject,
+                      appId: bloc.appId,
+                    );
+                    bloc.refresh();
+                  },
+                  child: const Icon(Icons.edit),
+                )
+              : null, // This trailing comma makes auto-formatting nicer for build methods.
         );
       },
     );
@@ -261,9 +258,8 @@ Future<void> goToFsAppProjectViewScreen(
     context,
     builder: (context) {
       return BlocProvider(
-        blocBuilder:
-            () =>
-                FsAppProjectViewScreenBloc(projectId: projectId, appId: appId),
+        blocBuilder: () =>
+            FsAppProjectViewScreenBloc(projectId: projectId, appId: appId),
         child: const FsAppProjectViewScreen(),
       );
     },

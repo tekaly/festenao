@@ -125,15 +125,14 @@ class _AdminExportViewScreenState extends State<AdminExportViewScreen> {
               );
             },
           ),
-          floatingActionButton:
-              export != null
-                  ? FloatingActionButton(
-                    onPressed: () {
-                      _onEdit(context, export.id);
-                    },
-                    child: const Icon(Icons.edit),
-                  )
-                  : null,
+          floatingActionButton: export != null
+              ? FloatingActionButton(
+                  onPressed: () {
+                    _onEdit(context, export.id);
+                  },
+                  child: const Icon(Icons.edit),
+                )
+              : null,
         );
       },
     );
@@ -168,11 +167,10 @@ Future<void> goToAdminExportViewScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminExportViewScreenBloc(
-                  projectContext: projectContext,
-                  exportId: exportId,
-                ),
+            blocBuilder: () => AdminExportViewScreenBloc(
+              projectContext: projectContext,
+              exportId: exportId,
+            ),
             child: const AdminExportViewScreen(),
           );
         },

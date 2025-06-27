@@ -179,10 +179,9 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
                   options.type.v!,
                   articleId!,
                 ),
-                image:
-                    DbImage()
-                      ..width.v = choice.options.width.v
-                      ..height.v = choice.options.height.v,
+                image: DbImage()
+                  ..width.v = choice.options.width.v
+                  ..height.v = choice.options.height.v,
               ),
               projectContext: projectContext,
             );
@@ -218,10 +217,9 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
                 options.type.v!,
                 articleId!,
               ),
-              image:
-                  DbImage()
-                    ..width.v = choice.options.width.v
-                    ..height.v = choice.options.height.v,
+              image: DbImage()
+                ..width.v = choice.options.width.v
+                ..height.v = choice.options.height.v,
             ),
             projectContext: projectContext,
           );

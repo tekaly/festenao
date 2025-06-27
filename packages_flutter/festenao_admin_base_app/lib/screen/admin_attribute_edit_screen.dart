@@ -136,8 +136,8 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
                               ),
                               getTypeWidget(attribute),
                               AppTextFieldTile(
-                                controller:
-                                    linkController ??= TextEditingController(
+                                controller: linkController ??=
+                                    TextEditingController(
                                       text: attribute?.value.v,
                                     ),
                                 emptyAllowed: true,
@@ -228,14 +228,13 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
               );
             },
           ),
-          floatingActionButton:
-              canSave
-                  ? FloatingActionButton(
-                    heroTag: UniqueKey(),
-                    onPressed: () => _onSave(context),
-                    child: const Icon(Icons.save),
-                  )
-                  : null,
+          floatingActionButton: canSave
+              ? FloatingActionButton(
+                  heroTag: UniqueKey(),
+                  onPressed: () => _onSave(context),
+                  child: const Icon(Icons.save),
+                )
+              : null,
         );
       },
     );
@@ -252,10 +251,9 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
         children: [
           AppTextFieldTile(
             emptyAllowed: true,
-            controller:
-                typeController ??= TextEditingController(
-                  text: attribute?.type.v,
-                ),
+            controller: typeController ??= TextEditingController(
+              text: attribute?.type.v,
+            ),
             labelText: textTypeLabel,
             onChanged: onChanged,
           ),
@@ -282,11 +280,10 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
       await _saveLock.synchronized(() async {
         try {
           formKey.currentState!.save();
-          var attribute =
-              CvAttribute()
-                ..name.v = nameController!.text
-                ..type.v = typeController!.text
-                ..value.v = linkController!.text;
+          var attribute = CvAttribute()
+            ..name.v = nameController!.text
+            ..type.v = typeController!.text
+            ..value.v = linkController!.text;
 
           // All empty not allowed
           if (stringIsEmpty(attribute.name.v) &&
@@ -343,11 +340,10 @@ Future<AdminAttributeEditScreenResult?> goToAdminAttributeEditScreen(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => AdminAttributeEditScreenBloc(
-                param: param,
-                projectContext: projectContext,
-              ),
+          blocBuilder: () => AdminAttributeEditScreenBloc(
+            param: param,
+            projectContext: projectContext,
+          ),
           child: const AdminAttributeEditScreen(),
         );
       },

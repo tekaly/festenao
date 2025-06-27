@@ -47,9 +47,8 @@ class _ListDrawerState extends State<ListDrawer> {
     FestenaoAdminAppProjectContext? appProjectContextOrNull;
     if (sb is MultiProjectsDbBloc) {
       final routeName = ModalRoute.of(context)?.settings.name;
-      var contentPath =
-          AdminAppRootProjectContextPath()
-            ..fromPath(ContentPath.fromString(routeName ?? ''));
+      var contentPath = AdminAppRootProjectContextPath()
+        ..fromPath(ContentPath.fromString(routeName ?? ''));
       var projectId = contentPath.projectIdOrNull;
       if (projectId != null) {
         appProjectContextOrNull = ByProjectIdAdminAppProjectContext(

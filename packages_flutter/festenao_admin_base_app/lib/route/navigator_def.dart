@@ -201,11 +201,8 @@ var projectInfoPageDef = ContentPageDef(
       projectId: projectId,
     );
     return BlocProvider(
-      blocBuilder:
-          () => AdminInfoScreenBloc(
-            projectContext: projectContext,
-            infoId: subId,
-          ),
+      blocBuilder: () =>
+          AdminInfoScreenBloc(projectContext: projectContext, infoId: subId),
       child: const AdminInfoScreen(),
     );
   },
@@ -236,11 +233,10 @@ var projectArtistPageDef = ContentPageDef(
       projectId: projectId,
     );
     return BlocProvider(
-      blocBuilder:
-          () => AdminArtistScreenBloc(
-            projectContext: projectContext,
-            artistId: subId,
-          ),
+      blocBuilder: () => AdminArtistScreenBloc(
+        projectContext: projectContext,
+        artistId: subId,
+      ),
       child: const AdminArtistScreen(),
     );
   },
@@ -270,11 +266,8 @@ var projectImagePageDef = ContentPageDef(
       projectId: projectId,
     );
     return BlocProvider(
-      blocBuilder:
-          () => AdminImageScreenBloc(
-            projectContext: projectContext,
-            imageId: subId,
-          ),
+      blocBuilder: () =>
+          AdminImageScreenBloc(projectContext: projectContext, imageId: subId),
       child: const AdminImageScreen(),
     );
   },
@@ -304,11 +297,8 @@ var projectEventPageDef = ContentPageDef(
       projectId: projectId,
     );
     return BlocProvider(
-      blocBuilder:
-          () => AdminEventScreenBloc(
-            projectContext: projectContext,
-            eventId: subId,
-          ),
+      blocBuilder: () =>
+          AdminEventScreenBloc(projectContext: projectContext, eventId: subId),
       child: const AdminEventScreen(),
     );
   },
@@ -339,11 +329,10 @@ var projectExportPageDef = ContentPageDef(
       projectId: projectId,
     );
     return BlocProvider(
-      blocBuilder:
-          () => AdminExportViewScreenBloc(
-            projectContext: projectContext,
-            exportId: subId,
-          ),
+      blocBuilder: () => AdminExportViewScreenBloc(
+        projectContext: projectContext,
+        exportId: subId,
+      ),
       child: const AdminExportViewScreen(),
     );
   },
@@ -356,9 +345,8 @@ var projectUsersPageDef = ContentPageDef(
     var projectId = cp.project.value!;
 
     return BlocProvider(
-      blocBuilder:
-          () =>
-              AdminUsersScreenBloc(param: AdminUsersScreenParam(id: projectId)),
+      blocBuilder: () =>
+          AdminUsersScreenBloc(param: AdminUsersScreenParam(id: projectId)),
       child: const AdminUsersScreen(),
     );
   },
@@ -372,8 +360,8 @@ var projectUserPageDef = ContentPageDef(
     var subId = cp.sub.value!;
 
     return BlocProvider(
-      blocBuilder:
-          () => AdminUserScreenBloc(projectId: projectId, userId: subId),
+      blocBuilder: () =>
+          AdminUserScreenBloc(projectId: projectId, userId: subId),
       child: const AdminUserScreen(),
     );
   },

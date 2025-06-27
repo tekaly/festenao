@@ -61,22 +61,20 @@ class _AdminImagesScreenState extends State<AdminImagesScreen> {
             itemCount: list.length,
             itemBuilder: (context, index) {
               var image = list[index];
-              var aspectRatio =
-                  max(
-                    .25,
-                    min(4, (image.width.v ?? 1) / (image.height.v ?? 1)),
-                  ).toDouble();
+              var aspectRatio = max(
+                .25,
+                min(4, (image.width.v ?? 1) / (image.height.v ?? 1)),
+              ).toDouble();
               return ListTile(
                 leading: SizedBox(
                   width: 32,
                   height: 32,
-                  child:
-                      image.blurHash.v != null
-                          ? AspectRatio(
-                            aspectRatio: aspectRatio,
-                            child: BlurHash(hash: image.blurHash.v!),
-                          )
-                          : null,
+                  child: image.blurHash.v != null
+                      ? AspectRatio(
+                          aspectRatio: aspectRatio,
+                          child: BlurHash(hash: image.blurHash.v!),
+                        )
+                      : null,
                 ),
                 title: Text(image.id),
                 subtitle: Text(image.name.v ?? '?'),
@@ -122,8 +120,8 @@ Future<void> goToAdminImagesScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminImagesScreenBloc(projectContext: projectContext),
+            blocBuilder: () =>
+                AdminImagesScreenBloc(projectContext: projectContext),
             child: const AdminImagesScreen(),
           );
         },

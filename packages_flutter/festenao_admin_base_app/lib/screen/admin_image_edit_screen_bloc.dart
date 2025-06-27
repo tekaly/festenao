@@ -119,11 +119,10 @@ class AdminImageEditScreenBloc
         var path = globalFestenaoAppFirebaseContext.getImageDirStoragePath(
           imageName,
         );
-        var bytes =
-            await globalFestenaoAdminAppFirebaseContext.storage
-                .bucket(bucket)
-                .file(path)
-                .readAsBytes();
+        var bytes = await globalFestenaoAdminAppFirebaseContext.storage
+            .bucket(bucket)
+            .file(path)
+            .readAsBytes();
 
         var image = img.decodeImage(bytes)!;
 

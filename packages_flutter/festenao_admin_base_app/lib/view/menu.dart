@@ -47,9 +47,8 @@ class _PopupSubMenuState<T> extends State<PopupSubMenuItem<T>> {
         }
         widget.onSelected?.call(value);
       },
-      offset:
-          Offset
-              .zero, //TODO This is the most complex part - to calculate the correct position of the submenu being populated. For my purposes is does not matter where exactly to display it (Offset.zero will open submenu at the poistion where you tapped the item in the parent menu). Others might think of some value more appropriate to their needs.
+      offset: Offset
+          .zero, //TODO This is the most complex part - to calculate the correct position of the submenu being populated. For my purposes is does not matter where exactly to display it (Offset.zero will open submenu at the poistion where you tapped the item in the parent menu). Others might think of some value more appropriate to their needs.
       itemBuilder: (BuildContext context) {
         return widget.items
             .map(

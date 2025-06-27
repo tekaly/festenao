@@ -134,112 +134,108 @@ class FsAppViewScreenState extends AutoDisposeBaseState<FsAppViewScreen>
               // was created by the App.build method, and use it to set
               // our appbar title.
               title: Text(appName),
-              actions:
-                  app == null
-                      ? null
-                      : <Widget>[
-                        if (canDelete)
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () async {
-                              await _confirmAndDelete(context, app);
-                            },
-                          ),
-                      ],
+              actions: app == null
+                  ? null
+                  : <Widget>[
+                      if (canDelete)
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            await _confirmAndDelete(context, app);
+                          },
+                        ),
+                    ],
             ),
-            body:
-                state == null
-                    ? const Center(child: CircularProgressIndicator())
-                    : ListView(
-                      children: [
-                        BodyContainer(
-                          child: BodyHPadding(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Row(),
-                                ...children,
-                                Center(
-                                  child: IntrinsicWidth(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.stretch,
-                                      children: [
-                                        ...[
-                                          const SizedBox(height: 24),
-                                          ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: colorError,
-                                            ),
-                                            onPressed:
-                                                canDelete
-                                                    ? () {
-                                                      _confirmAndDelete(
-                                                        context,
-                                                        app,
-                                                      );
-                                                    }
-                                                    : null,
-                                            child: Text(
-                                              'Delete app'.toUpperCase(),
-                                            ),
+            body: state == null
+                ? const Center(child: CircularProgressIndicator())
+                : ListView(
+                    children: [
+                      BodyContainer(
+                        child: BodyHPadding(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Row(),
+                              ...children,
+                              Center(
+                                child: IntrinsicWidth(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      ...[
+                                        const SizedBox(height: 24),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: colorError,
                                           ),
-                                          const SizedBox(height: 24),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              goToFsAppUsersScreen(
-                                                context,
-                                                appId: bloc.appId,
-                                              );
-                                            },
-                                            child: Text(
-                                              'View users'.toUpperCase(),
-                                            ),
+                                          onPressed: canDelete
+                                              ? () {
+                                                  _confirmAndDelete(
+                                                    context,
+                                                    app,
+                                                  );
+                                                }
+                                              : null,
+                                          child: Text(
+                                            'Delete app'.toUpperCase(),
                                           ),
-                                          const SizedBox(height: 24),
-                                          ElevatedButton(
-                                            onPressed: () {
-                                              goToFsAppProjectsScreen(
-                                                context,
-                                                appId: bloc.appId,
-                                              );
-                                            },
-                                            child: Text(
-                                              'View projects'.toUpperCase(),
-                                            ),
+                                        ),
+                                        const SizedBox(height: 24),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            goToFsAppUsersScreen(
+                                              context,
+                                              appId: bloc.appId,
+                                            );
+                                          },
+                                          child: Text(
+                                            'View users'.toUpperCase(),
                                           ),
-                                        ],
+                                        ),
+                                        const SizedBox(height: 24),
+                                        ElevatedButton(
+                                          onPressed: () {
+                                            goToFsAppProjectsScreen(
+                                              context,
+                                              appId: bloc.appId,
+                                            );
+                                          },
+                                          child: Text(
+                                            'View projects'.toUpperCase(),
+                                          ),
+                                        ),
                                       ],
-                                    ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 64),
-                              ],
-                            ),
+                              ),
+                              const SizedBox(height: 64),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
+                  ),
 
             //new Column(children: children),
-            floatingActionButton:
-                canEdit
-                    ? FloatingActionButton(
-                      //onPressed: _incrementCounter,
-                      tooltip: 'Edit',
-                      onPressed: () async {
-                        var result = await goToFsAppEditScreen(
-                          context,
-                          appId: app.id,
-                        );
-                        if (mounted && (result?.modified ?? false)) {
-                          _modified = true;
-                          bloc.refresh();
-                        }
-                      },
-                      child: const Icon(Icons.edit),
-                    )
-                    : null, // This trailing comma makes auto-formatting nicer for build methods.
+            floatingActionButton: canEdit
+                ? FloatingActionButton(
+                    //onPressed: _incrementCounter,
+                    tooltip: 'Edit',
+                    onPressed: () async {
+                      var result = await goToFsAppEditScreen(
+                        context,
+                        appId: app.id,
+                      );
+                      if (mounted && (result?.modified ?? false)) {
+                        _modified = true;
+                        bloc.refresh();
+                      }
+                    },
+                    child: const Icon(Icons.edit),
+                  )
+                : null, // This trailing comma makes auto-formatting nicer for build methods.
           ),
         );
       },
@@ -253,11 +249,10 @@ Future<FsAppViewResult?> goToFsAppViewScreen(
 }) async {
   var result = await Navigator.of(context).push(
     (MaterialPageRoute<Object?>(
-      builder:
-          (_) => BlocProvider(
-            blocBuilder: () => FsAppViewScreenBloc(appId: appId),
-            child: const FsAppViewScreen(),
-          ),
+      builder: (_) => BlocProvider(
+        blocBuilder: () => FsAppViewScreenBloc(appId: appId),
+        child: const FsAppViewScreen(),
+      ),
     )),
   );
   if (result is FsAppViewResult) {

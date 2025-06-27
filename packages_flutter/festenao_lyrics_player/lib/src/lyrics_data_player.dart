@@ -203,10 +203,9 @@ class _LocatedLyricsDataLineWidgetState
   List<LocatedLyricsDataPart> get parts => line.parts;
   LyricsDataController get controller => widget.meta.controller;
   int get lineIndex => widget.index;
-  double? get lineHeight =>
-      meta.style.lineCount == null
-          ? null
-          : meta.sizeInfo.height / meta.style.lineCount!;
+  double? get lineHeight => meta.style.lineCount == null
+      ? null
+      : meta.sizeInfo.height / meta.style.lineCount!;
 
   void _scrollToMe() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
@@ -230,26 +229,19 @@ class _LocatedLyricsDataLineWidgetState
 
     var parts = line.parts;
     if (parts.isNotEmpty) {
-      var itemRefs =
-          parts
-              .map(
-                (part) =>
-                    LocatedLyricsDataItemRef(lineIndex, parts.indexOf(part)),
-              )
-              .toList();
-      var streams =
-          itemRefs
-              .map(
-                (itemRef) =>
-                    widget.meta.controller.getItemStatusStream(itemRef),
-              )
-              .toList();
+      var itemRefs = parts
+          .map(
+            (part) => LocatedLyricsDataItemRef(lineIndex, parts.indexOf(part)),
+          )
+          .toList();
+      var streams = itemRefs
+          .map((itemRef) => widget.meta.controller.getItemStatusStream(itemRef))
+          .toList();
       var stream = streamJoinAll(streams);
 
-      var initialData =
-          streams
-              .map((stream) => stream.valueOrNull ?? ControllerDataItemState())
-              .toList();
+      var initialData = streams
+          .map((stream) => stream.valueOrNull ?? ControllerDataItemState())
+          .toList();
       return StreamBuilder(
         stream: stream,
         initialData: initialData,
@@ -270,10 +262,9 @@ class _LocatedLyricsDataLineWidgetState
                   for (var i = 0; i < parts.length; i++)
                     TextSpan(
                       text: parts[i].partData.text,
-                      style:
-                          states[i].on
-                              ? widget.meta.onTextStyle
-                              : widget.meta.offTextStyle,
+                      style: states[i].on
+                          ? widget.meta.onTextStyle
+                          : widget.meta.offTextStyle,
                     ),
                 ],
               ),

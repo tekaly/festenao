@@ -12,11 +12,10 @@ Future main() async {
   // ignore: avoid_print
   print('festenao starting...');
 
-  var ffContext =
-      await initFirebaseServicesLocalSembast(
-        projectId: festenaoPlaceholderProjectId,
-        useHttpFunctions: true,
-      ).initServer();
+  var ffContext = await initFirebaseServicesLocalSembast(
+    projectId: festenaoPlaceholderProjectId,
+    useHttpFunctions: true,
+  ).initServer();
   var appDev = FestenaoServerApp(
     context: TkCmsServerAppContext(
       firebaseContext: ffContext,

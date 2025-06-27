@@ -97,10 +97,9 @@ class _FestenaoYoutubePlayerExpState
               var status = state?.status ?? FestenaoYoutubePlayerStatus.unknown;
               var durationMs = state?.duration.inMilliseconds ?? 0;
               var positionMs = state?.position.inMilliseconds ?? 0;
-              var positionDouble =
-                  (durationMs == 0)
-                      ? 0
-                      : (positionMs / durationMs).bounded(0, 1);
+              var positionDouble = (durationMs == 0)
+                  ? 0
+                  : (positionMs / durationMs).bounded(0, 1);
               if (durationMs == 0) {
                 return const SizedBox();
               }

@@ -88,34 +88,29 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
                                 ListTile(title: Text(info?.id ?? 'new')),
                               ],
                               AppTextFieldTile(
-                                controller:
-                                    idController ??= TextEditingController(
-                                      text: info?.id,
-                                    ),
+                                controller: idController ??=
+                                    TextEditingController(text: info?.id),
                                 readOnly: infoId != null,
                                 labelText: textIdLabel,
                               ),
                               getCommonWidgets(article),
                               AppTextFieldTile(
-                                controller:
-                                    nameController ??= TextEditingController(
-                                      text: info?.name.v,
-                                    ),
+                                controller: nameController ??=
+                                    TextEditingController(text: info?.name.v),
                                 emptyAllowed: true,
                                 labelText: textNameLabel,
                               ),
                               AppTextFieldTile(
-                                controller:
-                                    subtitleController ??=
-                                        TextEditingController(
-                                          text: info?.subtitle.v,
-                                        ),
+                                controller: subtitleController ??=
+                                    TextEditingController(
+                                      text: info?.subtitle.v,
+                                    ),
                                 emptyAllowed: true,
                                 labelText: textSubtitleLabel,
                               ),
                               AppTextFieldTile(
-                                controller:
-                                    contentController ??= TextEditingController(
+                                controller: contentController ??=
+                                    TextEditingController(
                                       text: info?.content.v,
                                     ),
                                 maxLines: 10,
@@ -142,14 +137,13 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
               );
             },
           ),
-          floatingActionButton:
-              canSave
-                  ? FloatingActionButton(
-                    heroTag: UniqueKey(),
-                    onPressed: () => _onSave(context),
-                    child: const Icon(Icons.save),
-                  )
-                  : null,
+          floatingActionButton: canSave
+              ? FloatingActionButton(
+                  heroTag: UniqueKey(),
+                  onPressed: () => _onSave(context),
+                  child: const Icon(Icons.save),
+                )
+              : null,
         );
       },
     );
@@ -164,9 +158,8 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
           saving.value = true;
           var bloc = BlocProvider.of<AdminInfoEditScreenBloc>(context);
           formKey.currentState!.save();
-          var dbInfo =
-              DbInfo()
-                ..rawRef = dbInfoStoreRef.record(idController!.text).rawRef;
+          var dbInfo = DbInfo()
+            ..rawRef = dbInfoStoreRef.record(idController!.text).rawRef;
           articleFromForm(dbInfo);
           await bloc.save(
             AdminArticleEditData(article: dbInfo, imageData: newImageData),
@@ -230,12 +223,11 @@ Future<AdminInfoEditScreenResult?> goToAdminInfoEditScreen(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => AdminInfoEditScreenBloc(
-                infoId: infoId,
-                info: info,
-                projectContext: projectContext,
-              ),
+          blocBuilder: () => AdminInfoEditScreenBloc(
+            infoId: infoId,
+            info: info,
+            projectContext: projectContext,
+          ),
           child: const AdminInfoEditScreen(),
         );
       },

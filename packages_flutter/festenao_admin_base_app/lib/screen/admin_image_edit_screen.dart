@@ -120,26 +120,23 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
                                 ListTile(title: Text(imageId ?? 'new')),
                               ],
                               AppTextFieldTile(
-                                controller:
-                                    idController ??= TextEditingController(
+                                controller: idController ??=
+                                    TextEditingController(
                                       text: imageId ?? param?.newImageId,
                                     ),
                                 labelText: textIdLabel,
                               ),
                               AppTextFieldTile(
-                                controller:
-                                    nameController ??= TextEditingController(
-                                      text: image?.name.v,
-                                    ),
+                                controller: nameController ??=
+                                    TextEditingController(text: image?.name.v),
                                 emptyAllowed: true,
                                 labelText: textNameLabel,
                               ),
                               AppTextFieldTile(
-                                controller:
-                                    copyrightController ??=
-                                        TextEditingController(
-                                          text: image?.copyright.v,
-                                        ),
+                                controller: copyrightController ??=
+                                    TextEditingController(
+                                      text: image?.copyright.v,
+                                    ),
                                 emptyAllowed: true,
                                 labelText: textCopyrightLabel,
                               ),
@@ -147,34 +144,29 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
                                 children: [
                                   Expanded(
                                     child: AppTextFieldTile(
-                                      controller:
-                                          widthController ??=
-                                              TextEditingController(
-                                                text:
-                                                    (image?.width.v ??
-                                                            param
-                                                                ?.options
-                                                                ?.width
-                                                                .v)
-                                                        ?.toString(),
-                                              ),
+                                      controller: widthController ??=
+                                          TextEditingController(
+                                            text:
+                                                (image?.width.v ??
+                                                        param?.options?.width.v)
+                                                    ?.toString(),
+                                          ),
                                       emptyAllowed: true,
                                       labelText: textWidthLabel,
                                     ),
                                   ),
                                   Expanded(
                                     child: AppTextFieldTile(
-                                      controller:
-                                          heightController ??=
-                                              TextEditingController(
-                                                text:
-                                                    (image?.height.v ??
-                                                            param
-                                                                ?.options
-                                                                ?.height
-                                                                .v)
-                                                        ?.toString(),
-                                              ),
+                                      controller: heightController ??=
+                                          TextEditingController(
+                                            text:
+                                                (image?.height.v ??
+                                                        param
+                                                            ?.options
+                                                            ?.height
+                                                            .v)
+                                                    ?.toString(),
+                                          ),
                                       validator: (text) => null,
                                       labelText: textHeightLabel,
                                     ),
@@ -182,11 +174,10 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
                                   Expanded(
                                     child: AppTextFieldTile(
                                       readOnly: true,
-                                      controller:
-                                          blurHashController ??=
-                                              TextEditingController(
-                                                text: image?.blurHash.v,
-                                              ),
+                                      controller: blurHashController ??=
+                                          TextEditingController(
+                                            text: image?.blurHash.v,
+                                          ),
                                       labelText: textBlurHashLabel,
                                       validator: (text) => null,
                                     ),
@@ -247,13 +238,12 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
               );
             },
           ),
-          floatingActionButton:
-              canSave
-                  ? FloatingActionButton(
-                    onPressed: () => _onSave(context),
-                    child: const Icon(Icons.save),
-                  )
-                  : null,
+          floatingActionButton: canSave
+              ? FloatingActionButton(
+                  onPressed: () => _onSave(context),
+                  child: const Icon(Icons.save),
+                )
+              : null,
         );
       },
     );
@@ -304,31 +294,30 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
     padding: const EdgeInsets.symmetric(vertical: 4.0),
     child: TilePadding(
       child: ValueListenableBuilder<Uint8List?>(
-        valueListenable:
-            imageBytes ??= () {
-              var valueNotifier = ValueNotifier<Uint8List?>(null);
+        valueListenable: imageBytes ??= () {
+          var valueNotifier = ValueNotifier<Uint8List?>(null);
 
-              if (imageId != null) {
-                () async {
-                  var db = await dbBloc.grabDatabase();
-                  var image = await dbImageStoreRef.record(imageId).get(db);
-                  if (image != null) {
-                    var imageUrl = Uri.parse(
-                      getImageUrl(
-                        image.name.v!,
-                        storageBucket: projectContext.storageBucket,
-                      ),
-                    );
-                    // print('imageUrl: $imageUrl');
-                    var bytes = await httpClientFactory.newClient().readBytes(
-                      imageUrl,
-                    );
-                    valueNotifier.value = bytes;
-                  }
-                }();
+          if (imageId != null) {
+            () async {
+              var db = await dbBloc.grabDatabase();
+              var image = await dbImageStoreRef.record(imageId).get(db);
+              if (image != null) {
+                var imageUrl = Uri.parse(
+                  getImageUrl(
+                    image.name.v!,
+                    storageBucket: projectContext.storageBucket,
+                  ),
+                );
+                // print('imageUrl: $imageUrl');
+                var bytes = await httpClientFactory.newClient().readBytes(
+                  imageUrl,
+                );
+                valueNotifier.value = bytes;
               }
-              return valueNotifier;
-            }(),
+            }();
+          }
+          return valueNotifier;
+        }(),
         builder: (context, snapshot, _) {
           if (snapshot == null) {
             return const Text('Pas d\'image');
@@ -423,12 +412,11 @@ Future<AdminImageEditScreenResult?> goToAdminImageEditScreen(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => AdminImageEditScreenBloc(
-                imageId: imageId,
-                param: param,
-                projectContext: projectContext,
-              ),
+          blocBuilder: () => AdminImageEditScreenBloc(
+            imageId: imageId,
+            param: param,
+            projectContext: projectContext,
+          ),
           child: const AdminImageEditScreen(),
         );
       },

@@ -67,12 +67,11 @@ Future<void> goToAdminMetasScreen(
   } else {
     await Navigator.of(context).push<void>(
       MaterialPageRoute(
-        builder:
-            (_) => BlocProvider(
-              blocBuilder:
-                  () => AdminMetasScreenBloc(projectContext: projectContext),
-              child: const AdminMetasScreen(),
-            ),
+        builder: (_) => BlocProvider(
+          blocBuilder: () =>
+              AdminMetasScreenBloc(projectContext: projectContext),
+          child: const AdminMetasScreen(),
+        ),
       ),
     );
   }

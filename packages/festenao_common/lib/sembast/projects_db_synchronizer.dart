@@ -54,12 +54,11 @@ class ProjectsDbSynchronizer with AutoDisposeMixin {
         }
 
         if (needUpdate) {
-          var newDbProject =
-              DbProject()
-                ..uid.v = projectId
-                ..userId.v = userId
-                ..name.v = fsProject.name.v
-                ..copyFrom(fsUserAccess);
+          var newDbProject = DbProject()
+            ..uid.v = projectId
+            ..userId.v = userId
+            ..name.v = fsProject.name.v
+            ..copyFrom(fsUserAccess);
           if (dbProject != null) {
             await dbProjectStore.record(dbProject.id).put(txn, newDbProject);
           } else {

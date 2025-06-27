@@ -111,10 +111,9 @@ class AdminExportEditScreenBloc
                       .where(fsExportModel.changeId.name, isEqualTo: changeId)
                       .cvGet<FsExport>())
                   .firstOrNull;
-          fsExport ??=
-              FsExport()
-                ..changeId.fromCvField(metaInfo.lastChangeId)
-                ..version.fromCvField(metaInfo.sourceVersion);
+          fsExport ??= FsExport()
+            ..changeId.fromCvField(metaInfo.lastChangeId)
+            ..version.fromCvField(metaInfo.sourceVersion);
           add(
             AdminExportEditScreenBlocState(
               fsExport: fsExport,
@@ -150,8 +149,10 @@ class AdminExportEditScreenBloc
     var changeId = fsExport.changeId.v!;
 
     var export = data.export;
-    exportId ??=
-        (await firestore.cvAdd(firestoreExportCollectionPath, fsExport)).id;
+    exportId ??= (await firestore.cvAdd(
+      firestoreExportCollectionPath,
+      fsExport,
+    )).id;
 
     if (kDebugMode) {
       print('firestoreExportCollectionPath: $firestoreExportCollectionPath');
@@ -161,21 +162,19 @@ class AdminExportEditScreenBloc
     var syncedDb = await _dbBloc.grabSyncedDb();
     // var exportInfo = await syncedDb.exportInMemory();
     if (export) {
-      fsExport.size.v =
-          (await syncedDb.exportDatabaseToStorage(
-            exportContext: SyncedDbStorageExportContext(
-              storage: projectContext.storage,
-              bucketName: projectContext.storageBucket,
-              rootPath: exportStorageDirPath,
-            ),
-            noMeta: true,
-          )).exportSize;
+      fsExport.size.v = (await syncedDb.exportDatabaseToStorage(
+        exportContext: SyncedDbStorageExportContext(
+          storage: projectContext.storage,
+          bucketName: projectContext.storageBucket,
+          rootPath: exportStorageDirPath,
+        ),
+        noMeta: true,
+      )).exportSize;
     }
-    var meta =
-        FestenaoExportMeta()
-          ..lastChangeId.fromCvField(fsExport.changeId)
-          ..sourceVersion.fromCvField(fsExport.version)
-          ..lastTimestamp.v = Timestamp.now().toIso8601String();
+    var meta = FestenaoExportMeta()
+      ..lastChangeId.fromCvField(fsExport.changeId)
+      ..sourceVersion.fromCvField(fsExport.version)
+      ..lastTimestamp.v = Timestamp.now().toIso8601String();
 
     Future<void> writeFirestoreMeta(String path) async {
       await firestore.doc(path).set(meta.toMap());
@@ -215,11 +214,10 @@ class AdminExportEditScreenBloc
 
     // Delete other
     var toDelete = <String?>[];
-    var existingExports =
-        await firestore
-            .collection(firestoreExportCollectionPath)
-            .where(fsExportModel.changeId.name, isEqualTo: changeId)
-            .cvGet<FsExport>();
+    var existingExports = await firestore
+        .collection(firestoreExportCollectionPath)
+        .where(fsExportModel.changeId.name, isEqualTo: changeId)
+        .cvGet<FsExport>();
     for (var export in existingExports) {
       if (export.id != exportId) {
         toDelete.add(export.id);

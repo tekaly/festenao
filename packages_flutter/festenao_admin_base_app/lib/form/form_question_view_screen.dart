@@ -65,26 +65,25 @@ class _DocEntityScreenState extends AutoDisposeBaseState<DocEntityScreen>
                 ),
             ],
           ),
-          body:
-              fsEntity == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : Stack(
-                    children: [
-                      ListView(
-                        children: [
-                          ListTile(
-                            //title: Text(fsEntity.name.v ?? ''),
-                            title: Text(fsEntity.id),
-                            onTap: () {
-                              // TODO
-                            },
-                          ),
-                          TilePadding(child: CvUiModelValue(model: fsEntity)),
-                        ],
-                      ),
-                      BusyIndicator(busy: busyStream),
-                    ],
-                  ),
+          body: fsEntity == null
+              ? const Center(child: CircularProgressIndicator())
+              : Stack(
+                  children: [
+                    ListView(
+                      children: [
+                        ListTile(
+                          //title: Text(fsEntity.name.v ?? ''),
+                          title: Text(fsEntity.id),
+                          onTap: () {
+                            // TODO
+                          },
+                        ),
+                        TilePadding(child: CvUiModelValue(model: fsEntity)),
+                      ],
+                    ),
+                    BusyIndicator(busy: busyStream),
+                  ],
+                ),
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
               await goToAdminFormQuestionEditScreen(
@@ -118,12 +117,11 @@ class DbUserAccessWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var text =
-        dbUserAccess.isAdmin
-            ? 'admin'
-            : (dbUserAccess.isWrite
-                ? 'write'
-                : (dbUserAccess.isRead ? 'read' : ''));
+    var text = dbUserAccess.isAdmin
+        ? 'admin'
+        : (dbUserAccess.isWrite
+              ? 'write'
+              : (dbUserAccess.isRead ? 'read' : ''));
     if (text.isEmpty) {
       return const SizedBox();
     }
@@ -145,11 +143,10 @@ Future<void> goToAdminFormQuestionViewScreen(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => DocEntityScreenBloc<FsFormQuestion>(
-                entityAccess: entityAccess,
-                entityId: entityId,
-              ),
+          blocBuilder: () => DocEntityScreenBloc<FsFormQuestion>(
+            entityAccess: entityAccess,
+            entityId: entityId,
+          ),
           child: const DocEntityScreen(),
         );
       },

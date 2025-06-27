@@ -27,8 +27,10 @@ class FestenaoAllIcons extends StatelessWidget {
           children: <Widget>[
             for (var iconSet in iconsSets)
               Wrap(
-                children:
-                    FestenaoIconSet(size: size, iconSet: iconSet).allIcons(),
+                children: FestenaoIconSet(
+                  size: size,
+                  iconSet: iconSet,
+                ).allIcons(),
               ),
           ],
         ),

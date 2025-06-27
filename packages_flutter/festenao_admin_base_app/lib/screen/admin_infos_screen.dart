@@ -134,8 +134,8 @@ Future<void> goToAdminInfosScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminInfosScreenBloc(projectContext: projectContext),
+            blocBuilder: () =>
+                AdminInfosScreenBloc(projectContext: projectContext),
             child: const AdminInfosScreen(),
           );
         },
@@ -153,8 +153,8 @@ Future<AdminInfoScreenResult?> selectInfo(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => AdminInfosScreenBloc(projectContext: projectContext),
+          blocBuilder: () =>
+              AdminInfosScreenBloc(projectContext: projectContext),
           child: AdminInfosScreen(
             param: AdminInfosScreenParam(selectMode: true, infoType: infoType),
           ),

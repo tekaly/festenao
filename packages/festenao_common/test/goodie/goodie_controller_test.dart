@@ -37,14 +37,13 @@ Future<void> main() async {
 
     expect(await controller.findRandomGoodie(now: now), isNull);
     expect(controller.lastGoodiesConfigUsed.isModeDaily, isTrue);
-    var config =
-        controller.fsGoodiesConfigRef.cv()
-          ..goodies.v = [
-            CvGoodieConfig()
-              ..id.v = 'g1'
-              ..quantity.v = 1,
-          ]
-          ..winningChance.v = 1;
+    var config = controller.fsGoodiesConfigRef.cv()
+      ..goodies.v = [
+        CvGoodieConfig()
+          ..id.v = 'g1'
+          ..quantity.v = 1,
+      ]
+      ..winningChance.v = 1;
     await firestore.cvSet(config);
     var goodie = await controller.findRandomGoodie(now: now);
     expect(goodie, 'g1');
@@ -72,17 +71,16 @@ Future<void> main() async {
     var day = CalendarDay.fromTimestamp(now);
     expect(await controller.findRandomGoodie(now: now), isNull);
 
-    var config =
-        controller.fsGoodiesConfigRef.cv()
-          ..goodies.v = [
-            CvGoodieConfig()
-              ..id.v = 'g1'
-              ..quantity.v = 2,
-            CvGoodieConfig()
-              ..id.v = 'g2'
-              ..quantity.v = 3,
-          ]
-          ..winningChance.v = 1;
+    var config = controller.fsGoodiesConfigRef.cv()
+      ..goodies.v = [
+        CvGoodieConfig()
+          ..id.v = 'g1'
+          ..quantity.v = 2,
+        CvGoodieConfig()
+          ..id.v = 'g2'
+          ..quantity.v = 3,
+      ]
+      ..winningChance.v = 1;
     await firestore.cvSet(config);
     var goodies = <String?>[];
     for (var i = 0; i < 6; i++) {
@@ -108,15 +106,14 @@ Future<void> main() async {
 
     expect(await controller.findRandomGoodie(now: now), isNull);
     expect(controller.lastGoodiesConfigUsed.isModeDaily, isTrue);
-    var config =
-        controller.fsGoodiesConfigRef.cv()
-          ..mode.v = modeOnce
-          ..goodies.v = [
-            CvGoodieConfig()
-              ..id.v = 'g1'
-              ..quantity.v = 1,
-          ]
-          ..winningChance.v = 1;
+    var config = controller.fsGoodiesConfigRef.cv()
+      ..mode.v = modeOnce
+      ..goodies.v = [
+        CvGoodieConfig()
+          ..id.v = 'g1'
+          ..quantity.v = 1,
+      ]
+      ..winningChance.v = 1;
     await firestore.cvSet(config);
     var goodie = await controller.findRandomGoodie(now: now);
     expect(goodie, 'g1');

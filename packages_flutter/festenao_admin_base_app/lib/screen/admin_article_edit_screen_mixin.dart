@@ -138,15 +138,14 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
     DbArticleCommon? article, {
     required Database db,
   }) {
-    return _imageHolders ??=
-        articleImageHoldersColumns.map((column) {
-          return ArticleImageHolder(
-            article,
-            column,
-            db: db,
-            projectContext: projectContext,
-          );
-        }).toList();
+    return _imageHolders ??= articleImageHoldersColumns.map((column) {
+      return ArticleImageHolder(
+        article,
+        column,
+        db: db,
+        projectContext: projectContext,
+      );
+    }).toList();
   }
 
   Widget getImagesWidget(DbArticleCommon? article, {required Database db}) {
@@ -171,26 +170,25 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
 
   Widget getThumbailNameWidget(DbArticleMixin? article) => AppTextFieldTile(
     emptyAllowed: true,
-    controller:
-        thumbnailController ??= TextEditingController(
-          text: article?.thumbnail.v,
-        ),
+    controller: thumbnailController ??= TextEditingController(
+      text: article?.thumbnail.v,
+    ),
     labelText: textThumbnailLabel,
   );
 
   Widget getSquareNameWidget(DbArticleMixin? article) => AppTextFieldTile(
     emptyAllowed: true,
-    controller:
-        thumbnailController ??= TextEditingController(
-          text: article?.thumbnail.v,
-        ),
+    controller: thumbnailController ??= TextEditingController(
+      text: article?.thumbnail.v,
+    ),
     labelText: textThumbnailLabel,
   );
 
   Widget getImageNameWidget(DbArticleMixin? article) => AppTextFieldTile(
     emptyAllowed: true,
-    controller:
-        imageController ??= TextEditingController(text: article?.image.v),
+    controller: imageController ??= TextEditingController(
+      text: article?.image.v,
+    ),
     labelText: textImageLabel,
   );
 
@@ -211,8 +209,9 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
   Widget getAuthorWidget(DbArticleCommon? common) {
     return AppTextFieldTile(
       emptyAllowed: true,
-      controller:
-          authorController ??= TextEditingController(text: common?.author.v),
+      controller: authorController ??= TextEditingController(
+        text: common?.author.v,
+      ),
       labelText: textAuthorLabel,
     );
   }
@@ -225,8 +224,9 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
         children: [
           AppTextFieldTile(
             emptyAllowed: true,
-            controller:
-                typeController ??= TextEditingController(text: article?.type.v),
+            controller: typeController ??= TextEditingController(
+              text: article?.type.v,
+            ),
             labelText: textTypeLabel,
           ),
           if (types.isNotEmpty)
@@ -253,8 +253,9 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
         children: [
           AppTextFieldTile(
             emptyAllowed: true,
-            controller:
-                sortController ??= TextEditingController(text: article?.sort.v),
+            controller: sortController ??= TextEditingController(
+              text: article?.sort.v,
+            ),
             labelText: textTypeLabel,
           ),
         ],
@@ -263,9 +264,8 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
   );
 
   Set<String> getTagInputSet() {
-    var tags =
-        tagsController!.text.split(',').map((e) => e.trim()).toSet()
-          ..removeWhere((element) => element.isEmpty);
+    var tags = tagsController!.text.split(',').map((e) => e.trim()).toSet()
+      ..removeWhere((element) => element.isEmpty);
     return tags;
   }
 
@@ -277,10 +277,9 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
         children: [
           AppTextFieldTile(
             emptyAllowed: true,
-            controller:
-                tagsController ??= TextEditingController(
-                  text: tagsToText(article?.tags.v ?? <String>[]),
-                ),
+            controller: tagsController ??= TextEditingController(
+              text: tagsToText(article?.tags.v ?? <String>[]),
+            ),
             labelText: textTagsLabel,
           ),
           if (tags.isNotEmpty)
@@ -322,29 +321,28 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
     padding: const EdgeInsets.symmetric(vertical: 4.0),
     child: TilePadding(
       child: ValueListenableBuilder<Uint8List?>(
-        valueListenable:
-            squareImageBytes ??= () {
-              var valueNotifier = ValueNotifier<Uint8List?>(null);
-              var squareImage = article?.squareImage.v;
-              if (squareImage != null) {
-                () async {
-                  var db = await projectDb;
-                  var image = await dbImageStoreRef.record(squareImage).get(db);
-                  if (image != null) {
-                    var bytes = await httpClientFactory.newClient().readBytes(
-                      Uri.parse(
-                        getImageUrl(
-                          image.name.v!,
-                          storageBucket: projectContext.storageBucket,
-                        ),
-                      ),
-                    );
-                    valueNotifier.value = bytes;
-                  }
-                }();
+        valueListenable: squareImageBytes ??= () {
+          var valueNotifier = ValueNotifier<Uint8List?>(null);
+          var squareImage = article?.squareImage.v;
+          if (squareImage != null) {
+            () async {
+              var db = await projectDb;
+              var image = await dbImageStoreRef.record(squareImage).get(db);
+              if (image != null) {
+                var bytes = await httpClientFactory.newClient().readBytes(
+                  Uri.parse(
+                    getImageUrl(
+                      image.name.v!,
+                      storageBucket: projectContext.storageBucket,
+                    ),
+                  ),
+                );
+                valueNotifier.value = bytes;
               }
-              return valueNotifier;
-            }(),
+            }();
+          }
+          return valueNotifier;
+        }(),
         builder: (context, snapshot, _) {
           if (snapshot == null) {
             return const Text('Pas d\'image');
@@ -374,31 +372,28 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
     padding: const EdgeInsets.symmetric(vertical: 4.0),
     child: TilePadding(
       child: ValueListenableBuilder<Uint8List?>(
-        valueListenable:
-            squareImageBytes ??= () {
-              var valueNotifier = ValueNotifier<Uint8List?>(null);
-              var thumbnailImage = article?.thumbnail.v;
-              if (thumbnailImage != null) {
-                () async {
-                  var db = await projectDb;
-                  var image = await dbImageStoreRef
-                      .record(thumbnailImage)
-                      .get(db);
-                  if (image != null) {
-                    var bytes = await httpClientFactory.newClient().readBytes(
-                      Uri.parse(
-                        getImageUrl(
-                          image.name.v!,
-                          storageBucket: dbBloc.projectContext.storageBucket,
-                        ),
-                      ),
-                    );
-                    valueNotifier.value = bytes;
-                  }
-                }();
+        valueListenable: squareImageBytes ??= () {
+          var valueNotifier = ValueNotifier<Uint8List?>(null);
+          var thumbnailImage = article?.thumbnail.v;
+          if (thumbnailImage != null) {
+            () async {
+              var db = await projectDb;
+              var image = await dbImageStoreRef.record(thumbnailImage).get(db);
+              if (image != null) {
+                var bytes = await httpClientFactory.newClient().readBytes(
+                  Uri.parse(
+                    getImageUrl(
+                      image.name.v!,
+                      storageBucket: dbBloc.projectContext.storageBucket,
+                    ),
+                  ),
+                );
+                valueNotifier.value = bytes;
               }
-              return valueNotifier;
-            }(),
+            }();
+          }
+          return valueNotifier;
+        }(),
         builder: (context, snapshot, _) {
           if (snapshot == null) {
             return const Text('Pas d\'image');
@@ -413,29 +408,28 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
     padding: const EdgeInsets.symmetric(vertical: 4.0),
     child: TilePadding(
       child: ValueListenableBuilder<Uint8List?>(
-        valueListenable:
-            imageBytes ??= () {
-              var valueNotifier = ValueNotifier<Uint8List?>(null);
-              var imageId = article?.image.v;
-              if (imageId != null) {
-                () async {
-                  var db = await projectDb;
-                  var image = await dbImageStoreRef.record(imageId).get(db);
-                  if (image != null) {
-                    var bytes = await httpClientFactory.newClient().readBytes(
-                      Uri.parse(
-                        getImageUrl(
-                          image.name.v!,
-                          storageBucket: projectContext.storageBucket,
-                        ),
-                      ),
-                    );
-                    valueNotifier.value = bytes;
-                  }
-                }();
+        valueListenable: imageBytes ??= () {
+          var valueNotifier = ValueNotifier<Uint8List?>(null);
+          var imageId = article?.image.v;
+          if (imageId != null) {
+            () async {
+              var db = await projectDb;
+              var image = await dbImageStoreRef.record(imageId).get(db);
+              if (image != null) {
+                var bytes = await httpClientFactory.newClient().readBytes(
+                  Uri.parse(
+                    getImageUrl(
+                      image.name.v!,
+                      storageBucket: projectContext.storageBucket,
+                    ),
+                  ),
+                );
+                valueNotifier.value = bytes;
               }
-              return valueNotifier;
-            }(),
+            }();
+          }
+          return valueNotifier;
+        }(),
         builder: (context, snapshot, _) {
           if (snapshot == null) {
             return const Text('Pas d\'image');
@@ -570,10 +564,9 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
                       );
                     }
                   }
-                  imageBytes!.value =
-                      newImageData = Uint8List.fromList(
-                        img.encodeJpg(image, quality: 50),
-                      );
+                  imageBytes!.value = newImageData = Uint8List.fromList(
+                    img.encodeJpg(image, quality: 50),
+                  );
                 }
               }
             }

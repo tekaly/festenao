@@ -69,18 +69,16 @@ class FormScreenControllerBase implements FormScreenController {
       NoAnimationMaterialPageRoute<void>(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => QuestionPlayerScreenBloc(
-                  questionIndex: questionIndex,
-                  player: player,
-                ),
+            blocBuilder: () => QuestionPlayerScreenBloc(
+              questionIndex: questionIndex,
+              player: player,
+            ),
             child: newQuestionScreen(),
           );
         },
-        settings:
-            (FormQuestionContentPath()..question.value = '$questionIndex')
-                .routeSettings()
-                .toRaw(),
+        settings: (FormQuestionContentPath()..question.value = '$questionIndex')
+            .routeSettings()
+            .toRaw(),
       ),
     );
   }

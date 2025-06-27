@@ -165,14 +165,13 @@ class ProjectEditScreenState extends AutoDisposeBaseState<ProjectEditScreen>
             floatingActionButton: FloatingActionButton(
               //onPressed: _incrementCounter,
               //tooltip: 'Save',
-              onPressed:
-                  _gotInitialProject
-                      ? () async {
-                        if (formKey.currentState!.validate()) {
-                          await _saveAndExit(context);
-                        }
+              onPressed: _gotInitialProject
+                  ? () async {
+                      if (formKey.currentState!.validate()) {
+                        await _saveAndExit(context);
                       }
-                      : null,
+                    }
+                  : null,
               child: const Icon(Icons.save),
             ), // This trailing comma makes auto-formatting nicer for build methods.
           ),

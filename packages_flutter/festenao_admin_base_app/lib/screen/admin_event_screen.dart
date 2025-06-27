@@ -231,11 +231,10 @@ Future<void> goToAdminEventScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminEventScreenBloc(
-                  eventId: eventId,
-                  projectContext: projectContext,
-                ),
+            blocBuilder: () => AdminEventScreenBloc(
+              eventId: eventId,
+              projectContext: projectContext,
+            ),
             child: const AdminEventScreen(),
           );
         },

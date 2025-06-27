@@ -87,24 +87,23 @@ class AdminAttributeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     var attribute = attributeList[index];
     return ListTile(
-      onTap:
-          options.readOnly
-              ? null
-              : () async {
-                var result = await goToAdminAttributeEditScreen(
-                  context,
-                  param: AdminAttributeEditScreenParam(attribute: attribute),
-                  projectContext: projectContext,
-                );
-                var newAttribute = result?.attribute;
-                if (newAttribute != null) {
-                  attributes.value = [
-                    ...attributeList.sublist(0, index),
-                    newAttribute,
-                    ...attributeList.sublist(index + 1),
-                  ];
-                }
-              },
+      onTap: options.readOnly
+          ? null
+          : () async {
+              var result = await goToAdminAttributeEditScreen(
+                context,
+                param: AdminAttributeEditScreenParam(attribute: attribute),
+                projectContext: projectContext,
+              );
+              var newAttribute = result?.attribute;
+              if (newAttribute != null) {
+                attributes.value = [
+                  ...attributeList.sublist(0, index),
+                  newAttribute,
+                  ...attributeList.sublist(index + 1),
+                ];
+              }
+            },
       title: Row(
         children: [
           Expanded(child: Text(attribute.name.v ?? '')),

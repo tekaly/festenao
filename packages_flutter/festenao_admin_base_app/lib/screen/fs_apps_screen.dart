@@ -56,18 +56,17 @@ class _FsAppsScreenState extends State<FsAppsScreen> {
               }
               var apps = state.apps;
               return WithHeaderFooterListView.builder(
-                footer:
-                    state.identity == null
-                        ? const BodyContainer(
-                          child: BodyHPadding(
-                            child: Center(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    'Not signed in',
-                                  ), // appIntl(context).notSignedInInfo),
-                                  SizedBox(height: 8),
-                                  /*
+                footer: state.identity == null
+                    ? const BodyContainer(
+                        child: BodyHPadding(
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Not signed in',
+                                ), // appIntl(context).notSignedInInfo),
+                                SizedBox(height: 8),
+                                /*
                             ElevatedButton(
                                 onPressed: () {
                                   Navigator.of(context).push<void>(
@@ -81,12 +80,12 @@ class _FsAppsScreenState extends State<FsAppsScreen> {
                                 },
                                 child:
                                     Text(appIntl(context).signInButtonLabel)),*/
-                                ],
-                              ),
+                              ],
                             ),
                           ),
-                        )
-                        : null,
+                        ),
+                      )
+                    : null,
                 itemCount: apps.length,
                 itemBuilder: (context, index) {
                   var app = apps[index];
@@ -135,11 +134,10 @@ class _FsAppsScreenState extends State<FsAppsScreen> {
 Future<Object?> goToFsAppsScreen(BuildContext context) async {
   return Navigator.of(context).push(
     (MaterialPageRoute(
-      builder:
-          (_) => BlocProvider(
-            blocBuilder: () => FsAppsScreenBloc(),
-            child: const FsAppsScreen(),
-          ),
+      builder: (_) => BlocProvider(
+        blocBuilder: () => FsAppsScreenBloc(),
+        child: const FsAppsScreen(),
+      ),
     )),
   );
 }
@@ -148,11 +146,10 @@ Future<Object?> goToFsAppsScreen(BuildContext context) async {
 Future<FsAppsScreenSelectResult?> selectFsApp(BuildContext context) async {
   var result = await Navigator.of(context).push<Object?>(
     MaterialPageRoute(
-      builder:
-          (_) => BlocProvider(
-            blocBuilder: () => FsAppsScreenBloc(selectMode: true),
-            child: const FsAppsScreen(),
-          ),
+      builder: (_) => BlocProvider(
+        blocBuilder: () => FsAppsScreenBloc(selectMode: true),
+        child: const FsAppsScreen(),
+      ),
     ),
   );
   if (result is FsAppsScreenSelectResult) {

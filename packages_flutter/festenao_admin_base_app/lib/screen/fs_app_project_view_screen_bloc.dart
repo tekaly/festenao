@@ -60,8 +60,8 @@ class FsAppProjectViewScreenBloc
             .onSnapshotSupport(firestore, options: fsController1),
         (userId != null)
             ? fsDb
-                .fsUserEntityAccessRef(userId!, projectId)
-                .onSnapshotSupport(firestore, options: fsController2)
+                  .fsUserEntityAccessRef(userId!, projectId)
+                  .onSnapshotSupport(firestore, options: fsController2)
             : Stream.value(TkCmsFsUserAccess()),
       ).listen((event) {
         var values = event.values;

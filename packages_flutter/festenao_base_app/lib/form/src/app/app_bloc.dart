@@ -68,12 +68,11 @@ class AppBloc {
     }().unawait();
   }
 
-  late final ValueStream<DbSurvey> dbSurveyVS =
-      dbSurveyStore
-          .record(surveyId)
-          .onRecord(localDatabase.database)
-          .whereNotNull()
-          .toBroadcastValueStream();
+  late final ValueStream<DbSurvey> dbSurveyVS = dbSurveyStore
+      .record(surveyId)
+      .onRecord(localDatabase.database)
+      .whereNotNull()
+      .toBroadcastValueStream();
 
   DbTimestamp? surveyStartTimestamp;
   late CvSurveyAnswers surveyAnswers;

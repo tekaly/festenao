@@ -10,8 +10,9 @@ var festenaoYoutubePlayerService = festenaoYoutubePlayerServiceDefault;
 
 /// Using youtube_player_iframe for web and y_player for non-web
 /// youtube_web_player controls don't work
-final festenaoYoutubePlayerServiceDefault =
-    kIsWeb ? festenaoYoutubePlayerIframeService : festenaoYoutubeYPlayerService;
+final festenaoYoutubePlayerServiceDefault = kIsWeb
+    ? festenaoYoutubePlayerIframeService
+    : festenaoYoutubeYPlayerService;
 
 /// Festenao Youtube Player Service
 abstract class FestenaoYoutubePlayerService {

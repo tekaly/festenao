@@ -36,12 +36,11 @@ class AdminExportsScreenBloc
       FestenaoExportMeta? metaDev;
       FestenaoExportMeta? metaProd;
 
-      var metaDevSnapshot =
-          await firestore
-              .collection(firestoreMetaCollectionPath)
-              .doc(getFirestorePublishMetaDocumentName(true))
-              // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
-              .get();
+      var metaDevSnapshot = await firestore
+          .collection(firestoreMetaCollectionPath)
+          .doc(getFirestorePublishMetaDocumentName(true))
+          // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
+          .get();
       /*firestore
           .doc(
               globalFestenaoAppFirebaseContext.getMetaExportFirestorePath(true))
@@ -49,12 +48,11 @@ class AdminExportsScreenBloc
       if (metaDevSnapshot.exists) {
         metaDev = metaDevSnapshot.data.cv<FestenaoExportMeta>();
       }
-      var metaProdSnapshot =
-          await firestore
-              .collection(firestoreMetaCollectionPath)
-              .doc(getFirestorePublishMetaDocumentName(false))
-              // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
-              .get();
+      var metaProdSnapshot = await firestore
+          .collection(firestoreMetaCollectionPath)
+          .doc(getFirestorePublishMetaDocumentName(false))
+          // globalFestenaoAppFirebaseContext              .getMetaExportFirestorePath(false))
+          .get();
       if (metaProdSnapshot.exists) {
         metaProd = metaProdSnapshot.data.cv<FestenaoExportMeta>();
       }

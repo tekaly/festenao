@@ -94,8 +94,8 @@ Future<void> goToAdminExportsScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminExportsScreenBloc(projectContext: projectContext),
+            blocBuilder: () =>
+                AdminExportsScreenBloc(projectContext: projectContext),
             child: const AdminExportsScreen(),
           );
         },

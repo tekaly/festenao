@@ -122,16 +122,15 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
                           var isAdmin = snapshot.data;
                           return SwitchListTile(
                             value: snapshot.data ?? false,
-                            onChanged:
-                                isAdmin == null
-                                    ? null
-                                    : (bool value) {
-                                      _admin.value = value;
-                                      if (value) {
-                                        _write.value = true;
-                                        _read.value = true;
-                                      }
-                                    },
+                            onChanged: isAdmin == null
+                                ? null
+                                : (bool value) {
+                                    _admin.value = value;
+                                    if (value) {
+                                      _write.value = true;
+                                      _read.value = true;
+                                    }
+                                  },
                             title: Text(intl.projectAccessAdmin),
                           );
                         },
@@ -144,17 +143,16 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
                           var write = snapshot.data;
                           return SwitchListTile(
                             value: snapshot.data ?? false,
-                            onChanged:
-                                write == null
-                                    ? null
-                                    : (bool value) {
-                                      _write.value = value;
-                                      if (!value) {
-                                        _admin.value = false;
-                                      } else {
-                                        _read.value = true;
-                                      }
-                                    },
+                            onChanged: write == null
+                                ? null
+                                : (bool value) {
+                                    _write.value = value;
+                                    if (!value) {
+                                      _admin.value = false;
+                                    } else {
+                                      _read.value = true;
+                                    }
+                                  },
                             title: Text(intl.projectAccessWrite),
                           );
                         },
@@ -167,16 +165,15 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
                           var read = snapshot.data;
                           return SwitchListTile(
                             value: snapshot.data ?? false,
-                            onChanged:
-                                read == null
-                                    ? null
-                                    : (bool value) {
-                                      _read.value = value;
-                                      if (!value) {
-                                        _write.value = false;
-                                        _admin.value = false;
-                                      }
-                                    },
+                            onChanged: read == null
+                                ? null
+                                : (bool value) {
+                                    _read.value = value;
+                                    if (!value) {
+                                      _write.value = false;
+                                      _admin.value = false;
+                                    }
+                                  },
                             title: Text(intl.projectAccessRead),
                           );
                         },
@@ -211,12 +208,11 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen> {
     if (formKey.currentState!.validate()) {
       var userId = idController.text.trim();
       var role = roleController.text.trimmedNonEmpty();
-      var fsUserAccess =
-          TkCmsFsUserAccess()
-            ..write.v = _write.value
-            ..admin.v = _admin.value
-            ..read.v = _read.value
-            ..role.v = role;
+      var fsUserAccess = TkCmsFsUserAccess()
+        ..write.v = _write.value
+        ..admin.v = _admin.value
+        ..read.v = _read.value
+        ..role.v = role;
 
       var bloc = this.bloc;
       if (await waitingAction(() async {

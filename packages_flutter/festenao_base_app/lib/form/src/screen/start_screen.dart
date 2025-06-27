@@ -60,121 +60,118 @@ class _StartScreenState extends State<StartScreen> {
               .bounded(128, 512);
           return DelayedDisplay(
             child: Center(
-              child:
-                  gAppBloc.surveyIdOrNull == null
-                      ? ListView(
-                        shrinkWrap: true,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              children: [
-                                SizedBox(
-                                  width: imgWidth,
-                                  height: imgWidth,
-                                  child: Icon(
-                                    Icons.play_circle_outline,
-                                    size: imgWidth,
-                                  ),
-                                ),
-                                const SizedBox(height: 32),
-                                Text(
-                                  'Veuillez scanner le QR code pour commencer',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.titleLarge,
-                                ),
-                                const SizedBox(height: 64),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                      : ValueStreamBuilder(
-                        stream: gAppBloc.dbSurveyVS,
-                        builder: (context, snapshot) {
-                          var survey = snapshot.data;
-                          if (survey == null) {
-                            return const CircularProgressIndicator();
-                          }
-                          return ListView(
-                            shrinkWrap: true,
+              child: gAppBloc.surveyIdOrNull == null
+                  ? ListView(
+                      shrinkWrap: true,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
                             children: [
-                              BodyContainer(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Column(
-                                    children: [
-                                      SizedBox(
-                                        width: imgWidth,
-                                        height: imgWidth,
-                                        child: Icon(
-                                          Icons.play_circle_outline,
-                                          size: imgWidth,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Bienvenue sur le sondage mobilité WTF\u{00A0}#6',
-                                        textAlign: TextAlign.center,
-                                        style:
-                                            Theme.of(
-                                              context,
-                                            ).textTheme.titleLarge,
-                                      ),
-                                      const SizedBox(height: 32),
-                                      Center(
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            gAppBloc.startSurvey();
-                                            var player =
-                                                globalSurveyPlayerFormBloc
-                                                    .newPlayer();
-
-                                            /// Wait for survey to be loaded
-                                            await globalSurveyPlayerFormBloc
-                                                .state
-                                                .first;
-                                            if (context.mounted) {
-                                              var screenController =
-                                                  FormScreenControllerBase(
-                                                    player: player,
-                                                  );
-                                              await screenController
-                                                  .goToQuestionOrEndScreen(
-                                                    context,
-
-                                                    questionIndex: 0,
-                                                    //
-                                                  );
-                                            }
-                                          },
-                                          child: const Text(
-                                            'Démarrer le sondage',
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 64),
-                                    ],
-                                  ),
+                              SizedBox(
+                                width: imgWidth,
+                                height: imgWidth,
+                                child: Icon(
+                                  Icons.play_circle_outline,
+                                  size: imgWidth,
                                 ),
                               ),
+                              const SizedBox(height: 32),
+                              Text(
+                                'Veuillez scanner le QR code pour commencer',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const SizedBox(height: 64),
                             ],
-                          );
-                        },
-                      ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : ValueStreamBuilder(
+                      stream: gAppBloc.dbSurveyVS,
+                      builder: (context, snapshot) {
+                        var survey = snapshot.data;
+                        if (survey == null) {
+                          return const CircularProgressIndicator();
+                        }
+                        return ListView(
+                          shrinkWrap: true,
+                          children: [
+                            BodyContainer(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  children: [
+                                    SizedBox(
+                                      width: imgWidth,
+                                      height: imgWidth,
+                                      child: Icon(
+                                        Icons.play_circle_outline,
+                                        size: imgWidth,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Bienvenue sur le sondage mobilité WTF\u{00A0}#6',
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
+                                    ),
+                                    const SizedBox(height: 32),
+                                    Center(
+                                      child: ElevatedButton(
+                                        onPressed: () async {
+                                          gAppBloc.startSurvey();
+                                          var player =
+                                              globalSurveyPlayerFormBloc
+                                                  .newPlayer();
+
+                                          /// Wait for survey to be loaded
+                                          await globalSurveyPlayerFormBloc
+                                              .state
+                                              .first;
+                                          if (context.mounted) {
+                                            var screenController =
+                                                FormScreenControllerBase(
+                                                  player: player,
+                                                );
+                                            await screenController
+                                                .goToQuestionOrEndScreen(
+                                                  context,
+
+                                                  questionIndex: 0,
+                                                  //
+                                                );
+                                          }
+                                        },
+                                        child: const Text(
+                                          'Démarrer le sondage',
+                                          textAlign: TextAlign.center,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 64),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
             ),
           );
         },
       ),
-      floatingActionButton:
-          kDebugMode
-              ? FloatingActionButton(
-                onPressed: () {
-                  goToUserDebugScreen(context);
-                },
-                child: const Icon(Icons.settings),
-              )
-              : null,
+      floatingActionButton: kDebugMode
+          ? FloatingActionButton(
+              onPressed: () {
+                goToUserDebugScreen(context);
+              },
+              child: const Icon(Icons.settings),
+            )
+          : null,
     );
   }
 }

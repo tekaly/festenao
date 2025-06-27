@@ -42,12 +42,11 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
       var image = img.decodeImage(imageData)!;
       var imageName = '$imageId.jpg';
       var blurHash = await image.blurHashEncode();
-      dbImage =
-          dbImageStoreRef.record(imageId).cv()
-            ..name.v = imageName
-            ..width.v = image.width
-            ..height.v = image.height
-            ..blurHash.v = blurHash;
+      dbImage = dbImageStoreRef.record(imageId).cv()
+        ..name.v = imageName
+        ..width.v = image.width
+        ..height.v = image.height
+        ..blurHash.v = blurHash;
 
       var path = globalFestenaoAppFirebaseContext.getImageDirStoragePath(
         imageName,
@@ -69,12 +68,11 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
       var image = img.decodeImage(thumbnailImageData)!;
       var imageName = '$imageId.jpg';
       var blurHash = await image.blurHashEncode();
-      dbImage =
-          dbImageStoreRef.record(imageId).cv()
-            ..name.v = imageName
-            ..width.v = image.width
-            ..height.v = image.height
-            ..blurHash.v = blurHash;
+      dbImage = dbImageStoreRef.record(imageId).cv()
+        ..name.v = imageName
+        ..width.v = image.width
+        ..height.v = image.height
+        ..blurHash.v = blurHash;
 
       var path = url.join(
         globalFestenaoAppFirebaseContext.storageRootPath,

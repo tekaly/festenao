@@ -78,14 +78,11 @@ class _AdminArtistScreenState extends State<AdminArtistScreen>
                       context,
                       eventId: null,
                       param: AdminEventEditScreenParam(
-                        event:
-                            DbEvent()
-                              ..attributes.v = [
-                                CvAttribute()
-                                  ..value.v = attrMakeFromArtistId(
-                                    bloc.artistId!,
-                                  ),
-                              ],
+                        event: DbEvent()
+                          ..attributes.v = [
+                            CvAttribute()
+                              ..value.v = attrMakeFromArtistId(bloc.artistId!),
+                          ],
                       ),
                       projectContext: projectContext,
                     );
@@ -226,11 +223,10 @@ Future<void> goToAdminArtistScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminArtistScreenBloc(
-                  artistId: artistId,
-                  projectContext: projectContext,
-                ),
+            blocBuilder: () => AdminArtistScreenBloc(
+              artistId: artistId,
+              projectContext: projectContext,
+            ),
             child: const AdminArtistScreen(),
           );
         },

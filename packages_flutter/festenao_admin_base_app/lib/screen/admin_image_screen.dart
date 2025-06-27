@@ -87,18 +87,17 @@ class _AdminImageScreenState extends State<AdminImageScreen>
               return const Center(child: CircularProgressIndicator());
             }
             var image = state.image;
-            var imageUrl =
-                image == null
-                    ? null
-                    : getUnauthenticatedStorageApi(
-                      storageBucket: bloc.projectContext.storageBucket,
-                    ).getMediaUrl(
-                      url.join(
-                        globalFestenaoAppFirebaseContext.storageRootPath,
-                        'image',
-                        image.name.v!,
-                      ),
-                    );
+            var imageUrl = image == null
+                ? null
+                : getUnauthenticatedStorageApi(
+                    storageBucket: bloc.projectContext.storageBucket,
+                  ).getMediaUrl(
+                    url.join(
+                      globalFestenaoAppFirebaseContext.storageRootPath,
+                      'image',
+                      image.name.v!,
+                    ),
+                  );
             // print('imageUrl: $imageUrl');
             return ListView(
               children: [
@@ -182,11 +181,10 @@ Future<void> goToAdminImageScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminImageScreenBloc(
-                  imageId: imageId,
-                  projectContext: projectContext,
-                ),
+            blocBuilder: () => AdminImageScreenBloc(
+              imageId: imageId,
+              projectContext: projectContext,
+            ),
             child: const AdminImageScreen(),
           );
         },

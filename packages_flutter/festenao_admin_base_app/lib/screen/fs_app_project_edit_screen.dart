@@ -49,8 +49,9 @@ class FsAppProjectEditScreenState
   }
 
   FsAppProjectEditData get _projectFromInput {
-    var projectId =
-        bloc.isCreate ? _idController?.text.trimmedNonEmpty() : bloc.projectId;
+    var projectId = bloc.isCreate
+        ? _idController?.text.trimmedNonEmpty()
+        : bloc.projectId;
     var name = _nameController!.text.trimmedNonEmpty();
     var project = initialProject.clone();
     project.name.v = name;
@@ -199,14 +200,13 @@ class FsAppProjectEditScreenState
             floatingActionButton: FloatingActionButton(
               //onPressed: _incrementCounter,
               //tooltip: 'Save',
-              onPressed:
-                  _gotInitialProject
-                      ? () async {
-                        if (formKey.currentState!.validate()) {
-                          await _saveAndExit(context);
-                        }
+              onPressed: _gotInitialProject
+                  ? () async {
+                      if (formKey.currentState!.validate()) {
+                        await _saveAndExit(context);
                       }
-                      : null,
+                    }
+                  : null,
               child: const Icon(Icons.save),
             ), // This trailing comma makes auto-formatting nicer for build methods.
           ),
@@ -225,8 +225,8 @@ Future<void> goToFsAppProjectEditScreen(
     context,
     builder: (context) {
       return BlocProvider(
-        blocBuilder:
-            () => FsAppProjectEditScreenBloc(project: project, appId: appId),
+        blocBuilder: () =>
+            FsAppProjectEditScreenBloc(project: project, appId: appId),
         child: const FsAppProjectEditScreen(),
       );
     },

@@ -65,22 +65,20 @@ class _EndScreenState extends State<EndScreen>
                                   stream: busyStream,
                                   builder: (context, snapshot) {
                                     return ElevatedButton(
-                                      onPressed:
-                                          !(snapshot.data ?? false)
-                                              ? () async {
-                                                var result = await busyAction(() async {
-                                                  try {
-                                                    // ignore: unused_local_variable
-                                                    var uid =
-                                                        await gAppBloc
-                                                            .localDatabase
-                                                            .getUniqueDeviceId();
-                                                    // ignore: unused_local_variable
-                                                    var answers =
-                                                        gAppBloc.surveyAnswers;
+                                      onPressed: !(snapshot.data ?? false)
+                                          ? () async {
+                                              var result = await busyAction(() async {
+                                                try {
+                                                  // ignore: unused_local_variable
+                                                  var uid = await gAppBloc
+                                                      .localDatabase
+                                                      .getUniqueDeviceId();
+                                                  // ignore: unused_local_variable
+                                                  var answers =
+                                                      gAppBloc.surveyAnswers;
 
-                                                    return true;
-                                                    /*
+                                                  return true;
+                                                  /*
                                                     await gAppBloc.apiService
                                                         .addSurveyEntry(
                                                           FufFormApiAddSurveyEntryRequest()
@@ -100,40 +98,38 @@ class _EndScreenState extends State<EndScreen>
                                                                     ?.toIso8601String(),
                                                         );
                                                     return true;*/
-                                                  } catch (e) {
-                                                    if (context.mounted) {
-                                                      await muiSnack(
-                                                        context,
-                                                        'Une erreur est survenue, veuillez réessayer',
-                                                      );
-                                                    }
-                                                    rethrow;
-                                                  }
-                                                });
-                                                if (result.result ?? false) {
+                                                } catch (e) {
                                                   if (context.mounted) {
-                                                    await Navigator.pushAndRemoveUntil(
+                                                    await muiSnack(
                                                       context,
-                                                      MaterialPageRoute<void>(
-                                                        builder: (context) {
-                                                          return const ThankYouScreen();
-                                                        },
-                                                      ),
-                                                      (route) {
-                                                        if (route
-                                                                .settings
-                                                                .name ==
-                                                            '/') {
-                                                          return true;
-                                                        }
-
-                                                        return false;
-                                                      },
+                                                      'Une erreur est survenue, veuillez réessayer',
                                                     );
                                                   }
+                                                  rethrow;
+                                                }
+                                              });
+                                              if (result.result ?? false) {
+                                                if (context.mounted) {
+                                                  await Navigator.pushAndRemoveUntil(
+                                                    context,
+                                                    MaterialPageRoute<void>(
+                                                      builder: (context) {
+                                                        return const ThankYouScreen();
+                                                      },
+                                                    ),
+                                                    (route) {
+                                                      if (route.settings.name ==
+                                                          '/') {
+                                                        return true;
+                                                      }
+
+                                                      return false;
+                                                    },
+                                                  );
                                                 }
                                               }
-                                              : null,
+                                            }
+                                          : null,
                                       child: const Text(
                                         'Valider',
                                         textAlign: TextAlign.center,

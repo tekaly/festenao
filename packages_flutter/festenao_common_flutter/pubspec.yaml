@@ -4,11 +4,11 @@ version: 0.0.1
 publish_to: none
 
 environment:
-  sdk: ^3.7.2
+  sdk: ^3.8.0
   flutter: ">=1.17.0"
 
 dependencies:
-  cv:
+  cv: ">=1.1.0+4"
   festenao_common:
     git:
       url: https://github.com/tekaly/festenao

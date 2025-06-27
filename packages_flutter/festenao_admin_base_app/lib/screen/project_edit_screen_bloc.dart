@@ -56,12 +56,12 @@ class ProjectEditScreenBloc
       var userProjectAccess = await fsDb.projectDb
           .fsUserEntityAccessRef(userId, projectUid)
           .get(firestore);
-      var newDbProject =
-          DbProject()..fromFirestore(
-            fsProject: fsProject,
-            projectAccess: userProjectAccess,
-            userId: userId,
-          );
+      var newDbProject = DbProject()
+        ..fromFirestore(
+          fsProject: fsProject,
+          projectAccess: userProjectAccess,
+          userId: userId,
+        );
       await globalProjectsDb.addProject(newDbProject);
     } else {
       await firestore.cvRunTransaction((txn) async {

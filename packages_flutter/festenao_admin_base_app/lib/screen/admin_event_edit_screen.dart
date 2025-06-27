@@ -106,27 +106,24 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
                                 ListTile(title: Text(eventId ?? 'new')),
                               ],
                               AppTextFieldTile(
-                                controller:
-                                    idController ??= TextEditingController(
+                                controller: idController ??=
+                                    TextEditingController(
                                       text: eventId ?? event?.idOrNull,
                                     ),
                                 labelText: textIdLabel,
                               ),
                               getCommonWidgets(event),
                               AppTextFieldTile(
-                                controller:
-                                    nameController ??= TextEditingController(
-                                      text: event?.name.v,
-                                    ),
+                                controller: nameController ??=
+                                    TextEditingController(text: event?.name.v),
                                 emptyAllowed: true,
                                 labelText: textNameLabel,
                               ),
                               AppTextFieldTile(
-                                controller:
-                                    subtitleController ??=
-                                        TextEditingController(
-                                          text: event?.subtitle.v,
-                                        ),
+                                controller: subtitleController ??=
+                                    TextEditingController(
+                                      text: event?.subtitle.v,
+                                    ),
                                 emptyAllowed: true,
                                 labelText: textSubtitleLabel,
                               ),
@@ -137,8 +134,8 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
                                     child: CalendarFormFieldTile(
                                       context: context,
                                       labelText: textDayLabel,
-                                      valueNotifier:
-                                          day ??= ValueNotifier<CalendarDay?>(
+                                      valueNotifier: day ??=
+                                          ValueNotifier<CalendarDay?>(
                                             parseCalendarDayOrNull(
                                               event?.day.v,
                                             ),
@@ -148,11 +145,10 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
                                   Expanded(
                                     flex: 1,
                                     child: AppTextFieldTile(
-                                      controller:
-                                          beginTimeController ??=
-                                              TextEditingController(
-                                                text: event?.beginTime.v,
-                                              ),
+                                      controller: beginTimeController ??=
+                                          TextEditingController(
+                                            text: event?.beginTime.v,
+                                          ),
                                       validator: (text) {
                                         try {
                                           CalendarTime(text: text);
@@ -167,11 +163,10 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
                                   Expanded(
                                     flex: 1,
                                     child: AppTextFieldTile(
-                                      controller:
-                                          endTimeController ??=
-                                              TextEditingController(
-                                                text: event?.endTime.v,
-                                              ),
+                                      controller: endTimeController ??=
+                                          TextEditingController(
+                                            text: event?.endTime.v,
+                                          ),
                                       validator: (text) {
                                         try {
                                           CalendarTime(text: text);
@@ -221,10 +216,10 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
                                     if (result?.info != null) {
                                       _addAttribute(
                                         CvAttribute()
-                                          ..value
-                                              .v = attrMakeLocationFromInfoId(
-                                            result!.info!.id,
-                                          ),
+                                          ..value.v =
+                                              attrMakeLocationFromInfoId(
+                                                result!.info!.id,
+                                              ),
                                       );
                                     }
                                   },
@@ -251,8 +246,8 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
                                 ),
                               ),
                               AppTextFieldTile(
-                                controller:
-                                    contentController ??= TextEditingController(
+                                controller: contentController ??=
+                                    TextEditingController(
                                       text: event?.content.v,
                                     ),
                                 maxLines: 10,
@@ -280,13 +275,12 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
               );
             },
           ),
-          floatingActionButton:
-              canSave
-                  ? FloatingActionButton(
-                    onPressed: () => _onSave(context),
-                    child: const Icon(Icons.save),
-                  )
-                  : null,
+          floatingActionButton: canSave
+              ? FloatingActionButton(
+                  onPressed: () => _onSave(context),
+                  child: const Icon(Icons.save),
+                )
+              : null,
         );
       },
     );
@@ -301,12 +295,11 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
           saving.value = true;
           var bloc = BlocProvider.of<AdminEventEditScreenBloc>(context);
           formKey.currentState!.save();
-          var dbEvent =
-              DbEvent()
-                ..rawRef = dbEventStoreRef.record(idController!.text).rawRef
-                ..day.v = day!.value!.toString()
-                ..beginTime.v = beginTimeController!.text
-                ..endTime.v = endTimeController!.text;
+          var dbEvent = DbEvent()
+            ..rawRef = dbEventStoreRef.record(idController!.text).rawRef
+            ..day.v = day!.value!.toString()
+            ..beginTime.v = beginTimeController!.text
+            ..endTime.v = endTimeController!.text;
           articleFromForm(dbEvent);
           await bloc.save(
             AdminArticleEditData(article: dbEvent, imageData: newImageData),
@@ -372,12 +365,11 @@ Future<AdminEventEditScreenResult?> goToAdminEventEditScreen(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => AdminEventEditScreenBloc(
-                eventId: eventId,
-                param: param,
-                projectContext: projectContext,
-              ),
+          blocBuilder: () => AdminEventEditScreenBloc(
+            eventId: eventId,
+            param: param,
+            projectContext: projectContext,
+          ),
           child: const AdminEventEditScreen(),
         );
       },

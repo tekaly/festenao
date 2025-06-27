@@ -78,32 +78,27 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
                                 ListTile(title: Text(artist?.id ?? 'new')),
                               ],
                               AppTextFieldTile(
-                                controller:
-                                    idController ??= TextEditingController(
-                                      text: artistId,
-                                    ),
+                                controller: idController ??=
+                                    TextEditingController(text: artistId),
                                 labelText: textIdLabel,
                               ),
                               getCommonWidgets(artist),
                               AppTextFieldTile(
-                                controller:
-                                    nameController ??= TextEditingController(
-                                      text: artist?.name.v,
-                                    ),
+                                controller: nameController ??=
+                                    TextEditingController(text: artist?.name.v),
                                 labelText: textNameLabel,
                               ),
                               AppTextFieldTile(
                                 emptyAllowed: true,
-                                controller:
-                                    subtitleController ??=
-                                        TextEditingController(
-                                          text: artist?.subtitle.v,
-                                        ),
+                                controller: subtitleController ??=
+                                    TextEditingController(
+                                      text: artist?.subtitle.v,
+                                    ),
                                 labelText: textSubtitleLabel,
                               ),
                               AppTextFieldTile(
-                                controller:
-                                    contentController ??= TextEditingController(
+                                controller: contentController ??=
+                                    TextEditingController(
                                       text: artist?.content.v,
                                     ),
                                 maxLines: 10,
@@ -130,13 +125,12 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
               );
             },
           ),
-          floatingActionButton:
-              canSave
-                  ? FloatingActionButton(
-                    onPressed: () => _onSave(context),
-                    child: const Icon(Icons.save),
-                  )
-                  : null,
+          floatingActionButton: canSave
+              ? FloatingActionButton(
+                  onPressed: () => _onSave(context),
+                  child: const Icon(Icons.save),
+                )
+              : null,
         );
       },
     );
@@ -224,12 +218,11 @@ Future<AdminArtistEditScreenResult?> goToAdminArtistEditScreen(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => AdminArtistEditScreenBloc(
-                artistId: artistId,
-                artist: artist,
-                projectContext: projectContext,
-              ),
+          blocBuilder: () => AdminArtistEditScreenBloc(
+            artistId: artistId,
+            artist: artist,
+            projectContext: projectContext,
+          ),
           child: const AdminArtistEditScreen(),
         );
       },

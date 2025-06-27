@@ -43,10 +43,9 @@ class MyApp extends StatelessWidget {
                   festenaoYoutubePlayerServiceDefault;
               ContentNavigator.pushBuilder<void>(
                 context,
-                builder:
-                    (context) => const FestenaoYoutubePlayerExp(
-                      title: 'Festenao youtube player',
-                    ),
+                builder: (context) => const FestenaoYoutubePlayerExp(
+                  title: 'Festenao youtube player',
+                ),
               );
             });
 
@@ -71,10 +70,9 @@ class MyApp extends StatelessWidget {
                       festenaoYoutubeWebPlayerService;
                   ContentNavigator.pushBuilder<void>(
                     context,
-                    builder:
-                        (context) => const FestenaoYoutubePlayerExp(
-                          title: 'Legacy youtube_web_player',
-                        ),
+                    builder: (context) => const FestenaoYoutubePlayerExp(
+                      title: 'Legacy youtube_web_player',
+                    ),
                   );
                 },
               );

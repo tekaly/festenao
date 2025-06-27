@@ -56,57 +56,53 @@ class _AdminFormQuestionsScreenState
               ),
             ],
           ),
-          body:
-              dbEntities == null
-                  ? const Center(child: CircularProgressIndicator())
-                  : Stack(
-                    children: [
-                      ListView.builder(
-                        itemCount: dbEntities.length,
-                        itemBuilder: (context, index) {
-                          var dbEntity = dbEntities[index];
+          body: dbEntities == null
+              ? const Center(child: CircularProgressIndicator())
+              : Stack(
+                  children: [
+                    ListView.builder(
+                      itemCount: dbEntities.length,
+                      itemBuilder: (context, index) {
+                        var dbEntity = dbEntities[index];
 
-                          Future<void> view() async {
-                            await goToAdminFormQuestionViewScreen(
-                              context,
-                              entityAccess: bloc.entityAccess,
-                              entityId: dbEntity.id,
-                            );
-                          }
-
-                          return BodyContainer(
-                            child: ListTile(
-                              title: Text(
-                                dbEntity.name.v ?? '[empty question]',
-                              ),
-                              subtitle: Text(dbEntity.id),
-                              trailing:
-                                  selectMode
-                                      ? IconButton(
-                                        onPressed: () {
-                                          view();
-                                        },
-                                        icon: const Icon(Icons.more_horiz),
-                                      )
-                                      : null,
-                              onTap: () async {
-                                if (selectMode) {
-                                  Navigator.of(context).pop(
-                                    DocEntitiesSelectResult(
-                                      entityId: dbEntity.id,
-                                    ),
-                                  );
-                                } else {
-                                  await view();
-                                }
-                              },
-                            ),
+                        Future<void> view() async {
+                          await goToAdminFormQuestionViewScreen(
+                            context,
+                            entityAccess: bloc.entityAccess,
+                            entityId: dbEntity.id,
                           );
-                        },
-                      ),
-                      BusyIndicator(busy: busyStream),
-                    ],
-                  ),
+                        }
+
+                        return BodyContainer(
+                          child: ListTile(
+                            title: Text(dbEntity.name.v ?? '[empty question]'),
+                            subtitle: Text(dbEntity.id),
+                            trailing: selectMode
+                                ? IconButton(
+                                    onPressed: () {
+                                      view();
+                                    },
+                                    icon: const Icon(Icons.more_horiz),
+                                  )
+                                : null,
+                            onTap: () async {
+                              if (selectMode) {
+                                Navigator.of(context).pop(
+                                  DocEntitiesSelectResult(
+                                    entityId: dbEntity.id,
+                                  ),
+                                );
+                              } else {
+                                await view();
+                              }
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                    BusyIndicator(busy: busyStream),
+                  ],
+                ),
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
               await goToAdminFormQuestionEditScreen(
@@ -132,10 +128,8 @@ Future<void> goToAdminFormQuestionsScreen(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => DocEntitiesScreenBloc<FsFormQuestion>(
-                entityAccess: entityAccess,
-              ),
+          blocBuilder: () =>
+              DocEntitiesScreenBloc<FsFormQuestion>(entityAccess: entityAccess),
           child: const AdminFormQuestionsScreen(),
         );
       },
@@ -153,11 +147,10 @@ selectBasicEntity<T extends TkCmsFsBasicEntity>(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => DocEntitiesScreenBloc<T>(
-                entityAccess: entityAccess,
-                selectMode: true,
-              ),
+          blocBuilder: () => DocEntitiesScreenBloc<T>(
+            entityAccess: entityAccess,
+            selectMode: true,
+          ),
           child: const AdminFormQuestionsScreen(),
         );
       },

@@ -82,23 +82,20 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
             //offset: Offset(100, 100),
             elevation: 5.0,
             // child: _menuIcon,
-            itemBuilder:
-                (context) => [
-                  PopupMenuItem<bool>(
-                    child: StatefulBuilder(
-                      builder:
-                          (builderContext, doSetState) => SwitchListTile(
-                            //activeColor: kLeadingOrangeColor,
-                            value: bloc.showHidden, // isShow,
-                            onChanged:
-                                (value) => doSetState(() {
-                                  bloc.showHidden = value;
-                                }),
-                            title: const Text('Show hidden'),
-                          ),
-                    ),
+            itemBuilder: (context) => [
+              PopupMenuItem<bool>(
+                child: StatefulBuilder(
+                  builder: (builderContext, doSetState) => SwitchListTile(
+                    //activeColor: kLeadingOrangeColor,
+                    value: bloc.showHidden, // isShow,
+                    onChanged: (value) => doSetState(() {
+                      bloc.showHidden = value;
+                    }),
+                    title: const Text('Show hidden'),
                   ),
-                ],
+                ),
+              ),
+            ],
           ),
           /*SwitchListTile(value: true, onChanged: (_) {
           print('onChanged');
@@ -176,8 +173,8 @@ Future<void> goToAdminArtistsScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminArtistsScreenBloc(projectContext: projectContext),
+            blocBuilder: () =>
+                AdminArtistsScreenBloc(projectContext: projectContext),
             child: const AdminArtistsScreen(),
           );
         },
@@ -194,8 +191,8 @@ Future<AdminArtistScreenResult?> selectArtist(
     MaterialPageRoute(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => AdminArtistsScreenBloc(projectContext: projectContext),
+          blocBuilder: () =>
+              AdminArtistsScreenBloc(projectContext: projectContext),
           child: AdminArtistsScreen(
             param: AdminArtistsScreenParam(selectMode: true),
           ),

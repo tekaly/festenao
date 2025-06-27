@@ -53,16 +53,15 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
                 header: BodyContainer(
                   child: Column(children: [AppPathTile(appPath: bloc.appPath)]),
                 ),
-                footer:
-                    state.identity == null
-                        ? const BodyContainer(
-                          child: BodyHPadding(
-                            child: Center(
-                              child: Column(
-                                children: [
-                                  IdentityWarningTile(),
-                                  SizedBox(height: 8),
-                                  /*
+                footer: state.identity == null
+                    ? const BodyContainer(
+                        child: BodyHPadding(
+                          child: Center(
+                            child: Column(
+                              children: [
+                                IdentityWarningTile(),
+                                SizedBox(height: 8),
+                                /*
                             ElevatedButton(
                                 onPressed: () {
                                   Navigator.of(context).push<void>(
@@ -76,12 +75,12 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
                                 },
                                 child:
                                     Text(appIntl(context).signInButtonLabel)),*/
-                                ],
-                              ),
+                              ],
                             ),
                           ),
-                        )
-                        : null,
+                        ),
+                      )
+                    : null,
                 itemCount: projects.length,
                 itemBuilder: (context, index) {
                   var project = projects[index];
@@ -132,11 +131,10 @@ Future<Object?> goToFsAppProjectsScreen(
 }) async {
   return Navigator.of(context).push(
     (MaterialPageRoute(
-      builder:
-          (_) => BlocProvider(
-            blocBuilder: () => FsAppProjectsScreenBloc(appId: appId),
-            child: const FsProjectsScreen(),
-          ),
+      builder: (_) => BlocProvider(
+        blocBuilder: () => FsAppProjectsScreenBloc(appId: appId),
+        child: const FsProjectsScreen(),
+      ),
     )),
   );
 }
@@ -145,11 +143,10 @@ Future<Object?> goToFsAppProjectsScreen(
 Future<SelectProjectResult?> selectFsAppProject(BuildContext context) async {
   var result = await Navigator.of(context).push<Object?>(
     MaterialPageRoute(
-      builder:
-          (_) => BlocProvider(
-            blocBuilder: () => ProjectsScreenBloc(selectMode: true),
-            child: const FsProjectsScreen(),
-          ),
+      builder: (_) => BlocProvider(
+        blocBuilder: () => ProjectsScreenBloc(selectMode: true),
+        child: const FsProjectsScreen(),
+      ),
     ),
   );
   if (result is SelectProjectResult) {

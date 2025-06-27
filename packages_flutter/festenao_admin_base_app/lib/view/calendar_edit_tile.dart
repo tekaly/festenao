@@ -84,10 +84,9 @@ class CalendarFormFieldTile extends FormField<DateTime?> {
                  children: [
                    CalendarEditTile(
                      labelText: labelText,
-                     valueText:
-                         valueNotifier.value == null
-                             ? ''
-                             : valueNotifier.value!.toString(),
+                     valueText: valueNotifier.value == null
+                         ? ''
+                         : valueNotifier.value!.toString(),
                      onLongPress: () {
                        valueNotifier.value = null;
                        state.didChange(null);

@@ -16,14 +16,13 @@ class AdminArticleThumbnail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var imageId =
-        (article.thumbnail.v?.isNotEmpty ?? false)
-            ? article.thumbnail.v!
-            : articleKindToImageId(
-              article.articleKind,
-              imageTypeThumbnail,
-              article.id,
-            );
+    var imageId = (article.thumbnail.v?.isNotEmpty ?? false)
+        ? article.thumbnail.v!
+        : articleKindToImageId(
+            article.articleKind,
+            imageTypeThumbnail,
+            article.id,
+          );
 
     return ImageThumbnailPreview(imageId: imageId, dbBloc: dbBloc);
   }

@@ -16,8 +16,8 @@ String _accessString(AppLocalizations intl, TkCmsCvUserAccessCommon access) {
   return access.isAdmin
       ? intl.projectAccessAdmin
       : (access.isWrite
-          ? intl.projectAccessWrite
-          : (access.isRead ? intl.projectAccessRead : 'No access'));
+            ? intl.projectAccessWrite
+            : (access.isRead ? intl.projectAccessRead : 'No access'));
 }
 
 Text? accessText(AppLocalizations intl, TkCmsCvUserAccessCommon access) {

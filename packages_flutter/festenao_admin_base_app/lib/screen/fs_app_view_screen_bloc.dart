@@ -19,10 +19,9 @@ abstract class FsAppBlocRawBase<T extends Object>
   String? get userId => firebaseUser?.uid;
 
   /// Null for service account
-  FirebaseUser? get firebaseUser =>
-      (fbIdentity is TkCmsFbIdentityUser)
-          ? (fbIdentity as TkCmsFbIdentityUser).user
-          : null;
+  FirebaseUser? get firebaseUser => (fbIdentity is TkCmsFbIdentityUser)
+      ? (fbIdentity as TkCmsFbIdentityUser).user
+      : null;
 
   /// Nul for app create only
   final String? appId;

@@ -81,10 +81,9 @@ Future<void> festenaoRunApp({
   /// Global prefs (last entered values)
   var app = globalTkCmsAdminAppFlavorContext.uniqueAppName;
   await globalFestenaoAdminApp.openPrefs();
-  globalProjectsDbBloc =
-      singleProjectId == null
-          ? MultiProjectsDbBloc(app: app)
-          : EnforcedSingleProjectDbBloc(app: app, projectId: singleProjectId);
+  globalProjectsDbBloc = singleProjectId == null
+      ? MultiProjectsDbBloc(app: app)
+      : EnforcedSingleProjectDbBloc(app: app, projectId: singleProjectId);
 
   initFestenaoFsBuilders();
 

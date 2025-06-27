@@ -630,10 +630,9 @@ class _QuestionScreenState extends AutoDisposeBaseState<QuestionScreen>
                         padding: const EdgeInsets.only(bottom: 8.0),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                choicesSelected.contains(choice.id)
-                                    ? colorFestenaoFormBlueSelected
-                                    : null,
+                            backgroundColor: choicesSelected.contains(choice.id)
+                                ? colorFestenaoFormBlueSelected
+                                : null,
                           ),
                           child: Text(choice.text),
                           onPressed: () {
@@ -736,8 +735,9 @@ class _QuestionScreenState extends AutoDisposeBaseState<QuestionScreen>
           onFieldSubmitted: onFieldSubmitted,
           //autofocus: true,
           decoration: decoration,
-          keyboardType:
-              !(snapshot.data ?? false) ? keyboardType : TextInputType.none,
+          keyboardType: !(snapshot.data ?? false)
+              ? keyboardType
+              : TextInputType.none,
           validator: validator,
         );
       },

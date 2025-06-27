@@ -28,10 +28,9 @@ void main() {
     test('putRecord', () async {
       var record = (await source.putSourceRecord(
         FaoSourceRecord()
-          ..record.v =
-              (FaoSourceRecordData()
-                ..store.v = 'test'
-                ..key.v = '1'),
+          ..record.v = (FaoSourceRecordData()
+            ..store.v = 'test'
+            ..key.v = '1'),
       ));
       expect(record.toMap(), {
         'syncId': record.syncId.v,
@@ -46,10 +45,9 @@ void main() {
       expect(record.syncChangeId.v, 1);
       record = (await source.putSourceRecord(
         FaoSourceRecord()
-          ..record.v =
-              (FaoSourceRecordData()
-                ..store.v = 'test'
-                ..key.v = '1')
+          ..record.v = (FaoSourceRecordData()
+            ..store.v = 'test'
+            ..key.v = '1')
           ..syncId.v = syncId,
       ));
       expect(record.toMap(), {
@@ -63,10 +61,9 @@ void main() {
       // Changing!
       record = (await source.putSourceRecord(
         FaoSourceRecord()
-          ..record.v =
-              (FaoSourceRecordData()
-                ..store.v = 'test2'
-                ..key.v = '2')
+          ..record.v = (FaoSourceRecordData()
+            ..store.v = 'test2'
+            ..key.v = '2')
           ..syncId.v = syncId,
       ));
       expect(record.syncChangeId.v, 3);
@@ -89,10 +86,9 @@ void main() {
       expect(record, isNull);
       record = await source.putSourceRecord(
         FaoSourceRecord()
-          ..record.v =
-              (FaoSourceRecordData()
-                ..store.v = 'test'
-                ..key.v = '1')
+          ..record.v = (FaoSourceRecordData()
+            ..store.v = 'test'
+            ..key.v = '1')
           ..syncId.v = syncId,
       );
       var newSyncId = record.syncId.v;
@@ -100,16 +96,14 @@ void main() {
       expect(record.syncId.v, newSyncId);
       expect(newSyncId, isNot(syncId));
       // Without syncId
-      record =
-          (await source.getSourceRecord(
-            FestenaoDataSourceRef(store: 'test', key: '1'),
-          ))!;
+      record = (await source.getSourceRecord(
+        FestenaoDataSourceRef(store: 'test', key: '1'),
+      ))!;
       expect(record.syncId.v, newSyncId);
       // Wrong syncId
-      record =
-          (await source.getSourceRecord(
-            FestenaoDataSourceRef(store: 'test', key: '1'),
-          ))!;
+      record = (await source.getSourceRecord(
+        FestenaoDataSourceRef(store: 'test', key: '1'),
+      ))!;
       expect(record.syncId.v, newSyncId);
       // Wrong key (fail)
       record = await source.getSourceRecord(
@@ -122,22 +116,20 @@ void main() {
       expect(list, isEmpty);
       var record = await source.putSourceRecord(
         FaoSourceRecord()
-          ..record.v =
-              (FaoSourceRecordData()
-                ..store.v = 'test'
-                ..key.v = '1'
-                ..value.v = {'name': 'test1'}),
+          ..record.v = (FaoSourceRecordData()
+            ..store.v = 'test'
+            ..key.v = '1'
+            ..value.v = {'name': 'test1'}),
       );
       list = (await source.getSourceRecordList()).list;
       expect(list, hasLength(1));
       expect(list.first.syncId.v, record.syncId.v);
       var record2 = await source.putSourceRecord(
         FaoSourceRecord()
-          ..record.v =
-              (FaoSourceRecordData()
-                ..store.v = 'test'
-                ..key.v = '2'
-                ..value.v = {'name': 'test2'}),
+          ..record.v = (FaoSourceRecordData()
+            ..store.v = 'test'
+            ..key.v = '2'
+            ..value.v = {'name': 'test2'}),
       );
       list = (await source.getSourceRecordList()).list;
       // print(list);

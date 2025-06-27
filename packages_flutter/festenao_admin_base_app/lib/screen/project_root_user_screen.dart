@@ -145,8 +145,8 @@ Future<void> goToAdminUserScreen(
       MaterialPageRoute(
         builder: (context) {
           return BlocProvider(
-            blocBuilder:
-                () => AdminUserScreenBloc(projectId: projectId, userId: userId),
+            blocBuilder: () =>
+                AdminUserScreenBloc(projectId: projectId, userId: userId),
             child: const AdminUserScreen(),
           );
         },

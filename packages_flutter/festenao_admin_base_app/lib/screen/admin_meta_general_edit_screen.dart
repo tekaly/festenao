@@ -115,30 +115,29 @@ class _AdminMetaGeneralEditScreenState
             },
           ),
           floatingActionButton: FloatingActionButton(
-            onPressed:
-                state == null
-                    ? null
-                    : () async {
-                      await busyAction(() async {
-                        var meta = state.meta;
-                        for (var i = 0; i < meta.fields.length; i++) {
-                          var field = meta.fields[i];
-                          var controller = controllers[i];
-                          var text = stringNonEmpty(controller.text.trim());
-                          if (field.type == String) {
-                            field.setValue(stringNonEmpty(text));
-                          } else {
-                            throw UnsupportedError('$field type not supported');
-                          }
+            onPressed: state == null
+                ? null
+                : () async {
+                    await busyAction(() async {
+                      var meta = state.meta;
+                      for (var i = 0; i < meta.fields.length; i++) {
+                        var field = meta.fields[i];
+                        var controller = controllers[i];
+                        var text = stringNonEmpty(controller.text.trim());
+                        if (field.type == String) {
+                          field.setValue(stringNonEmpty(text));
+                        } else {
+                          throw UnsupportedError('$field type not supported');
                         }
-                        await bloc.save(meta);
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                        }
-                      });
-                      //await goToAdminUserEditScreen(context, userId: null);
-                      //await bloc.refresh();
-                    },
+                      }
+                      await bloc.save(meta);
+                      if (context.mounted) {
+                        Navigator.of(context).pop();
+                      }
+                    });
+                    //await goToAdminUserEditScreen(context, userId: null);
+                    //await bloc.refresh();
+                  },
             child: const Icon(Icons.save),
           ),
         );
@@ -153,14 +152,11 @@ Future<void> goToAdminMetaGeneralEditScreen(
 }) async {
   await Navigator.of(context).push<void>(
     MaterialPageRoute(
-      builder:
-          (_) => BlocProvider(
-            blocBuilder:
-                () => AdminMetaGeneralEditScreenBloc(
-                  projectContext: projectContext,
-                ),
-            child: const AdminMetaGeneralEditScreen(),
-          ),
+      builder: (_) => BlocProvider(
+        blocBuilder: () =>
+            AdminMetaGeneralEditScreenBloc(projectContext: projectContext),
+        child: const AdminMetaGeneralEditScreen(),
+      ),
     ),
   );
 }

@@ -24,11 +24,10 @@ void main() {
     });
     test('add/delete record', () async {
       var db = await festenaoDb.database;
-      var key =
-          (await dbArtistStoreRef.add(
-            db,
-            DbArtist()..name.v = 'test',
-          )).rawRef.key;
+      var key = (await dbArtistStoreRef.add(
+        db,
+        DbArtist()..name.v = 'test',
+      )).rawRef.key;
       expect(await festenaoDb.getSyncRecords(), [
         DbSyncRecord()
           ..store.v = dbArtistStoreRef.name

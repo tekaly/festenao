@@ -180,11 +180,10 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
             // was created by the App.build method, and use it to set
             // our appbar title.
             title: Text(projectName ?? ''),
-            actions:
-                project == null
-                    ? null
-                    : <Widget>[
-                      /*
+            actions: project == null
+                ? null
+                : <Widget>[
+                    /*
                       if (project.isRemote)
                         IconButton(
                             icon: const Icon(Icons.share),
@@ -192,34 +191,33 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                               await goToProjectShareScreen(context,
                                   project: project);
                             }),*/
-                      if (canDelete)
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () async {
-                            await _confirmAndDelete(context, project);
-                          },
-                        ),
-                    ],
+                    if (canDelete)
+                      IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () async {
+                          await _confirmAndDelete(context, project);
+                        },
+                      ),
+                  ],
           ),
-          body:
-              !dbProjectReady
-                  ? const Center(child: CircularProgressIndicator())
-                  : ListView(
-                    children: [
-                      BodyContainer(
-                        child: BodyHPadding(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Row(),
-                              ...children,
-                              Center(
-                                child: IntrinsicWidth(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.stretch,
-                                    children: [
-                                      /*
+          body: !dbProjectReady
+              ? const Center(child: CircularProgressIndicator())
+              : ListView(
+                  children: [
+                    BodyContainer(
+                      child: BodyHPadding(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(),
+                            ...children,
+                            Center(
+                              child: IntrinsicWidth(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    /*
                                         if (project.isRemote) ...[
                                           const SizedBox(height: 24),
                                           ElevatedButton(
@@ -229,61 +227,58 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                               },
                                               child: Text(intl.projectShare)),
                                         ],*/
+                                    const SizedBox(height: 24),
+                                    ElevatedButton(
+                                      onPressed: project != null
+                                          ? () {
+                                              _confirmAndLeave(
+                                                context,
+                                                project,
+                                              );
+                                            }
+                                          : null,
+                                      child: Text(intl.projectLeave),
+                                    ),
+                                    if (canDelete) ...[
                                       const SizedBox(height: 24),
                                       ElevatedButton(
-                                        onPressed:
-                                            project != null
-                                                ? () {
-                                                  _confirmAndLeave(
-                                                    context,
-                                                    project,
-                                                  );
-                                                }
-                                                : null,
-                                        child: Text(intl.projectLeave),
-                                      ),
-                                      if (canDelete) ...[
-                                        const SizedBox(height: 24),
-                                        ElevatedButton(
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: colorError,
-                                          ),
-                                          onPressed:
-                                              project != null
-                                                  ? () {
-                                                    _confirmAndDelete(
-                                                      context,
-                                                      project,
-                                                    );
-                                                  }
-                                                  : null,
-                                          child: Text(intl.projectDelete),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: colorError,
                                         ),
-                                      ],
+                                        onPressed: project != null
+                                            ? () {
+                                                _confirmAndDelete(
+                                                  context,
+                                                  project,
+                                                );
+                                              }
+                                            : null,
+                                        child: Text(intl.projectDelete),
+                                      ),
                                     ],
-                                  ),
+                                  ],
                                 ),
                               ),
-                              const SizedBox(height: 64),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(height: 64),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
+                ),
 
           //new Column(children: children),
-          floatingActionButton:
-              canEdit
-                  ? FloatingActionButton(
-                    //onPressed: _incrementCounter,
-                    tooltip: 'Edit',
-                    onPressed: () async {
-                      await goToProjectEditScreen(context, project: project!);
-                    },
-                    child: const Icon(Icons.edit),
-                  )
-                  : null, // This trailing comma makes auto-formatting nicer for build methods.
+          floatingActionButton: canEdit
+              ? FloatingActionButton(
+                  //onPressed: _incrementCounter,
+                  tooltip: 'Edit',
+                  onPressed: () async {
+                    await goToProjectEditScreen(context, project: project!);
+                  },
+                  child: const Icon(Icons.edit),
+                )
+              : null, // This trailing comma makes auto-formatting nicer for build methods.
         );
       },
     );

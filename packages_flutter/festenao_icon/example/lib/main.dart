@@ -91,7 +91,10 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: ListView(
         children: [
-          Container(color: Colors.black, child: FestenaoAllIcons(size: size)),
+          Container(
+            color: Colors.black,
+            child: FestenaoAllIcons(size: size),
+          ),
           FestenaoAllIcons(size: size),
         ],
       ),

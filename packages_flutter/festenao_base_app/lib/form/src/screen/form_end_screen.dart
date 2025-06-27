@@ -69,13 +69,12 @@ class _FormEndScreenState extends State<FormEndScreen>
                                   stream: busyStream,
                                   builder: (context, snapshot) {
                                     return ElevatedButton(
-                                      onPressed:
-                                          !(snapshot.data ?? false)
-                                              ? () async {
-                                                var result = await busyAction(
-                                                  () async {
-                                                    try {
-                                                      /*
+                                      onPressed: !(snapshot.data ?? false)
+                                          ? () async {
+                                              var result = await busyAction(
+                                                () async {
+                                                  try {
+                                                    /*
                                                     // ignore: unused_local_variable
                                                     var uid =
                                                         await gAppBloc
@@ -85,8 +84,8 @@ class _FormEndScreenState extends State<FormEndScreen>
                                                     var answers =
                                                         gAppBloc.surveyAnswers;
       */
-                                                      return true;
-                                                      /*
+                                                    return true;
+                                                    /*
                                                     await gAppBloc.apiService
                                                         .addSurveyEntry(
                                                           FufFormApiAddSurveyEntryRequest()
@@ -106,70 +105,68 @@ class _FormEndScreenState extends State<FormEndScreen>
                                                                     ?.toIso8601String(),
                                                         );
                                                     return true;*/
-                                                    } catch (e, st) {
-                                                      if (kDebugMode) {
-                                                        print('Error: $e');
-                                                        print(
-                                                          'StackTrace: $st',
-                                                        );
-                                                      }
-                                                      if (context.mounted) {
-                                                        await muiSnack(
-                                                          context,
-                                                          'Une erreur est survenue, veuillez réessayer',
-                                                        );
-                                                      }
-                                                      rethrow;
+                                                  } catch (e, st) {
+                                                    if (kDebugMode) {
+                                                      print('Error: $e');
+                                                      print('StackTrace: $st');
                                                     }
-                                                  },
-                                                );
-                                                if (result.result ?? false) {
-                                                  if (context.mounted) {
-                                                    var stopAtNext = false;
-                                                    await Navigator.pushAndRemoveUntil(
-                                                      context,
-                                                      MaterialPageRoute<void>(
-                                                        builder: (context) {
-                                                          return const ThankYouScreen();
-                                                        },
-                                                      ),
-                                                      (route) {
-                                                        if (stopAtNext) {
-                                                          return true;
-                                                        }
-                                                        if (FormStartContentPath()
-                                                            .matchesString(
-                                                              route
-                                                                      .settings
-                                                                      .name ??
-                                                                  rootContentPathString,
-                                                            )) {
-                                                          stopAtNext = true;
-                                                        } else if (FormEndContentPath()
-                                                            .matchesString(
-                                                              route
-                                                                      .settings
-                                                                      .name ??
-                                                                  rootContentPathString,
-                                                            )) {
-                                                        } else if (FormQuestionContentPath()
-                                                            .matchesString(
-                                                              route
-                                                                      .settings
-                                                                      .name ??
-                                                                  rootContentPathString,
-                                                            )) {
-                                                        } else {
-                                                          return true;
-                                                        }
-
-                                                        return false;
-                                                      },
-                                                    );
+                                                    if (context.mounted) {
+                                                      await muiSnack(
+                                                        context,
+                                                        'Une erreur est survenue, veuillez réessayer',
+                                                      );
+                                                    }
+                                                    rethrow;
                                                   }
+                                                },
+                                              );
+                                              if (result.result ?? false) {
+                                                if (context.mounted) {
+                                                  var stopAtNext = false;
+                                                  await Navigator.pushAndRemoveUntil(
+                                                    context,
+                                                    MaterialPageRoute<void>(
+                                                      builder: (context) {
+                                                        return const ThankYouScreen();
+                                                      },
+                                                    ),
+                                                    (route) {
+                                                      if (stopAtNext) {
+                                                        return true;
+                                                      }
+                                                      if (FormStartContentPath()
+                                                          .matchesString(
+                                                            route
+                                                                    .settings
+                                                                    .name ??
+                                                                rootContentPathString,
+                                                          )) {
+                                                        stopAtNext = true;
+                                                      } else if (FormEndContentPath()
+                                                          .matchesString(
+                                                            route
+                                                                    .settings
+                                                                    .name ??
+                                                                rootContentPathString,
+                                                          )) {
+                                                      } else if (FormQuestionContentPath()
+                                                          .matchesString(
+                                                            route
+                                                                    .settings
+                                                                    .name ??
+                                                                rootContentPathString,
+                                                          )) {
+                                                      } else {
+                                                        return true;
+                                                      }
+
+                                                      return false;
+                                                    },
+                                                  );
                                                 }
                                               }
-                                              : null,
+                                            }
+                                          : null,
                                       child: const Text(
                                         'Valider',
                                         textAlign: TextAlign.center,

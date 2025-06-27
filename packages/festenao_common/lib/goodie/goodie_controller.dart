@@ -91,18 +91,15 @@ class GoodieController {
         var state = await txn.refGet(goodiesStateRef);
 
         if (!state.exists) {
-          state =
-              FsGoodiesState()
-                ..path = goodiesStateRef.path
-                ..goodies.v =
-                    config.goodies.v
-                        ?.map(
-                          (e) =>
-                              CvGoodieState()
-                                ..id.v = e.id.v
-                                ..count.v = e.quantity.v,
-                        )
-                        .toList();
+          state = FsGoodiesState()
+            ..path = goodiesStateRef.path
+            ..goodies.v = config.goodies.v
+                ?.map(
+                  (e) => CvGoodieState()
+                    ..id.v = e.id.v
+                    ..count.v = e.quantity.v,
+                )
+                .toList();
         }
         var totalGoodieCount = state.goodies.v!.fold<int>(
           0,

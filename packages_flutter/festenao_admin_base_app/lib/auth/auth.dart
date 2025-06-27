@@ -12,12 +12,11 @@ FirebaseUiAuthService globalAuthFlutterUiService = firebaseUiAuthServiceBasic;
 Future<void> goToAuthScreen(BuildContext context) async {
   await Navigator.of(context).push<void>(
     MaterialPageRoute(
-      builder:
-          (_) => globalAuthFlutterUiService.authScreen(
-            /*
+      builder: (_) => globalAuthFlutterUiService.authScreen(
+        /*
                   firebaseAuth:
                   globalFirebaseContext.auth))*/
-          ),
+      ),
     ),
   );
 }

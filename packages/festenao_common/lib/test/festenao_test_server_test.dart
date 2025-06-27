@@ -85,8 +85,8 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
   //var httpServer = await ff.serveHttp();
   //var ffServer = FfServerHttp(httpServer);
   var ffServer = await ff.serve();
-  var ffContext =
-      firebaseFunctionsContextSimOrNull = await ffServicesContext.init(
+  var ffContext = firebaseFunctionsContextSimOrNull = await ffServicesContext
+      .init(
         firebaseApp: ffServerContext.firebaseApp,
         ffServer: ffServer,
         serverApp: ffServerApp,

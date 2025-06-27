@@ -200,14 +200,13 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
             floatingActionButton: FloatingActionButton(
               //onPressed: _incrementCounter,
               //tooltip: 'Save',
-              onPressed:
-                  _gotInitialApp
-                      ? () async {
-                        if (formKey.currentState!.validate()) {
-                          await _saveAndExit(context);
-                        }
+              onPressed: _gotInitialApp
+                  ? () async {
+                      if (formKey.currentState!.validate()) {
+                        await _saveAndExit(context);
                       }
-                      : null,
+                    }
+                  : null,
               child: const Icon(Icons.save),
             ), // This trailing comma makes auto-formatting nicer for build methods.
           ),
@@ -227,10 +226,8 @@ Future<FsAppEditScreenResult?> goToFsAppEditScreen(
     MaterialPageRoute<Object?>(
       builder: (context) {
         return BlocProvider(
-          blocBuilder:
-              () => FsAppEditScreenBloc(
-                param: FsAppEditScreenParam(appId: appId),
-              ),
+          blocBuilder: () =>
+              FsAppEditScreenBloc(param: FsAppEditScreenParam(appId: appId)),
           child: const FsAppEditScreen(),
         );
       },
