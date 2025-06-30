@@ -1,13 +1,16 @@
 import 'package:festenao_common/amp/amp_page.dart';
 import 'package:festenao_common/api/festenao_api_client.dart';
+import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
 /// Our server app
-class FestenaoServerApp extends TkCmsServerAppV2 {
-  final String app;
+class FestenaoServerApp extends TkAppCmsServerAppBase {
   late String ampCommand;
-  FestenaoServerApp({this.app = 'festenao', required super.context})
-    : super(apiVersion: apiVersion2);
+  FestenaoServerApp({
+    String app = 'festenao',
+    required super.context,
+    super.version,
+  }) : super(app, apiVersion: apiVersion2);
 
   @override
   Future<ApiResult> onCommand(ApiRequest apiRequest) async {
