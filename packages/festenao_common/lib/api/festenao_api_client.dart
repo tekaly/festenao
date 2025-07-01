@@ -54,3 +54,13 @@ class FestenaoApiService extends TkCmsApiServiceBaseV2 {
 abstract class AmpRequest {
   String get path;
 }
+
+/// All fields must be present and non null
+void festenaoEnsureFields(CvModel model, {CvFields? fields}) {
+  fields ??= model.fields;
+  for (var field in fields) {
+    if (model.field(field.name)?.isNull ?? true) {
+      throw ArgumentError('field ${field.name} missing or null in $model');
+    }
+  }
+}

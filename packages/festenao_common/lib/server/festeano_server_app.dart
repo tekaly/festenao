@@ -138,13 +138,19 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
       switch (subCommand) {
         case festenaoCreateEntityCommand:
           return await onCreateCommand(apiRequest);
+        case festenaoDeleteEntityCommand:
+          return await onDeleteCommand(apiRequest);
+        case festenaoPurgeEntityCommand:
+          return await onPurgeCommand(apiRequest);
         default:
       }
     }
     return null;
   }
 
-  Future<ApiResult> onCreateCommand(ApiRequest apiRequest) async {
+  Future<FsCmsEntityCreateApiResult> onCreateCommand(
+    ApiRequest apiRequest,
+  ) async {
     {
       var query = apiRequest.query<FsCmsEntityCreateApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
@@ -162,6 +168,36 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
       var result = FsCmsEntityCreateApiResult()
         ..entityId.setValue(entityId)
         ..data.v = entity.fsDataToJsonMap();
+      return result;
+    }
+  }
+
+  Future<FsCmsEntityDeleteApiResult> onDeleteCommand(
+    ApiRequest apiRequest,
+  ) async {
+    {
+      var query = apiRequest.query<FsCmsEntityDeleteApiQuery<T>>()
+        ..fromMap(apiRequest.data.v!);
+      var userId = apiRequest.userId.v!;
+      var entityId = query.entityId.v!;
+      await entityAccess.deleteEntity(entityId, userId: userId);
+
+      var result = FsCmsEntityDeleteApiResult()..entityId.setValue(entityId);
+      return result;
+    }
+  }
+
+  Future<FsCmsEntityPurgeApiResult> onPurgeCommand(
+    ApiRequest apiRequest,
+  ) async {
+    {
+      var query = apiRequest.query<FsCmsEntityPurgeApiQuery<T>>()
+        ..fromMap(apiRequest.data.v!);
+      var userId = apiRequest.userId.v!;
+      var entityId = query.entityId.v!;
+      await entityAccess.purgeEntity(entityId, userId: userId);
+
+      var result = FsCmsEntityPurgeApiResult()..entityId.setValue(entityId);
       return result;
     }
   }

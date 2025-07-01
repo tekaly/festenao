@@ -85,15 +85,13 @@ class FestenaoTestServerContext
   final FfServer? ffServer;
   @override
   late final FestenaoApiFsEntityClient<FsProject> projectApiClient;
+  late final FestenaoFirestoreDatabase fsDatabase;
   FestenaoTestServerContext({
     required this.apiService,
     this.ffServer,
     required this.ampService,
   }) {
-    cvAddConstructors([
-      FsCmsEntityCreateApiQuery<FsProject>.new,
-      FsCmsEntityCreateApiResult<FsProject>.new,
-    ]);
+    initFestenaoEntityApiBuilders<FsProject>();
   }
 
   @override
@@ -154,10 +152,12 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
   await ampService.initClient();
 
   return FestenaoTestServerContext(
-    apiService: apiService,
-    ffServer: ffServer,
-    ampService: ampService,
-  )..projectApiClient = projectApiClient;
+      apiService: apiService,
+      ffServer: ffServer,
+      ampService: ampService,
+    )
+    ..projectApiClient = projectApiClient
+    ..fsDatabase = fsDatabase;
 }
 
 Future<void> main() async {
@@ -217,8 +217,35 @@ void testFestenaoServerGroup(
     // ignore: avoid_print
     print(timestamp);
   });
-  test('createEntity', () async {
+  test('createEntity/deleteEntity', () async {
     var client = context.projectApiClient;
-    await client.createEntity(entity: FsProject(), entityId: 'test');
+    var now = DateTime.timestamp().toIso8601String();
+    var name = 'Test $now';
+    var entity = await client.createEntity(
+      entity: FsProject()..name.v = name,
+      entityId: 'test',
+    );
+    expect(entity.name.v, name);
+    var entityId = entity.id;
+    expect(entityId, 'test');
+    var fsDatabase = context.fsDatabase;
+    entity = await fsDatabase.projectDb
+        .fsEntityRef(entityId)
+        .get(fsDatabase.firestore);
+    expect(entity.exists, isTrue);
+    expect(entity.name.v, name);
+
+    await client.deleteEntity(entityId: entityId);
+    entity = await fsDatabase.projectDb
+        .fsEntityRef(entityId)
+        .get(fsDatabase.firestore);
+    expect(entity.exists, isTrue);
+    expect(entity.deleted.v, isTrue);
+
+    await client.purgeEntity(entityId: entityId);
+    entity = await fsDatabase.projectDb
+        .fsEntityRef(entityId)
+        .get(fsDatabase.firestore);
+    expect(entity.exists, isFalse);
   });
 }

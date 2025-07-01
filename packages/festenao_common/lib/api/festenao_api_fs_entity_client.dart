@@ -24,4 +24,20 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     return entityAccess.fsEntityRef(resultEntityId).cv()
       ..fsDataFromJsonMap(entityAccess.firestore, jsonMap);
   }
+
+  /// Always succeed (ok if not exists)
+  Future<void> deleteEntity({required String entityId}) async {
+    await apiService.getApiResult<FsCmsEntityDeleteApiResult<T>>(
+      ApiRequest(command: entityAccess.info.deleteCommand)
+        ..setQuery(FsCmsEntityDeleteApiQuery<T>()..entityId.setValue(entityId)),
+    );
+  }
+
+  /// Always succeed (ok if not exists)
+  Future<void> purgeEntity({required String entityId}) async {
+    await apiService.getApiResult<FsCmsEntityPurgeApiResult<T>>(
+      ApiRequest(command: entityAccess.info.purgeCommand)
+        ..setQuery(FsCmsEntityPurgeApiQuery<T>()..entityId.setValue(entityId)),
+    );
+  }
 }
