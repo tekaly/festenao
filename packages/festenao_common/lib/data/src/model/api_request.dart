@@ -1,7 +1,7 @@
 import 'package:festenao_common/data/src/festenao/cv_import.dart';
 
 @Deprecated('Use from tk')
-abstract class ApiRequest extends CvModelBase {
+abstract class _ApiRequest extends CvModelBase {
   final method = CvField<String>('method');
   CvField get data;
 
@@ -10,7 +10,7 @@ abstract class ApiRequest extends CvModelBase {
 }
 
 @Deprecated('Use from tk')
-class ApiPingRequest extends ApiRequest {
+class ApiPingRequest extends _ApiRequest {
   static const String methodName = 'ping';
   ApiPingRequest() {
     method.v = methodName;

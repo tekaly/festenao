@@ -1,5 +1,8 @@
 import 'package:dev_test/test.dart';
 import 'package:festenao_common/api/festenao_api_client.dart';
+import 'package:festenao_common/api/festenao_api_fs_entity.dart';
+import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
+import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/server/festeano_server_app.dart';
 import 'package:tekartik_firebase_functions/ff_server.dart';
 import 'package:tkcms_common/tkcms_app.dart';
@@ -9,9 +12,36 @@ import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
+class FestenaoServerAppTest extends FestenaoServerApp {
+  FestenaoServerAppTest({required super.context});
+  late var fsDatabase = FestenaoFirestoreDatabase(
+    firebaseContext: this.firebaseContext,
+    flavorContext: appFlavorContext,
+  );
+  late final projectHandler = FestenaoEntityHandler(
+    app: this,
+    entityAccess: fsDatabase.projectDb,
+  );
+
+  @override
+  Future<ApiResult> onCommand(ApiRequest apiRequest) async {
+    var command = apiRequest.apiCommand;
+    if (FestenaoEntityHandler.isEntityCommand(
+      projectCollectionInfo.id,
+      command,
+    )) {
+      var result = await projectHandler.onCommandOrNull(apiRequest);
+      if (result != null) {
+        return result;
+      }
+    }
+    return super.onCommand(apiRequest);
+  }
+}
+
 class FestenaoTestApiContext {
   final FestenaoApiService apiService;
-
+  late final FestenaoApiFsEntityClient<FsProject> projectApiClient;
   FestenaoTestApiContext({required this.apiService});
 
   @mustCallSuper
@@ -53,12 +83,18 @@ class FestenaoTestServerContext
   final FestenaoAmpService ampService;
   @override
   final FfServer? ffServer;
-
+  @override
+  late final FestenaoApiFsEntityClient<FsProject> projectApiClient;
   FestenaoTestServerContext({
     required this.apiService,
     this.ffServer,
     required this.ampService,
-  });
+  }) {
+    cvAddConstructors([
+      FsCmsEntityCreateApiQuery<FsProject>.new,
+      FsCmsEntityCreateApiResult<FsProject>.new,
+    ]);
+  }
 
   @override
   Future<void> close() async {
@@ -79,8 +115,7 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
     firebaseContext: ffServerContext,
     flavorContext: FlavorContext.test,
   );
-  var ffServerApp = FestenaoServerApp(context: serverAppContext);
-
+  var ffServerApp = FestenaoServerAppTest(context: serverAppContext);
   ffServerApp.initFunctions();
   //var httpServer = await ff.serveHttp();
   //var ffServer = FfServerHttp(httpServer);
@@ -91,12 +126,24 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
         ffServer: ffServer,
         serverApp: ffServerApp,
       );
+  await ffContext.auth.signInWithEmailAndPassword(
+    email: 'test',
+    password: 'test',
+  );
   var commandUri = ffServer.uri.replace(path: ffServerApp.command);
   var apiService = FestenaoApiService(
     callableApi: ffContext.functionsCall.callable(ffServerApp.callCommand),
     httpClientFactory: httpClientFactory,
     httpsApiUri: commandUri,
     app: tkCmsAppDev,
+  );
+  var fsDatabase = FestenaoFirestoreDatabase(
+    firebaseContext: ffContext,
+    flavorContext: ffServerApp.appFlavorContext,
+  );
+  var projectApiClient = FestenaoApiFsEntityClient(
+    apiService: apiService,
+    entityAccess: fsDatabase.projectDb,
   );
   await apiService.initClient();
   var ampUri = ffServer.uri.replace(path: ffServerApp.ampCommand);
@@ -110,7 +157,7 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
     apiService: apiService,
     ffServer: ffServer,
     ampService: ampService,
-  );
+  )..projectApiClient = projectApiClient;
 }
 
 Future<void> main() async {
@@ -169,5 +216,9 @@ void testFestenaoServerGroup(
     expect(Timestamp.tryParse(timestamp.timestamp.v!), isNotNull);
     // ignore: avoid_print
     print(timestamp);
+  });
+  test('createEntity', () async {
+    var client = context.projectApiClient;
+    await client.createEntity(entity: FsProject(), entityId: 'test');
   });
 }

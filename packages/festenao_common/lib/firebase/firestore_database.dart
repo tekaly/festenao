@@ -51,7 +51,7 @@ final userPrvCollectionInfo =
 
 /// Main entity database
 class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
-  /// Project database - different for each app
+  /// Project entity - could be for each app
   late TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> projectDb;
 
   /// App database (and user access if any) - same for all apps
