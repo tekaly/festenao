@@ -10,13 +10,20 @@ const festenaoDeleteEntityCommand = 'delete-entity';
 /// Purge entity
 const festenaoPurgeEntityCommand = 'purge-entity';
 
+/// join entity
+const festenaoJoinEntityCommand = 'join-entity';
+
+/// leave entity
+const festenaoLeaveEntityCommand = 'leave-entity';
+
 /// Init api builder
-void initFestenaoEntityApiBuilders<T extends TkCmsFsEntity>() {
+void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
   cvAddConstructors([
     FsCmsEntityCreateApiQuery<T>.new,
     FsCmsEntityCreateApiResult<T>.new,
     FsCmsEntityDeleteApiQuery<T>.new,
     FsCmsEntityDeleteApiResult<T>.new,
+    FsCmsEntityJoinApiQuery<T>.new,
   ]);
 }
 
@@ -29,6 +36,8 @@ extension FestenaoFirestoreDatabaseEntityCollectionInfoApiExt<
   String get createCommand => _command(festenaoCreateEntityCommand);
   String get deleteCommand => _command(festenaoDeleteEntityCommand);
   String get purgeCommand => _command(festenaoPurgeEntityCommand);
+  String get joinCommand => _command(festenaoJoinEntityCommand);
+  String get leaveCommand => _command(festenaoLeaveEntityCommand);
 }
 
 class FsCmsEntityCreateApiQuery<T extends TkCmsFsEntity> extends ApiQuery {
@@ -43,9 +52,9 @@ class FsCmsEntityCreateApiQuery<T extends TkCmsFsEntity> extends ApiQuery {
 class FsCmsEntityCreateApiResult<T extends TkCmsFsEntity>
     extends FsCmsEntityEntityIdBaseApiCommon
     implements ApiResult {
-  final data = CvField<Map>('data');
+  final entity = CvField<Map>('entity');
   @override
-  CvFields get fields => [...super.fields, data];
+  CvFields get fields => [...super.fields, entity];
 }
 
 class FsCmsEntityDeleteApiQuery<T extends TkCmsFsEntity>
@@ -59,6 +68,22 @@ class FsCmsEntityDeleteApiResult<T extends TkCmsFsEntity>
 typedef FsCmsEntityPurgeApiResult<T extends TkCmsFsEntity> =
     FsCmsEntityDeleteApiResult<T>;
 typedef FsCmsEntityPurgeApiQuery<T extends TkCmsFsEntity> =
+    FsCmsEntityDeleteApiQuery<T>;
+typedef FsCmsEntityJoinApiResult<T extends TkCmsFsEntity> =
+    FsCmsEntityDeleteApiResult<T>;
+
+class FsCmsEntityJoinApiQuery<T extends TkCmsFsEntity>
+    extends FsCmsEntityEntityIdBaseApiCommon<T>
+    implements ApiQuery {
+  /// Data being a user access
+  final access = CvField<Map>('access');
+  @override
+  CvFields get fields => [...super.fields, access];
+}
+
+typedef FsCmsEntityLeaveApiResult<T extends TkCmsFsEntity> =
+    FsCmsEntityDeleteApiResult<T>;
+typedef FsCmsEntityLeaveApiQuery<T extends TkCmsFsEntity> =
     FsCmsEntityDeleteApiQuery<T>;
 
 class FsCmsEntityEntityIdBaseApiCommon<T extends TkCmsFsEntity>

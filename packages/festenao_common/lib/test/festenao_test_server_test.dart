@@ -86,12 +86,13 @@ class FestenaoTestServerContext
   @override
   late final FestenaoApiFsEntityClient<FsProject> projectApiClient;
   late final FestenaoFirestoreDatabase fsDatabase;
+  late final FirebaseContext ffContext;
   FestenaoTestServerContext({
     required this.apiService,
     this.ffServer,
     required this.ampService,
   }) {
-    initFestenaoEntityApiBuilders<FsProject>();
+    initFestenaoFsEntityApiBuilders<FsProject>();
   }
 
   @override
@@ -124,6 +125,7 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
         ffServer: ffServer,
         serverApp: ffServerApp,
       );
+
   await ffContext.auth.signInWithEmailAndPassword(
     email: 'test',
     password: 'test',
@@ -157,7 +159,8 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
       ampService: ampService,
     )
     ..projectApiClient = projectApiClient
-    ..fsDatabase = fsDatabase;
+    ..fsDatabase = fsDatabase
+    ..ffContext = ffContext;
 }
 
 Future<void> main() async {
@@ -217,7 +220,7 @@ void testFestenaoServerGroup(
     // ignore: avoid_print
     print(timestamp);
   });
-  test('createEntity/deleteEntity', () async {
+  test('create/join/leave/delete/purge/Entity', () async {
     var client = context.projectApiClient;
     var now = DateTime.timestamp().toIso8601String();
     var name = 'Test $now';
@@ -234,6 +237,44 @@ void testFestenaoServerGroup(
         .get(fsDatabase.firestore);
     expect(entity.exists, isTrue);
     expect(entity.name.v, name);
+
+    var user = await context.ffContext.auth.signInWithEmailAndPassword(
+      email: 'test2',
+      password: 'test',
+    );
+    var userId = user.user.uid;
+    expect(
+      (await fsDatabase.projectDb
+              .fsEntityUserAccessRef(entityId, userId)
+              .get(fsDatabase.firestore))
+          .exists,
+      isFalse,
+    );
+    var fsUserAccess = TkCmsFsUserAccess()..grantAdminAccess();
+    await client.joinEntity(entityId: entityId, fsUserAccess: fsUserAccess);
+    expect(
+      (await fsDatabase.projectDb
+              .fsEntityUserAccessRef(entityId, userId)
+              .get(fsDatabase.firestore))
+          .exists,
+      isTrue,
+    );
+    await client.leaveEntity(entityId: entityId);
+    expect(
+      (await fsDatabase.projectDb
+              .fsEntityUserAccessRef(entityId, userId)
+              .get(fsDatabase.firestore))
+          .exists,
+      isFalse,
+    );
+    await client.joinEntity(entityId: entityId, fsUserAccess: fsUserAccess);
+    expect(
+      (await fsDatabase.projectDb
+              .fsEntityUserAccessRef(entityId, userId)
+              .get(fsDatabase.firestore))
+          .exists,
+      isTrue,
+    );
 
     await client.deleteEntity(entityId: entityId);
     entity = await fsDatabase.projectDb

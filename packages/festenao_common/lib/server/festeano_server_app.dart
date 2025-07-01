@@ -142,6 +142,10 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
           return await onDeleteCommand(apiRequest);
         case festenaoPurgeEntityCommand:
           return await onPurgeCommand(apiRequest);
+        case festenaoJoinEntityCommand:
+          return await onJoinCommand(apiRequest);
+        case festenaoLeaveEntityCommand:
+          return await onLeaveCommand(apiRequest);
         default:
       }
     }
@@ -167,7 +171,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
 
       var result = FsCmsEntityCreateApiResult()
         ..entityId.setValue(entityId)
-        ..data.v = entity.fsDataToJsonMap();
+        ..entity.v = entity.fsDataToJsonMap();
       return result;
     }
   }
@@ -198,6 +202,43 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
       await entityAccess.purgeEntity(entityId, userId: userId);
 
       var result = FsCmsEntityPurgeApiResult()..entityId.setValue(entityId);
+      return result;
+    }
+  }
+
+  Future<FsCmsEntityJoinApiResult> onJoinCommand(ApiRequest apiRequest) async {
+    {
+      var query = apiRequest.query<FsCmsEntityJoinApiQuery<T>>()
+        ..fromMap(apiRequest.data.v!);
+      var userId = apiRequest.userId.v!;
+      var entityId = query.entityId.v!;
+      var model = documentDataMapFromJsonMap(
+        firestore,
+        asModel(query.access.v!),
+      );
+      var userAccess = model.cv<TkCmsFsUserAccess>();
+      await entityAccess.joinEntity(
+        entityId: entityId,
+        userId: userId,
+        userAccess: userAccess,
+      );
+
+      var result = FsCmsEntityJoinApiResult()..entityId.setValue(entityId);
+      return result;
+    }
+  }
+
+  Future<FsCmsEntityLeaveApiResult> onLeaveCommand(
+    ApiRequest apiRequest,
+  ) async {
+    {
+      var query = apiRequest.query<FsCmsEntityLeaveApiQuery<T>>()
+        ..fromMap(apiRequest.data.v!);
+      var userId = apiRequest.userId.v!;
+      var entityId = query.entityId.v!;
+      await entityAccess.leaveEntity(entityId, userId: userId);
+
+      var result = FsCmsEntityLeaveApiResult()..entityId.setValue(entityId);
       return result;
     }
   }

@@ -18,7 +18,7 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
           ..data.v = entity.fsDataToJsonMap(),
       ),
     );
-    var jsonMap = result.data.v!;
+    var jsonMap = result.entity.v!;
     var resultEntityId = result.entityId.v!;
 
     return entityAccess.fsEntityRef(resultEntityId).cv()
@@ -38,6 +38,28 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     await apiService.getApiResult<FsCmsEntityPurgeApiResult<T>>(
       ApiRequest(command: entityAccess.info.purgeCommand)
         ..setQuery(FsCmsEntityPurgeApiQuery<T>()..entityId.setValue(entityId)),
+    );
+  }
+
+  /// Always succeed (ok if not exists)
+  Future<void> joinEntity({
+    required String entityId,
+    required TkCmsFsUserAccess fsUserAccess,
+  }) async {
+    await apiService.getApiResult<FsCmsEntityJoinApiResult<T>>(
+      ApiRequest(command: entityAccess.info.joinCommand)..setQuery(
+        FsCmsEntityJoinApiQuery<T>()
+          ..entityId.setValue(entityId)
+          ..access.v = fsUserAccess.fsDataToJsonMap(),
+      ),
+    );
+  }
+
+  /// Always succeed (ok if not exists)
+  Future<void> leaveEntity({required String entityId}) async {
+    await apiService.getApiResult<FsCmsEntityLeaveApiResult<T>>(
+      ApiRequest(command: entityAccess.info.leaveCommand)
+        ..setQuery(FsCmsEntityLeaveApiQuery<T>()..entityId.setValue(entityId)),
     );
   }
 }
