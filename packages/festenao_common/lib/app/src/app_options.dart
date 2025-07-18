@@ -5,9 +5,17 @@ const squareSizeDefault = 320;
 const gridSizeDefault = 480;
 const thumbnailWidthDefault = 64;
 
+/// Image options for the Festenao app.
+///
+/// Includes type, width, and height fields for image configuration.
 class FestenaoAppImageOptions extends CvModelBase {
+  /// The image type (e.g., thumbnail, main, square, grid).
   final type = CvField<String>('type');
+
+  /// The image width in pixels.
   final width = CvField<int>('width');
+
+  /// The image height in pixels.
   final height = CvField<int>('height');
 
   @override
@@ -17,25 +25,32 @@ class FestenaoAppImageOptions extends CvModelBase {
   String toString() => '${type.v} ${width.v}x${height.v}';
 }
 
+/// Default image options for thumbnails.
 final thumbnailAppImageOptions = FestenaoAppImageOptions()
   ..width.v = thumbnailWidthDefault
   ..height.v = thumbnailWidthDefault
   ..type.v = imageTypeThumbnail;
+
+/// Default image options for main images.
 final mainAppImageOptions = FestenaoAppImageOptions()
   ..width.v = imageWidthDefault
   ..type.v = imageTypeMain;
 
+/// Default image options for square images.
 final squareAppImageOptions = FestenaoAppImageOptions()
   ..width.v = squareSizeDefault
   ..height.v = squareSizeDefault
   ..type.v = imageTypeSquare;
 
+/// Default image options for grid images.
 final gridAppImageOptions = FestenaoAppImageOptions()
   ..width.v = gridSizeDefault
   ..height.v = gridSizeDefault
   ..type.v = imageTypeGrid;
 
+/// App-wide options for Festenao.
 class FestenaoAppOptions extends CvModelBase {
+  /// List of image options for the app.
   final images = CvModelListField<FestenaoAppImageOptions>(
     'images',
     (_) => FestenaoAppImageOptions(),
@@ -45,7 +60,9 @@ class FestenaoAppOptions extends CvModelBase {
   List<CvField> get fields => [images];
 }
 
+/// Extension for [FestenaoAppOptions] to retrieve image options by type.
 extension FestenaoAppOptionsExt on FestenaoAppOptions {
+  /// Returns the [FestenaoAppImageOptions] for the given [type], or null if not found.
   FestenaoAppImageOptions? getOptionsByType(String type) {
     if (images.v != null) {
       for (var image in images.v!) {
@@ -58,6 +75,7 @@ extension FestenaoAppOptionsExt on FestenaoAppOptions {
   }
 }
 
+/// The default app options for Festenao.
 var festenaoAppOptionsDefault = FestenaoAppOptions()
   ..images.v = [
     thumbnailAppImageOptions,

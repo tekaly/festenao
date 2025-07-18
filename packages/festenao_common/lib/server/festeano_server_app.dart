@@ -113,9 +113,27 @@ extension FesteanoServerAppExt on FestenaoServerApp {
   ) {}
 }
 
+/// Options
+class FestenaoEntityHandlerOptions {
+  /// Constructor
+  const FestenaoEntityHandlerOptions({this.customIdGenerator});
+
+  /// Custom id generator
+  final String Function()? customIdGenerator;
+}
+
+/// Entity handler
 class FestenaoEntityHandler<T extends TkCmsFsEntity> {
+  /// Options
+  final FestenaoEntityHandlerOptions options;
+
+  /// App
   final FestenaoServerApp app;
+
+  /// Entity access
   final TkCmsFirestoreDatabaseServiceEntityAccess<T> entityAccess;
+
+  /// Firestore helper
   Firestore get firestore => entityAccess.firestore;
 
   String get _collectionIdPrefix =>
@@ -128,7 +146,12 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
     return command.startsWith(_buildCollectionIdPrefix(entity));
   }
 
-  FestenaoEntityHandler({required this.app, required this.entityAccess});
+  /// Entity handler
+  FestenaoEntityHandler({
+    required this.app,
+    required this.entityAccess,
+    this.options = const FestenaoEntityHandlerOptions(),
+  });
 
   /// Returns null if not handled
   Future<ApiResult?> onCommandOrNull(ApiRequest apiRequest) async {
@@ -167,6 +190,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
         userId: userId,
         entity: entity,
         entityId: entityId,
+        customIdGenerator: options.customIdGenerator,
       );
 
       var result = FsCmsEntityCreateApiResult()

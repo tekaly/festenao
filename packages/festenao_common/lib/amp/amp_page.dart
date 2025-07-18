@@ -5,6 +5,10 @@ import 'package:tekartik_html/html_html5lib.dart';
 import 'package:tekartik_yacht/yacht.dart';
 import 'package:tekartik_yacht/yacht_mvp.dart';
 
+/// Recursively sanitize a value for safe serialization.
+///
+/// Converts Maps and Lists recursively, and returns primitive types as-is.
+/// Useful for preparing data for JSON or HTML output.
 dynamic sanitize(dynamic value) {
   if (value is String || value is num || value is bool || value == null) {
     return value;
@@ -20,7 +24,13 @@ dynamic sanitize(dynamic value) {
   return value.toString();
 }
 
+/// Festenao AMP page builder.
+///
+/// Generates an AMP-compliant HTML page using the Yacht and HTML5Lib providers.
 class FestenaoAmpPage {
+  /// Build and return the AMP HTML page as a [String].
+  ///
+  /// The generated page includes AMP boilerplate, custom CSS, and debug info if enabled.
   Future<String> build() async {
     var htmlProvider = htmlProviderHtml5Lib;
 
@@ -251,6 +261,10 @@ class FestenaoAmpPage {
   }
 
   final _console = <String>[];
+
+  /// Add a message to the internal console log.
+  ///
+  /// Each line in [text] is split and added as a separate entry.
   void consoleAdd(String text) {
     var lines = LineSplitter.split(text);
     _console.addAll(lines);

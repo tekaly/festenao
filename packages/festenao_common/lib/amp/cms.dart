@@ -13,9 +13,17 @@ String boilerPlate2 =
 String baseJs =
     r'<script async="" src="https://cdn.ampproject.org/v0.js"></script>';
 
+/// AMP HTML page builder.
+///
+/// Use [title] and [content] to set the page's main heading and content.
 class Page {
+  /// The page title, rendered as an <h1> if set.
   String? title;
+
+  /// The main content of the page, rendered in a <div> if set.
   String? content;
+
+  /// Returns the AMP HTML for this page as a [String].
   String toHtmlText() {
     var doc = htmlFactory.createDocument();
 

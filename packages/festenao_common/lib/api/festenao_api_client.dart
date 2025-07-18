@@ -5,25 +5,37 @@ import 'package:tkcms_common/tkcms_api.dart';
 var functionFestenaoAmpDev = 'ampdev';
 var functionFestenaoAmpProd = 'amp';
 
-/// Amp page service
+/// Service for interacting with AMP pages.
 class FestenaoAmpService {
+  /// HTTP client factory used for requests.
   final HttpClientFactory httpClientFactory;
+
+  /// The base HTTPS AMP URI.
   final Uri httpsAmpUri;
 
+  /// The base path for AMP requests.
   late final basePath = httpsAmpUri.path;
+
+  /// The HTTP client instance.
   Client get client => _client;
   late final Client _client;
+
+  /// Create a [FestenaoAmpService] with the given [httpsAmpUri] and optional [httpClientFactory].
   FestenaoAmpService({
     HttpClientFactory? httpClientFactory,
     required this.httpsAmpUri,
   }) : httpClientFactory = httpClientFactory ?? httpClientFactoryUniversal;
 
+  /// Initialize the HTTP client.
   Future<void> initClient() async {
     _client = httpClientFactory.newClient();
   }
 
+  /// Build a URI for the given [path] relative to the base AMP URI.
   Uri pathUri(String path) =>
       httpsAmpUri.replace(path: url.join(basePath, path));
+
+  /// Read the content at the given [path] from the AMP service.
   Future<String> read(String path) {
     if (path.startsWith('/')) {
       path = path.substring(1);
@@ -31,6 +43,7 @@ class FestenaoAmpService {
     return _client.read(pathUri(path));
   }
 
+  /// Close the HTTP client.
   Future<void> close() async {
     try {
       _client.close();
@@ -39,7 +52,9 @@ class FestenaoAmpService {
   }
 }
 
+/// Festenao API service for CMS operations.
 class FestenaoApiService extends TkCmsApiServiceBaseV2 {
+  /// Create a [FestenaoApiService] with optional [httpClientFactory], [httpsApiUri], [callableApi], and [app].
   FestenaoApiService({
     HttpClientFactory? httpClientFactory,
     super.httpsApiUri,
@@ -51,16 +66,20 @@ class FestenaoApiService extends TkCmsApiServiceBaseV2 {
        );
 }
 
+/// Represents a request to the AMP API.
 abstract class AmpRequest {
+  /// The path for the request.
   String get path;
 }
 
-/// All fields must be present and non null
+/// Ensures all fields in [model] (or [fields] if provided) are present and non-null.
+///
+/// Throws [ArgumentError] if any field is missing or null.
 void festenaoEnsureFields(CvModel model, {CvFields? fields}) {
   fields ??= model.fields;
   for (var field in fields) {
     if (model.field(field.name)?.isNull ?? true) {
-      throw ArgumentError('field ${field.name} missing or null in $model');
+      throw ArgumentError('field \\${field.name} missing or null in $model');
     }
   }
 }
