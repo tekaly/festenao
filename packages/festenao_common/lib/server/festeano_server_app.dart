@@ -181,7 +181,10 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
     {
       var query = apiRequest.query<FsCmsEntityCreateApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
-      var userId = apiRequest.userId.v!;
+      var userId = apiRequest.userId.v;
+      if (userId == null) {
+        throw StateError('Missing userId');
+      }
       var entityId = query.entityId.v;
       //var entity = entityAccess.fsEntityRef(entityId).cv()..fsDataFromJsonMap(firestore, query.data.v!);
       var model = documentDataMapFromJsonMap(firestore, asModel(query.data.v!));
@@ -192,7 +195,6 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
         entityId: entityId,
         customIdGenerator: options.customIdGenerator,
       );
-
       var result = FsCmsEntityCreateApiResult()
         ..entityId.setValue(entityId)
         ..entity.v = entity.fsDataToJsonMap();

@@ -13,7 +13,9 @@ import 'package:tkcms_common/tkcms_flavor.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
 class FestenaoServerAppTest extends FestenaoServerApp {
-  FestenaoServerAppTest({required super.context});
+  FestenaoServerAppTest({required super.context, super.app}) {
+    initFestenaoFsEntityApiBuilders<FsProject>();
+  }
   late var fsDatabase = FestenaoFirestoreDatabase(
     firebaseContext: this.firebaseContext,
     flavorContext: appFlavorContext,
@@ -169,8 +171,10 @@ Future<void> main() async {
 }
 
 void testFestenaoServerGroup(
-  Future<FestenaoTestServerContext> Function() initAllContext,
-) {
+  Future<FestenaoTestServerContext> Function() initAllContext, {
+  bool noFirestoreCheck = false,
+  bool noSignIn = false,
+}) {
   late FestenaoTestServerContext context;
   late FestenaoApiService apiService;
   late FestenaoAmpService ampService;
@@ -224,69 +228,92 @@ void testFestenaoServerGroup(
     var client = context.projectApiClient;
     var now = DateTime.timestamp().toIso8601String();
     var name = 'Test $now';
+    var createEntityId = 'test';
+    try {
+      await client.deleteEntity(entityId: createEntityId);
+    } catch (_) {}
+    try {
+      await client.purgeEntity(entityId: createEntityId);
+    } catch (_) {}
     var entity = await client.createEntity(
       entity: FsProject()..name.v = name,
-      entityId: 'test',
+      entityId: createEntityId,
     );
     expect(entity.name.v, name);
     var entityId = entity.id;
-    expect(entityId, 'test');
+    expect(entityId, entityId);
     var fsDatabase = context.fsDatabase;
-    entity = await fsDatabase.projectDb
-        .fsEntityRef(entityId)
-        .get(fsDatabase.firestore);
-    expect(entity.exists, isTrue);
-    expect(entity.name.v, name);
+    if (!noFirestoreCheck) {
+      entity = await fsDatabase.projectDb
+          .fsEntityRef(entityId)
+          .get(fsDatabase.firestore);
+      expect(entity.exists, isTrue);
+      expect(entity.name.v, name);
+    }
 
-    var user = await context.ffContext.auth.signInWithEmailAndPassword(
-      email: 'test2',
-      password: 'test',
-    );
-    var userId = user.user.uid;
-    expect(
-      (await fsDatabase.projectDb
-              .fsEntityUserAccessRef(entityId, userId)
-              .get(fsDatabase.firestore))
-          .exists,
-      isFalse,
-    );
+    String userId;
     var fsUserAccess = TkCmsFsUserAccess()..grantAdminAccess();
-    await client.joinEntity(entityId: entityId, fsUserAccess: fsUserAccess);
-    expect(
-      (await fsDatabase.projectDb
-              .fsEntityUserAccessRef(entityId, userId)
-              .get(fsDatabase.firestore))
-          .exists,
-      isTrue,
-    );
+    if (!noFirestoreCheck && !noSignIn) {
+      var user = await context.ffContext.auth.signInWithEmailAndPassword(
+        email: 'test2',
+        password: 'test',
+      );
+      userId = user.user.uid;
+
+      expect(
+        (await fsDatabase.projectDb
+                .fsEntityUserAccessRef(entityId, userId)
+                .get(fsDatabase.firestore))
+            .exists,
+        isFalse,
+      );
+
+      await client.joinEntity(entityId: entityId, fsUserAccess: fsUserAccess);
+      expect(
+        (await fsDatabase.projectDb
+                .fsEntityUserAccessRef(entityId, userId)
+                .get(fsDatabase.firestore))
+            .exists,
+        isTrue,
+      );
+    } else {
+      userId = apiService.userIdOrNull!;
+    }
     await client.leaveEntity(entityId: entityId);
-    expect(
-      (await fsDatabase.projectDb
-              .fsEntityUserAccessRef(entityId, userId)
-              .get(fsDatabase.firestore))
-          .exists,
-      isFalse,
-    );
+    if (!noFirestoreCheck) {
+      expect(
+        (await fsDatabase.projectDb
+                .fsEntityUserAccessRef(entityId, userId)
+                .get(fsDatabase.firestore))
+            .exists,
+        isFalse,
+      );
+    }
     await client.joinEntity(entityId: entityId, fsUserAccess: fsUserAccess);
-    expect(
-      (await fsDatabase.projectDb
-              .fsEntityUserAccessRef(entityId, userId)
-              .get(fsDatabase.firestore))
-          .exists,
-      isTrue,
-    );
+    if (!noFirestoreCheck) {
+      expect(
+        (await fsDatabase.projectDb
+                .fsEntityUserAccessRef(entityId, userId)
+                .get(fsDatabase.firestore))
+            .exists,
+        isTrue,
+      );
+    }
 
     await client.deleteEntity(entityId: entityId);
-    entity = await fsDatabase.projectDb
-        .fsEntityRef(entityId)
-        .get(fsDatabase.firestore);
-    expect(entity.exists, isTrue);
-    expect(entity.deleted.v, isTrue);
-
+    if (!noFirestoreCheck) {
+      entity = await fsDatabase.projectDb
+          .fsEntityRef(entityId)
+          .get(fsDatabase.firestore);
+      expect(entity.exists, isTrue);
+      expect(entity.deleted.v, isTrue);
+    }
     await client.purgeEntity(entityId: entityId);
-    entity = await fsDatabase.projectDb
-        .fsEntityRef(entityId)
-        .get(fsDatabase.firestore);
-    expect(entity.exists, isFalse);
+    if (!noFirestoreCheck) {
+      entity = await fsDatabase.projectDb
+          .fsEntityRef(entityId)
+          .get(fsDatabase.firestore);
+      expect(entity.exists, isFalse);
+    }
   });
 }
