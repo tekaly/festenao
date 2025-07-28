@@ -30,7 +30,22 @@ import 'l10n/app_intl.dart';
 import 'prefs/local_prefs.dart';
 import 'sembast/projects_db_bloc.dart';
 
+/// Prefer festenaoRunAdminApp
 Future<void> festenaoRunApp({
+  ContentNavigatorDef? contentNavigatorDef,
+  AppFlavorContext? appFlavorContext,
+  String? packageName,
+  String? singleProjectId,
+  FirebaseContext? firebaseContext,
+}) => festenaoRunAdminApp(
+  appFlavorContext: appFlavorContext,
+  contentNavigatorDef: contentNavigatorDef,
+  packageName: packageName,
+  singleProjectId: singleProjectId,
+  firebaseContext: firebaseContext,
+);
+
+Future<void> festenaoRunAdminApp({
   ContentNavigatorDef? contentNavigatorDef,
   AppFlavorContext? appFlavorContext,
   String? packageName,

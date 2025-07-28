@@ -6,5 +6,5 @@ const _singleProjectId = 'singleQH8VoZRZf4A56hknguH4';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await festenaoRunApp(singleProjectId: _singleProjectId);
+  await festenaoRunAdminApp(singleProjectId: _singleProjectId);
 }
