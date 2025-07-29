@@ -8,6 +8,8 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  path: ">=1.9.0"
+  sembast: ">=3.7.4+3"
   fs_shim: ">=2.3.3+1"
   tkcms_support:
     git:

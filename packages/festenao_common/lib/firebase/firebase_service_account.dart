@@ -1,9 +1,7 @@
 import 'package:festenao_common/festenao_firebase_rest.dart';
-import 'package:meta/meta.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
 /// Internal use only
-@visibleForTesting
 Future<FirebaseContext> festenaoInitFirebaseWithServiceAccount({
   required Map serviceAccountMap,
 }) async {
