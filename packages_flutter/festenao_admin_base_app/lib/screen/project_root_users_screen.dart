@@ -55,12 +55,13 @@ class _AdminUsersScreenState extends AutoDisposeBaseState<AdminUsersScreen> {
                     title: Text(user.id),
                     subtitle: Text(user.toMap().toString()),
                     trailing: const TrailingArrow(),
-                    onTap: () {
-                      goToAdminUserScreen(
+                    onTap: () async {
+                      await goToAdminUserScreen(
                         context,
                         projectId: bloc.param.id,
                         userId: user.id,
                       );
+                      bloc.refresh();
                     },
                   ),
                 );
@@ -79,6 +80,7 @@ class _AdminUsersScreenState extends AutoDisposeBaseState<AdminUsersScreen> {
               userId: null,
             ),
           );
+          bloc.refresh();
         },
         child: const Icon(Icons.add),
       ),

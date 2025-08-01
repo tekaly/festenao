@@ -71,6 +71,8 @@ class _AdminFormQuestionsScreenState
                             entityAccess: bloc.entityAccess,
                             entityId: dbEntity.id,
                           );
+                          // Support only
+                          bloc.refresh();
                         }
 
                         return BodyContainer(
@@ -110,6 +112,8 @@ class _AdminFormQuestionsScreenState
                 entityAccess: bloc.entityAccess,
                 entityId: null,
               );
+              // Support only
+              bloc.refresh();
             },
             child: const Icon(Icons.add),
           ),

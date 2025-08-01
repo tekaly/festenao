@@ -59,12 +59,18 @@ Future<void> festenaoRunAdminApp({
   WidgetsFlutterBinding.ensureInitialized();
   webSplashReady();
   packageName ??= 'festenao.admin_base_app';
-  appFlavorContext ??= AppFlavorContext.testLocal;
+
   await initFestenaoLocalSembastFactory();
 
   var prefsFactory = getPrefsFactory(packageName: packageName);
   var prefs = await prefsFactory.openPreferences('${packageName}_prefs.db');
   globalPrefs = prefs;
+
+  var appId = prefs.currentAppId;
+  appFlavorContext ??= AppFlavorContext.testLocal;
+  if (appId != null) {
+    appFlavorContext = appFlavorContext.copyWithAppId(appId);
+  }
 
   //initFirebaseSim(projectId: 'festenao', packageName: packageName);
   firebaseContext ??= await initFestenaoFirebaseServicesLocal();
@@ -74,6 +80,9 @@ Future<void> festenaoRunAdminApp({
     firebaseContext: firebaseContext,
     flavorContext: appFlavorContext,
   );
+  if (kDebugMode) {
+    print('appFlavorContext: $appFlavorContext');
+  }
   gFsDatabaseService = fsDatabase;
   globalTkCmsAdminAppFlavorContext = appFlavorContext;
 

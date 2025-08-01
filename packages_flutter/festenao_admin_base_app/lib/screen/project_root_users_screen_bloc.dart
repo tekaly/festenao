@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
+import 'package:festenao_common/data/festenao_firestore.dart';
 
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
@@ -24,6 +25,7 @@ class AdminUsersScreenBloc
   List<TkCmsFsUserAccess>? users;
 
   late StreamSubscription _usersSubscription;
+  TrackChangesSupportOptionsController? _supportOptionsController;
 
   void trigger() {
     if (users != null) {
@@ -37,12 +39,19 @@ class AdminUsersScreenBloc
     audiAddStreamSubscription(
       fsDb
           .fsEntityUserAccessCollectionRef(param.id)
-          .onSnapshots(fsDb.firestore)
+          .onSnapshotsSupport(
+            fsDb.firestore,
+            options: _supportOptionsController,
+          )
           .listen((list) async {
             users = list;
             trigger();
           }),
     );
+  }
+
+  void refresh() {
+    _supportOptionsController?.trigger();
   }
 
   @override

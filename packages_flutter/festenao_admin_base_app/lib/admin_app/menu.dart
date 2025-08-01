@@ -10,6 +10,7 @@ import 'package:festenao_admin_base_app/screen/fs_app_view_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_apps_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_entity_list_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
+import 'package:festenao_admin_base_app/screen/project_root_users_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
 import 'package:festenao_common/sembast/projects_db.dart';
 import 'package:tekaly_firestore_explorer/firestore_explorer.dart';
@@ -24,6 +25,11 @@ var festenaoAdminDebugScreen = festenaoAdminDebugScreenDefault;
 
 /// Festenao admin menu
 final festenaoAdminDebugScreenDefault = muiScreenWidget('Festenao debug', () {
+  muiMenu('Global admin', () {
+    muiItem('Users', () async {
+      await goToAdminUsersScreen(muiBuildContext, projectId: 'app');
+    });
+  });
   muiMenu('Projects db', () {
     muiItem('Clear local projects db', () async {
       await globalProjectsDb.clear();
@@ -104,6 +110,14 @@ final festenaoAdminDebugScreenDefault = muiScreenWidget('Festenao debug', () {
     }
     if (appId != null && muiBuildContext.mounted) {
       await goToFsAppUsersScreen(muiBuildContext, appId: appId);
+    }
+  });
+  muiItem('Select Default FsApp', () async {
+    var result = await selectFsApp(muiBuildContext);
+    var appId = result?.appId;
+    globalPrefs.currentAppId = appId;
+    if (muiBuildContext.mounted) {
+      await muiSnack(muiBuildContext, 'appId $appId, restart app');
     }
   });
   muiItem('App users list screen', () async {

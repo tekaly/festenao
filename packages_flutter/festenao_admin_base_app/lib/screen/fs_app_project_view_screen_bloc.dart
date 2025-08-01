@@ -1,7 +1,6 @@
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_view_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/fs_apps_screen_bloc.dart';
-import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:tekartik_common_utils/stream/stream_join.dart';

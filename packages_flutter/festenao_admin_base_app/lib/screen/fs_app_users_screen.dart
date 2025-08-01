@@ -152,7 +152,7 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
   }
 }
 
-/// Go to Projects screen
+/// Go to User screen
 Future<Object?> goToFsAppUsersScreen(
   BuildContext context, {
   String? appId,

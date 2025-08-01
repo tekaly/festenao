@@ -3,6 +3,7 @@ import 'package:festenao_admin_base_app/auth/auth.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_projects_screen.dart';
+import 'package:festenao_admin_base_app/screen/fs_app_users_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_apps_screen.dart';
 
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
@@ -139,7 +140,7 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                         GoToTile(
                           titleLabel: 'FsUsers',
                           onTap: () {
-                            goToFsAppProjectsScreen(context);
+                            goToFsAppUsersScreen(context);
                           },
                         ),
                       ],
