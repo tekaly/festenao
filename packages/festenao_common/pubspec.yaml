@@ -134,6 +134,51 @@ dependencies:
       url: https://github.com/tekartik/http.dart
       ref: dart3a
       path: http
+  tekartik_firebase_sim:
+    git:
+      url: https://github.com/tekartik/firebase.dart
+      ref: dart3a
+      path: firebase_sim
+  tekartik_firebase_auth_sim:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      ref: dart3a
+      path: auth_sim
+  tekartik_firebase_firestore_sim:
+    git:
+      url: https://github.com/tekartik/firebase_firestore.dart
+      ref: dart3a
+      path: firestore_sim
+  tekartik_firebase_functions_call_sim:
+    git:
+      url: https://github.com/tekartik/firebase_functions.dart
+      ref: dart3a
+      path: functions_call_sim
+  tekartik_firebase_auth_sembast:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      ref: dart3a
+      path: auth_sembast
+  tekartik_app_dev_menu:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      ref: dart3a
+      path: app_dev_menu
+  tekartik_firebase_auth_test:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      ref: dart3a
+      path: auth_test
+  tekartik_firebase_firestore_test:
+    git:
+      url: https://github.com/tekartik/firebase_firestore.dart
+      ref: dart3a
+      path: firestore_test
+  tekartik_firebase_functions_test:
+    git:
+      url: https://github.com/tekartik/firebase_functions.dart
+      ref: dart3a
+      path: firebase_functions_test
   # path: ^1.8.0
 
 dev_dependencies:
