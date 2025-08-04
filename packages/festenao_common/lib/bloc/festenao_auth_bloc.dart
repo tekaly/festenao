@@ -6,6 +6,8 @@ class FestenaoAuthBlocState {
   final FirebaseUser? user;
 
   FestenaoAuthBlocState({required this.user});
+  @override
+  String toString() => 'FestenaoAuthBlocState(user: $user)';
 }
 
 /// Auth Bloc
