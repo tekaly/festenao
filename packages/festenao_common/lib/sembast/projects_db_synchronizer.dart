@@ -1,7 +1,6 @@
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/sembast/projects_db.dart';
-import 'package:tekartik_common_utils/stream/stream_join.dart';
 import 'package:tkcms_common/tkcms_audi.dart';
 
 /// Projects db synchronizer helper

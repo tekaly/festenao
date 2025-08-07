@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart'; // Import the package
 import 'package:tekaly_lyrics/utils/lyrics_data_located.dart';
-import 'package:tekartik_common_utils/stream/stream_join.dart';
 
 /// LyricsDataPlayerMetaSizeInfo
 class LyricsDataPlayerMetaSizeInfo {
