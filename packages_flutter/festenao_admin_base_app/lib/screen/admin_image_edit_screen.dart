@@ -187,29 +187,32 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
                               ValueStreamBuilder<ImageFormat>(
                                 stream: _imageFormat,
                                 builder: (context, snapshot) {
-                                  return Row(
-                                    children: [
-                                      Expanded(
-                                        child: RadioListTile<ImageFormat>(
-                                          value: ImageFormat.jpg,
-                                          groupValue: _imageFormat.valueOrNull,
-                                          onChanged: (_) {
-                                            _setFormat(ImageFormat.jpg);
-                                          },
-                                          title: const Text('JPG'),
+                                  return RadioGroup<ImageFormat>(
+                                    groupValue: _imageFormat.valueOrNull,
+                                    onChanged: (value) {
+                                      if (value == null) {
+                                        return;
+                                      }
+                                      _setFormat(value);
+                                    },
+                                    child: const Row(
+                                      children: [
+                                        Expanded(
+                                          child: RadioListTile<ImageFormat>(
+                                            value: ImageFormat.jpg,
+
+                                            title: Text('JPG'),
+                                          ),
                                         ),
-                                      ),
-                                      Expanded(
-                                        child: RadioListTile<ImageFormat>(
-                                          value: ImageFormat.png,
-                                          groupValue: _imageFormat.valueOrNull,
-                                          onChanged: (_) {
-                                            _setFormat(ImageFormat.png);
-                                          },
-                                          title: const Text('PNG'),
+                                        Expanded(
+                                          child: RadioListTile<ImageFormat>(
+                                            value: ImageFormat.png,
+
+                                            title: Text('PNG'),
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   );
                                 },
                               ),

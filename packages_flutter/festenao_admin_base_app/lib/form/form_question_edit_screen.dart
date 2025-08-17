@@ -13,7 +13,7 @@ import 'package:tkcms_admin_app/view/body_container.dart';
 import 'package:tkcms_common/tkcms_firestore_v2.dart';
 import 'package:tkcms_common/tkcms_sembast.dart';
 
-typedef T = FsFormQuestion;
+//typedef T = FsFormQuestion;
 
 class AdminFormQuestionEditScreen<T extends TkCmsFsDocEntity>
     extends StatefulWidget {
@@ -123,7 +123,7 @@ class _AdminFormQuestionEditScreenState
     );
   }
 
-  Future<void> _saveAndClose(T dbEntity) async {
+  Future<void> _saveAndClose(FsFormQuestion dbEntity) async {
     var busyResult = await busyAction(() async {
       if (_formKey.currentState!.validate()) {
         var bloc = this.bloc;
