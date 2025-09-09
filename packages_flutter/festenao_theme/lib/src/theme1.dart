@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:tekartik_app_flutter_common_utils/color.dart';
 
 /// Festenao theme
 const colorBlue = Colors.blue;
@@ -23,17 +24,27 @@ const colorError = Colors.red;
 const colorGrey = Colors.grey;
 
 /// Dart theme
-ThemeData poppinsThemeData1() {
-  return themeData1(fontFamily: GoogleFonts.poppins().fontFamily);
+ThemeData poppinsThemeData1({Color? seedColor}) {
+  return themeData1(
+    fontFamily: GoogleFonts.poppins().fontFamily,
+    seedColor: seedColor,
+  );
 }
 
 /// Dark theme
-ThemeData themeData1({TextTheme? textTheme, String? fontFamily}) {
+ThemeData themeData1({
+  TextTheme? textTheme,
+  String? fontFamily,
+  Color? seedColor,
+}) {
+  seedColor ??= colorFestenaoBlue;
+  var isSeedColorDark = seedColor.isDark;
+  var seedTextColor = isSeedColorDark ? Colors.white : Colors.black;
   var themeData = ThemeData(
     fontFamily: fontFamily,
     textTheme: textTheme,
     colorScheme: ColorScheme.fromSeed(
-      seedColor: colorBlue,
+      seedColor: seedColor,
       brightness: Brightness.dark,
     ),
     visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -42,20 +53,17 @@ ThemeData themeData1({TextTheme? textTheme, String? fontFamily}) {
 
   themeData = themeData.copyWith(
     snackBarTheme: SnackBarThemeData(
-      actionTextColor: colorWhite,
-      contentTextStyle: textTheme.bodyMedium,
-      backgroundColor: colorBlue,
-      //contentTextStyle: TextStyle(color: Colors.white),
+      actionTextColor: seedTextColor,
+      contentTextStyle: textTheme.bodyMedium?.copyWith(color: seedTextColor),
+      backgroundColor: seedColor,
       behavior: SnackBarBehavior.floating,
       elevation: 20,
     ),
-    inputDecorationTheme: const InputDecorationTheme(
+    inputDecorationTheme: InputDecorationTheme(
       floatingLabelBehavior: FloatingLabelBehavior.always,
-      border: OutlineInputBorder(borderSide: BorderSide(color: colorBlue)),
+      border: OutlineInputBorder(borderSide: BorderSide(color: seedColor)),
     ),
-    textTheme: textTheme.copyWith(
-      labelSmall: const TextStyle(color: colorBlue),
-    ),
+    textTheme: textTheme.copyWith(labelSmall: TextStyle(color: seedColor)),
     dividerTheme: const DividerThemeData(
       color: colorGrey,
       //thickness: 2,
@@ -65,13 +73,13 @@ ThemeData themeData1({TextTheme? textTheme, String? fontFamily}) {
         textStyle: textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
 
         padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-        backgroundColor: colorBlue, // Button color
-        foregroundColor: colorWhite,
+        backgroundColor: seedColor, // Button color
+        foregroundColor: seedTextColor,
       ),
     ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: colorFestenaoBlue,
-      foregroundColor: colorWhite,
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: seedColor,
+      foregroundColor: seedTextColor,
     ),
   );
   return themeData;
