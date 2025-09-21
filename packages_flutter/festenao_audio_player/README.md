@@ -9,6 +9,5 @@ festenao audio player
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_audio_player
-      ref: dart3a
     version: '>=0.2.0'
 ```

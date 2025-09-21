@@ -37,27 +37,22 @@ dependencies:
   festenao_youtube_player:
     git:
       url: https://github.com/tekaly/festenao
-      ref: dart3a
       path: packages_flutter/festenao_youtube_player
   festenao_markdown:
     git:
       url: https://github.com/tekaly/festenao
-      ref: dart3a
       path: packages_flutter/festenao_markdown
   festenao_theme:
     git:
       url: https://github.com/tekaly/festenao
-      ref: dart3a
       path: packages_flutter/festenao_theme
   festenao_icon:
     git:
       url: https://github.com/tekaly/festenao
-      ref: dart3a
       path: packages_flutter/festenao_icon
   tekartik_web_splash:
     git:
       url: https://github.com/tekartik/app_web_utils.dart
-      ref: dart3a
       path: packages/web_splash
 
 dev_dependencies:
@@ -66,7 +61,6 @@ dev_dependencies:
   festenao_lyrics_player:
     git:
       url: https://github.com/tekaly/festenao
-      ref: dart3a
       path: packages_flutter/festenao_lyrics_player
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

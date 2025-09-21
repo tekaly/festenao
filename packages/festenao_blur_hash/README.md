@@ -9,6 +9,5 @@ Setup `pubspec.yaml`:
     git:
       url: https://github.com/tekaly/festenao
       path: packages/festenao_blur_hash
-      ref: dart3a
     version: '>=0.1.0'
 ```

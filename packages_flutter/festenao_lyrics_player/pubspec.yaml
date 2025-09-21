@@ -13,19 +13,16 @@ dependencies:
   festenao_common_flutter:
     git:
       url: https://github.com/tekaly/festenao
-      ref: dart3a
       path: packages_flutter/festenao_common_flutter
   tekaly_lyrics:
     git:
       url: https://github.com/tekartikprj/music
-      ref: dart3a
       path: packages/lyrics
     version: ">=1.0.1"
   scrollable_positioned_list:
   tekartik_common_utils:
     git:
       url: https://github.com/tekartik/common_utils.dart
-      ref: dart3a
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -37,7 +37,6 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages/festenao_blur_hash
-      ref: dart3a
   flutter_markdown:
   file_picker:
   file_selector:
@@ -49,7 +48,6 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_audio_player
-      ref: dart3a
   sembast: ">=3.7.4+3"
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -57,131 +55,105 @@ dependencies:
   tkcms_common:
     git:
       url: https://github.com/tekartikprj/tkcms.git
-      ref: dart3a
       path: packages/tkcms_common
   tkcms_admin_app:
     git:
       url: https://github.com/tekartikprj/tkcms.git
-      ref: dart3a
       path: flutter_packages/tkcms_admin_app
   tekartik_firebase_auth_local:
     git:
       url: https://github.com/tekartik/firebase_auth.dart
-      ref: dart3a
       path: auth_local
   tekartik_firebase_auth_sembast:
     git:
       url: https://github.com/tekartik/firebase_auth.dart
-      ref: dart3a
       path: auth_sembast
   tekartik_firebase_ui_auth:
     git:
       url: https://github.com/tekartik/firebase_ui.dart
-      ref: dart3a
       path: packages/firebase_ui_auth
   tekartik_app_flutter_widget:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_widget
   tekartik_firebase_ui_firestore:
     git:
       url: https://github.com/tekartik/firebase_ui.dart
-      ref: dart3a
       path: packages/firebase_ui_firestore
   tekartik_app_flutter_common_utils:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_common
   tekartik_app_prefs:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_prefs
   tekartik_app_sembast_firestore_type_adapters:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_sembast_firestore_type_adapters
   tekartik_app_flutter_sembast:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_sembast
   tekaly_sembast_synced:
     git:
       url: https://github.com/tekartikprj/tekaly
-      ref: dart3a
       path: packages/sembast_synced
   tekartik_common_utils:
     git:
       url: https://github.com/tekartik/common_utils.dart
-      ref: dart3a
   tekartik_app_cv_sembast:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_cv_sembast
   festenao_common:
     git:
       url: https://github.com/tekaly/festenao
-      ref: dart3a
       path: packages/festenao_common
   sembast_db_explorer:
     git:
       url: https://github.com/tekartik/sembast_flutter_more.dart
-      ref: dart3a
       path: sembast_db_explorer
   tekartik_app_platform:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_platform
   tekartik_app_pick_crop_image_flutter:
     git:
       url: https://github.com/tekartik/app_image.dart
-      ref: dart3a
       path: packages/app_pick_crop_image_flutter
   tekaly_file_download:
     git:
       url: https://github.com/tekartikprj/tekaly
-      ref: dart3a
       path: flutter_packages/file_download
   tekartik_app_http:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_http
   tekartik_app_flutter_bloc:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_bloc
   tekartik_app_rx_utils:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_rx_utils
   tekartik_app_rx_bloc:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_rx_bloc
   tekartik_app_navigator_flutter:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_navigator
   tkcms_user_app:
     git:
       url: https://github.com/tekartikprj/tkcms.git
-      ref: dart3a
       path: flutter_packages/tkcms_user_app
   tekaly_firestore_explorer:
     git:
       url: https://github.com/tekartikprj/tekaly
-      ref: dart3a
       path: flutter_packages/firestore_explorer
 
   intl: ">=0.19.0"

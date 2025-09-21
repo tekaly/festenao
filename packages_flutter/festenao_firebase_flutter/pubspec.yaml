@@ -13,32 +13,26 @@ dependencies:
   tekartik_firebase_auth_flutter:
     git:
       url: https://github.com/tekartik/firebase_flutter
-      ref: dart3a
       path: auth_flutter
   tekartik_firebase_firestore_flutter:
     git:
       url: https://github.com/tekartik/firebase_flutter
-      ref: dart3a
       path: firestore_flutter
   tekartik_firebase_flutter:
     git:
       url: https://github.com/tekartik/firebase_flutter
-      ref: dart3a
       path: firebase_flutter
   tekaly_assets:
     git:
       url: https://github.com/tekartikprj/tekaly.git
-      ref: dart3a
       path: packages/tekaly_assets
   tekartik_firebase_flutter_ui_auth:
     git:
       url: https://github.com/tekartik/firebase_ui.dart
-      ref: dart3a
       path: packages/firebase_flutter_ui_auth
   tekartik_firebase_storage_flutter:
     git:
       url: https://github.com/tekartik/firebase_flutter
-      ref: dart3a
       path: storage_flutter
 dev_dependencies:
   flutter_test:

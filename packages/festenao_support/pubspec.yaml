@@ -14,48 +14,39 @@ dependencies:
   tkcms_support:
     git:
       url: https://github.com/tekartikprj/tkcms.git
-      ref: dart3a
       path: packages/tkcms_support
   festenao_common:
     git:
       url: https://github.com/tekaly/festenao
-      ref: dart3a
       path: packages/festenao_common
   tkcms_common:
     git:
       url: https://github.com/tekartikprj/tkcms.git
-      ref: dart3a
       path: packages/tkcms_common
   dev_build: ">=1.1.2"
   tekartik_prj_tktools:
     git:
       url: https://github.com/tekartikprj/tktools.git
-      ref: dart3a
       path: packages/prj_tktools
   tekartik_build_menu_flutter:
     git:
       url: https://github.com/tekartik/build_flutter.dart
-      ref: dart3a
       path: packages/build_menu_flutter
   tekartik_app_dev_menu:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
-      ref: dart3a
       path: app_dev_menu
   tekartik_firebase_build_menu_flutter:
     git:
       url: https://github.com/tekartik/app_build.dart
-      ref: dart3a
       path: packages/firebase_build_menu_flutter
   tekartik_firebase_build:
     git:
       url: https://github.com/tekartik/app_build.dart
-      ref: dart3a
       path: packages/firebase_build
   tekartik_android_utils:
     git:
       url: https://github.com/tekartik/android_utils.dart
-      ref: dart3a
 
 dev_dependencies:
   lints: ">=5.0.0"

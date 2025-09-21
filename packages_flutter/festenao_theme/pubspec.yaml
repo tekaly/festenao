@@ -15,7 +15,6 @@ dependencies:
   tekartik_app_flutter_common_utils:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
-      ref: dart3a
       path: app_common
 dev_dependencies:
   flutter_test:
@@ -24,7 +23,6 @@ dev_dependencies:
   tekartik_lints_flutter:
     git:
       url: https://github.com/tekartik/common_flutter.dart
-      ref: dart3a
       path: packages/lints_flutter
 
 # For information on the generic Dart part of this file, see the
