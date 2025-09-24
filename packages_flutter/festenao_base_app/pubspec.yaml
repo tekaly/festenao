@@ -1,5 +1,5 @@
 name: festenao_base_app
-description: "A new Flutter project."
+description: Base app for Festenao user app (no firebase)
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -34,6 +34,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ">=1.0.8"
+  path:
   tkcms_user_app:
     git:
       url: https://github.com/tekartikprj/tkcms.git
@@ -57,6 +58,23 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_theme
+  tekaly_sembast_synced:
+    git:
+      url: https://github.com/tekartikprj/tekaly
+      path: packages/sembast_synced
+  tekartik_firebase_storage_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      path: storage_rest
+  tekartik_app_flutter_sembast:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_sembast
+  tekartik_app_url_launcher_flutter:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_url_launcher
+  flutter_blurhash:
 dev_dependencies:
   flutter_test:
     sdk: flutter
