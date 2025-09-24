@@ -157,6 +157,10 @@ dependencies:
       path: flutter_packages/firestore_explorer
 
   intl: ">=0.19.0"
+  festenao_base_app:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_base_app
 dev_dependencies:
 
   flutter_test:
