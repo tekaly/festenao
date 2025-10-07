@@ -36,7 +36,7 @@ class AdminUsersScreenBloc
   AdminUsersScreenBloc({required this.param}) {
     var fsDb = globalFestenaoFirestoreDatabase.projectDb;
 
-    audiAddStreamSubscription(
+    _usersSubscription = audiAddStreamSubscription(
       fsDb
           .fsEntityUserAccessCollectionRef(param.id)
           .onSnapshotsSupport(

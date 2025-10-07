@@ -2,6 +2,8 @@ import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/view/text_field.dart';
+import 'package:festenao_base_app/import/ui.dart';
+import 'package:flutter/foundation.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_indicator.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
@@ -45,9 +47,10 @@ class AdminMetaGeneralEditScreen extends StatefulWidget {
 class _AdminMetaGeneralEditScreenState
     extends AutoDisposeBaseState<AdminMetaGeneralEditScreen>
     with AutoDisposedBusyScreenStateMixin {
-  var controllers = <TextEditingController>[];
+  //var controllers = <TextEditingController>[];
   var controllerInitialized = false;
   late TextEditingController tagsController;
+  late TextEditingController nameController;
   DbMeta? lastMeta;
 
   @override
@@ -71,35 +74,23 @@ class _AdminMetaGeneralEditScreenState
                 return const Center(child: CircularProgressIndicator());
               }
               var meta = state.meta;
-              var textFields = <CvField>[];
+
               if (!controllerInitialized) {
                 tagsController = audiAddTextEditingController(
                   TextEditingController(text: meta.tags.v?.join(', ')),
                 );
-                for (var field in meta.fields) {
-                  if (field is! CvListField) {
-                    textFields.add(field);
-                    controllers.add(
-                      audiAddTextEditingController(
-                        TextEditingController(
-                          text: field.valueOrNull?.toString() ?? '',
-                        ),
-                      ),
-                    );
-                  }
-                }
-              }
-
-              var children = <Widget>[];
-              for (var i = 0; i < textFields.length; i++) {
-                var field = textFields[i];
-                children.add(
-                  AppTextFieldTile(
-                    labelText: field.name,
-                    controller: controllers[i],
-                  ),
+                nameController = audiAddTextEditingController(
+                  TextEditingController(text: meta.name.v),
                 );
               }
+
+              var children = <Widget>[
+                AppTextFieldTile(
+                  labelText: meta.name.key,
+                  controller: nameController,
+                ),
+              ];
+
               children.add(
                 AppTextFieldTile(
                   labelText: meta.tags.name,
@@ -118,23 +109,32 @@ class _AdminMetaGeneralEditScreenState
             onPressed: state == null
                 ? null
                 : () async {
-                    await busyAction(() async {
+                    var result = await busyAction(() async {
                       var meta = state.meta;
-                      for (var i = 0; i < meta.fields.length; i++) {
-                        var field = meta.fields[i];
-                        var controller = controllers[i];
-                        var text = stringNonEmpty(controller.text.trim());
-                        if (field.type == String) {
-                          field.setValue(stringNonEmpty(text));
-                        } else {
-                          throw UnsupportedError('$field type not supported');
-                        }
-                      }
+                      var name = nameController.text.trimmedNonEmpty();
+                      meta.name.setValue(name);
+
+                      var tags = tagsController.text
+                          .trimmedNonEmpty()
+                          ?.split(',')
+                          .map((e) => e.trim())
+                          .toList();
+                      meta.tags.setValue(tags);
+
                       await bloc.save(meta);
                       if (context.mounted) {
                         Navigator.of(context).pop();
                       }
                     });
+                    if (result.error != null) {
+                      if (kDebugMode) {
+                        print(result.errorStackTrace);
+                      }
+                      if (context.mounted) {
+                        muiSnackSync(context, result.error.toString());
+                      }
+                    }
+
                     //await goToAdminUserEditScreen(context, userId: null);
                     //await bloc.refresh();
                   },

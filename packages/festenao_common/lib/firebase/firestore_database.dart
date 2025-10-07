@@ -25,16 +25,18 @@ class FsUserPrv extends TkCmsFsEntity {
   CvFields get fields => [access, ...super.fields];
 }
 
+final tkCmsSyncedTreeDef = TkCmsCollectionsTreeDef(
+  map: {
+    'data': {'data': null, 'meta': null},
+  },
+);
+
 /// Project collection info
 final projectCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsProject>(
       id: projectPathPart,
       name: 'Project',
-      treeDef: TkCmsCollectionsTreeDef(
-        map: {
-          'data': {'data': null, 'meta': null},
-        },
-      ),
+      treeDef: tkCmsSyncedTreeDef,
     );
 
 /// User private collection info
@@ -42,11 +44,7 @@ final userPrvCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsUserPrv>(
       id: 'project_user',
       name: 'User private',
-      treeDef: TkCmsCollectionsTreeDef(
-        map: {
-          'data': {'data': null, 'meta': null},
-        },
-      ),
+      treeDef: tkCmsSyncedTreeDef,
     );
 
 /// Main entity database
