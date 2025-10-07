@@ -124,31 +124,30 @@ final festenaoAdminDebugScreenDefault = muiScreenWidget('Festenao debug', () {
     await goToFsAppUsersScreen(muiBuildContext);
   });
 
-  var defaultAppId = globalFestenaoFirestoreDatabase.appId;
-  var appId = defaultAppId;
-  muiItem('View app ${globalFestenaoFirestoreDatabase.appId}', () async {
-    await goToFsAppViewScreen(muiBuildContext, appId: defaultAppId);
-  });
-  muiItem('View custom appId', () async {
-    await goToFsAppViewScreen(muiBuildContext, appId: appId);
-  });
-  muiItem('View custom appId users', () async {
-    await goToFsAppUsersScreen(muiBuildContext, appId: appId);
-  });
-  muiItem('View custom appId projects', () async {
-    await goToFsAppProjectsScreen(muiBuildContext, appId: appId);
-  });
-  muiItem('Prompt custom appId', () async {
-    var newAppId = await muiGetString(
-      muiBuildContext,
-      title: 'App id',
-      value: appId,
-    );
-    if (newAppId != null) {
-      appId = newAppId;
-    }
-  });
-  muiItem('Show custom appId', () async {
-    await muiSnack(muiBuildContext, 'appId: $appId');
-  });
+  var appId = globalFestenaoFirestoreDatabaseOrNull?.appId;
+  if (appId != null) {
+    muiItem('View app $appId', () async {
+      await goToFsAppViewScreen(muiBuildContext, appId: appId!);
+    });
+
+    muiItem('View custom appId users', () async {
+      await goToFsAppUsersScreen(muiBuildContext, appId: appId);
+    });
+    muiItem('View custom appId projects', () async {
+      await goToFsAppProjectsScreen(muiBuildContext, appId: appId);
+    });
+    muiItem('Prompt custom appId', () async {
+      var newAppId = await muiGetString(
+        muiBuildContext,
+        title: 'App id',
+        value: appId,
+      );
+      if (newAppId != null) {
+        appId = newAppId;
+      }
+    });
+    muiItem('Show custom appId', () async {
+      await muiSnack(muiBuildContext, 'appId: $appId');
+    });
+  }
 });

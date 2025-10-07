@@ -74,6 +74,8 @@ class _EnforcedProjectsDbBloc extends _ProjectsDbBloc
   });
 }
 
+//class SingleProjectDbBloc extends _ProjectsDbBloc {}
+
 class _ProjectsDbBloc implements MultiProjectsDbBloc {
   _ProjectsDbBloc({required this.app});
   final String app;
@@ -152,4 +154,10 @@ class _ProjectsDbBloc implements MultiProjectsDbBloc {
   }
 }
 
-late ProjectsDbBloc globalProjectsDbBloc;
+/// Global projects db bloc
+ProjectsDbBloc get globalProjectsDbBloc => globalProjectsDbBlocOrNull!;
+set globalProjectsDbBloc(ProjectsDbBloc bloc) {
+  globalProjectsDbBlocOrNull = bloc;
+}
+
+ProjectsDbBloc? globalProjectsDbBlocOrNull;

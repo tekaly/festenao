@@ -101,6 +101,8 @@ class SingleFestenaoAdminAppProjectContext
 /// By project id
 abstract class ByProjectIdAdminAppProjectContext
     extends FestenaoAdminAppProjectContext {
+  /// When using a fixed app id, use this id
+  static const mainProjectId = 'main';
   // final String userId;
 
   factory ByProjectIdAdminAppProjectContext({required String projectId}) {

@@ -1,8 +1,10 @@
 import 'package:festenao_admin_base_app/auth/auth_bloc.dart';
+import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/sembast/projects_db_synchronizer.dart';
+import 'package:tekaly_sembast_synced/synced_db_firestore.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tekartik_firebase_auth_local/auth_local.dart';
 
@@ -22,12 +24,17 @@ class ProjectRootScreenBloc
   var _syncTriedOnce = false;
   String get userId => firebaseUser!.uid;
   FirebaseUser? firebaseUser;
+
+  /// Explicit db bloc to access the database
+  //late   AdminAppProjectContextDbBloc dbBloc = audiAddDisposable(AdminAppProjectContextDbBloc(projectContext: projectContext));
+
   ProjectRootScreenBloc({required this.projectId}) {
     () async {
       if (globalProjectsDbBloc is SingleProjectDbBloc) {
         add(
           ProjectRootScreenBlocState(
-            project: DbProject()..uid.v = 'compat',
+            project: DbProject()
+              ..uid.v = ByProjectIdAdminAppProjectContext.mainProjectId,
             user: null,
           ),
         );
@@ -61,5 +68,22 @@ class ProjectRootScreenBloc
         );
       }
     }();
+  }
+
+  Future<void> sync() async {
+    /// Only for single project mode with a predefined synced db
+    if (globalProjectsDbBloc is SingleProjectDbBloc) {
+      var syncedDb = (globalProjectsDbBloc as SingleProjectDbBloc).syncedDb;
+
+      var synchronizer = SyncedDbSynchronizer(
+        db: syncedDb,
+        source: SyncedSourceFirestore(
+          firestore: globalFestenaoFirestoreDatabase.firestore,
+          rootPath: globalFestenaoAppFirebaseContext.firestoreRootPath,
+        ),
+      );
+      await synchronizer.sync();
+      //(globalProjectsDbBloc as SingleProjectDbBloc).syncedDb.sync();
+    }
   }
 }

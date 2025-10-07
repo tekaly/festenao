@@ -102,8 +102,14 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
 }
 
 /// Global entity database
-late FestenaoFirestoreDatabase globalEntityDatabase;
+FestenaoFirestoreDatabase get globalEntityDatabase =>
+    globalFestenaoFirestoreDatabase;
+set globalEntityDatabase(FestenaoFirestoreDatabase db) {
+  globalFestenaoFirestoreDatabaseOrNull = db;
+}
+
+FestenaoFirestoreDatabase? globalFestenaoFirestoreDatabaseOrNull;
 
 /// Global festenao firestore database
 FestenaoFirestoreDatabase get globalFestenaoFirestoreDatabase =>
-    globalEntityDatabase;
+    globalFestenaoFirestoreDatabaseOrNull!;

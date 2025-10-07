@@ -4,7 +4,6 @@ import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/data/festenao_firebase.dart';
 // ignore: depend_on_referenced_packages
-import 'package:tkcms_admin_app/app/tkcms_admin_app.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
 /// Compat for existing.

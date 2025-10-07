@@ -57,7 +57,7 @@ class _ListDrawerState extends State<ListDrawer> {
       }
     } else if (sb is SingleProjectDbBloc) {
       appProjectContextOrNull = ByProjectIdAdminAppProjectContext(
-        projectId: 'compat',
+        projectId: ByProjectIdAdminAppProjectContext.mainProjectId,
       );
     } else {
       throw UnsupportedError(sb.toString());

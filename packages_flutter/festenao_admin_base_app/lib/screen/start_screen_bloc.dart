@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/data/src/import.dart';
@@ -27,6 +28,7 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
   final _lock = Lock();
   // ignore: cancel_subscriptions
   StreamSubscription? _dbSubscription;
+
   String? _dbUserId;
   StartScreenBloc() {
     () async {
@@ -70,6 +72,35 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
                   }),
                 );
               }
+            } else if (identity is TkCmsFbIdentityServiceAccount) {
+              audiDispose(_dbSubscription);
+
+              /// Show identification first, if db projects are not synchronized yet
+              add(
+                StartScreenBlocState(
+                  projects: [
+                    DbProject()
+                      ..name.v = 'Built-in project'
+                      ..uid.v = ByProjectIdAdminAppProjectContext.mainProjectId,
+                  ],
+                  identity: identity,
+                ),
+              );
+              /*
+              _dbSubscription = audiAddStreamSubscription(
+                globalProjectsDb
+                    .onProjects(
+                      userId: TkCmsFbIdentityServiceAccount.userLocalId,
+                    )
+                    .listen((projects) {
+                      add(
+                        StartScreenBlocState(
+                          projects: projects,
+                          identity: identity,
+                        ),
+                      );
+                    }),
+              );*/
             } else {
               _dbUserId = null;
 

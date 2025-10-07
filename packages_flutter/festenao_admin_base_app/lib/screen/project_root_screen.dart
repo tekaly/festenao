@@ -181,6 +181,13 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                               ),
                               const TilePadding(child: Divider()),
                               EntryTile(
+                                label: 'Sync (single)',
+                                onTap: () async {
+                                  await bloc.sync();
+                                },
+                              ),
+                              const TilePadding(child: Divider()),
+                              EntryTile(
                                 label: 'Questions',
                                 onTap: () async {
                                   await goToAdminFormQuestionsScreen(

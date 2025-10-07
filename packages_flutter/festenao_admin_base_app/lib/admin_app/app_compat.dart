@@ -109,10 +109,22 @@ DatabaseFactory initDatabaseFactory() {
   return getDatabaseFactory(packageName: packageName);
 }
 
+Future<void> initAndRunFestenaoAdminApp({
+  FbContext? fbContext,
+  String? packageName,
+  VoidCallback? parentAction,
+}) async {
+  await initAndRunFestenaoAdminAppCompat(
+    fbContext: fbContext,
+    packageName: packageName,
+    parentAction: parentAction,
+  );
+}
+
 /// Helper v1 see
 /// Used by admin internally
 /// parent allow going back to the application
-Future<void> initAndRunFestenaoAdminApp({
+Future<void> initAndRunFestenaoAdminAppCompat({
   FbContext? fbContext,
   String? packageName,
   VoidCallback? parentAction,

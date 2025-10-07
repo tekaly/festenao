@@ -124,13 +124,14 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                       ],
                       const TilePadding(child: Divider()),
                       if (hasAdminCredentials) ...[
-                        GoToTile(
-                          titleLabel:
-                              'FsApps (default ${globalFestenaoFirestoreDatabase.appId})',
-                          onTap: () {
-                            goToFsAppsScreen(context);
-                          },
-                        ),
+                        if (globalFestenaoFirestoreDatabaseOrNull != null)
+                          GoToTile(
+                            titleLabel:
+                                'FsApps (default ${globalFestenaoFirestoreDatabase.appId})',
+                            onTap: () {
+                              goToFsAppsScreen(context);
+                            },
+                          ),
                         GoToTile(
                           titleLabel: 'FsProjects',
                           onTap: () {
@@ -188,7 +189,9 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                       onTap: () async {
                         await goToProjectRootScreen(
                           context,
-                          projectId: project.fsId,
+                          projectId:
+                              project.uid.v ??
+                              ByProjectIdAdminAppProjectContext.mainProjectId,
                         );
 
                         //  await goToNotesScreen(context, Project.ref);

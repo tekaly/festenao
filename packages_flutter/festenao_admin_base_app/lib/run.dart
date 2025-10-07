@@ -9,13 +9,12 @@ import 'package:festenao_common/data/src/model/db_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
+import 'package:tekartik_app_flutter_sembast/sembast.dart';
 import 'package:tekartik_app_navigator_flutter/route_aware.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
 import 'package:tkcms_admin_app/app.dart';
-import 'package:tkcms_admin_app/app/tkcms_admin_app.dart';
 import 'package:tkcms_admin_app/auth/auth.dart';
 import 'package:tkcms_admin_app/firebase/database_service.dart';
-import 'package:tkcms_admin_app/screen/login_screen.dart';
 import 'package:tkcms_admin_app/screen/project_info.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
@@ -45,11 +44,31 @@ Future<void> festenaoRunApp({
   firebaseContext: firebaseContext,
 );
 
+/// Compat mode mainly
+Future<void> festenaoRunAdminAppSingleProject({
+  ContentNavigatorDef? contentNavigatorDef,
+  AppFlavorContext? appFlavorContext,
+  String? packageName,
+  String? singleProjectId,
+  FirebaseContext? firebaseContext,
+  required FestenaoAppFirebaseContext appFirebaseContext,
+}) async {
+  await festenaoRunAdminApp(
+    contentNavigatorDef: contentNavigatorDef,
+    appFlavorContext: appFlavorContext,
+    packageName: packageName,
+    singleProjectId: singleProjectId,
+    firebaseContext: firebaseContext,
+    appFirebaseContext: appFirebaseContext,
+  );
+}
+
 Future<void> festenaoRunAdminApp({
   ContentNavigatorDef? contentNavigatorDef,
   AppFlavorContext? appFlavorContext,
   String? packageName,
   String? singleProjectId,
+  FestenaoAppFirebaseContext? appFirebaseContext,
   FirebaseContext? firebaseContext,
 }) async {
   if (kDebugMode) {
@@ -86,29 +105,35 @@ Future<void> festenaoRunAdminApp({
   gFsDatabaseService = fsDatabase;
   globalTkCmsAdminAppFlavorContext = appFlavorContext;
 
-  globalEntityDatabase = fsDatabase;
+  globalFestenaoFirestoreDatabaseOrNull ??= fsDatabase;
   gAuthBloc = TkCmsAuthBloc.local(db: fsDatabase, prefs: prefs);
-  globalPackageName = packageName;
-  globalFestenaoAppFirebaseContext = FestenaoAppFirebaseContext(
-    storageBucket: 'festenao.bucket',
-    storageRootPath: 'app/festenao',
-    firestoreRootPath: 'app/festenao',
-  );
-  gDebugUsername = 'admin';
-  gDebugPassword = '__admin__'; // irrelevant
-  globalProjectsDb = ProjectsDb(
-    factory: globalSembastDatabaseFactory,
-    name: '${globalTkCmsAdminAppFlavorContext.uniqueAppName}_$projectsDbName',
-  );
-  await globalProjectsDb.ready;
 
   /// Global prefs (last entered values)
   var app = globalTkCmsAdminAppFlavorContext.uniqueAppName;
   await globalFestenaoAdminApp.openPrefs();
-  globalProjectsDbBloc = singleProjectId == null
-      ? MultiProjectsDbBloc(app: app)
-      : EnforcedSingleProjectDbBloc(app: app, projectId: singleProjectId);
 
+  globalPackageName = packageName;
+  if (appFirebaseContext != null) {
+    if (globalProjectsDbBlocOrNull == null) {
+      var dbFactory = getDatabaseFactory(packageName: packageName);
+      var festenaoDb = FestenaoDb(dbFactory);
+      // Trigger opening
+      try {
+        festenaoDb.initialSynchronizationDone().unawait();
+        festenaoDb.database.unawait();
+      } catch (e) {
+        // Ignore
+        if (kDebugMode) {
+          print('Error opening db $e');
+        }
+      }
+      globalProjectsDbBlocOrNull ??= SingleProjectDbBloc(syncedDb: festenaoDb);
+    }
+  } else {
+    globalProjectsDbBlocOrNull ??= (singleProjectId == null)
+        ? MultiProjectsDbBloc(app: app)
+        : EnforcedSingleProjectDbBloc(app: app, projectId: singleProjectId);
+  }
   initFestenaoFsBuilders();
 
   // TODO remove

@@ -9,7 +9,14 @@ import 'package:tkcms_common/tkcms_firebase.dart';
 FirebaseContext get globalFestenaoAdminAppFirebaseContext =>
     globalTkCmsAdminAppFirebaseContext;
 
-late FestenaoAppFirebaseContext globalFestenaoAppFirebaseContext;
+FestenaoAppFirebaseContext? globalFestenaoAppFirebaseContextOrNull;
+
+/// Global festenao app firebase context
+FestenaoAppFirebaseContext get globalFestenaoAppFirebaseContext =>
+    globalFestenaoAppFirebaseContextOrNull!;
+set globalFestenaoAppFirebaseContext(FestenaoAppFirebaseContext value) {
+  globalFestenaoAppFirebaseContextOrNull = value;
+}
 
 /// Festenao Firebase context
 class FestenaoAppFirebaseContext {

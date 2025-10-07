@@ -17,6 +17,7 @@ Future<FirebaseContext> festenaoInitFirebaseIoWithServiceAccount({
     firebase: firebaseAdmin,
     firestoreService: firestoreServiceRest,
     authService: firebaseAuthServiceRest,
+    storageService: storageServiceRest,
     firebaseApp: firebaseApp,
   ).initContext();
 }

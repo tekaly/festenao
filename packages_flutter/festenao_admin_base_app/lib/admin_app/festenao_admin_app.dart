@@ -2,6 +2,8 @@ import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/app/app_options.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
+export 'package:tkcms_admin_app/app/tkcms_admin_app.dart';
+export 'package:tkcms_common/tkcms_app.dart';
 
 /// Admin app options
 class FestenaoAdminAppOptions {}
