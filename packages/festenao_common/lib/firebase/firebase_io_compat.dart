@@ -1,6 +1,9 @@
 import 'package:festenao_common/data/src/festenao/firebase/fb_context.dart';
 import 'package:festenao_common/festenao_firebase_rest.dart';
 
+/// Initializes Firebase IO compatibility version 1 with the given service account and options.
+///
+/// Returns a [FbContext] containing the initialized Firebase services.
 Future<FbContext> initCompatV1FirebaseIo({
   String? rootPath,
   required Map serviceAccount,

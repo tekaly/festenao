@@ -3,18 +3,23 @@ import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/sembast/projects_db.dart';
 import 'package:tkcms_common/tkcms_audi.dart';
 
-/// Projects db synchronizer helper
+/// Projects db synchronizer helper for syncing projects between Firestore and local database.
 class ProjectsDbSynchronizer with AutoDisposeMixin {
   Firestore get firestore => fsProjects.firestore;
   final ProjectsDb projectsDb;
+
+  /// The Firestore entity access for projects.
   final TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> fsProjects;
 
+  /// Creates a new [ProjectsDbSynchronizer] with the given [projectsDb] and [fsProjects].
   ProjectsDbSynchronizer({required this.projectsDb, required this.fsProjects});
 
+  /// Disposes the synchronizer and cancels all subscriptions.
   void dispose() {
     audiDisposeAll();
   }
 
+  /// Syncs a single project for the given [userId] and [projectId].
   Future<void> syncOne({
     required String userId,
     required String projectId,
@@ -77,18 +82,21 @@ class ProjectsDbSynchronizer with AutoDisposeMixin {
   }
 }
 
-/// Projects db synchronizer helper
+/// Projects db synchronizer helper for auto-syncing a single project.
 class ProjectsDbSingleProjectAutoSynchronizer with AutoDisposeMixin {
+  /// The local projects database.
   final ProjectsDb projectsDb;
+
+  /// The project ID to sync.
   final String projectId;
+
+  /// The user ID for the project.
   final String userId;
 
+  /// The Firestore entity access for projects.
   final TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> fsProjects;
 
-  void dispose() {
-    audiDisposeAll();
-  }
-
+  /// Creates a new [ProjectsDbSingleProjectAutoSynchronizer] with the given parameters.
   ProjectsDbSingleProjectAutoSynchronizer({
     required this.projectsDb,
     required this.fsProjects,
@@ -106,5 +114,10 @@ class ProjectsDbSingleProjectAutoSynchronizer with AutoDisposeMixin {
         }),
       );
     }();
+  }
+
+  /// Disposes the synchronizer and cancels all subscriptions.
+  void dispose() {
+    audiDisposeAll();
   }
 }

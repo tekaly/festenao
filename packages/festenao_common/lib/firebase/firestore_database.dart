@@ -3,7 +3,7 @@ import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/form/src/fs_form_model.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
-/// Initialize festenao firestore builders
+/// Initializes Festenao Firestore builders.
 void initFestenaoFsBuilders() {
   initTkCmsFsBuilders();
   initFestenaoCvBuilders();
@@ -11,27 +11,28 @@ void initFestenaoFsBuilders() {
   initFsFormBuilders();
 }
 
-/// Main entity database
+/// Main entity database for projects.
 class FsProject extends TkCmsFsProject {
   @override
   CvFields get fields => [...super.fields];
 }
 
-/// `<entity>`_user/`<user_id>`/entity/`<entity>` ... prv info
+/// User private entity database.
 class FsUserPrv extends TkCmsFsEntity {
-  /// User access, copy of the access field
+  /// User access, copy of the access field.
   final access = CvModelField<TkCmsCvUserAccess>('access');
   @override
   CvFields get fields => [access, ...super.fields];
 }
 
+/// Tree definition for synced collections.
 final tkCmsSyncedTreeDef = TkCmsCollectionsTreeDef(
   map: {
     'data': {'data': null, 'meta': null},
   },
 );
 
-/// Project collection info
+/// Project collection info.
 final projectCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsProject>(
       id: projectPathPart,
@@ -39,7 +40,7 @@ final projectCollectionInfo =
       treeDef: tkCmsSyncedTreeDef,
     );
 
-/// User private collection info
+/// User private collection info.
 final userPrvCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsUserPrv>(
       id: 'project_user',
@@ -47,18 +48,18 @@ final userPrvCollectionInfo =
       treeDef: tkCmsSyncedTreeDef,
     );
 
-/// Main entity database
+/// Main entity database service for Festenao.
 class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
-  /// Project entity - could be for each app
+  /// Project entity database access.
   late TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> projectDb;
 
-  /// App database (and user access if any) - same for all apps
+  /// App database access.
   late TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp> appDb;
 
-  /// User private database
+  /// User private database access.
   late TkCmsFirestoreDatabaseServiceEntityAccess<FsUserPrv> userPrvDb;
 
-  /// Constructor
+  /// Constructor for FestenaoFirestoreDatabase.
   FestenaoFirestoreDatabase({
     required super.firebaseContext,
     required super.flavorContext,
@@ -86,11 +87,11 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
     );
   }
 
-  /// Project collection reference
+  /// Project collection reference.
   CvCollectionReference<FsProject> get fsProjectCollection =>
       projectDb.fsEntityCollectionRef;
 
-  /// Copy with a different appId
+  /// Copy with a different appId.
   FestenaoFirestoreDatabase copyWithAppId(String appId) {
     return FestenaoFirestoreDatabase(
       firebaseContext: firebaseContext,

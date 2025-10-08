@@ -1,15 +1,21 @@
 import 'package:festenao_common/festenao_api.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 
+/// Client for managing Festenao CMS entities via API and Firestore.
 class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
+  /// The API service used for CMS operations.
   final FestenaoApiService apiService;
+
+  /// The entity access service for Firestore operations.
   final TkCmsFirestoreDatabaseServiceEntityAccess<T> entityAccess;
 
+  /// Creates a new [FestenaoApiFsEntityClient] instance.
   FestenaoApiFsEntityClient({
     required this.apiService,
     required this.entityAccess,
   });
 
+  /// Creates a new entity in the CMS and returns the created entity.
   Future<T> createEntity({required T entity, String? entityId}) async {
     var result = await apiService.getApiResult<FsCmsEntityCreateApiResult<T>>(
       ApiRequest(command: entityAccess.info.createCommand)..setQuery(
@@ -25,7 +31,7 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
       ..fsDataFromJsonMap(entityAccess.firestore, jsonMap);
   }
 
-  /// Always succeed (ok if not exists)
+  /// Deletes an entity by [entityId]. Always succeeds (ok if not exists).
   Future<void> deleteEntity({required String entityId}) async {
     await apiService.getApiResult<FsCmsEntityDeleteApiResult<T>>(
       ApiRequest(command: entityAccess.info.deleteCommand)
@@ -33,7 +39,7 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     );
   }
 
-  /// Always succeed (ok if not exists)
+  /// Purges an entity by [entityId]. Always succeeds (ok if not exists).
   Future<void> purgeEntity({required String entityId}) async {
     await apiService.getApiResult<FsCmsEntityPurgeApiResult<T>>(
       ApiRequest(command: entityAccess.info.purgeCommand)
@@ -41,7 +47,7 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     );
   }
 
-  /// Always succeed (ok if not exists)
+  /// Joins an entity by [entityId] with the given [fsUserAccess]. Always succeeds (ok if not exists).
   Future<void> joinEntity({
     required String entityId,
     required TkCmsFsUserAccess fsUserAccess,
@@ -55,7 +61,7 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     );
   }
 
-  /// Always succeed (ok if not exists)
+  /// Leaves an entity by [entityId]. Always succeeds (ok if not exists).
   Future<void> leaveEntity({required String entityId}) async {
     await apiService.getApiResult<FsCmsEntityLeaveApiResult<T>>(
       ApiRequest(command: entityAccess.info.leaveCommand)

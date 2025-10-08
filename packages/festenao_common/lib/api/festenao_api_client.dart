@@ -2,7 +2,10 @@ import 'package:path/path.dart';
 import 'package:tekartik_app_http/app_http.dart';
 import 'package:tkcms_common/tkcms_api.dart';
 
+/// The AMP development function name.
 var functionFestenaoAmpDev = 'ampdev';
+
+/// The AMP production function name.
 var functionFestenaoAmpProd = 'amp';
 
 /// Service for interacting with AMP pages.
