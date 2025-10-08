@@ -1,18 +1,18 @@
-/// Abstract class for form player question answer.
+/// Represents an answer to a form question.
 abstract class TkFormPlayerQuestionAnswer {
-  /// Int value
+  /// Integer value answer (for int-type questions).
   int? get intValue;
 
-  /// Choice id for single choice, could include textValue also
+  /// Single-choice answer id.
   String? get choiceId;
 
-  /// Choice ids for multi choice, could include other
+  /// Multiple-choice answer ids.
   List<String>? get choiceIds;
 
-  /// For choie meaning other we might have a text value
+  /// Text value for "other" choices or text questions.
   String? get textValue;
 
-  /// Factory
+  /// Factory to create a question answer instance.
   factory TkFormPlayerQuestionAnswer({
     int? intValue,
     String? choiceId,
@@ -37,6 +37,7 @@ class _TkFormPlayerQuestionAnswer implements TkFormPlayerQuestionAnswer {
   @override
   final List<String>? choiceIds;
 
+  /// Internal constructor for question answers.
   _TkFormPlayerQuestionAnswer({
     required this.intValue,
     required this.choiceId,

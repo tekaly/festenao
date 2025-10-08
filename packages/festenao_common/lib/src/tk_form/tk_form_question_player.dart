@@ -2,24 +2,24 @@ import 'tk_form_player.dart';
 import 'tk_form_question.dart';
 import 'tk_form_question_answer.dart';
 
-/// Form Player
+/// Represents a question player which exposes a question and its answer for a form player.
 abstract class TkFormQuestionPlayer {
-  /// The form being played
+  /// The form player owning this question.
   TkFormPlayer get formPlayer;
 
-  /// Get question by index
+  /// The question associated with this player.
   TkFormPlayerQuestion get question;
 
-  /// Get last known answer, (null if not answered)
+  /// The last known answer for this question, or null if unanswered.
   TkFormPlayerQuestionAnswer? get answer;
 
-  /// Set answer
+  /// Sets the answer for this question.
   set answer(TkFormPlayerQuestionAnswer? answer);
 
-  /// True if the question should be skipped
+  /// Whether this question should be skipped.
   bool shouldSkip();
 
-  /// Constructor
+  /// Factory to create a question player for [formPlayer] at [index].
   factory TkFormQuestionPlayer({
     required TkFormPlayer formPlayer,
     required int index,
@@ -28,7 +28,7 @@ abstract class TkFormQuestionPlayer {
   }
 }
 
-/// Form Player Base
+/// Base implementation of [TkFormQuestionPlayer].
 class _TkFormQuestionPlayerBase implements TkFormQuestionPlayer {
   @override
   final TkFormPlayer formPlayer;

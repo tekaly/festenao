@@ -1,15 +1,15 @@
-/// Abstract class for form player question answer.
+/// Represents a single selectable choice for a question.
 abstract class TkFormPlayerQuestionChoice {
-  /// Choice id
+  /// Unique choice identifier.
   String get id;
 
-  /// Choice text
+  /// Display text for the choice.
   String get text;
 
-  /// Allow entering text
+  /// Whether this choice allows entering a custom text value ("Other").
   bool get allowOther;
 
-  /// Constructor
+  /// Factory constructor to create a choice instance.
   factory TkFormPlayerQuestionChoice({
     required String id,
     required String text,
@@ -25,7 +25,7 @@ abstract class TkFormPlayerQuestionChoice {
 }
 
 class _TkFormPlayerQuestionChoice extends TkFormPlayerQuestionChoiceBase {
-  /// Constructor
+  /// Internal constructor used by the factory.
   _TkFormPlayerQuestionChoice({
     required super.id,
     required super.text,
@@ -33,7 +33,7 @@ class _TkFormPlayerQuestionChoice extends TkFormPlayerQuestionChoiceBase {
   });
 }
 
-/// Form player question base
+/// Base implementation for a question choice.
 abstract class TkFormPlayerQuestionChoiceBase
     implements TkFormPlayerQuestionChoice {
   @override
@@ -44,7 +44,7 @@ abstract class TkFormPlayerQuestionChoiceBase
   @override
   final bool allowOther;
 
-  /// Constructor
+  /// Creates a new choice base with the given fields.
   TkFormPlayerQuestionChoiceBase({
     required this.id,
     required this.text,
@@ -52,9 +52,9 @@ abstract class TkFormPlayerQuestionChoiceBase
   });
 }
 
-/// Debug helper
+/// Debug extension for [TkFormPlayerQuestionChoice].
 extension TkFormPlayerQuestionChoiceExt on TkFormPlayerQuestionChoice {
-  /// Debug string
+  /// Returns a debug string for the choice.
   String toDebugString() {
     return 'QuestionChoice(id: $id, name: $text)';
   }

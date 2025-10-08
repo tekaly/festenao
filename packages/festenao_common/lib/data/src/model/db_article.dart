@@ -1,23 +1,43 @@
 import 'package:festenao_common/data/festenao_db.dart';
 
+/// Article kind for artists.
 const articleKindArtist = 'artist';
+
+/// Article kind for events.
 const articleKindEvent = 'event';
+
+/// Article kind for info pages.
 const articleKindInfo = 'info';
+
+/// Article kind for locations.
 const articleKindLocation = 'location';
 
+/// Tag used to mark articles as hidden.
 const articleTagHidden = 'hidden';
+
+/// Tag used to mark cancelled events/articles.
 const articleTagCancelled = 'cancelled';
+
+/// Tag used to mark items currently in progress.
 const articleTagInProgress = 'in_progress';
+
+/// Collection of common article tags applied to different kinds.
 const articleTags = [
   articleTagHidden,
   articleTagCancelled,
   articleTagInProgress,
 ];
+
+/// Kind name for images stored as articles.
 const imageKind = 'image';
 
-const articleIdIndex = 'index'; // Typically the root infos page
-const articleIdDefault = 'default'; // Typically for image of any article
-/// Artist id must allow sorting (i.e. typically lastname_firstname
+/// Index article id (typically used for a root infos page).
+const articleIdIndex = 'index';
+
+/// Default article id (typically used for default images).
+const articleIdDefault = 'default';
+
+/// Mixin providing common article fields used by multiple article types.
 mixin DbArticleMixin on DbStringRecord implements DbArticle {
   /// Artist/Article/Song/Playlist name
   @override
@@ -91,15 +111,19 @@ extension DbArticleHelpers on DbArticle {
   bool get hidden => hasTag(articleTagHidden);
 }
 
+/// Common alias for article types used across the codebase.
 typedef DbArticleCommon = DbArticle;
 
+/// Base class implementing common article fields.
 abstract class DbArticleCommonBase extends DbStringRecordBase
     with DbArticleMixin {
   @override
   List<CvField> get fields => [...articleFields];
 }
 
+/// Interface describing an article record's public API.
 abstract class DbArticle extends DbStringRecord {
+  /// The kind of article (artist/event/info/location).
   String get articleKind;
   CvField<String> get thumbnail;
   CvField<String> get squareImage;
@@ -119,7 +143,10 @@ class _DbArticleCommonModel extends DbArticleCommonBase {
   String get articleKind => throw UnimplementedError();
 }
 
+/// Default model instance for common article fields.
 DbArticleCommon dbArticleCommonModel = _DbArticleCommonModel();
+
+/// Returns the list of tags applicable for the given [articleKind].
 List<String> getArticleKindTags(String articleKind) {
   return _articleKindTagsMap[articleKind] ?? <String>[];
 }
@@ -139,6 +166,7 @@ final _articleKindTypesMap = {
   articleKindEvent: eventTypes,
 };
 
+/// Returns the allowed types for the given [articleKind].
 List<String> getArticleKindTypes(String articleKind) {
   return _articleKindTypesMap[articleKind] ?? <String>[];
 }

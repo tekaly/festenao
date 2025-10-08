@@ -5,6 +5,7 @@ import 'package:festenao_admin_base_app/route/navigator_def.dart';
 import 'package:festenao_admin_base_app/route/route_navigation.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
+import 'package:festenao_common/app/src/app_init_options.dart';
 import 'package:festenao_common/data/src/model/db_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +68,7 @@ Future<void> festenaoRunAdminApp({
   ContentNavigatorDef? contentNavigatorDef,
   AppFlavorContext? appFlavorContext,
   String? packageName,
+  FestenaoAppInitOptions? initOptions,
   String? singleProjectId,
   FestenaoAppFirebaseContext? appFirebaseContext,
   FirebaseContext? firebaseContext,

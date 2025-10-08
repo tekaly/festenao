@@ -1,3 +1,4 @@
+/// Minimal MVP stylesheet used by server-rendered pages.
 var mvpCss = '''
 /* MVP.css v1.17.2 - https://github.com/andybrewer/mvp */
 
