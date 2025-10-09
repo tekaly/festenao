@@ -1,6 +1,5 @@
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:path/path.dart' as url;
-import 'package:sembast/sembast.dart';
 import 'package:sembast/sembast_memory.dart';
 import 'package:sembast/utils/database_utils.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
