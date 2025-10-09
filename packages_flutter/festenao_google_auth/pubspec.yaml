@@ -1,0 +1,27 @@
+name: festenao_google_auth
+description: A package to configure Firebase UI for Google and email authentication.
+version: 0.1.0
+homepage: https://github.com/tekaly/festenao/tree/main/packages_flutter/festenao_google_auth
+repository: https://github.com/tekaly/festenao
+publish_to: 'none'
+
+environment:
+  sdk: ^3.9.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  tekartik_lints_flutter:
+    git:
+      url: https://github.com/tekartik/common_flutter.dart
+      path: packages/lints_flutter
+
+flutter:
+  uses-material-design: true
+
+resolution: workspace
