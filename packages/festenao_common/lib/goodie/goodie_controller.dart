@@ -13,22 +13,25 @@ const _goodieInfoCollectionPart = 'goodie_info';
 const _goodiesConfigInfoDocId = 'config';
 const _goodiesStateInfoDocId = 'state'; // Not in daily state
 
-/// Simple goodie controller
+/// Simple goodie controller for managing goodie sessions and states.
 class GoodieController {
+  /// The Firestore instance used for database operations.
   final Firestore firestore;
 
-  /// Top firestore path
+  /// Top firestore path for the goodie controller.
   final String firestorePath;
 
+  /// Creates a new [GoodieController] with the given [firestore] and [firestorePath].
   GoodieController({required this.firestore, required this.firestorePath}) {
     initFsGoodieBuilders();
   }
 
   late FsGoodiesConfig _lastGoodiesConfigUsed;
 
-  /// Last goodie config used
+  /// Last goodie config used in the controller.
   FsGoodiesConfig get lastGoodiesConfigUsed => _lastGoodiesConfigUsed;
 
+  /// Firestore reference to the goodie session document.
   @visibleForTesting
   CvDocumentReference<FsGoodieSession> get fsGoodieSessionRef =>
       _fsGoodieSessionRef;
@@ -36,6 +39,7 @@ class GoodieController {
     return CvDocumentReference<FsGoodieSession>(firestorePath);
   }
 
+  /// Firestore reference to the goodies config document.
   @visibleForTesting
   CvDocumentReference<FsGoodiesConfig> get fsGoodiesConfigRef =>
       _fsGoodiesConfigRef;
@@ -43,6 +47,8 @@ class GoodieController {
       _fsGoodieSessionRef
           .collection<FsGoodiesConfig>(_goodieInfoCollectionPart)
           .doc(_goodiesConfigInfoDocId);
+
+  /// Firestore reference to the goodies daily state document for the given [day].
   CvDocumentReference<FsGoodiesState> fsGoodiesDailyStateRef(CalendarDay day) =>
       _fsGoodiesDailyStateRef(day);
   CvDocumentReference<FsGoodiesState> _fsGoodiesDailyStateRef(
@@ -50,6 +56,8 @@ class GoodieController {
   ) => _fsGoodieSessionRef
       .collection<FsGoodiesState>(_goodiesStateCollectionId)
       .doc(day.text);
+
+  /// Firestore reference to the goodies state document.
   CvDocumentReference<FsGoodiesState> get fsGoodiesStateRef =>
       _fsGoodiesStateRef;
   CvDocumentReference<FsGoodiesState> get _fsGoodiesStateRef =>
@@ -57,14 +65,18 @@ class GoodieController {
           .collection<FsGoodiesState>(_goodieInfoCollectionPart)
           .doc(_goodiesStateInfoDocId);
 
+  /// Finds a random goodie based on the current configuration and state.
+  ///
+  /// Returns the goodie ID if won, or null otherwise.
   Future<String?> findRandomGoodie({required DateTime now}) async {
     return await firestore.cvRunTransaction((txn) async {
       return txnFindRandomGoodie(txn: txn, now: now);
     });
   }
 
-  /// Return the goodie id if won
-  /// Performs read then write, so can only be preceeded by read and followed by write
+  /// Finds a random goodie within a transaction.
+  ///
+  /// Returns the goodie ID if won, or null otherwise.
   Future<String?> txnFindRandomGoodie({
     required CvFirestoreTransaction txn,
     required DateTime now,

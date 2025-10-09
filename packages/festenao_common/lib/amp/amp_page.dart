@@ -28,9 +28,10 @@ dynamic sanitize(dynamic value) {
 ///
 /// Generates an AMP-compliant HTML page using the Yacht and HTML5Lib providers.
 class FestenaoAmpPage {
-  /// Build and return the AMP HTML page as a [String].
+  /// Builds and returns the AMP HTML page as a [String].
   ///
   /// The generated page includes AMP boilerplate, custom CSS, and debug info if enabled.
+  /// Uses the HTML5Lib provider and Yacht AMP boilerplate.
   Future<String> build() async {
     var htmlProvider = htmlProviderHtml5Lib;
 

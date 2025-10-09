@@ -1,12 +1,13 @@
 import 'package:festenao_common/data/festenao_db.dart';
 
-/// Artist id must allow sorting (i.e. typically lastname_firstname
-// @Deprecated('Not used yet')
+/// Location record stored in the database.
+///
+/// Contains a human-friendly name and optional attributes/links.
 class DbLocation extends DbStringRecordBase {
-  /// Event name
+  /// Location name (displayed in UI).
   final name = CvField<String>('name');
 
-  /// Attributes/Links
+  /// Attributes or links associated with the location.
   final attributes = CvModelListField<CvAttribute>(
     'attributes',
     (_) => CvAttribute(),

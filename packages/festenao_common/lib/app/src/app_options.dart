@@ -1,8 +1,15 @@
 import '../../data/festenao_db.dart';
 
+/// The default width for main images in pixels.
 const imageWidthDefault = 800;
+
+/// The default size for square images in pixels.
 const squareSizeDefault = 320;
+
+/// The default size for grid images in pixels.
 const gridSizeDefault = 480;
+
+/// The default width for thumbnail images in pixels.
 const thumbnailWidthDefault = 64;
 
 /// Image options for the Festenao app.

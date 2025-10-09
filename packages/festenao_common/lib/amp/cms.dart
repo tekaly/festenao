@@ -2,14 +2,22 @@ import 'package:tekartik_html/html_html5lib.dart' as tk_html;
 import 'package:tekartik_html/tag.dart';
 import 'package:tekartik_yacht/yacht.dart';
 
+/// HTML factory using html5lib provider from tekartik_html.
 var htmlFactory = tk_html.htmlProviderHtml5Lib;
 
+/// AMP boilerplate style and noscript tags for AMP HTML pages.
 String boilerPlate =
     r'<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>';
+
+/// AMP boilerplate style tag for AMP HTML pages.
 String boilerPlate1 =
     r'<style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style>';
+
+/// AMP boilerplate noscript tag for AMP HTML pages.
 String boilerPlate2 =
     r'<noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>';
+
+/// AMP base JavaScript script tag for AMP HTML pages.
 String baseJs =
     r'<script async="" src="https://cdn.ampproject.org/v0.js"></script>';
 
@@ -23,7 +31,10 @@ class Page {
   /// The main content of the page, rendered in a <div> if set.
   String? content;
 
-  /// Returns the AMP HTML for this page as a [String].
+  /// Generates the AMP HTML for this page as a [String].
+  ///
+  /// The output includes AMP boilerplate, required meta tags, and
+  /// the page's title and content if provided.
   String toHtmlText() {
     var doc = htmlFactory.createDocument();
 

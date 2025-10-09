@@ -1,27 +1,27 @@
-/// Form Player Form
+/// Form Player Form abstraction used by form players.
 abstract class TkFormPlayerForm {
-  /// Form id
+  /// The form identifier.
   String get id;
 
-  /// Form title
+  /// The form title or name.
   String get name;
 }
 
-/// Debug helper
+/// Debug helper extensions for [TkFormPlayerForm].
 extension TkFormPlayerFormExt on TkFormPlayerForm {
-  /// Debug string
+  /// Returns a debug string representation of the form.
   String toDebugString() {
     return 'PlayerForm(id: $id, name: $name)';
   }
 }
 
-/// Base form player form
+/// Basic implementation of [TkFormPlayerForm].
 class TkFormPlayerFormBase implements TkFormPlayerForm {
   @override
   final String id;
   @override
   final String name;
 
-  /// Constructor
+  /// Creates a new [TkFormPlayerFormBase] with [id] and [name].
   TkFormPlayerFormBase({required this.id, required this.name});
 }

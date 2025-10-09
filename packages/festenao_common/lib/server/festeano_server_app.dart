@@ -6,9 +6,12 @@ import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_firestore/utils/json_utils.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
-/// Our server app
+/// Server app for Festenao CMS.
 class FestenaoServerApp extends TkAppCmsServerAppBase {
+  /// AMP command name.
   late String ampCommand;
+
+  /// Creates a new [FestenaoServerApp] with the given [app], [context], and optional [version].
   FestenaoServerApp({
     String app = 'festenao',
     required super.context,
@@ -23,11 +26,13 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
     }
   }
 
+  /// Handles HTTPS AMP requests.
   Future<void> onHttpsAmp(ExpressHttpRequest request) async {
     var incomingRequest = IncomingAmpRequest(request: request);
     await onAmp(incomingRequest);
   }
 
+  /// Handles AMP requests.
   Future<void> onAmp(IncomingAmpRequest ampRequest) async {
     var requestPath = ampRequest.path;
     var request = ampRequest.request;
@@ -51,6 +56,7 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
     }*/
   }
 
+  /// Handles app-specific AMP requests.
   Future<void> onAppAmp(IncomingAppAmpRequest appAmpRequest) async {
     var requestPath = appAmpRequest.path;
     var request = appAmpRequest.request;
@@ -71,6 +77,7 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
     }
   }
 
+  /// Gets the AMP HTTPS function.
   HttpsFunction get amp => functions.https.onRequestV2(
     HttpsOptions(cors: true, region: regionBelgium),
     onHttpsAmp,
@@ -83,21 +90,31 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
   }
 }
 
+/// Incoming request for app-specific AMP.
 class IncomingAppAmpRequest extends IncomingAmpRequest {
+  /// Creates a new [IncomingAppAmpRequest] with the given [request], [app], and optional [path].
   IncomingAppAmpRequest({
     required super.request,
     required this.app,
     super.path,
   });
 
+  /// The app name.
   final String app;
 }
 
+/// Incoming request for AMP.
 class IncomingAmpRequest implements AmpRequest {
+  /// The HTTP request.
   final ExpressHttpRequest request;
+
   @override
   late final String path;
+
+  /// The URI of the request.
   Uri get uri => request.uri;
+
+  /// Creates a new [IncomingAmpRequest] with the given [request] and optional [path].
   IncomingAmpRequest({required this.request, String? path}) {
     var requestPath = path ?? uri.path;
     if (requestPath.startsWith('/')) {
@@ -107,33 +124,35 @@ class IncomingAmpRequest implements AmpRequest {
   }
 }
 
+/// Extension for [FestenaoServerApp] to initialize entity functions.
 extension FesteanoServerAppExt on FestenaoServerApp {
+  /// Initializes entity functions for the given [entityHandler].
   void initEntityFunctions<TFsEntity extends TkCmsFsEntity>(
     FestenaoEntityHandler<TkCmsFsEntity> entityHandler,
   ) {}
 }
 
-/// Options
+/// Options for entity handler.
 class FestenaoEntityHandlerOptions {
-  /// Constructor
+  /// Creates a new [FestenaoEntityHandlerOptions] with optional [customIdGenerator].
   const FestenaoEntityHandlerOptions({this.customIdGenerator});
 
-  /// Custom id generator
+  /// Custom ID generator function.
   final String Function()? customIdGenerator;
 }
 
-/// Entity handler
+/// Entity handler for Festenao entities.
 class FestenaoEntityHandler<T extends TkCmsFsEntity> {
-  /// Options
+  /// Options for the handler.
   final FestenaoEntityHandlerOptions options;
 
-  /// App
+  /// The server app.
   final FestenaoServerApp app;
 
-  /// Entity access
+  /// Entity access for Firestore operations.
   final TkCmsFirestoreDatabaseServiceEntityAccess<T> entityAccess;
 
-  /// Firestore helper
+  /// Firestore instance.
   Firestore get firestore => entityAccess.firestore;
 
   String get _collectionIdPrefix =>
@@ -141,19 +160,19 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
   static String _buildCollectionIdPrefix(String entityCollectionId) =>
       '$entityCollectionId-';
 
-  /// True if onCommandOrNull should be called
+  /// Checks if the [command] is an entity command for the given [entity].
   static bool isEntityCommand(String entity, String command) {
     return command.startsWith(_buildCollectionIdPrefix(entity));
   }
 
-  /// Entity handler
+  /// Creates a new [FestenaoEntityHandler] with the given [app], [entityAccess], and [options].
   FestenaoEntityHandler({
     required this.app,
     required this.entityAccess,
     this.options = const FestenaoEntityHandlerOptions(),
   });
 
-  /// Returns null if not handled
+  /// Handles the command if it's an entity command, otherwise returns null.
   Future<ApiResult?> onCommandOrNull(ApiRequest apiRequest) async {
     var command = apiRequest.command.v!;
     if (command.startsWith(_collectionIdPrefix)) {
@@ -175,6 +194,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
     return null;
   }
 
+  /// Handles the create entity command.
   Future<FsCmsEntityCreateApiResult> onCreateCommand(
     ApiRequest apiRequest,
   ) async {
@@ -202,6 +222,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
     }
   }
 
+  /// Handles the delete entity command.
   Future<FsCmsEntityDeleteApiResult> onDeleteCommand(
     ApiRequest apiRequest,
   ) async {
@@ -217,6 +238,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
     }
   }
 
+  /// Handles the purge entity command.
   Future<FsCmsEntityPurgeApiResult> onPurgeCommand(
     ApiRequest apiRequest,
   ) async {
@@ -232,6 +254,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
     }
   }
 
+  /// Handles the join entity command.
   Future<FsCmsEntityJoinApiResult> onJoinCommand(ApiRequest apiRequest) async {
     {
       var query = apiRequest.query<FsCmsEntityJoinApiQuery<T>>()
@@ -254,6 +277,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
     }
   }
 
+  /// Handles the leave entity command.
   Future<FsCmsEntityLeaveApiResult> onLeaveCommand(
     ApiRequest apiRequest,
   ) async {

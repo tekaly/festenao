@@ -1,9 +1,11 @@
 import 'package:festenao_common/data/festenao_db.dart';
 
+/// Convert a sembast [RecordSnapshot] into a [DbArtist] model if present.
 DbArtist? dbArtistFromSnapshot(
   RecordSnapshot<String, Map<String, Object?>>? snapshot,
 ) => snapshot?.cv<DbArtist>();
 
+/// Parsed information extracted from a [CvAttribute] value.
 class AttributeInfo {
   // artist:<xxx>
   String? artistId;
@@ -42,7 +44,9 @@ class AttributeInfo {
   }
 }
 
+/// Extension to extract structured [AttributeInfo] from a [CvAttribute].
 extension AttributeInfoExt on CvAttribute {
+  /// Parses the attribute value and returns an [AttributeInfo] with detected fields.
   AttributeInfo getAttributeInfo() {
     String? locationInfoId;
     String? artistId;

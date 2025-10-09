@@ -5,47 +5,47 @@ import 'tk_form_question.dart';
 import 'tk_form_question_answer.dart';
 import 'tk_form_question_player.dart';
 
-/// Form Player
+/// Abstraction for a form player which manages questions and answers.
 abstract class TkFormPlayer {
-  /// The form being played
+  /// The form being played.
   TkFormPlayerForm get form;
 
-  /// Form id
+  /// Unique identifier for this player instance.
   String get id;
 
-  /// Question count
+  /// Total number of questions in the form.
   int get questionCount;
 
-  /// Current question index (0 based), start with -1
+  /// Current question index (0-based). Starts at -1 before the first question.
   int get currentQuestionIndex;
 
-  /// Get question by index
+  /// Returns the question at the given [index].
   TkFormPlayerQuestion getQuestion(int index);
 
-  /// Get last known answer by index, (null if not answered)
+  /// Returns the last known answer for the question at [index], or null if none.
   TkFormPlayerQuestionAnswer? getAnswer(int index);
 
-  /// Should skip question
+  /// Whether the question at [index] should be skipped.
   bool shouldSkip(int index);
 
-  /// Set answer
+  /// Sets the answer for the question at [index].
   void setAnswer(int index, TkFormPlayerQuestionAnswer? answer);
 
-  /// Get question player by index
+  /// Returns a [TkFormQuestionPlayer] for the question at [index].
   TkFormQuestionPlayer getQuestionPlayer(int index);
 }
 
-/// Form Player Base
+/// Base implementation of [TkFormPlayer] that stores questions and answers.
 abstract class TkFormPlayerBase implements TkFormPlayer {
   @override
   final TkFormPlayerForm form;
   @override
   int currentQuestionIndex = -1;
 
-  /// question list
+  /// The list of questions in the form.
   final List<TkFormPlayerQuestion> questions;
 
-  /// answer list
+  /// The list of answers corresponding to the questions. May contain nulls.
   late final List<TkFormPlayerQuestionAnswer?> answers = List.filled(
     questionCount,
     null,
@@ -61,7 +61,7 @@ abstract class TkFormPlayerBase implements TkFormPlayer {
   @override
   int get questionCount => questions.length;
 
-  /// Constructor
+  /// Creates a new base form player with the given [id], [questions], and [form].
   TkFormPlayerBase({
     required this.id,
     required this.questions,

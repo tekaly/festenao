@@ -7,6 +7,7 @@ import 'package:tekartik_firebase_firestore/utils/auto_id_generator.dart';
 
 export 'package:tekartik_app_cv_sembast/app_cv_sembast.dart';
 
+/// Initialize database builders for the form local database.
 void fufFormInitDbBuilders() {
   cvAddConstructors([DbSurvey.new, DbDevice.new]);
 
@@ -16,19 +17,26 @@ void fufFormInitDbBuilders() {
 String? _cachedUniqueId;
 
 @visibleForTesting
+/// Clears the cached unique device id (for tests).
 void cleanCachedUniqueDeviceId() {
   _cachedUniqueId = null;
 }
 
+/// Device record stored locally.
 class DbDevice extends DbStringRecordBase {
+  /// Unique device identifier.
   final uniqueId = CvField<String>('uniqueId');
 
   @override
   CvFields get fields => [uniqueId];
 }
 
+/// Local survey record storing metadata and details.
 class DbSurvey extends DbStringRecordBase {
+  /// Last used timestamp for the survey.
   final lastUsedTimestamp = CvField<DbTimestamp>('lastUsedTimestamp');
+
+  /// Survey details model.
   final details = CvModelField<CvSurveyInfoDetails>('details');
 
   @override
@@ -195,8 +203,11 @@ extension TkFormPlayerQuestionAnswerExt on TkFormPlayerQuestionAnswer {
 }
 
 final dbSurveyStore = cvStringStoreFactory.store<DbSurvey>('survey');
+
+/// Generic info store used for device metadata.
 final dbInfoStore = cvStringStoreFactory.store<DbStringRecordBase>('info');
 
+/// Record holding device information in the info store.
 final dbDeviceRecord = dbInfoStore.castV<DbDevice>().record('device');
 
 class LocalDatabase {

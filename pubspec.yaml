@@ -2,8 +2,6 @@ name: _
 publish_to: none
 environment:
   sdk: ^3.9.0
-dependencies:
-  archive: ">=4.0.0"
 workspace:
   - packages/festenao_blur_hash
   - packages/festenao_common
@@ -22,4 +20,5 @@ workspace:
   - packages_flutter/festenao_lyrics_player
   - packages_flutter/festenao_lyrics_player/example/flp_example
   - packages_flutter/festenao_media_base_app
+  - packages_flutter/festenao_google_auth
 
