@@ -32,6 +32,8 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  firebase_ui_auth: ^1.17.0
+  firebase_ui_oauth_google: ^1.4.0
   image:
   festenao_blur_hash:
     git:
