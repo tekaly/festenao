@@ -115,9 +115,9 @@ Future<void> festenaoRunAdminApp({
   await globalFestenaoAdminApp.openPrefs();
 
   globalPackageName = packageName;
+  var dbFactory = getDatabaseFactory(packageName: packageName);
   if (appFirebaseContext != null) {
     if (globalProjectsDbBlocOrNull == null) {
-      var dbFactory = getDatabaseFactory(packageName: packageName);
       var festenaoDb = FestenaoDb(dbFactory);
       // Trigger opening
       try {
@@ -132,6 +132,10 @@ Future<void> festenaoRunAdminApp({
       globalProjectsDbBlocOrNull ??= SingleProjectDbBloc(syncedDb: festenaoDb);
     }
   } else {
+    globalProjectsDbOrNull ??= ProjectsDb(
+      factory: dbFactory,
+      name: '${firebaseContext.firebaseApp.options.projectId}-projects.db',
+    );
     globalProjectsDbBlocOrNull ??= (singleProjectId == null)
         ? MultiProjectsDbBloc(app: app)
         : EnforcedSingleProjectDbBloc(app: app, projectId: singleProjectId);

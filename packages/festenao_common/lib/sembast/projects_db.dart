@@ -174,4 +174,9 @@ class ProjectsDb {
 }
 
 /// Global projects database instance.
-late ProjectsDb globalProjectsDb;
+/// Initialized once and used throughout the admin application.
+ProjectsDb get globalProjectsDb => globalProjectsDbOrNull!;
+ProjectsDb? globalProjectsDbOrNull;
+set globalProjectsDb(ProjectsDb value) {
+  globalProjectsDbOrNull = value;
+}
