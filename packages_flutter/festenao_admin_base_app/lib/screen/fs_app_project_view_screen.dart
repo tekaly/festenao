@@ -1,9 +1,12 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
+import 'package:festenao_admin_base_app/utils/sembast_utils.dart';
 import 'package:festenao_admin_base_app/view/app_path.dart';
+import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
+import 'package:festenao_common/sembast/projects_db.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
@@ -96,6 +99,7 @@ class FsAppProjectViewScreenState
         var canDelete = fsProject != null;
         //var canLeave = project != null;
         var projectName = fsProject?.name.v;
+        var identity = state?.identity;
         /*
           var noteDescription = note?.description.v;
           var noteContent = note?.content.v;*/
@@ -219,6 +223,27 @@ class FsAppProjectViewScreenState
                                 ),
                               ),
                             ),
+                            if (identity is TkCmsFbIdentityServiceAccount) ...[
+                              const SizedBox(height: 32),
+                              ListTile(
+                                title: const Text(
+                                  'Add to service account projects',
+                                ),
+                                dense: true,
+                                trailing: const Icon(Icons.add),
+                                onTap: () async {
+                                  await globalProjectsDb.addProject(
+                                    DbProject()..fromFirestore(
+                                      fsProject: fsProject,
+                                      projectAccess: TkCmsFsUserAccess.admin(),
+                                      userId: TkCmsFbIdentityServiceAccount
+                                          .userLocalId,
+                                    ),
+                                  );
+                                  bloc.refresh();
+                                },
+                              ),
+                            ],
                             const SizedBox(height: 64),
                           ],
                         ),

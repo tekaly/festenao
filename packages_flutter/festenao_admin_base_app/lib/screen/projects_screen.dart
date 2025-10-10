@@ -50,7 +50,7 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
               }
               var projects = state.projects;
               return WithHeaderFooterListView.builder(
-                footer: state.user == null
+                footer: state.identity == null
                     ? const BodyContainer(
                         child: BodyHPadding(
                           child: Center(

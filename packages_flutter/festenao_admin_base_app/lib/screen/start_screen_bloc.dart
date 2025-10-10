@@ -1,9 +1,9 @@
 import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
+import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
-import 'package:tkcms_common/tkcms_auth.dart';
 
 class StartScreenBlocState {
   final TkCmsFbIdentity? identity;
@@ -29,18 +29,18 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
   // ignore: cancel_subscriptions
   StreamSubscription? _dbSubscription;
 
-  String? _dbUserId;
+  String? _dbIdentityId;
   StartScreenBloc() {
     () async {
       audiAddStreamSubscription(
         globalTkCmsFbIdentityBloc.state.listen((state) {
           _lock.synchronized(() async {
             var identity = state.identity;
-            if (identity is TkCmsFbIdentityUser) {
-              var user = identity.user;
-              var userId = user.uid;
-              if (userId != _dbUserId) {
-                _dbUserId = userId;
+            if (identity != null) {
+              var identityId = identity.userOrAccountId!;
+
+              if (identityId != _dbIdentityId) {
+                _dbIdentityId = identityId;
 
                 if (globalProjectsDbBloc is EnforcedSingleProjectDbBloc) {
                   var dbBloc =
@@ -60,7 +60,7 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
                 /// Show identification first, if db projects are not synchronized yet
                 add(StartScreenBlocState(projects: null, identity: identity));
                 _dbSubscription = audiAddStreamSubscription(
-                  globalProjectsDb.onProjects(userId: userId).listen((
+                  globalProjectsDb.onProjects(userId: identityId).listen((
                     projects,
                   ) {
                     add(
@@ -102,7 +102,7 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
                     }),
               );*/
             } else {
-              _dbUserId = null;
+              _dbIdentityId = null;
 
               add(StartScreenBlocState(identity: identity, projects: null));
             }

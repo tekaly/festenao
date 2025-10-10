@@ -145,6 +145,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
         var canDelete = project?.isAdmin ?? false;
         //var canLeave = project != null;
         var projectName = project?.name.v;
+        // var identity = state?.identity;
         /*
           var noteDescription = note?.description.v;
           var noteContent = note?.content.v;*/
@@ -260,6 +261,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                 ),
                               ),
                             ),
+
                             const SizedBox(height: 64),
                           ],
                         ),

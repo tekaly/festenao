@@ -114,14 +114,17 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                                 );
                               },
                             ),
-                          GoToTile(
-                            titleLabel: 'All projects',
-                            onTap: () {
-                              goToProjectsScreen(context);
-                            },
-                          ),
                         ],
                       ],
+                      if (identity is TkCmsFbIdentity) ...[
+                        GoToTile(
+                          titleLabel: 'All my projects',
+                          onTap: () {
+                            goToProjectsScreen(context);
+                          },
+                        ),
+                      ],
+
                       const TilePadding(child: Divider()),
                       if (hasAdminCredentials) ...[
                         if (globalFestenaoFirestoreDatabaseOrNull != null)

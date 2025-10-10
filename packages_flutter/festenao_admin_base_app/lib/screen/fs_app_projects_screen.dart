@@ -32,7 +32,9 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
         var state = snapshot.data;
         return FestenaoAdminAppScaffold(
           appBar: AppBar(
-            title: const Text('Project'), // appIntl(context).ProjectsTitle),
+            title: const Text(
+              'Firestore Projects',
+            ), // appIntl(context).ProjectsTitle),
             /*actions: [
                 IconButton(
                     onPressed: () {

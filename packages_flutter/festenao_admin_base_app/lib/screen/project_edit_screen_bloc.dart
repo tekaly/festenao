@@ -1,22 +1,23 @@
-import 'package:festenao_admin_base_app/auth/auth_bloc.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/utils/sembast_utils.dart';
-import 'package:festenao_common/data/festenao_firestore.dart';
+import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:tkcms_common/tkcms_audi.dart';
-import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_common.dart';
+import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// Projects screen bloc state
 class ProjectEditScreenBlocState {
+  final TkCmsFbIdentity? identity;
+
   /// User
-  final FirebaseUser? user;
+  FirebaseUser? get user => identity?.user;
 
   /// Projects
   final DbProject? project;
 
   /// Projects screen bloc state
-  ProjectEditScreenBlocState({this.project, this.user});
+  ProjectEditScreenBlocState({this.project, this.identity});
 }
 
 /// Projects screen bloc
@@ -28,16 +29,17 @@ class ProjectEditScreenBloc
   bool get isCreate => project == null;
 
   FirebaseUser? firebaseUser;
+  TkCmsFbIdentity? firebaseIdentity;
 
   /// Projects screen bloc
   ProjectEditScreenBloc({this.project}) {
     () async {
-      var user = ((await globalAuthBloc.state.first).user);
-      if (user == null) {
+      var identity = firebaseIdentity =
+          ((await globalTkCmsFbIdentityBloc.state.first).identity);
+      if (identity == null) {
         add(ProjectEditScreenBlocState());
       } else {
-        firebaseUser = user;
-        add(ProjectEditScreenBlocState(project: project, user: user));
+        add(ProjectEditScreenBlocState(project: project, identity: identity));
       }
     }();
   }
@@ -48,21 +50,35 @@ class ProjectEditScreenBloc
     var firestore = fsDb.firestore;
     if (isCreate) {
       var fsProject = FsProject()..name.setValue(project.name.v);
-      var userId = firebaseUser!.uid;
+      var identity = firebaseIdentity;
+      var userId = firebaseUser?.uid;
+
       var projectUid = await fsDb.projectDb.createEntity(
         userId: userId,
         entity: fsProject,
       );
-      var userProjectAccess = await fsDb.projectDb
-          .fsUserEntityAccessRef(userId, projectUid)
-          .get(firestore);
-      var newDbProject = DbProject()
-        ..fromFirestore(
-          fsProject: fsProject,
-          projectAccess: userProjectAccess,
-          userId: userId,
-        );
-      await globalProjectsDb.addProject(newDbProject);
+      if (userId == null) {
+        var newDbProject = DbProject()
+          ..fromFirestore(
+            fsProject: fsProject,
+            projectId: projectUid,
+            projectAccess: TkCmsFsUserAccess.admin(),
+            userId: identity!.userLocalId!,
+          );
+        await globalProjectsDb.addProject(newDbProject);
+      } else {
+        var userProjectAccess = await fsDb.projectDb
+            .fsUserEntityAccessRef(userId, projectUid)
+            .get(firestore);
+        var newDbProject = DbProject()
+          ..fromFirestore(
+            fsProject: fsProject,
+            projectId: projectUid,
+            projectAccess: userProjectAccess,
+            userId: userId,
+          );
+        await globalProjectsDb.addProject(newDbProject);
+      }
     } else {
       await firestore.cvRunTransaction((txn) async {
         var fsProjectRef = fsDb.projectDb.fsEntityRef(project.fsId);

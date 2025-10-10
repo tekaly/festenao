@@ -7,13 +7,18 @@ extension DbProjectUtils on DbProject {
   /// Update the [DbProject] from a [FsProject]
   void fromFirestore({
     required FsProject fsProject,
-    required TkCmsFsUserAccess projectAccess,
+
+    /// Optional can be need after a create
+    String? projectId,
+    required TkCmsFsUserAccess? projectAccess,
     required String userId,
   }) {
     name.v = fsProject.name.v;
-    uid.v = fsProject.id;
-    this.userId.v = userId;
-    userAccessFields.fromCvFields(projectAccess.userAccessFields);
+    uid.v = projectId ?? fsProject.id;
+    this.userId.setValue(userId);
+    if (projectAccess != null) {
+      userAccessFields.fromCvFields(projectAccess.userAccessFields);
+    }
   }
 
   /// Check if the [DbProject] need to be updated from another [DbProject]

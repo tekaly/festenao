@@ -7,7 +7,7 @@ import 'package:tekartik_common_utils/stream/stream_join.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 
 class FsAppProjectViewScreenBlocState {
-  final TkCmsFbIdentity? user;
+  final TkCmsFbIdentity? identity;
 
   /// Optional, if the project is not found in the local database
   final FsProject? fsProject;
@@ -16,7 +16,7 @@ class FsAppProjectViewScreenBlocState {
   final TkCmsFsUserAccess? fsUserAccess;
 
   FsAppProjectViewScreenBlocState({
-    this.user,
+    this.identity,
     this.fsProject,
     this.fsUserAccess,
   });
@@ -68,7 +68,7 @@ class FsAppProjectViewScreenBloc
         var fsUserAccess = values.$2;
         add(
           FsAppProjectViewScreenBlocState(
-            user: fbIdentity,
+            identity: fbIdentity,
             fsProject: fsProject,
             fsUserAccess: fsUserAccess,
           ),
@@ -79,7 +79,7 @@ class FsAppProjectViewScreenBloc
 
   @override
   void handleNoIdentity() {
-    add(FsAppProjectViewScreenBlocState(user: null));
+    add(FsAppProjectViewScreenBlocState(identity: null));
   }
 
   Future<void> deleteProject(String projectId) async {
