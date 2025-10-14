@@ -122,12 +122,14 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
 Future<void> goToAdminInfosScreen(
   BuildContext context, {
   required FestenaoAdminAppProjectContext projectContext,
+  TransitionDelegate? transitionDelegate,
 }) async {
   if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
       projectContext: projectContext,
       contentPath: ProjectInfosContentPath(),
+      transitionDelegate: transitionDelegate,
     );
   } else {
     await Navigator.of(context).push<void>(

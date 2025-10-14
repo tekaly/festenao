@@ -252,6 +252,7 @@ Future<void> popAndGoToProjectSubScreen(
   BuildContext context, {
   required FestenaoAdminAppProjectContext projectContext,
   required AdminAppRootProjectContextPath contentPath,
+  TransitionDelegate? transitionDelegate,
 }) async {
   var projectId = projectContext.projectId;
   var cn = ContentNavigator.of(context);
@@ -270,5 +271,9 @@ Future<void> popAndGoToProjectSubScreen(
   await sleep(300);
   await cn.pushPath<void>(contentPath..project.value = projectContext.projectId,
       transitionDelegate: const NoAnimationTransitionDelegate());*/
-  cn.popUntilPathOrPush(context, nextContentPath);
+  cn.popUntilPathOrPush(
+    context,
+    nextContentPath,
+    transitionDelegate: transitionDelegate,
+  );
 }

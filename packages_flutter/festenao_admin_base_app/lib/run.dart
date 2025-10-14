@@ -107,6 +107,15 @@ Future<void> festenaoRunAdminApp({
   gFsDatabaseService = fsDatabase;
   globalTkCmsAdminAppFlavorContext = appFlavorContext;
 
+  var appRootPath = fsAppRoot(fsDatabase.app).path;
+  // print('appRootPath: $appRootPath');
+  globalFestenaoAppFirebaseContextOrNull ??= FestenaoAppFirebaseContext(
+    storageRootPath: appRootPath,
+    firestoreRootPath: appRootPath,
+    storageBucket:
+        firebaseContext.firebaseApp.options.storageBucket ??
+        '${firebaseContext.firebaseApp.options.appId}.appspot.com',
+  );
   globalFestenaoFirestoreDatabaseOrNull ??= fsDatabase;
   gAuthBloc = TkCmsAuthBloc.local(db: fsDatabase, prefs: prefs);
 

@@ -57,12 +57,14 @@ class _AdminMetasScreenState extends State<AdminMetasScreen> {
 Future<void> goToAdminMetasScreen(
   BuildContext context, {
   required FestenaoAdminAppProjectContext projectContext,
+  TransitionDelegate? transitionDelegate,
 }) async {
   if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
       projectContext: projectContext,
       contentPath: ProjectMetasContentPath(),
+      transitionDelegate: transitionDelegate,
     );
   } else {
     await Navigator.of(context).push<void>(

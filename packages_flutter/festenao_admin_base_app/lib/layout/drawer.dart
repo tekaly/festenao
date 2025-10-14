@@ -111,7 +111,11 @@ class _ListDrawerState extends State<ListDrawer> {
           ListTile(
             title: const Text('Metas'),
             onTap: () {
-              goToAdminMetasScreen(context, projectContext: appProjectContext);
+              goToAdminMetasScreen(
+                context,
+                projectContext: appProjectContext,
+                transitionDelegate: const NoAnimationTransitionDelegate(),
+              );
             },
           ),
           ListTile(
@@ -126,13 +130,21 @@ class _ListDrawerState extends State<ListDrawer> {
           ListTile(
             title: const Text('Events'),
             onTap: () {
-              goToAdminEventsScreen(context, projectContext: appProjectContext);
+              goToAdminEventsScreen(
+                context,
+                projectContext: appProjectContext,
+                transitionDelegate: const NoAnimationTransitionDelegate(),
+              );
             },
           ),
           ListTile(
             title: const Text('Images'),
             onTap: () {
-              goToAdminImagesScreen(context, projectContext: appProjectContext);
+              goToAdminImagesScreen(
+                context,
+                projectContext: appProjectContext,
+                transitionDelegate: const NoAnimationTransitionDelegate(),
+              );
             },
           ),
           ListTile(
@@ -141,6 +153,7 @@ class _ListDrawerState extends State<ListDrawer> {
               await goToAdminInfosScreen(
                 context,
                 projectContext: appProjectContext,
+                transitionDelegate: const NoAnimationTransitionDelegate(),
               );
             },
           ),
@@ -150,6 +163,7 @@ class _ListDrawerState extends State<ListDrawer> {
               await goToAdminExportsScreen(
                 context,
                 projectContext: appProjectContext,
+                transitionDelegate: const NoAnimationTransitionDelegate(),
               );
             },
           ),
@@ -159,6 +173,7 @@ class _ListDrawerState extends State<ListDrawer> {
               await goToAdminUsersScreen(
                 context,
                 projectId: appProjectContext.projectId,
+                transitionDelegate: const NoAnimationTransitionDelegate(),
               );
             },
           ),

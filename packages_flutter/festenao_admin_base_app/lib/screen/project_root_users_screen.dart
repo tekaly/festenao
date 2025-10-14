@@ -92,10 +92,12 @@ class _AdminUsersScreenState extends AutoDisposeBaseState<AdminUsersScreen> {
 Future<void> goToAdminUsersScreen(
   BuildContext context, {
   required String projectId,
+  TransitionDelegate? transitionDelegate,
 }) async {
   await popAndGoToProjectSubScreen(
     context,
     projectContext: ByProjectIdAdminAppProjectContext(projectId: projectId),
     contentPath: ProjectUsersContentPath(),
+    transitionDelegate: transitionDelegate,
   );
 }
