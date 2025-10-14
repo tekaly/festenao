@@ -118,10 +118,8 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                                 onTap: () {
                                   goToAdminMetasScreen(
                                     context,
-                                    projectContext:
-                                        ByProjectIdAdminAppProjectContext(
-                                          projectId: bloc.projectId,
-                                        ),
+
+                                    projectContext: bloc.projectContext,
                                   );
                                 },
                               ),

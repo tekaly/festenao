@@ -161,12 +161,14 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
 Future<void> goToAdminArtistsScreen(
   BuildContext context, {
   required FestenaoAdminAppProjectContext projectContext,
+  TransitionDelegate? transitionDelegate,
 }) async {
   if (festenaoUseContentPathNavigation) {
     await popAndGoToProjectSubScreen(
       context,
       projectContext: projectContext,
       contentPath: ProjectArtistsContentPath(),
+      transitionDelegate: transitionDelegate,
     );
   } else {
     await Navigator.of(context).push<void>(

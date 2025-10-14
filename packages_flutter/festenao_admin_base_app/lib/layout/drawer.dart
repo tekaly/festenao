@@ -21,6 +21,10 @@ VoidCallback? get adminParentAction => adminGoToAppParentAction;
 
 set adminParentAction(VoidCallback? value) => adminGoToAppParentAction = value;
 
+TransitionDelegate? drawerAnimationTransitionDelegate;
+
+//const NoAnimationTransitionDelegate();
+// transitionDelegate: const NoAnimationTransitionDelegate());
 class ListDrawer extends StatefulWidget {
   final bool isPopupDrawer;
   final bool? content;
@@ -114,7 +118,7 @@ class _ListDrawerState extends State<ListDrawer> {
               goToAdminMetasScreen(
                 context,
                 projectContext: appProjectContext,
-                transitionDelegate: const NoAnimationTransitionDelegate(),
+                transitionDelegate: drawerAnimationTransitionDelegate,
               );
             },
           ),
@@ -124,6 +128,7 @@ class _ListDrawerState extends State<ListDrawer> {
               await goToAdminArtistsScreen(
                 context,
                 projectContext: appProjectContext,
+                transitionDelegate: drawerAnimationTransitionDelegate,
               );
             },
           ),
@@ -133,7 +138,7 @@ class _ListDrawerState extends State<ListDrawer> {
               goToAdminEventsScreen(
                 context,
                 projectContext: appProjectContext,
-                transitionDelegate: const NoAnimationTransitionDelegate(),
+                transitionDelegate: drawerAnimationTransitionDelegate,
               );
             },
           ),
@@ -143,7 +148,7 @@ class _ListDrawerState extends State<ListDrawer> {
               goToAdminImagesScreen(
                 context,
                 projectContext: appProjectContext,
-                transitionDelegate: const NoAnimationTransitionDelegate(),
+                transitionDelegate: drawerAnimationTransitionDelegate,
               );
             },
           ),
@@ -153,7 +158,7 @@ class _ListDrawerState extends State<ListDrawer> {
               await goToAdminInfosScreen(
                 context,
                 projectContext: appProjectContext,
-                transitionDelegate: const NoAnimationTransitionDelegate(),
+                transitionDelegate: drawerAnimationTransitionDelegate,
               );
             },
           ),
@@ -163,7 +168,7 @@ class _ListDrawerState extends State<ListDrawer> {
               await goToAdminExportsScreen(
                 context,
                 projectContext: appProjectContext,
-                transitionDelegate: const NoAnimationTransitionDelegate(),
+                transitionDelegate: drawerAnimationTransitionDelegate,
               );
             },
           ),
@@ -173,7 +178,7 @@ class _ListDrawerState extends State<ListDrawer> {
               await goToAdminUsersScreen(
                 context,
                 projectId: appProjectContext.projectId,
-                transitionDelegate: const NoAnimationTransitionDelegate(),
+                transitionDelegate: drawerAnimationTransitionDelegate,
               );
             },
           ),

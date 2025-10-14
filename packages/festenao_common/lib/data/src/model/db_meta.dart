@@ -14,11 +14,13 @@ class DbMetaGeneral extends DbMeta {
   /// General name for the meta record.
   late final name = CvField<String>('name');
 
+  late final description = CvField<String>('description');
+
   /// Tags associated with the meta record.
   late final tags = CvListField<String>('tags');
 
   @override
-  late final List<CvField<Object?>> fields = [name, tags];
+  late final List<CvField<Object?>> fields = [name, description, tags];
 }
 
 /// Default model instance for general meta.

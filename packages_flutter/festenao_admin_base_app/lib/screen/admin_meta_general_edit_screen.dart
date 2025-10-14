@@ -51,6 +51,7 @@ class _AdminMetaGeneralEditScreenState
   var controllerInitialized = false;
   late TextEditingController tagsController;
   late TextEditingController nameController;
+  late TextEditingController descriptionController;
   DbMeta? lastMeta;
 
   @override
@@ -82,12 +83,19 @@ class _AdminMetaGeneralEditScreenState
                 nameController = audiAddTextEditingController(
                   TextEditingController(text: meta.name.v),
                 );
+                descriptionController = audiAddTextEditingController(
+                  TextEditingController(text: meta.description.v),
+                );
               }
 
               var children = <Widget>[
                 AppTextFieldTile(
                   labelText: meta.name.key,
                   controller: nameController,
+                ),
+                AppTextFieldTile(
+                  labelText: meta.description.key,
+                  controller: descriptionController,
                 ),
               ];
 
@@ -112,7 +120,10 @@ class _AdminMetaGeneralEditScreenState
                     var result = await busyAction(() async {
                       var meta = state.meta;
                       var name = nameController.text.trimmedNonEmpty();
+                      var description = descriptionController.text
+                          .trimmedNonEmpty();
                       meta.name.setValue(name);
+                      meta.description.setValue(description);
 
                       var tags = tagsController.text
                           .trimmedNonEmpty()
