@@ -87,7 +87,8 @@ void main() {
         ..fillModel(cvSembastFillOptions1);
       expect(record.toMap(), {
         'name': 'text_1',
-        'tags': ['text_2'],
+        'description': 'text_2',
+        'tags': ['text_3'],
       });
     });
   });
