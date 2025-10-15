@@ -32,7 +32,8 @@ class ProjectRootScreenBloc
 
   ProjectRootScreenBloc({required this.projectId}) {
     () async {
-      if (globalProjectsDbBloc is SingleProjectDbBloc) {
+      /*
+      if (globalProjectsDbBloc is SingleCompatProjectDbBloc) {
         add(
           ProjectRootScreenBlocState(
             project: DbProject()
@@ -41,7 +42,7 @@ class ProjectRootScreenBloc
           ),
         );
         return;
-      }
+      }*/
 
       audiAddStreamSubscription(
         globalTkCmsFbIdentityBloc.state.listen((state) {
@@ -57,31 +58,34 @@ class ProjectRootScreenBloc
                 _projectSubscription?.cancel().unawait();
                 _dbIdentityId = newDbIdentityId;
 
-                _projectSubscription = audiAddStreamSubscription(
-                  globalProjectsDb
-                      .onProject(projectId, userId: newDbIdentityId!)
-                      .listen((event) async {
-                        var project = event;
-                        add(
-                          ProjectRootScreenBlocState(
-                            project: project,
-                            identity: identity,
-                          ),
-                        );
-                        if (project == null && !_syncTriedOnce) {
-                          _syncTriedOnce = true;
-                          var synchronizer = ProjectsDbSynchronizer(
-                            projectsDb: globalProjectsDb,
-                            fsProjects:
-                                globalFestenaoFirestoreDatabase.projectDb,
+                var projectsDb = globalProjectsDbOrNull;
+                if (projectsDb != null) {
+                  _projectSubscription = audiAddStreamSubscription(
+                    globalProjectsDb
+                        .onProject(projectId, userId: newDbIdentityId!)
+                        .listen((event) async {
+                          var project = event;
+                          add(
+                            ProjectRootScreenBlocState(
+                              project: project,
+                              identity: identity,
+                            ),
                           );
-                          await synchronizer.syncOne(
-                            projectId: projectId,
-                            userId: newDbIdentityId,
-                          );
-                        }
-                      }),
-                );
+                          if (project == null && !_syncTriedOnce) {
+                            _syncTriedOnce = true;
+                            await _syncProjectInProjectsDb();
+                          }
+                        }),
+                  );
+                } else {
+                  // No projects db, assume single project mode
+                  add(
+                    ProjectRootScreenBlocState(
+                      project: DbProject()..uid.v = projectId,
+                      identity: identity,
+                    ),
+                  );
+                }
               }
             }
           });
@@ -90,10 +94,24 @@ class ProjectRootScreenBloc
     }();
   }
 
-  Future<void> sync() async {
+  Future<void> _syncProjectInProjectsDb() async {
+    var synchronizer = ProjectsDbSynchronizer(
+      projectsDb: globalProjectsDb,
+      fsProjects: globalFestenaoFirestoreDatabase.projectDb,
+    );
+    await synchronizer.syncOne(projectId: projectId, userId: _dbIdentityId!);
+  }
+
+  Future<SyncedSyncStat> sync() async {
+    var projectDbBloc = globalProjectsDbBloc;
+    var identityId = _dbIdentityId;
+    if (identityId == null) {
+      throw StateError('No identity');
+    }
+
     /// Only for single project mode with a predefined synced db
-    if (globalProjectsDbBloc is SingleProjectDbBloc) {
-      var syncedDb = (globalProjectsDbBloc as SingleProjectDbBloc).syncedDb;
+    if (projectDbBloc is SingleCompatProjectDbBloc) {
+      var syncedDb = projectDbBloc.syncedDb;
 
       var synchronizer = SyncedDbSynchronizer(
         db: syncedDb,
@@ -102,8 +120,18 @@ class ProjectRootScreenBloc
           rootPath: globalFestenaoAppFirebaseContext.firestoreRootPath,
         ),
       );
-      await synchronizer.sync();
+      return await synchronizer.sync();
       //(globalProjectsDbBloc as SingleProjectDbBloc).syncedDb.sync();
+    } else if (projectDbBloc is MultiProjectsDbBloc) {
+      var contentDb = await projectDbBloc.grabContentDbOrNull(
+        userId: identityId,
+        projectId: projectId,
+      );
+      if (contentDb == null) {
+        throw StateError('No content db for $projectId');
+      }
+      return await contentDb.contentDb.synchronize();
     }
+    throw StateError('Cannot sync for $projectDbBloc');
   }
 }

@@ -2,6 +2,7 @@ import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_projects_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_users_screen.dart';
+import 'package:festenao_admin_base_app/view/app_identity_info_tile.dart';
 
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:flutter/material.dart';
@@ -109,6 +110,7 @@ class FsAppViewScreenState extends AutoDisposeBaseState<FsAppViewScreen>
               title: Text(appName),
               subtitle: Text(app.id),
             ),
+          const AppIdentityInfoTile(),
         ];
 
         return PopScope(

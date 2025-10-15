@@ -1,44 +1,59 @@
 import 'dart:async';
 
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
+import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
-class AdminUsersScreenParam {
+class AdminProjectUsersScreenParam {
   final String id;
 
-  AdminUsersScreenParam({required this.id});
+  AdminProjectUsersScreenParam({required this.id});
 }
 
-class AdminUsersScreenBlocState {
-  AdminUsersScreenBlocState(this.users);
+class AdminProjectUsersScreenBlocState {
+  AdminProjectUsersScreenBlocState(this.users);
 
-  final List<TkCmsFsUserAccess> users;
+  final List<TkCmsEditedFsUserAccess> users;
 }
 
-class AdminUsersScreenBloc
-    extends AutoDisposeStateBaseBloc<AdminUsersScreenBlocState> {
-  final AdminUsersScreenParam param;
+/// Fix the project id (compat only)
+String adminProjectFixProjectId(String projectId) {
+  var dbBloc = globalProjectsDbBlocOrNull;
+  if (dbBloc is SingleCompatProjectDbBloc) {
+    projectId = dbBloc.projectId;
+  }
+  return projectId;
+}
 
-  List<TkCmsFsUserAccess>? users;
+class AdminProjectUsersScreenBloc
+    extends AutoDisposeStateBaseBloc<AdminProjectUsersScreenBlocState> {
+  final AdminProjectUsersScreenParam param;
+
+  List<TkCmsEditedFsUserAccess>? users;
 
   late StreamSubscription _usersSubscription;
-  TrackChangesSupportOptionsController? _supportOptionsController;
+  final _supportOptionsController = TrackChangesSupportOptionsController();
 
   void trigger() {
     if (users != null) {
-      add(AdminUsersScreenBlocState(users!));
+      add(AdminProjectUsersScreenBlocState(users!));
     }
   }
 
-  AdminUsersScreenBloc({required this.param}) {
+  late final projectId = adminProjectFixProjectId(param.id);
+
+  late final CvCollectionReference<TkCmsEditedFsUserAccess> usersRef;
+  AdminProjectUsersScreenBloc({required this.param}) {
     var fsDb = globalFestenaoFirestoreDatabase.projectDb;
 
+    var collectionRef = usersRef = fsDb
+        .fsEntityUserAccessCollectionRef(projectId)
+        .cast<TkCmsEditedFsUserAccess>();
     _usersSubscription = audiAddStreamSubscription(
-      fsDb
-          .fsEntityUserAccessCollectionRef(param.id)
+      collectionRef
           .onSnapshotsSupport(
             fsDb.firestore,
             options: _supportOptionsController,
@@ -50,8 +65,10 @@ class AdminUsersScreenBloc
     );
   }
 
+  String get usersPath => usersRef.path;
+
   void refresh() {
-    _supportOptionsController?.trigger();
+    _supportOptionsController.trigger();
   }
 
   @override

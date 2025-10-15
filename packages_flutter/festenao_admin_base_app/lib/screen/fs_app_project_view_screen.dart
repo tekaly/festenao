@@ -2,6 +2,7 @@ import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/utils/sembast_utils.dart';
+import 'package:festenao_admin_base_app/view/app_identity_info_tile.dart';
 import 'package:festenao_admin_base_app/view/app_path.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/festenao_firestore.dart';
@@ -95,8 +96,9 @@ class FsAppProjectViewScreenState
         var state = snapshot.data;
         var fsProject = state?.fsProject;
         var fsProjectAccess = state?.fsUserAccess;
+        var fsAppUserAccess = state?.fsAppUserAccess;
         var canEdit = fsProject != null;
-        var canDelete = fsProject != null;
+        var canDelete = fsProject != null && (state?.isAdmin ?? false);
         //var canLeave = project != null;
         var projectName = fsProject?.name.v;
         var identity = state?.identity;
@@ -112,25 +114,32 @@ class FsAppProjectViewScreenState
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ),
-          if (fsProject != null)
-            ListTile(
-              //leading: ProjectLeading(project: project),
-              title: Text(fsProject.id),
-
-              subtitle: accessText(
-                intl,
-                fsProjectAccess ?? TkCmsFsUserAccess(),
-              ),
-            ),
+          const AppIdentityInfoTile(),
 
           if (fsProject != null) ...[
             ListTile(
               //leading: ProjectLeading(project: project),
               title: Text(projectName ?? ''),
 
-              subtitle: accessText(
-                intl,
-                fsProjectAccess ?? TkCmsFsUserAccess(),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(fsProject.id),
+                  if (identity?.isUser ?? false) ...[
+                    Text(
+                      accessString(
+                        intl,
+                        fsProjectAccess ?? TkCmsFsUserAccess(),
+                      ),
+                    ),
+                    Text(
+                      accessString(
+                        intl,
+                        fsAppUserAccess ?? TkCmsFsUserAccess(),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ],

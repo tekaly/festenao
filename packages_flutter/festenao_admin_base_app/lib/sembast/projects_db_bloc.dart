@@ -22,17 +22,26 @@ abstract class GrabbedContentDb {
 }
 
 /// Compat
-abstract class SingleProjectDbBloc implements ProjectsDbBloc {
+typedef SingleProjectDbBloc = SingleCompatProjectDbBloc;
+
+/// Compat
+abstract class SingleCompatProjectDbBloc implements ProjectsDbBloc {
+  String get projectId;
   SyncedDb get syncedDb;
-  factory SingleProjectDbBloc({required SyncedDb syncedDb}) =>
-      _SingleProjectDbBloc(syncedDb: syncedDb);
+  factory SingleCompatProjectDbBloc({
+    required SyncedDb syncedDb,
+    required String projectPath,
+  }) => _SingleProjectDbBloc(syncedDb: syncedDb, projectPath: projectPath);
 }
 
-class _SingleProjectDbBloc implements SingleProjectDbBloc {
+class _SingleProjectDbBloc implements SingleCompatProjectDbBloc {
+  @override
+  late final projectId = url.split(projectPath).last;
+  final String projectPath;
   @override
   final SyncedDb syncedDb;
 
-  _SingleProjectDbBloc({required this.syncedDb});
+  _SingleProjectDbBloc({required this.syncedDb, required this.projectPath});
 }
 
 /// Enforced single app projectId

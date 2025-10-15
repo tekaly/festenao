@@ -187,6 +187,10 @@
   "@markdownGuideTitle": {
     "description": "Markdown guide title"
   },
+  "nameLabel": "Name",
+  "@nameLabel": {
+    "description": "Name label"
+  },
   "nameRequired": "Name is required",
   "@nameRequired": {
     "description": "Name required error message"

@@ -10,9 +10,10 @@ import 'package:festenao_admin_base_app/screen/project_root_users_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/view/entry_tile.dart';
+import 'package:festenao_admin_base_app/view/identity_info_tile.dart';
 import 'package:festenao_admin_base_app/view/info_tile.dart';
-import 'package:festenao_admin_base_app/view/not_signed_in_tile.dart';
 import 'package:festenao_admin_base_app/view/tile_padding.dart';
+import 'package:festenao_base_app/import/ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
@@ -171,17 +172,20 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                               EntryTile(
                                 label: 'Users',
                                 onTap: () async {
-                                  await goToAdminUsersScreen(
+                                  await goToAdminProjectUsersScreen(
                                     context,
-                                    projectId: bloc.projectId,
+                                    projectContext: bloc.projectContext,
                                   );
                                 },
                               ),
                               const TilePadding(child: Divider()),
                               EntryTile(
-                                label: 'Sync (single)',
+                                label: 'Sync',
                                 onTap: () async {
-                                  await bloc.sync();
+                                  var result = await bloc.sync();
+                                  if (context.mounted) {
+                                    await muiSnack(context, '$result');
+                                  }
                                 },
                               ),
                               const TilePadding(child: Divider()),

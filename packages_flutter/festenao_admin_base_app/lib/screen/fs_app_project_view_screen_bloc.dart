@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/auth/app_auth_bloc.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_view_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/fs_apps_screen_bloc.dart';
@@ -13,13 +14,21 @@ class FsAppProjectViewScreenBlocState {
   final FsProject? fsProject;
 
   /// Project view screen bloc state
+  final TkCmsFsUserAccess? fsAppUserAccess;
+
+  /// Project view screen bloc state
   final TkCmsFsUserAccess? fsUserAccess;
 
   FsAppProjectViewScreenBlocState({
     this.identity,
     this.fsProject,
     this.fsUserAccess,
+    this.fsAppUserAccess,
   });
+
+  bool get isAdmin =>
+      (identity is TkCmsFbIdentityServiceAccount) ||
+      ((fsAppUserAccess?.isAdmin ?? false) || (fsUserAccess?.isAdmin ?? false));
 }
 
 class FsAppProjectViewScreenBloc
@@ -53,7 +62,7 @@ class FsAppProjectViewScreenBloc
     var fsDb = ffdb.projectDb;
     var firestore = globalFestenaoFirestoreDatabase.firestore;
     fsSubscription = audiAddStreamSubscription(
-      streamJoin2OrError(
+      streamJoin3OrError(
         fsDb
             .fsEntityRef(projectId)
             .onSnapshotSupport(firestore, options: fsController1),
@@ -62,15 +71,20 @@ class FsAppProjectViewScreenBloc
                   .fsUserEntityAccessRef(userId!, projectId)
                   .onSnapshotSupport(firestore, options: fsController2)
             : Stream.value(TkCmsFsUserAccess()),
+        (userId != null)
+            ? globalFestenaoAppAuthBloc.state
+            : Stream.value(AppAuthBlocState(identity: null)),
       ).listen((event) {
         var values = event.values;
         var fsProject = values.$1;
         var fsUserAccess = values.$2;
+        var appAuthState = values.$3;
         add(
           FsAppProjectViewScreenBlocState(
             identity: fbIdentity,
             fsProject: fsProject,
             fsUserAccess: fsUserAccess,
+            fsAppUserAccess: appAuthState?.userAccess,
           ),
         );
       }),

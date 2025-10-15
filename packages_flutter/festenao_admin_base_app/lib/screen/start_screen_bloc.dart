@@ -37,15 +37,25 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
           _lock.synchronized(() async {
             var identity = state.identity;
             if (identity != null) {
-              var identityId = identity.userOrAccountId!;
+              var identityId = identity.userOrAccountId;
 
               if (identityId != _dbIdentityId) {
                 _dbIdentityId = identityId;
 
-                if (globalProjectsDbBloc is EnforcedSingleProjectDbBloc) {
-                  var dbBloc =
-                      globalProjectsDbBloc as EnforcedSingleProjectDbBloc;
+                var dbBloc = globalProjectsDbBlocOrNull;
+                if (dbBloc is EnforcedSingleProjectDbBloc) {
                   var projectId = dbBloc.enforcedProjectId;
+                  add(
+                    StartScreenBlocState(
+                      projects: null,
+                      enforcedProjectId: projectId,
+                      identity: identity,
+                    ),
+                  );
+                  return;
+                } else if (dbBloc is SingleCompatProjectDbBloc) {
+                  var projectId =
+                      ByProjectIdAdminAppProjectContext.mainProjectId;
                   add(
                     StartScreenBlocState(
                       projects: null,
@@ -57,20 +67,24 @@ class StartScreenBloc extends AutoDisposeStateBaseBloc<StartScreenBlocState> {
                 }
                 audiDispose(_dbSubscription);
 
+                var projectsDb = globalProjectsDbOrNull;
+
                 /// Show identification first, if db projects are not synchronized yet
                 add(StartScreenBlocState(projects: null, identity: identity));
-                _dbSubscription = audiAddStreamSubscription(
-                  globalProjectsDb.onProjects(userId: identityId).listen((
-                    projects,
-                  ) {
-                    add(
-                      StartScreenBlocState(
-                        projects: projects,
-                        identity: identity,
-                      ),
-                    );
-                  }),
-                );
+                if (projectsDb != null) {
+                  _dbSubscription = audiAddStreamSubscription(
+                    projectsDb.onProjects(userId: identityId).listen((
+                      projects,
+                    ) {
+                      add(
+                        StartScreenBlocState(
+                          projects: projects,
+                          identity: identity,
+                        ),
+                      );
+                    }),
+                  );
+                }
               }
             } else if (identity is TkCmsFbIdentityServiceAccount) {
               audiDispose(_dbSubscription);

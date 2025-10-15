@@ -380,6 +380,12 @@ abstract class AppLocalizations {
   /// **'Markdown Guide'**
   String get markdownGuideTitle;
 
+  /// Name label
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get nameLabel;
+
   /// Name required error message
   ///
   /// In en, this message translates to:

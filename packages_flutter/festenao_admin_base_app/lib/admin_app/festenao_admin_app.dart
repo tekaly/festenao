@@ -1,12 +1,10 @@
+import 'package:festenao_admin_base_app/admin_app/parent_app.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/app/app_options.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 export 'package:tkcms_admin_app/app/tkcms_admin_app.dart';
 export 'package:tkcms_common/tkcms_app.dart';
-
-/// Admin app options
-class FestenaoAdminAppOptions {}
 
 /// Our main options
 var globalFestenaoAppOptions = festenaoAppOptionsDefault;
@@ -27,6 +25,9 @@ class FestenaoAdminApp {
   // Set by caller
   late FirebaseContext fbContext;
 
+  // Set runner
+  FestenaoAppOptions? options;
+  FestenaoAdminParentAppController? parentAppController;
   late Prefs prefs;
 
   // AppOptions? _options;

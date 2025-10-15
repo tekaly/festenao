@@ -1,60 +1,79 @@
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
+import 'package:festenao_admin_base_app/screen/project_root_users_screen_bloc.dart';
 
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
-class AdminUserEditScreenParam {
+class AdminProjectUserEditScreenResult {
+  final bool deleted;
+  final bool modified;
+
+  AdminProjectUserEditScreenResult({
+    this.modified = false,
+    this.deleted = false,
+  });
+}
+
+class AdminProjectUserEditScreenParam {
   final String projectId;
 
   /// Null for creation
   final String? userId;
-  AdminUserEditScreenParam({required this.userId, required this.projectId});
+  AdminProjectUserEditScreenParam({
+    required this.userId,
+    required this.projectId,
+  });
 }
 
-class AdminUserEditScreenBlocState {
-  final TkCmsFsUserAccess? user;
+class AdminProjectUserEditScreenBlocState {
+  final TkCmsEditedFsUserAccess? user;
 
-  AdminUserEditScreenBlocState(this.user);
+  AdminProjectUserEditScreenBlocState(this.user);
 }
 
-class AdminUserEditData {
+class AdminProjectUserEditData {
   /// Optional for creation
   final String? userId;
-  late TkCmsFsUserAccess user;
+  late TkCmsEditedFsUserAccess user;
 
-  AdminUserEditData({required this.userId});
+  AdminProjectUserEditData({required this.userId});
 }
 
-class AdminUserEditScreenBloc
-    extends AutoDisposeStateBaseBloc<AdminUserEditScreenBlocState> {
+class AdminProjectUserEditScreenBloc
+    extends AutoDisposeStateBaseBloc<AdminProjectUserEditScreenBlocState> {
   /// Null for creation
 
-  final AdminUserEditScreenParam param;
+  final AdminProjectUserEditScreenParam param;
 
+  late final projectId = adminProjectFixProjectId(param.projectId);
   //late StreamSubscription _studiesSubscription;
 
-  AdminUserEditScreenBloc({required this.param}) {
+  AdminProjectUserEditScreenBloc({required this.param}) {
     () async {
       if (!disposed) {
         var userId = param.userId;
         if (userId == null) {
-          add(AdminUserEditScreenBlocState(null));
+          add(AdminProjectUserEditScreenBlocState(null));
         } else {
           var fsDb = globalFestenaoFirestoreDatabase.projectDb;
-          var userAccessRef = fsDb.fsEntityUserAccessRef(
-            param.projectId,
-            userId,
-          );
+          var userAccessRef = fsDb
+              .fsEntityUserAccessRef(projectId, userId)
+              .cast<TkCmsEditedFsUserAccess>();
           var userAccess = await userAccessRef.get(fsDb.firestore);
           if (!disposed) {
-            add(AdminUserEditScreenBlocState(userAccess));
+            add(AdminProjectUserEditScreenBlocState(userAccess));
           }
         }
       }
     }();
   }
 
-  Future<void> save(AdminUserEditData data) async {
+  Future<void> delete(String userId) async {
+    var fsDb = globalFestenaoFirestoreDatabase.projectDb;
+    await fsDb.leaveEntity(projectId, userId: userId);
+  }
+
+  Future<void> save(AdminProjectUserEditData data) async {
     var userId = data.userId ?? param.userId!;
 
     var fsDb = globalFestenaoFirestoreDatabase.projectDb;
@@ -62,7 +81,7 @@ class AdminUserEditScreenBloc
     userAccess.fixAccess();
 
     await fsDb.setEntityUserAccess(
-      entityId: param.projectId,
+      entityId: projectId,
       userId: userId,
       userAccess: userAccess,
     );

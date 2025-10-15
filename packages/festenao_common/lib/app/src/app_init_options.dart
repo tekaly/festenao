@@ -1,17 +1,17 @@
 /// Initialization options for the Festenao app.
-class FestenaoAppInitOptions {
+class FestenaoAppOptions {
   /// Options for initializing a single project, if applicable.
-  final FestenaoAppSingleProjectInitOptions? singleProject;
+  final FestenaoAppSingleProjectOptions? singleProject;
 
-  /// Creates a new [FestenaoAppInitOptions] instance.
-  const FestenaoAppInitOptions({this.singleProject});
+  /// Creates a new [FestenaoAppOptions] instance.
+  const FestenaoAppOptions({this.singleProject});
 }
 
 /// Initialization options for a single Festenao project.
-class FestenaoAppSingleProjectInitOptions {
+class FestenaoAppSingleProjectOptions {
   /// The root path for the single project, if specified.
   final String? singleProjectRootPath;
 
-  /// Creates a new [FestenaoAppSingleProjectInitOptions] instance.
-  const FestenaoAppSingleProjectInitOptions({this.singleProjectRootPath});
+  /// Creates a new [FestenaoAppSingleProjectOptions] instance.
+  const FestenaoAppSingleProjectOptions({this.singleProjectRootPath});
 }

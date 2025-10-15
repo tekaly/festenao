@@ -23,7 +23,7 @@ abstract class FsAppBlocRawBase<T extends Object>
       ? (fbIdentity as TkCmsFbIdentityUser).user
       : null;
 
-  /// Nul for app create only
+  /// Null for app create only
   final String? appId;
 
   String get appIdOrDefault => appId ?? globalFestenaoFirestoreDatabase.appId;

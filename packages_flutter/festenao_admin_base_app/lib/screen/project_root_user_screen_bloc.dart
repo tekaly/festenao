@@ -1,34 +1,45 @@
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
+import 'package:festenao_admin_base_app/screen/project_root_users_screen_bloc.dart';
+import 'package:festenao_common/festenao_firestore.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
-import 'package:tkcms_common/tkcms_firestore.dart';
 
 class AdminUserScreenBlocState {
   final String projectId;
   AdminUserScreenBlocState({required this.projectId, required this.user});
 
-  final TkCmsFsUserAccess user;
+  final TkCmsEditedFsUserAccess user;
 }
 
 class AdminUserScreenBloc
     extends AutoDisposeStateBaseBloc<AdminUserScreenBlocState> {
-  final String projectId;
+  late final String projectId;
   final String userId;
-  TkCmsFsUserAccess? user;
+  TkCmsEditedFsUserAccess? user;
+  var snapshotSupportController = TrackChangesSupportOptionsController();
 
-  void trigger() {
+  void _checkResult() {
     if (user != null) {
       add(AdminUserScreenBlocState(projectId: projectId, user: user!));
     }
   }
 
-  AdminUserScreenBloc({required this.projectId, required this.userId}) {
+  void refresh() {
+    snapshotSupportController.trigger();
+  }
+
+  AdminUserScreenBloc({required String projectId, required this.userId}) {
+    this.projectId = adminProjectFixProjectId(projectId);
     var fsDb = globalFestenaoFirestoreDatabase.projectDb;
-    var userAccessRef = fsDb.fsEntityUserAccessRef(projectId, userId);
+    var userAccessRef = fsDb
+        .fsEntityUserAccessRef(this.projectId, userId)
+        .cast<TkCmsEditedFsUserAccess>();
     audiAddStreamSubscription(
-      userAccessRef.onSnapshot(fsDb.firestore).listen((snapshot) {
-        user = snapshot;
-        trigger();
-      }),
+      userAccessRef
+          .onSnapshotSupport(fsDb.firestore, options: snapshotSupportController)
+          .listen((snapshot) {
+            user = snapshot;
+            _checkResult();
+          }),
     );
   }
 }

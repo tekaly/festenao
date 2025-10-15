@@ -4,11 +4,12 @@ import 'package:festenao_admin_base_app/screen/fs_app_user_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_users_screen_bloc.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/view/app_path.dart';
-import 'package:festenao_admin_base_app/view/not_signed_in_tile.dart';
+import 'package:festenao_admin_base_app/view/identity_info_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
+import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
 import 'fs_app_user_edit_screen_bloc.dart';
@@ -98,9 +99,20 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                 itemBuilder: (context, index) {
                   var userAccess = userAccessList[index];
                   var userId = userAccess.id;
+                  var userName = userAccess.name.v?.trimmedNonEmpty();
                   return BodyContainer(
                     child: ListTile(
-                      title: Text(userAccess.id),
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (userName != null)
+                            Text(
+                              userName,
+                              style: const TextStyle(fontSize: 12),
+                            ),
+                          Text(userAccess.id),
+                        ],
+                      ),
                       subtitle: Text(accessString(intl, userAccess)),
                       onTap: () async {
                         if (bloc.selectMode) {

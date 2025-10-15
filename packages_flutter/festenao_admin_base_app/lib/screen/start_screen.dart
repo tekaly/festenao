@@ -1,4 +1,5 @@
 import 'package:festenao_admin_base_app/admin_app/menu.dart';
+import 'package:festenao_admin_base_app/auth/app_auth_bloc.dart';
 import 'package:festenao_admin_base_app/auth/auth.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
@@ -8,7 +9,7 @@ import 'package:festenao_admin_base_app/screen/fs_apps_screen.dart';
 
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
-import 'package:festenao_admin_base_app/view/not_signed_in_tile.dart';
+import 'package:festenao_admin_base_app/view/identity_info_tile.dart';
 import 'package:festenao_admin_base_app/view/project_leading.dart';
 import 'package:festenao_admin_base_app/view/tile_padding.dart';
 import 'package:flutter/foundation.dart';
@@ -18,8 +19,10 @@ import 'package:tkcms_admin_app/view/body_container.dart';
 import 'package:tkcms_admin_app/view/body_h_padding.dart';
 import 'package:tkcms_admin_app/view/go_to_tile.dart';
 import 'package:tkcms_admin_app/view/trailing_arrow.dart';
+import 'package:tkcms_admin_app/view/version_tile.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 
+import 'fs_app_view_screen.dart';
 import 'screen_import.dart';
 import 'start_screen_bloc.dart';
 
@@ -35,6 +38,20 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
       globalFestenaoAdminAppFirebaseContext.firebaseApp.hasAdminCredentials;
 
   StartScreenBloc get bloc => BlocProvider.of<StartScreenBloc>(context);
+
+  @override
+  void initState() {
+    super.initState();
+    () async {
+      if (!hasAdminCredentials && globalFestenaoAppAuthBlocOrNull != null) {
+        var appAuthState = await globalFestenaoAppAuthBloc.state.first;
+        if (kDebugMode) {
+          print('appAuthState: $appAuthState');
+        }
+      }
+    }();
+  }
+
   @override
   Widget build(BuildContext context) {
     var bloc = this.bloc;
@@ -103,18 +120,18 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                         const IdentityInfoTile(),
                         const SizedBox(height: 32),
 
-                        if (identity is TkCmsFbIdentityUser) ...[
-                          if (state.enforcedProjectId != null)
-                            GoToTile(
-                              titleLabel: 'My project',
-                              onTap: () {
-                                goToProjectRootScreen(
-                                  context,
-                                  projectId: state.enforcedProjectId!,
-                                );
-                              },
-                            ),
-                        ],
+                        //if (identity. != null) ...[
+                        if (state.enforcedProjectId != null)
+                          GoToTile(
+                            titleLabel: 'Main project',
+                            onTap: () {
+                              goToProjectRootScreen(
+                                context,
+                                projectId: state.enforcedProjectId!,
+                              );
+                            },
+                          ),
+                        //],
                       ],
                       if (identity is TkCmsFbIdentity) ...[
                         GoToTile(
@@ -148,7 +165,43 @@ class _StartScreenState extends AutoDisposeBaseState<StartScreen> {
                           },
                         ),
                       ],
+                      const VersionTile(),
                       if (kDebugMode) ...[
+                        if (!hasAdminCredentials) ...[
+                          if (globalFestenaoFirestoreDatabaseOrNull != null)
+                            GoToTile(
+                              titleLabel:
+                                  'FsApps (default ${globalFestenaoFirestoreDatabase.appId})',
+                              onTap: () {
+                                goToFsAppsScreen(context);
+                              },
+                            ),
+                          if (globalFestenaoFirestoreDatabaseOrNull != null)
+                            GoToTile(
+                              titleLabel:
+                                  'FsApp ${globalFestenaoFirestoreDatabase.appId}',
+                              onTap: () async {
+                                var result = await goToFsAppViewScreen(
+                                  context,
+                                  appId: globalFestenaoFirestoreDatabase.appId,
+                                );
+                                // ignore: avoid_print
+                                print('result: $result');
+                              },
+                            ),
+                          GoToTile(
+                            titleLabel: 'FsProjects',
+                            onTap: () {
+                              goToFsAppProjectsScreen(context);
+                            },
+                          ),
+                          GoToTile(
+                            titleLabel: 'FsUsers',
+                            onTap: () {
+                              goToFsAppUsersScreen(context);
+                            },
+                          ),
+                        ],
                         const SizedBox(height: 64),
                         GoToTile(
                           titleLabel: 'Debug',

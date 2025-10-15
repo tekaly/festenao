@@ -18,7 +18,7 @@ class FsAppUserEditScreenParam {
 }
 
 class FsAppUserEditScreenBlocState {
-  final TkCmsFsUserAccess? user;
+  final TkCmsEditedFsUserAccess? user;
 
   FsAppUserEditScreenBlocState(this.user);
 }
@@ -46,7 +46,7 @@ class FsAppUserEditScreenBloc
         } else {
           var userAccessRef = appOrProjectUserAccessCollectionRef(
             projectId: param.projectId,
-          ).doc(userId);
+          ).doc(userId).cast<TkCmsEditedFsUserAccess>();
           var userAccess = await userAccessRef.get(firestore);
           if (!disposed) {
             add(FsAppUserEditScreenBlocState(userAccess));
@@ -55,7 +55,7 @@ class FsAppUserEditScreenBloc
       }
     }();
   }
-  Future<void> save(AdminUserEditData data) async {
+  Future<void> save(AdminProjectUserEditData data) async {
     var userId = data.userId ?? param.userId!;
 
     var appId = appIdOrDefault;

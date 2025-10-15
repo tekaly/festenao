@@ -1,9 +1,11 @@
+import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
+import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/view/info_tile.dart';
 import 'package:flutter/services.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
@@ -21,6 +23,7 @@ class AdminUserScreen extends StatefulWidget {
 class _AdminUserScreenState extends AutoDisposeBaseState<AdminUserScreen> {
   @override
   Widget build(BuildContext context) {
+    var intl = festenaoAdminAppIntl(context);
     var bloc = BlocProvider.of<AdminUserScreenBloc>(context);
     return AdminScreenLayout(
       appBar: AppBar(title: const Text('User')),
@@ -55,19 +58,28 @@ class _AdminUserScreenState extends AutoDisposeBaseState<AdminUserScreen> {
                   ),
                 ),
                 BodyContainer(
-                  child: InfoTile(
-                    label: 'attributes',
-                    value: user.toMap().toString(),
-                    onTap: () {
-                      // Clipboard.setData(ClipboardData(text: user.name.v!));
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Nom utilisateur copié dans le presse-papier',
-                          ),
-                        ),
-                      );
-                    },
+                  child: Column(
+                    children: [
+                      InfoTile(label: 'name', value: user.name.v ?? ''),
+                      InfoTile(
+                        label: 'Access',
+                        value: accessString(intl, user),
+                      ),
+                      InfoTile(
+                        label: 'attributes',
+                        value: user.toMap().toString(),
+                        onTap: () {
+                          // Clipboard.setData(ClipboardData(text: user.name.v!));
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Nom utilisateur copié dans le presse-papier',
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
                 /* BodyContainer(
@@ -112,13 +124,23 @@ class _AdminUserScreenState extends AutoDisposeBaseState<AdminUserScreen> {
           }
           return FloatingActionButton(
             onPressed: () async {
-              await goToAdminUserEditScreen(
+              var result = await goToAdminProjectUserEditScreen(
                 context,
-                param: AdminUserEditScreenParam(
+                param: AdminProjectUserEditScreenParam(
                   userId: userId,
                   projectId: bloc.projectId,
                 ),
               );
+              if (context.mounted) {
+                if (result?.deleted ?? false) {
+                  Navigator.of(context).pop(); // Go back
+                  return;
+                }
+
+                if (result?.modified == true) {
+                  bloc.refresh();
+                }
+              }
             },
             child: const Icon(Icons.edit),
           );

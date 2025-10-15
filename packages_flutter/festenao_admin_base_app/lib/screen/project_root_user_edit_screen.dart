@@ -1,59 +1,272 @@
+import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/text_validator.dart';
 import 'package:festenao_admin_base_app/view/text_field.dart';
+import 'package:festenao_base_app/import/ui.dart';
+import 'package:festenao_common/auth/festenao_auth.dart';
 
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
+import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
 
-class AdminUserEditScreen extends StatefulWidget {
-  const AdminUserEditScreen({super.key});
+class AdminProjectUserEditScreen extends StatefulWidget {
+  const AdminProjectUserEditScreen({super.key});
 
   @override
-  State<AdminUserEditScreen> createState() => _AdminUserEditScreenState();
+  State<AdminProjectUserEditScreen> createState() =>
+      _AdminProjectUserEditScreenState();
 }
 
-class _AdminUserEditScreenState
-    extends AutoDisposeBaseState<AdminUserEditScreen> {
-  late final TextEditingController idController;
+final allRoles = [
+  tkCmsUserAccessRoleUser,
+  tkCmsUserAccessRoleAdmin,
+  tkCmsUserAccessRoleSuperAdmin,
+  null,
+];
 
+mixin AdminUserEditScreenMixin implements AutoDispose {
+  late final TextEditingController idController;
+  late final TextEditingController roleController;
+  late final TextEditingController nameController;
+  late final BehaviorSubject<bool> read;
+  late final BehaviorSubject<bool> write;
+  late final BehaviorSubject<bool> admin;
+  late final BehaviorSubject<String?> selectedRole;
+  String? _initialUserId;
+
+  void initControllers({String? userId, TkCmsEditedFsUserAccess? user}) {
+    read = audiAddBehaviorSubject(
+      BehaviorSubject.seeded(user?.read.v ?? false),
+    );
+    write = audiAddBehaviorSubject(
+      BehaviorSubject.seeded(user?.write.v ?? false),
+    );
+    admin = audiAddBehaviorSubject(
+      BehaviorSubject.seeded(user?.admin.v ?? false),
+    );
+    _initialUserId = userId;
+    idController = audiAddTextEditingController(
+      TextEditingController(text: userId),
+    );
+    roleController = audiAddTextEditingController(
+      TextEditingController(text: user?.role.v),
+    );
+    nameController = audiAddTextEditingController(
+      TextEditingController(text: user?.name.v),
+    );
+    var role = user?.role.v;
+    role = allRoles.contains(role) ? role : null;
+    selectedRole = audiAddBehaviorSubject(BehaviorSubject.seeded(role));
+  }
+
+  Column buildDataWidget(BuildContext context) {
+    var intl = festenaoAdminAppIntl(context);
+    return Column(
+      children: [
+        BodyContainer(
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: AppTextFieldTile(
+                      readOnly: _initialUserId != null,
+                      labelText: 'User ID',
+                      controller: idController,
+                      validator: fieldNonEmptyValidator,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        BodyContainer(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String?>(
+                    decoration: const InputDecoration(
+                      labelText: 'Select an option',
+                      border: OutlineInputBorder(),
+                    ),
+                    initialValue: selectedRole.valueOrNull,
+                    items: [...allRoles]
+                        .map(
+                          (option) => DropdownMenuItem(
+                            value: option,
+                            child: Text(option ?? '<None>'),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      selectedRole.add(value);
+                      roleController.text = value ?? '';
+                    },
+                    validator: (value) {
+                      return null;
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: AppTextFieldTile(
+                    //readOnly: !globalTkCmsFbIdentityBloc.hasAdminCredentials,
+                    labelText: intl.projectAccessRole,
+                    controller: roleController,
+                    emptyAllowed: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        BodyContainer(
+          child: Row(
+            children: [
+              Expanded(
+                child: AppTextFieldTile(
+                  //readOnly: !globalTkCmsFbIdentityBloc.hasAdminCredentials,
+                  labelText: intl.nameLabel,
+                  controller: nameController,
+                  emptyAllowed: true,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        BodyContainer(
+          child: BehaviorSubjectBuilder(
+            subject: admin,
+            builder: (_, snapshot) {
+              var isAdmin = snapshot.data;
+              return SwitchListTile(
+                value: snapshot.data ?? false,
+                onChanged: isAdmin == null
+                    ? null
+                    : (bool value) {
+                        admin.value = value;
+                        if (value) {
+                          write.value = true;
+                          read.value = true;
+                        }
+                      },
+                title: Text(intl.projectAccessAdmin),
+              );
+            },
+          ),
+        ),
+        BodyContainer(
+          child: BehaviorSubjectBuilder(
+            subject: write,
+            builder: (_, snapshot) {
+              var write = snapshot.data;
+              return SwitchListTile(
+                value: snapshot.data ?? false,
+                onChanged: write == null
+                    ? null
+                    : (bool value) {
+                        this.write.value = value;
+                        if (!value) {
+                          admin.value = false;
+                        } else {
+                          read.value = true;
+                        }
+                      },
+                title: Text(intl.projectAccessWrite),
+              );
+            },
+          ),
+        ),
+        BodyContainer(
+          child: BehaviorSubjectBuilder(
+            subject: read,
+            builder: (_, snapshot) {
+              var read = snapshot.data;
+              return SwitchListTile(
+                value: snapshot.data ?? false,
+                onChanged: read == null
+                    ? null
+                    : (bool value) {
+                        this.read.value = value;
+                        if (!value) {
+                          write.value = false;
+                          admin.value = false;
+                        }
+                      },
+                title: Text(intl.projectAccessRead),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  TkCmsEditedFsUserAccess getEditedUser() {
+    return TkCmsEditedFsUserAccess()
+      ..write.v = write.value
+      ..admin.v = admin.value
+      ..read.v = read.value
+      ..name.v = nameController.text.trimmedNonEmpty()
+      ..role.v = roleController.text.trimmedNonEmpty();
+  }
+}
+
+class _AdminProjectUserEditScreenState
+    extends AutoDisposeBaseState<AdminProjectUserEditScreen>
+    with AdminUserEditScreenMixin {
   var _initialized = false;
-  late final BehaviorSubject<bool> _read;
-  late final BehaviorSubject<bool> _write;
-  late final BehaviorSubject<bool> _admin;
+
   var formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
-    var bloc = BlocProvider.of<AdminUserEditScreenBloc>(context);
+    var bloc = BlocProvider.of<AdminProjectUserEditScreenBloc>(context);
+    final intl = festenaoAdminAppIntl(context);
+    var userId = bloc.param.userId;
     return AdminScreenLayout(
-      appBar: AppBar(title: const Text('User')),
-      body: ValueStreamBuilder<AdminUserEditScreenBlocState>(
+      appBar: AppBar(
+        title: const Text('User'),
+        actions: [
+          if (userId != null)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              tooltip: intl.deleteButtonLabel,
+              onPressed: () async {
+                if (await muiConfirm(context)) {
+                  await bloc.delete(userId);
+                  if (context.mounted) {
+                    Navigator.pop(
+                      context,
+                      AdminProjectUserEditScreenResult(deleted: true),
+                    );
+                  }
+                }
+              },
+            ),
+        ],
+      ),
+      body: ValueStreamBuilder<AdminProjectUserEditScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
           if (snapshot.data == null) {
             return const CenteredProgress();
           }
-          var userId = bloc.param.userId;
+
           var user = snapshot.data!.user;
 
           if (!_initialized) {
             _initialized = true;
-            _read = audiAddBehaviorSubject(
-              BehaviorSubject.seeded(user?.read.v ?? false),
-            );
-            _write = audiAddBehaviorSubject(
-              BehaviorSubject.seeded(user?.write.v ?? false),
-            );
-            _admin = audiAddBehaviorSubject(
-              BehaviorSubject.seeded(user?.admin.v ?? false),
-            );
-            idController = audiAddTextEditingController(
-              TextEditingController(text: userId),
-            );
+            initControllers(userId: userId, user: user);
           }
 
           return Stack(
@@ -63,122 +276,7 @@ class _AdminUserEditScreenState
                 child: ListView(
                   children: [
                     const SizedBox(height: 16),
-                    BodyContainer(
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: AppTextFieldTile(
-                              readOnly: bloc.param.userId != null,
-                              labelText: 'User ID',
-                              controller: idController,
-                              validator: fieldNonEmptyValidator,
-                            ),
-                          ),
-                          /*
-                            AppTextButton(
-                                text: 'Info',
-                                onPressed: () async {
-
-                                  await waitingAction(() async {
-                                    var info = await fbGaelFunctionsClient
-                                        .adminGetUserInfo(
-                                            ApiGaelAdminUserInfoRequest()
-                                              ..userId.v = idController!.text);
-                                    nameController!.text = info.name.v ?? '';
-                                    emailController!.text = info.email.v ?? '';
-                                  });
-
-
-                                })*/
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    /*
-                    BodyContainer(
-                      child: AppTextFieldTile(
-                        labelText: 'User name',
-                        controller: nameController ??= TextEditingController(
-                          text: user?.name.v,
-                        ),
-                        validator: fieldNonEmptyValidator,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    BodyContainer(
-                      child: AppTextFieldTile(
-                        labelText: textUserEmailLabel,
-                        controller: emailController ??= TextEditingController(
-                          text: user?.email.v,
-                        ),
-                        validator: fieldNonEmptyValidator,
-                      ),
-                    ),*/
-                    BodyContainer(
-                      child: BehaviorSubjectBuilder(
-                        subject: _admin,
-                        builder: (_, snapshot) {
-                          var isAdmin = snapshot.data;
-                          return SwitchListTile(
-                            value: snapshot.data ?? false,
-                            onChanged: isAdmin == null
-                                ? null
-                                : (bool value) {
-                                    _admin.value = value;
-                                    if (value) {
-                                      _write.value = true;
-                                      _read.value = true;
-                                    }
-                                  },
-                            title: const Text('Admin'),
-                          );
-                        },
-                      ),
-                    ),
-                    BodyContainer(
-                      child: BehaviorSubjectBuilder(
-                        subject: _write,
-                        builder: (_, snapshot) {
-                          var write = snapshot.data;
-                          return SwitchListTile(
-                            value: snapshot.data ?? false,
-                            onChanged: write == null
-                                ? null
-                                : (bool value) {
-                                    _write.value = value;
-                                    if (!value) {
-                                      _admin.value = false;
-                                    } else {
-                                      _read.value = true;
-                                    }
-                                  },
-                            title: const Text('Write'),
-                          );
-                        },
-                      ),
-                    ),
-                    BodyContainer(
-                      child: BehaviorSubjectBuilder(
-                        subject: _read,
-                        builder: (_, snapshot) {
-                          var read = snapshot.data;
-                          return SwitchListTile(
-                            value: snapshot.data ?? false,
-                            onChanged: read == null
-                                ? null
-                                : (bool value) {
-                                    _read.value = value;
-                                    if (!value) {
-                                      _write.value = false;
-                                      _admin.value = false;
-                                    }
-                                  },
-                            title: const Text('Read'),
-                          );
-                        },
-                      ),
-                    ),
+                    buildDataWidget(context),
                   ],
                 ),
               ),
@@ -186,38 +284,41 @@ class _AdminUserEditScreenState
           );
         },
       ),
-      floatingActionButton: ValueStreamBuilder<AdminUserEditScreenBlocState>(
-        stream: bloc.state,
-        builder: (context, snapshot) {
-          if (snapshot.data == null) {
-            return Container();
-          }
-          return FloatingActionButton(
-            onPressed: () {
-              _onSave(context);
+      floatingActionButton:
+          ValueStreamBuilder<AdminProjectUserEditScreenBlocState>(
+            stream: bloc.state,
+            builder: (context, snapshot) {
+              if (snapshot.data == null) {
+                return Container();
+              }
+              return FloatingActionButton(
+                onPressed: () {
+                  _onSave(context);
+                },
+                child: const Icon(Icons.save),
+              );
             },
-            child: const Icon(Icons.save),
-          );
-        },
-      ),
+          ),
     );
   }
 
   Future _onSave(BuildContext context) async {
     formKey.currentState!.save();
     if (formKey.currentState!.validate()) {
-      var userId = idController.text;
-      var fsUserAccess = TkCmsFsUserAccess()
-        ..write.v = _write.value
-        ..admin.v = _admin.value
-        ..read.v = _read.value;
+      var userId = idController.text.trim();
+      var fsUserAccess = getEditedUser();
 
-      var bloc = BlocProvider.of<AdminUserEditScreenBloc>(context);
+      var bloc = BlocProvider.of<AdminProjectUserEditScreenBloc>(context);
       if (await waitingAction(() async {
-        await bloc.save(AdminUserEditData(userId: userId)..user = fsUserAccess);
+        await bloc.save(
+          AdminProjectUserEditData(userId: userId)..user = fsUserAccess,
+        );
       })) {
         if (context.mounted) {
-          Navigator.pop(context);
+          Navigator.pop(
+            context,
+            AdminProjectUserEditScreenResult(modified: true),
+          );
         }
       }
     }
@@ -238,25 +339,26 @@ class _AdminUserEditScreenState
   }
 }
 
-Future<void> goToAdminUserEditScreen(
+Future<AdminProjectUserEditScreenResult?> goToAdminProjectUserEditScreen(
   BuildContext context, {
-  required AdminUserEditScreenParam param,
+  required AdminProjectUserEditScreenParam param,
 }) async {
-  await _goToAdminUserEditScreen(context, param: param);
+  return await _goToAdminUserEditScreen(context, param: param);
 }
 
-Future<void> _goToAdminUserEditScreen(
+Future<AdminProjectUserEditScreenResult?> _goToAdminUserEditScreen(
   BuildContext context, {
-  required AdminUserEditScreenParam param,
+  required AdminProjectUserEditScreenParam param,
 }) async {
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(
+  var result = await Navigator.of(context).push(
+    MaterialPageRoute<Object>(
       builder: (_) {
-        return BlocProvider<AdminUserEditScreenBloc>(
-          blocBuilder: () => AdminUserEditScreenBloc(param: param),
-          child: const AdminUserEditScreen(),
+        return BlocProvider<AdminProjectUserEditScreenBloc>(
+          blocBuilder: () => AdminProjectUserEditScreenBloc(param: param),
+          child: const AdminProjectUserEditScreen(),
         );
       },
     ),
   );
+  return result?.anyAs<AdminProjectUserEditScreenResult>();
 }

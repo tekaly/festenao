@@ -49,7 +49,7 @@ FestenaoAdminAppProjectContext _byProjectIdAdminAppProjectContext({
   var projectsDbBloc = globalProjectsDbBloc;
   if (projectsDbBloc is MultiProjectsDbBloc) {
     return ByProjectIdAdminAppProjectContext(projectId: projectId);
-  } else if (projectsDbBloc is SingleProjectDbBloc) {
+  } else if (projectsDbBloc is SingleCompatProjectDbBloc) {
     return SingleFestenaoAdminAppProjectContext(
       projectId: projectId,
       syncedDb: projectsDbBloc.syncedDb,
@@ -345,9 +345,10 @@ var projectUsersPageDef = ContentPageDef(
     var projectId = cp.project.value!;
 
     return BlocProvider(
-      blocBuilder: () =>
-          AdminUsersScreenBloc(param: AdminUsersScreenParam(id: projectId)),
-      child: const AdminUsersScreen(),
+      blocBuilder: () => AdminProjectUsersScreenBloc(
+        param: AdminProjectUsersScreenParam(id: projectId),
+      ),
+      child: const AdminProjectUsersScreen(),
     );
   },
   path: ProjectUsersContentPath(),

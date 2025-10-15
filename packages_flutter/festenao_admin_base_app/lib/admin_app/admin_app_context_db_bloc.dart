@@ -32,7 +32,7 @@ class AdminAppProjectContextDbBloc with AutoDisposableMixin {
       var projectsDbBloc = globalProjectsDbBloc;
       if (projectsDbBloc is MultiProjectsDbBloc) {
         return (await _grabContentDb()).contentDb.syncedDb;
-      } else if (projectsDbBloc is SingleProjectDbBloc) {
+      } else if (projectsDbBloc is SingleCompatProjectDbBloc) {
         return projectsDbBloc.syncedDb;
       } else {
         throw StateError('Invalid projectsDbBloc $projectsDbBloc');

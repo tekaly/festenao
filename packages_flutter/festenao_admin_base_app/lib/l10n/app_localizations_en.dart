@@ -159,6 +159,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get markdownGuideTitle => 'Markdown Guide';
 
   @override
+  String get nameLabel => 'Name';
+
+  @override
   String get nameRequired => 'Name is required';
 
   @override

@@ -59,7 +59,7 @@ class _ListDrawerState extends State<ListDrawer> {
           projectId: projectId,
         );
       }
-    } else if (sb is SingleProjectDbBloc) {
+    } else if (sb is SingleCompatProjectDbBloc) {
       appProjectContextOrNull = ByProjectIdAdminAppProjectContext(
         projectId: ByProjectIdAdminAppProjectContext.mainProjectId,
       );
@@ -80,9 +80,18 @@ class _ListDrawerState extends State<ListDrawer> {
             elevation: 5,
             child: Container(
               color: Theme.of(context).colorScheme.secondary,
-              child: const Center(
+              child: Center(
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 48, vertical: 64),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 48,
+                    vertical: 64,
+                  ),
+                  child: IconButton(
+                    onPressed: () async {
+                      ContentNavigator.popToRoot(context);
+                    },
+                    icon: const Icon(Icons.home),
+                  ),
                   //child: Image(image: assetGaelLogo718.image),
                 ),
               ),
@@ -175,9 +184,9 @@ class _ListDrawerState extends State<ListDrawer> {
           ListTile(
             title: const Text('Users'),
             onTap: () async {
-              await goToAdminUsersScreen(
+              await goToAdminProjectUsersScreen(
                 context,
-                projectId: appProjectContext.projectId,
+                projectContext: appProjectContext,
                 transitionDelegate: drawerAnimationTransitionDelegate,
               );
             },

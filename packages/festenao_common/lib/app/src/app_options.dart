@@ -56,7 +56,7 @@ final gridAppImageOptions = FestenaoAppImageOptions()
   ..type.v = imageTypeGrid;
 
 /// App-wide options for Festenao.
-class FestenaoAppOptions extends CvModelBase {
+class FestenaoAppDataOptions extends CvModelBase {
   /// List of image options for the app.
   final images = CvModelListField<FestenaoAppImageOptions>(
     'images',
@@ -67,8 +67,8 @@ class FestenaoAppOptions extends CvModelBase {
   List<CvField> get fields => [images];
 }
 
-/// Extension for [FestenaoAppOptions] to retrieve image options by type.
-extension FestenaoAppOptionsExt on FestenaoAppOptions {
+/// Extension for [FestenaoAppDataOptions] to retrieve image options by type.
+extension FestenaoAppOptionsExt on FestenaoAppDataOptions {
   /// Returns the [FestenaoAppImageOptions] for the given [type], or null if not found.
   FestenaoAppImageOptions? getOptionsByType(String type) {
     if (images.v != null) {
@@ -83,7 +83,7 @@ extension FestenaoAppOptionsExt on FestenaoAppOptions {
 }
 
 /// The default app options for Festenao.
-var festenaoAppOptionsDefault = FestenaoAppOptions()
+var festenaoAppOptionsDefault = FestenaoAppDataOptions()
   ..images.v = [
     thumbnailAppImageOptions,
     mainAppImageOptions,

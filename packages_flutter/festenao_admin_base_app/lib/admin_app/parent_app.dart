@@ -1,0 +1,3 @@
+class FestenaoAdminParentAppController {
+  FestenaoAdminParentAppController();
+}

@@ -22,7 +22,11 @@ void initFirebaseV2FromV1(FbContext fbContext) {
 }
 
 Future<void> initConfigV2FromV1({required SyncedDb syncedDb}) async {
-  globalProjectsDbBloc = SingleProjectDbBloc(syncedDb: syncedDb);
+  globalProjectsDbBloc = SingleCompatProjectDbBloc(
+    syncedDb: syncedDb,
+    projectPath:
+        globalFestenaoAdminApp.options!.singleProject!.singleProjectRootPath!,
+  );
 }
 
 /// Compatibility

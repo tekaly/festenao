@@ -11,7 +11,7 @@ class FsAppUsersScreenBlocState {
   final TkCmsFbIdentity? identity;
 
   /// Projects
-  final List<TkCmsFsUserAccess> userAccessList;
+  final List<TkCmsEditedFsUserAccess> userAccessList;
 
   /// Projects screen bloc state
   FsAppUsersScreenBlocState({required this.userAccessList, this.identity});
@@ -27,7 +27,9 @@ class FsAppUsersScreenBloc extends FsAppBlocBase<FsAppUsersScreenBlocState> {
     /// Build from firestore
     var fsDb = ffdb.appDb;
 
-    var coll = appOrProjectUserAccessCollectionRef(projectId: projectId);
+    var coll = appOrProjectUserAccessCollectionRef(
+      projectId: projectId,
+    ).cast<TkCmsEditedFsUserAccess>();
     fsSubscription = audiAddStreamSubscription(
       coll.onSnapshotsSupport(fsDb.firestore).listen((list) {
         fsLock.synchronized(() async {
