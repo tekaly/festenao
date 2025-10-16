@@ -25,7 +25,7 @@ Future<void> initConfigV2FromV1({required SyncedDb syncedDb}) async {
   globalProjectsDbBloc = SingleCompatProjectDbBloc(
     syncedDb: syncedDb,
     projectPath:
-        globalFestenaoAdminApp.options!.singleProject!.singleProjectRootPath!,
+        globalFestenaoAdminApp.options!.singleProject!.singleProjectRootPath,
   );
 }
 

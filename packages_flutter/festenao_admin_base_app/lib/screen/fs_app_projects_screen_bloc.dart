@@ -26,6 +26,13 @@ class FsAppProjectsScreenBloc
   // ignore: cancel_subscriptions
 
   final bool selectMode;
+  final _supportController = TrackChangesSupportOptionsController();
+
+  @override
+  void dispose() {
+    _supportController.dispose();
+    super.dispose();
+  }
 
   @override
   void handleRefresh() {
@@ -34,16 +41,26 @@ class FsAppProjectsScreenBloc
     /// Build from firestore
     var fsDb = ffdb.projectDb;
     var firestore = ffdb.firestore;
+    // print('Listening to ${fsDb.fsEntityCollectionRef.path}');
     fsSubscription = audiAddStreamSubscription(
-      fsDb.fsEntityCollectionRef.onSnapshotsSupport(firestore).listen((list) {
-        fsLock.synchronized(() async {
-          add(
-            FsAppProjectsScreenBlocState(projects: list, identity: fbIdentity),
-          );
-          // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
-        });
-      }),
+      fsDb.fsEntityCollectionRef
+          .onSnapshotsSupport(firestore, options: _supportController)
+          .listen((list) {
+            fsLock.synchronized(() async {
+              add(
+                FsAppProjectsScreenBlocState(
+                  projects: list,
+                  identity: fbIdentity,
+                ),
+              );
+              // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
+            });
+          }),
     );
+  }
+
+  void refreshSupport() {
+    _supportController.trigger();
   }
 
   @override

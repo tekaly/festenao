@@ -15,8 +15,14 @@ typedef DbTransaction = Transaction;
 /// Global sembast database factory
 late final DatabaseFactory globalSembastDatabaseFactory;
 
+var _initialized = false;
+
 /// Initialize the local sembast factory
 Future<void> initFestenaoLocalSembastFactory() async {
+  if (_initialized) {
+    return;
+  }
+  _initialized = true;
   globalSembastDatabaseFactory = getDatabaseFactory(
     rootPath: join('.dart_tool', 'festenao_local'),
   );

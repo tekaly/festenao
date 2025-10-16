@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/auth/app_auth_bloc.dart';
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
@@ -114,7 +115,8 @@ class FsAppProjectViewScreenState
               style: Theme.of(context).textTheme.headlineSmall,
             ),
           ),
-          const AppIdentityInfoTile(),
+          if (globalFestenaoAppAuthBlocOrNull != null)
+            const AppIdentityInfoTile(),
 
           if (fsProject != null) ...[
             ListTile(

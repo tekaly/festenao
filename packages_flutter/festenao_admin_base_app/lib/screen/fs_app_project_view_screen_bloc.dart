@@ -71,7 +71,7 @@ class FsAppProjectViewScreenBloc
                   .fsUserEntityAccessRef(userId!, projectId)
                   .onSnapshotSupport(firestore, options: fsController2)
             : Stream.value(TkCmsFsUserAccess()),
-        (userId != null)
+        (userId != null && globalFestenaoAppAuthBlocOrNull != null)
             ? globalFestenaoAppAuthBloc.state
             : Stream.value(AppAuthBlocState(identity: null)),
       ).listen((event) {

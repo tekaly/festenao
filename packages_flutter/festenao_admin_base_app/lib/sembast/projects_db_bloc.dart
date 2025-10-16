@@ -1,4 +1,6 @@
+import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
+import 'package:flutter/foundation.dart';
 import 'package:tkcms_admin_app/firebase/database_service.dart';
 import 'package:tkcms_admin_app/sembast/sembast.dart';
 import 'package:tkcms_common/tkcms_common.dart';
@@ -129,17 +131,28 @@ class _ProjectsDbBloc implements MultiProjectsDbBloc {
         return null;
       }
 
+      var rootDocument = globalFestenaoFirestoreDatabase.projectDb.fsEntityRef(
+        projectId,
+      );
+
+      if (kDebugMode) {
+        print('Opening content db for $key at $rootDocument');
+      }
+
+      String encodeForPath(String input) {
+        final encoded = base64Url.encode(utf8.encode(input));
+        return encoded.replaceAll('=', ''); // remove padding for prettier names
+      }
+
       var contentDb = ContentDb(
         projectId: projectId,
         firestoreDatabaseContext: FirestoreDatabaseContext(
           firestore: gFsDatabaseService.firestore,
-          rootDocument: gFsDatabaseService
-              .firestoreDatabaseContext
-              .rootDocument!
-              .collection(fsProjectCollectionInfo.id)
-              .doc(projectId),
+          rootDocument: rootDocument,
         ),
-        sembastDatabaseContext: globalSembastDatabasesContext.db('content.db'),
+        sembastDatabaseContext: globalSembastDatabasesContext.db(
+          'content-${encodeForPath(projectId)}.db',
+        ),
       );
       await contentDb.ready;
       info = _map[key] = _ContentDbInfo(key: key, contentDb: contentDb);

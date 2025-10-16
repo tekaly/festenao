@@ -18,6 +18,7 @@ class AppAuthBlocState {
   String toString() => '$identity $userAccess';
 }
 
+/// When using top level app object
 class AppAuthBloc extends AutoDisposeStateBaseBloc<AppAuthBlocState> {
   final CvDocumentReference app;
   StreamSubscription? _userAccessSubscription;
@@ -82,5 +83,8 @@ class AppAuthBloc extends AutoDisposeStateBaseBloc<AppAuthBlocState> {
   }
 }
 
+/// Not always valid (in compat mode)
 AppAuthBloc? globalFestenaoAppAuthBlocOrNull;
+
+/// Not always valid (in compat mode)
 AppAuthBloc get globalFestenaoAppAuthBloc => globalFestenaoAppAuthBlocOrNull!;

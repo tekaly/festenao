@@ -51,7 +51,12 @@ final userPrvCollectionInfo =
 /// Main entity database service for Festenao.
 class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   /// Project entity database access.
-  late TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> projectDb;
+  TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>? _projectDb;
+  TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> get projectDb =>
+      _projectDb!;
+  set projectDb(TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> db) {
+    _projectDb = db;
+  }
 
   /// App database access.
   late TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp> appDb;
@@ -63,18 +68,22 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   FestenaoFirestoreDatabase({
     required super.firebaseContext,
     required super.flavorContext,
+    TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>? projectDb,
   }) {
-    _init();
+    _init(projectDb);
   }
 
   // ignore: unused_element
-  void _init() {
+  void _init(TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>? projectDb) {
     initFestenaoFsBuilders();
-    projectDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
-      entityCollectionInfo: projectCollectionInfo,
-      firestore: firestore,
-      rootDocument: fsAppRoot(app),
-    );
+    _projectDb =
+        projectDb ??
+        TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
+          entityCollectionInfo: projectCollectionInfo,
+          firestore: firestore,
+          rootDocument: fsAppRoot(app),
+        );
+
     userPrvDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsUserPrv>(
       entityCollectionInfo: userPrvCollectionInfo,
       firestore: firestore,

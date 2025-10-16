@@ -3,6 +3,7 @@ import 'package:festenao_admin_base_app/auth/app_auth_bloc.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/route/navigator_def.dart';
+
 // ignore: unused_import
 import 'package:festenao_admin_base_app/route/route_navigation.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
@@ -91,6 +92,7 @@ Future<void> festenaoRunAdminApp({
 
   await initFestenaoLocalSembastFactory();
 
+  /// Overriden appId if any (not for single project mode)
   var prefsFactory = getPrefsFactory(packageName: packageName);
   var prefs = await prefsFactory.openPreferences('${packageName}_prefs.db');
   globalPrefs = prefs;
@@ -105,12 +107,27 @@ Future<void> festenaoRunAdminApp({
   //initFirebaseSim(projectId: 'festenao', packageName: packageName);
   firebaseContext ??= await initFestenaoFirebaseServicesLocal();
 
+  TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>? projectDb;
+  var optionsMultiProjects = options?.multiProjects;
+  if (optionsMultiProjects != null) {
+    projectDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
+      entityCollectionRef: optionsMultiProjects.projectCollectionRef
+          .cast<FsProject>(),
+    );
+  }
   globalTkCmsAdminAppFirebaseContext = firebaseContext;
   var fsDatabase = FestenaoFirestoreDatabase(
     firebaseContext: firebaseContext,
     flavorContext: appFlavorContext,
+    projectDb: projectDb,
   );
-  globalFestenaoAppAuthBlocOrNull ??= AppAuthBloc(fsDatabase.fsApp);
+
+  /// Compat
+  if (options != null) {
+    // No global app auth, only service account can create
+  } else {
+    globalFestenaoAppAuthBlocOrNull ??= AppAuthBloc(fsDatabase.fsApp);
+  }
 
   if (kDebugMode) {
     print('appFlavorContext: $appFlavorContext');
@@ -119,6 +136,15 @@ Future<void> festenaoRunAdminApp({
   globalTkCmsAdminAppFlavorContext = appFlavorContext;
 
   var appRootPath = fsAppRoot(fsDatabase.app).path;
+  if (optionsMultiProjects != null) {
+    globalFestenaoAppFirebaseContextOrNull ??= FestenaoAppFirebaseContext(
+      storageRootPath: optionsMultiProjects.projectCollectionPath,
+      firestoreRootPath: optionsMultiProjects.projectCollectionPath,
+      storageBucket:
+          firebaseContext.firebaseApp.options.storageBucket ??
+          '${firebaseContext.firebaseApp.options.appId}.appspot.com',
+    );
+  }
   // print('appRootPath: $appRootPath');
   globalFestenaoAppFirebaseContextOrNull ??= FestenaoAppFirebaseContext(
     storageRootPath: appRootPath,
@@ -128,7 +154,11 @@ Future<void> festenaoRunAdminApp({
         '${firebaseContext.firebaseApp.options.appId}.appspot.com',
   );
   globalFestenaoFirestoreDatabaseOrNull ??= fsDatabase;
-  gAuthBloc = TkCmsAuthBloc.local(db: fsDatabase, prefs: prefs);
+  if (options != null) {
+    // No global app auth, only service account can create
+  } else {
+    gAuthBloc = TkCmsAuthBloc.local(db: fsDatabase, prefs: prefs);
+  }
 
   /// Global prefs (last entered values)
   var app = globalTkCmsAdminAppFlavorContext.uniqueAppName;
@@ -152,14 +182,27 @@ Future<void> festenaoRunAdminApp({
       }
       globalProjectsDbBlocOrNull ??= SingleCompatProjectDbBloc(
         syncedDb: festenaoDb,
-        projectPath: options!.singleProject!.singleProjectRootPath!,
+        projectPath: options!.singleProject!.singleProjectRootPath,
       );
     }
   } else {
+    // Local db
     globalProjectsDbOrNull ??= ProjectsDb(
       factory: dbFactory,
       name: '${firebaseContext.firebaseApp.options.projectId}-projects.db',
     );
+
+    var optionsMultiProjects = options?.multiProjects;
+    if (optionsMultiProjects != null) {
+      var projectDb = fsDatabase.projectDb;
+      fsDatabase.projectDb =
+          TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
+            entityCollectionRef: optionsMultiProjects.projectCollectionRef
+                .cast<FsProject>(),
+            firestore: projectDb.firestore,
+          );
+    }
+
     //print('singleProjectId: $singleProjectId');
     globalProjectsDbBlocOrNull ??= (singleProjectId == null)
         ? MultiProjectsDbBloc(app: app)
@@ -182,6 +225,19 @@ Future<void> festenaoRunAdminApp({
   sleep(300).then((_) {
     webSplashHide();
   }).unawait();
+
+  if (kDebugMode) {
+    print('Running $appFlavorContext');
+    print(
+      'Firebase projectId: ${firebaseContext.firebaseApp.options.projectId}',
+    );
+    print(
+      'firestoreRootPath: ${globalFestenaoAppFirebaseContext.firestoreRootPath}',
+    );
+    print(
+      'storageRootPath: ${globalFestenaoAppFirebaseContext.storageRootPath}',
+    );
+  }
   runApp(FestenaoAdminApp(contentNavigatorDef: contentNavigatorDef));
 }
 
