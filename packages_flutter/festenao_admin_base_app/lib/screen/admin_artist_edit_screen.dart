@@ -39,7 +39,7 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
 
         var artist = state?.artist;
         var artistId = bloc.artistId;
-        var canSave = artistId == null || artist != null;
+        var canSave = state != null && (artistId == null || artist != null);
         var article = artist;
         return AdminScreenLayout(
           appBar: AppBar(
@@ -105,7 +105,7 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
                                 labelText: 'Contenu',
                               ),
                               getBottomCommonWidgets(article),
-                              getImagesWidget(article, db: state!.db),
+                              getImagesWidget(article, db: state.db),
                               getAttributesTile(article),
                               getThumbailNameWidget(article),
                               getThumbnailSelectorTile(article),

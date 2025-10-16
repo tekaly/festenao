@@ -109,9 +109,16 @@ Future<void> festenaoRunAdminApp({
 
   TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>? projectDb;
   var optionsMultiProjects = options?.multiProjects;
+  var optionsSingleProject = options?.singleProject;
   if (optionsMultiProjects != null) {
     projectDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
       entityCollectionRef: optionsMultiProjects.projectCollectionRef
+          .cast<FsProject>(),
+    );
+  }
+  if (optionsSingleProject != null) {
+    projectDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>(
+      entityCollectionRef: optionsSingleProject.projectCollectionRef
           .cast<FsProject>(),
     );
   }
@@ -136,10 +143,21 @@ Future<void> festenaoRunAdminApp({
   globalTkCmsAdminAppFlavorContext = appFlavorContext;
 
   var appRootPath = fsAppRoot(fsDatabase.app).path;
+  // TODO remove
   if (optionsMultiProjects != null) {
     globalFestenaoAppFirebaseContextOrNull ??= FestenaoAppFirebaseContext(
       storageRootPath: optionsMultiProjects.projectCollectionPath,
       firestoreRootPath: optionsMultiProjects.projectCollectionPath,
+      storageBucket:
+          firebaseContext.firebaseApp.options.storageBucket ??
+          '${firebaseContext.firebaseApp.options.appId}.appspot.com',
+    );
+  }
+  // TODO remove
+  if (optionsSingleProject != null) {
+    globalFestenaoAppFirebaseContextOrNull ??= FestenaoAppFirebaseContext(
+      storageRootPath: optionsSingleProject.singleProjectRootPath,
+      firestoreRootPath: optionsSingleProject.singleProjectRootPath,
       storageBucket:
           firebaseContext.firebaseApp.options.storageBucket ??
           '${firebaseContext.firebaseApp.options.appId}.appspot.com',
@@ -164,12 +182,21 @@ Future<void> festenaoRunAdminApp({
   var app = globalTkCmsAdminAppFlavorContext.uniqueAppName;
   globalFestenaoAdminApp.parentAppController = parentAppController;
   await globalFestenaoAdminApp.openPrefs();
+  String encodeForPath(String input) {
+    final encoded = base64Url.encode(utf8.encode(input));
+    return encoded.replaceAll('=', ''); // remove padding for prettier names
+  }
 
   globalPackageName = packageName;
   var dbFactory = getDatabaseFactory(packageName: packageName);
-  if (options?.singleProject != null) {
+
+  if (optionsSingleProject != null) {
     if (globalProjectsDbBlocOrNull == null) {
-      var festenaoDb = FestenaoDb(dbFactory);
+      var festenaoDb = FestenaoDb(
+        dbFactory,
+        name:
+            'festenao${encodeForPath(optionsSingleProject.singleProjectRootPath)}.db',
+      );
       // Trigger opening
       try {
         festenaoDb.initialSynchronizationDone().unawait();
@@ -180,6 +207,7 @@ Future<void> festenaoRunAdminApp({
           print('Error opening db $e');
         }
       }
+
       globalProjectsDbBlocOrNull ??= SingleCompatProjectDbBloc(
         syncedDb: festenaoDb,
         projectPath: options!.singleProject!.singleProjectRootPath,

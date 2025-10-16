@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
@@ -52,6 +53,9 @@ class AdminProjectUsersScreenBloc
     var collectionRef = usersRef = fsDb
         .fsEntityUserAccessCollectionRef(projectId)
         .cast<TkCmsEditedFsUserAccess>();
+    if (kDebugMode) {
+      print('Listening to users in $collectionRef');
+    }
     _usersSubscription = audiAddStreamSubscription(
       collectionRef
           .onSnapshotsSupport(
