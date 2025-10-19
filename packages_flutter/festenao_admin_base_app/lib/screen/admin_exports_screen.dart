@@ -2,6 +2,7 @@ import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
+import 'package:tekartik_app_flutter_widget/app_widget.dart';
 
 import 'admin_export_edit_screen.dart';
 import 'admin_export_view_screen.dart';
@@ -27,7 +28,23 @@ class _AdminExportsScreenState extends State<AdminExportsScreen> {
           if (list == null) {
             return const Center(child: CircularProgressIndicator());
           }
-          return ListView.builder(
+          return WithHeaderFooterListView.builder(
+            header: ListTile(
+              title: const Text('storage'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    bloc.projectContext.storageBucket,
+                    style: const TextStyle(fontSize: 8),
+                  ),
+                  Text(
+                    bloc.projectContext.storagePath,
+                    style: const TextStyle(fontSize: 8),
+                  ),
+                ],
+              ),
+            ),
             itemCount: list.length,
             itemBuilder: (context, index) {
               var export = list[index];

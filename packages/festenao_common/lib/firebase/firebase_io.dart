@@ -17,6 +17,7 @@ Future<FirebaseContext> festenaoInitFirebaseIoWithServiceAccount({
 
   var firebaseApp = await firebaseAdmin.initializeAppWithServiceAccountMap(
     serviceAccountMap,
+    options: options,
   );
   await firebaseAdmin.credential.applicationDefault()?.getAccessToken();
   return FirebaseServicesContext(
@@ -24,7 +25,6 @@ Future<FirebaseContext> festenaoInitFirebaseIoWithServiceAccount({
     firestoreService: firestoreServiceRest,
     authService: firebaseAuthServiceRest,
     storageService: storageServiceRest,
-
     firebaseApp: firebaseApp,
-  ).initContext();
+  ).init();
 }

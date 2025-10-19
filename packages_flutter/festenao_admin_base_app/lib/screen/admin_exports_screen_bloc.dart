@@ -21,7 +21,7 @@ class AdminExportsScreenBloc
     extends AutoDisposeStateBaseBloc<AdminExportsScreenBlocState>
     with AdminExportBlocMixin {
   // ignore: cancel_subscriptions
-  StreamSubscription? _artistSubscription;
+  StreamSubscription? _exportsSubscription;
 
   @override
   final FestenaoAdminAppProjectContext projectContext;
@@ -67,7 +67,7 @@ class AdminExportsScreenBloc
 
     var query = firestore.collection(firestoreExportCollectionPath);
     if (firestore.service.supportsTrackChanges) {
-      _artistSubscription ??= audiAddStreamSubscription(
+      _exportsSubscription ??= audiAddStreamSubscription(
         query.onSnapshotSupport().listen((event) async {
           await addExports(event.docs.cv<FsExport>());
         }),
