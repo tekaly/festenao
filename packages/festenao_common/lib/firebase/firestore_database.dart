@@ -103,7 +103,7 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   /// Copy with a different appId.
   FestenaoFirestoreDatabase copyWithAppId(String appId) {
     return FestenaoFirestoreDatabase(
-      firebaseContext: firebaseContext,
+      firebaseContext: this.firebaseContext,
       flavorContext: flavorContext.copyWithAppId(appId),
     );
   }

@@ -6,7 +6,10 @@ import 'package:festenao_common/festenao_firebase_rest.dart';
 ///
 /// Returns a [FirebaseContext] containing the initialized Firebase services.
 Future<FirebaseContext> festenaoInitFirebaseIoWithServiceAccount({
+  /// Optional Firebase app options.
+  FirebaseAppOptions? options,
   required Map serviceAccountMap,
+  String? storageBucket,
 }) async {
   //initFirebaseIo();
 
@@ -21,6 +24,7 @@ Future<FirebaseContext> festenaoInitFirebaseIoWithServiceAccount({
     firestoreService: firestoreServiceRest,
     authService: firebaseAuthServiceRest,
     storageService: storageServiceRest,
+
     firebaseApp: firebaseApp,
   ).initContext();
 }
