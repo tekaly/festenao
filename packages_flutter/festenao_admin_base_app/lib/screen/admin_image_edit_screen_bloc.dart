@@ -3,6 +3,7 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_blur_hash/blur_hash.dart';
 import 'package:festenao_common/app/app_options.dart';
+import 'package:festenao_common/data/festenao_storage.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:image/image.dart' as img;
@@ -50,6 +51,8 @@ class AdminImageEditScreenBloc
     AdminAppProjectContextDbBloc(projectContext: projectContext),
   );
 
+  String get imageStorageDirPath =>
+      join(projectContext.storagePath, storageImageDirPart);
   AdminImageEditScreenBloc({
     required this.imageId,
     required this.param,
@@ -70,7 +73,7 @@ class AdminImageEditScreenBloc
 
   Future<void> saveImage(AdminImageEditData data) async {
     var db = await dbBloc.grabDatabase();
-    var bucket = dbBloc.projectContext.storageBucket;
+    var bucket = projectContext.storageBucket;
     var dbImage = data.image;
 
     var imageData = data.imageData;
@@ -103,11 +106,9 @@ class AdminImageEditScreenBloc
         ..blurHash.v = blurHash
         ..copyright.v = dbImage.copyright.v;
 
-      var path = globalFestenaoAppFirebaseContext.getImageDirStoragePath(
-        imageName,
-      );
+      var path = url.join(imageStorageDirPath, imageName);
       // devPrint('sending to $path ${imageData.length}');
-      await globalFestenaoAdminAppFirebaseContext.storage
+      await projectContext.storage
           .bucket(bucket)
           .file(path)
           .writeAsBytes(imageData);
