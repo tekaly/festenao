@@ -37,3 +37,6 @@ android/
 ios/
 web/
 .metadata
+.*
+!.github
+!.gitignore

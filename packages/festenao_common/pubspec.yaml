@@ -147,6 +147,18 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_functions.dart
       path: firebase_functions_test
+  tekartik_firebase_storage_sim:
+    git:
+      url: https://github.com/tekartik/firebase_storage.dart
+      path: storage_sim
+  tekartik_app_sembast:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      path: app_sembast
+  tekartik_firebase_storage_fs:
+    git:
+      url: https://github.com/tekartik/firebase_storage.dart
+      path: storage_fs
   # path: ^1.8.0
 
 dev_dependencies:

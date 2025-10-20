@@ -51,6 +51,22 @@ dependencies:
     git:
       url: https://github.com/tekartikprj/tekaly
       path: packages/sembast_synced
+  tekartik_firebase_storage_sim:
+    git:
+      url: https://github.com/tekartik/firebase_storage.dart
+      path: storage_sim
+  tekartik_firebase_auth_sembast:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth_sembast
+  tekartik_firebase_firestore_sembast:
+    git:
+      url: https://github.com/tekartik/firebase_firestore.dart
+      path: firestore_sembast
+  tekartik_firebase_functions_io:
+    git:
+      url: https://github.com/tekartik/firebase_functions.dart
+      path: firebase_functions_io
 
 dev_dependencies:
   lints: ">=5.0.0"

@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 const poppinsFontFamily = 'Poppins';
 
 /// Add poppins license
+/// Don't forget to the asset in pubspec.yaml
+/// - packages/festenao_theme/fonts/poppins/OFL.txt
 void addPoppinsLicense() {
   LicenseRegistry.addLicense(() async* {
     final license = await rootBundle.loadString(
