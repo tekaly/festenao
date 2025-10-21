@@ -30,10 +30,10 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-resolution: workspace
 
   # To add assets to your package, add an assets section, like this:
-  # assets:
+  assets:
+    - packages/festenao_theme/fonts/poppins/OFL.txt
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
   #
@@ -62,3 +62,5 @@ resolution: workspace
   #
   # For details regarding fonts in packages, see
   # https://flutter.dev/to/font-from-package
+
+resolution: workspace
