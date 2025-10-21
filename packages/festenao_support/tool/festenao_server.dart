@@ -1,6 +1,10 @@
 // ignore_for_file: avoid_print, unnecessary_import, depend_on_referenced_packages
 
+import 'package:festenao_common/festenao_firebase.dart';
+import 'package:festenao_common/festenao_flavor.dart';
+import 'package:festenao_common/festenao_server.dart';
 import 'package:festenao_common/firebase/firebase_sim_server.dart';
+import 'package:festenao_common/test/festenao_test_server_test.dart';
 import 'package:tekartik_firebase_auth_sembast/auth_sembast.dart';
 import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart';
 import 'package:tekartik_firebase_functions_io/firebase_functions_io.dart';
@@ -12,15 +16,21 @@ import 'package:tekartik_firebase_storage_fs/storage_fs_io.dart';
 var port = firebaseSimDefaultPort;
 Future<void> main(List<String> args) async {
   void initFunctions({
-    required FirebaseFunctionsService functionsService,
+    required FirebaseServicesContext firebaseServicesContext,
     required FirebaseApp firebaseApp,
   }) {
-    var functions = functionsService.functions(firebaseApp);
-    initTestFunctions(firebaseFunctions: functions);
+    print('initFunctions');
+    var serverApp = FestenaoServerAppTest(
+      context: TkCmsServerAppContext(
+        flavorContext: FlavorContext.dev,
+        firebaseContext: firebaseServicesContext.initSync(),
+      ),
+    );
+    serverApp.initFunctions();
   }
 
-  var festenaSimServer = await initFestenaoSimServer(
+  var festenaoSimServer = await initFestenaoSimServer(
     initFunction: initFunctions,
   );
-  print('url ${festenaSimServer.uri}');
+  print('url ${festenaoSimServer.uri}');
 }

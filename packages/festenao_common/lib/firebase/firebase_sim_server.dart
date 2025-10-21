@@ -24,11 +24,11 @@ export 'package:tekartik_firebase_sim/firebase_sim_server.dart';
 
 var port = firebaseSimDefaultPort;
 
-class FestenaoSimService {
+class FestenaoSimServer {
   final FirebaseSimServer firebaseSimServer;
   final FirebaseServicesContext firebaseServicesContext;
 
-  FestenaoSimService({
+  FestenaoSimServer({
     required this.firebaseSimServer,
     required this.firebaseServicesContext,
   });
@@ -37,9 +37,9 @@ class FestenaoSimService {
 }
 
 /// Global init function
-Future<FestenaoSimService> initFestenaoSimServer({
+Future<FestenaoSimServer> initFestenaoSimServer({
   void Function({
-    required FirebaseFunctionsService functionsService,
+    required FirebaseServicesContext firebaseServicesContext,
     required FirebaseApp firebaseApp,
   })?
   initFunction,
@@ -55,9 +55,16 @@ Future<FestenaoSimService> initFestenaoSimServer({
   var authService = FirebaseAuthServiceSembast(
     databaseFactory: databaseFactory,
   );
+  var firebaseServicesContext = FirebaseServicesContext(
+    firebase: firebaseLocal,
+    storageService: storageService,
+    firestoreService: firestoreService,
+    authService: authService,
+    functionsService: functionsService,
+  );
   void localInitFunction({required FirebaseApp firebaseApp}) {
     initFunction?.call(
-      functionsService: functionsService,
+      firebaseServicesContext: firebaseServicesContext,
       firebaseApp: firebaseApp,
     );
   }
@@ -83,13 +90,8 @@ Future<FestenaoSimService> initFestenaoSimServer({
     ],
   );
   print('sim_server_url ${firebaseSimServer.url}');
-  return FestenaoSimService(
+  return FestenaoSimServer(
     firebaseSimServer: firebaseSimServer,
-    firebaseServicesContext: FirebaseServicesContext(
-      firebase: firebaseLocal,
-      firestoreService: firestoreService,
-      storageService: storageService,
-      authService: authService,
-    ),
+    firebaseServicesContext: firebaseServicesContext,
   );
 }
