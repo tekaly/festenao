@@ -57,6 +57,13 @@ class FestenaoAmpPage {
       ..attributes['amp-custom'] = ''
       ..text = cssMvpMin;
     head.appendLf();
+    //     <!-- Favicon -->
+    //     <link rel="icon" type="image/png" href="assets/packages/tekaly_assets/img/tekartik_logo_256.png"/>
+    head.appendElementTag('link')
+      ..attributes['rel'] = 'icon'
+      ..attributes['type'] = 'image/png'
+      ..attributes['href'] =
+          'https://festenaoprv-user-app-dev.web.app/assets/packages/tekaly_assets/img/tekartik_logo_256.png';
     var main = htmlProvider.createElementTag('main');
     main
       ..appendElementHtml('<h1>Amp Yacht example</h1>')

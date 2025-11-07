@@ -8,9 +8,9 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  path: ">=1.9.0"
-  sembast: ">=3.7.4+3"
-  fs_shim: ">=2.3.3+1"
+  path: ">=1.9.1"
+  sembast: ">=3.8.5+1"
+  fs_shim: ">=2.4.0"
   tkcms_support:
     git:
       url: https://github.com/tekartikprj/tkcms.git
@@ -23,7 +23,7 @@ dependencies:
     git:
       url: https://github.com/tekartikprj/tkcms.git
       path: packages/tkcms_common
-  dev_build: ">=1.1.2"
+  dev_build: ">=1.1.2+11"
   tekartik_prj_tktools:
     git:
       url: https://github.com/tekartikprj/tktools.git
@@ -69,7 +69,7 @@ dependencies:
       path: firebase_functions_io
 
 dev_dependencies:
-  lints: ">=5.0.0"
-  test: ">=1.24.0"
+  lints: ">=6.0.0"
+  test: ">=1.26.2"
 
 resolution: workspace

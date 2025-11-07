@@ -10,8 +10,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  y_player: ">=2.0.5+1"
-  youtube_player_iframe: ">=5.2.1"
+  y_player: ">=2.0.6"
+  youtube_player_iframe: ">=5.2.2"
   festenao_common_flutter:
     git:
       url: https://github.com/tekaly/festenao
@@ -19,7 +19,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ">=5.0.0"
+  flutter_lints: ">=6.0.0"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

@@ -265,7 +265,7 @@ Future<void> festenaoRunAdminApp({
     print(
       'storageRootPath: ${globalFestenaoAppFirebaseContext.storageRootPath}',
     );
-    print('storageRootPath: ${globalFestenaoAppFirebaseContext.storageBucket}');
+    print('storageBucket: ${globalFestenaoAppFirebaseContext.storageBucket}');
   }
   runApp(FestenaoAdminApp(contentNavigatorDef: contentNavigatorDef));
 }

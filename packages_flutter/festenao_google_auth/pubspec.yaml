@@ -12,8 +12,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  firebase_ui_auth: ">=1.17.0"
-  firebase_ui_oauth_google: ">=1.4.0"
+  firebase_ui_auth: ">=3.0.1"
+  firebase_ui_oauth_google: ">=2.0.1"
   tekartik_firebase_flutter_ui_auth:
     git:
       url: https://github.com/tekartik/firebase_ui.dart
