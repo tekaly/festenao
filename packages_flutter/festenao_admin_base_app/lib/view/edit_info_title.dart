@@ -19,8 +19,8 @@ class EditInfoTile extends StatelessWidget {
     super.key,
     this.onTap,
     this.onLongPress,
-    @required this.labelText,
-    @required this.valueText,
+    this.labelText,
+    this.valueText,
     this.set,
     this.trailing,
   });
