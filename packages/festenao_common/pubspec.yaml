@@ -159,6 +159,18 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_storage.dart
       path: storage_fs
+  tekartik_app_cv_sdb:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      path: app_cv_sdb
+  tekartik_firebase_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      path: firebase_rest
+  tekartik_firebase_firestore_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      path: firestore_rest
   # path: ^1.8.0
 
 dev_dependencies:
