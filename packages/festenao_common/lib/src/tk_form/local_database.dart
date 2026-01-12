@@ -152,6 +152,7 @@ class _DbQuestionOptions extends TkFormPlayerQuestionOptions
 
 /// Question extension
 extension CvSurveyQuestionExt on CvSurveyQuestion {
+  /// Gets the form player question from the survey question.
   TkFormPlayerQuestion get formPlayerQuestion {
     var playerQuestion = TkFormPlayerQuestion(
       id: id.v ?? '',
@@ -171,7 +172,9 @@ extension CvSurveyQuestionExt on CvSurveyQuestion {
   }
 }
 
+/// Extension on [DbSurvey].
 extension DbSurveyExt on DbSurvey {
+  /// Gets the form player form from the survey details.
   TkFormPlayerForm get formPlayerForm {
     var self = this;
     var formPlayerForm = TkFormPlayerFormBase(
@@ -182,6 +185,7 @@ extension DbSurveyExt on DbSurvey {
     return formPlayerForm;
   }
 
+  /// Gets the list of form player questions from the survey details.
   List<TkFormPlayerQuestion> get formPlayerQuestions {
     var self = this;
     var questions = self.details.v?.questions.v?.list.v ?? [];
@@ -191,6 +195,7 @@ extension DbSurveyExt on DbSurvey {
 
 /// Answer extension
 extension TkFormPlayerQuestionAnswerExt on TkFormPlayerQuestionAnswer {
+  /// Gets the survey answer model from the form player question answer.
   CvSurveyAnswer get cvSurveyAnswer {
     var self = this;
     var cvSurveyAnswer = CvSurveyAnswer();
@@ -202,6 +207,7 @@ extension TkFormPlayerQuestionAnswerExt on TkFormPlayerQuestionAnswer {
   }
 }
 
+/// Store for survey records.
 final dbSurveyStore = cvStringStoreFactory.store<DbSurvey>('survey');
 
 /// Generic info store used for device metadata.
@@ -210,13 +216,20 @@ final dbInfoStore = cvStringStoreFactory.store<DbStringRecordBase>('info');
 /// Record holding device information in the info store.
 final dbDeviceRecord = dbInfoStore.castV<DbDevice>().record('device');
 
+/// Local database for forms.
 class LocalDatabase {
+  /// The database factory.
   final DatabaseFactory databaseFactory;
+
+  /// The database instance.
   late Database database;
 
+  /// Constructor for [LocalDatabase].
   LocalDatabase(this.databaseFactory) {
     fufFormInitDbBuilders();
   }
+
+  /// Initializes the local database.
   Future<void> init() async {
     database = await databaseFactory.openDatabase(
       'form.db',

@@ -7,7 +7,10 @@ class FsUserAccess extends CvFirestoreDocumentBase {
   /// User id!
   String get userId => url.basename(path);
 
+  /// True if the user is an admin.
   final admin = CvField<bool>('admin');
+
+  /// The name of the user.
   final name = CvField<String>('name');
   @override
   List<CvField> get fields => [admin, name];

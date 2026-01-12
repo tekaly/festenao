@@ -47,6 +47,7 @@ mixin DbArticleMixin on DbStringRecord implements DbArticle {
   @override
   final author = CvField<String>('author');
 
+  /// The name or the identifier if the name is empty.
   String get nameOrId => (name.v?.isNotEmpty ?? false) ? name.v! : '[$id]';
 
   /// Type (optional)
@@ -86,6 +87,7 @@ mixin DbArticleMixin on DbStringRecord implements DbArticle {
   @override
   final squareImage = CvField<String>('squareImage');
 
+  /// List of fields for an article.
   List<CvField> get articleFields => [
     name,
     author,
@@ -101,7 +103,9 @@ mixin DbArticleMixin on DbStringRecord implements DbArticle {
 }
 
 // Helpers
+/// Helper extension on [DbArticle].
 extension DbArticleHelpers on DbArticle {
+  /// Returns true if the article has the given [tag].
   bool hasTag(String tag) => tags.v?.contains(tag) ?? false;
 
   /// Non empty non blank content
@@ -124,17 +128,40 @@ abstract class DbArticleCommonBase extends DbStringRecordBase
 /// Interface describing an article record's public API.
 abstract class DbArticle extends DbStringRecord {
   /// The kind of article (artist/event/info/location).
+  /// The kind of article (artist/event/info/location).
   String get articleKind;
+
+  /// The thumbnail image id.
   CvField<String> get thumbnail;
+
+  /// The square image id.
   CvField<String> get squareImage;
+
+  /// The markdown content.
   CvField<String> get content;
+
+  /// The main image id.
   CvField<String> get image;
+
+  /// The article type.
   CvField<String> get type;
+
+  /// The subtitle.
   CvField<String> get subtitle;
+
+  /// The article name.
   CvField<String> get name;
+
+  /// The article author.
   CvField<String> get author;
+
+  /// The sort key.
   CvField<String> get sort;
+
+  /// List of tags.
   CvListField<String> get tags;
+
+  /// List of attributes.
   CvModelListField<CvAttribute> get attributes;
 }
 

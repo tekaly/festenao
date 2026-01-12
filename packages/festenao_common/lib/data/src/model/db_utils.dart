@@ -8,17 +8,21 @@ DbArtist? dbArtistFromSnapshot(
 /// Parsed information extracted from a [CvAttribute] value.
 class AttributeInfo {
   // artist:<xxx>
+  /// The artist ID.
   String? artistId;
 
   // location:<xxx>
+  /// The location info ID.
   String? locationInfoId;
 
   // Containing https://goo.gl/maps/
+  /// The map link.
   String? mapLink;
 
   /// Scheme mailto:
   String? email;
 
+  /// True if no link was found.
   var noLinkFound = false;
 
   @override

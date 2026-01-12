@@ -7,8 +7,11 @@ class FestenaoAppOptions {
   FestenaoAppSingleProjectOptions? get singleProject =>
       projects?.anyAs<FestenaoAppSingleProjectOptions?>();
 
+  /// Multi-projects options, if applicable.
   FestenaoAppMultiProjectsOptions? get multiProjects =>
       projects?.anyAs<FestenaoAppMultiProjectsOptions?>();
+
+  /// The projects options (either single or multi).
   late final FestenaoAppProjectsOptions? projects;
 
   /// Creates a new [FestenaoAppOptions] instance.
@@ -30,9 +33,11 @@ class FestenaoAppOptions {
 
 /// Initialization options for a single Festenao project.
 class FestenaoAppSingleProjectOptions implements FestenaoAppProjectsOptions {
+  /// The project collection reference.
   late final TkCmsFirestoreDatabaseEntityCollectionRef<TkCmsFsProject>
   projectCollectionRef;
 
+  /// The project identifier.
   late final String projectId;
 
   /// The root document path path for the single project, if specified.
@@ -89,6 +94,7 @@ abstract class FestenaoAppProjectsOptions {
 
 /// Initialization options for a single Festenao project.
 class FestenaoAppMultiProjectsOptions implements FestenaoAppProjectsOptions {
+  /// The project collection reference.
   final TkCmsFirestoreDatabaseEntityCollectionRef<TkCmsFsProject>
   projectCollectionRef;
 

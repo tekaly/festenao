@@ -24,6 +24,7 @@ final festenaoAppAsProjectCollectionInfo =
       treeDef: tkCmsSyncedTreeDef,
     );
 
+/// App collection info in app
 final festenaoAppCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<TkCmsFsEntity>(
       id: 'app',
@@ -31,6 +32,7 @@ final festenaoAppCollectionInfo =
       treeDef: tkCmsSyncedTreeDef,
     );
 
+/// Extension on [TkCmsFirestoreDatabaseEntityCollectionInfo]
 extension TkCmsFirestoreDatabaseEntityCollectionInfoExt<T extends TkCmsFsEntity>
     on TkCmsFirestoreDatabaseEntityCollectionInfo<T> {
   /// Access db

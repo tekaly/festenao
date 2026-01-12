@@ -61,6 +61,7 @@ final dbProjectUserStore = cvStringStoreFactory.store<DbProjectUser>(
 /// Projects database manager.
 class ProjectsDb {
   /// Database factory.
+  /// Database factory.
   final DatabaseFactory factory;
 
   /// Name of the database.
@@ -154,6 +155,7 @@ class ProjectsDb {
     );
   }
 
+  /// Gets a finder for a project given [userId] and [projectId].
   Finder getProjectFinder({required String userId, required String projectId}) {
     return Finder(
       filter: Filter.and([
@@ -176,7 +178,11 @@ class ProjectsDb {
 /// Global projects database instance.
 /// Initialized once and used throughout the admin application.
 ProjectsDb get globalProjectsDb => globalProjectsDbOrNull!;
+
+/// Global projects database instance or null.
 ProjectsDb? globalProjectsDbOrNull;
+
+/// Sets the global projects database instance.
 set globalProjectsDb(ProjectsDb value) {
   globalProjectsDbOrNull = value;
 }

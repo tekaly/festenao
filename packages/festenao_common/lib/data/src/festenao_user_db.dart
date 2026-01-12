@@ -14,6 +14,8 @@ class FestenaoUserDb {
 
   /// Database file name (default 'festenao_user.db').
   var name = nameDefault;
+
+  /// Default database file name.
   static String nameDefault = 'festenao_user.db';
 
   @visibleForTesting

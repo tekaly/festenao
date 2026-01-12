@@ -14,6 +14,7 @@ class DbMetaGeneral extends DbMeta {
   /// General name for the meta record.
   late final name = CvField<String>('name');
 
+  /// General description for the meta record.
   late final description = CvField<String>('description');
 
   /// Tags associated with the meta record.

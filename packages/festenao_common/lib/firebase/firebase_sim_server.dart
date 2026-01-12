@@ -22,17 +22,24 @@ export 'package:tekartik_firebase_functions_io/firebase_functions_io.dart';
 export 'package:tekartik_firebase_local/firebase_local.dart';
 export 'package:tekartik_firebase_sim/firebase_sim_server.dart';
 
+/// Default port for Firebase sim server.
 var port = firebaseSimDefaultPort;
 
+/// Festenao simulation server.
 class FestenaoSimServer {
+  /// The firebase sim server.
   final FirebaseSimServer firebaseSimServer;
+
+  /// The firebase services context.
   final FirebaseServicesContext firebaseServicesContext;
 
+  /// Constructor for [FestenaoSimServer].
   FestenaoSimServer({
     required this.firebaseSimServer,
     required this.firebaseServicesContext,
   });
 
+  /// The URI of the server.
   Uri get uri => firebaseSimServer.uri;
 }
 

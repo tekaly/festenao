@@ -40,15 +40,26 @@ final dbInfoStoreRef = cvStringStoreFactory.store<DbInfo>('info');
 CvRecordRef<String, DbInfo> dbInfoRecordRef(String id) =>
     dbInfoStoreRef.record(id);
 
+/// Deprecated alias for [dbImageStoreRef].
 @Deprecated('use dbImageStoreRef')
 var imageStore = dbImageStoreRef;
+
+/// Deprecated alias for [dbArtistStoreRef].
 @Deprecated('use dbArtistStore')
 var artistStore = dbArtistStoreRef;
+
+/// Deprecated alias for [dbEventStoreRef].
 @Deprecated('use dbEventStoreRef')
 var eventStore = dbEventStoreRef;
+
+/// Deprecated alias for [dbSyncRecordStoreRef].
 @Deprecated('use dbSyncRecordStoreRef')
 var syncRecordStore = dbSyncRecordStoreRef;
+
+/// Deprecated alias for [dbSyncMetaStoreRef].
 @Deprecated('use dbSyncMetaStoreRef')
 var syncMetaStore = dbSyncMetaStoreRef;
+
+/// Deprecated alias for [dbInfoStoreRef].
 @Deprecated('use dbInfoStoreRef')
 var infoStore = dbInfoStoreRef;

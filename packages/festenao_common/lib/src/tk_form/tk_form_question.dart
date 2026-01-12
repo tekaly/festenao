@@ -228,6 +228,7 @@ abstract class TkFormPlayerQuestionInformationOptions
 }
 
 /// Question options common interface.
+/// Question options common interface.
 abstract class TkFormPlayerQuestionOptions {
   /// Is type int
   bool get isTypeInt;
@@ -247,6 +248,7 @@ abstract class TkFormPlayerQuestionOptions {
   /// Information only, no answer
   bool get isInformation;
 
+  /// Optional tags.
   List<String>? get tags;
 }
 

@@ -4,6 +4,7 @@ import 'package:tekaly_sembast_synced/synced_db_internals.dart';
 var _initFestenaoDbBuildersDone = false;
 var _initFestenaoUserDbBuildersDone = false;
 
+/// Initialize Festenao database builders.
 void initFestenaoDbBuilders() {
   if (!_initFestenaoDbBuildersDone) {
     _initFestenaoDbBuildersDone = true;
@@ -27,6 +28,7 @@ void initFestenaoDbBuilders() {
   }
 }
 
+/// Initialize Festenao user database builders.
 void initFestenaoUserDbBuilders() {
   if (!_initFestenaoUserDbBuildersDone) {
     _initFestenaoUserDbBuildersDone = true;

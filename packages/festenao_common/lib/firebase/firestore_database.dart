@@ -52,8 +52,12 @@ final userPrvCollectionInfo =
 class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   /// Project entity database access.
   TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>? _projectDb;
+
+  /// The project entity database access getter.
   TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> get projectDb =>
       _projectDb!;
+
+  /// The project entity database access setter.
   set projectDb(TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> db) {
     _projectDb = db;
   }
@@ -109,15 +113,18 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   }
 }
 
-/// Global entity database
+/// Global entity database.
 FestenaoFirestoreDatabase get globalEntityDatabase =>
     globalFestenaoFirestoreDatabase;
+
+/// Sets the global entity database.
 set globalEntityDatabase(FestenaoFirestoreDatabase db) {
   globalFestenaoFirestoreDatabaseOrNull = db;
 }
 
+/// Global festenao firestore database or null.
 FestenaoFirestoreDatabase? globalFestenaoFirestoreDatabaseOrNull;
 
-/// Global festenao firestore database
+/// Global festenao firestore database.
 FestenaoFirestoreDatabase get globalFestenaoFirestoreDatabase =>
     globalFestenaoFirestoreDatabaseOrNull!;

@@ -65,7 +65,11 @@ class FestenaoExportMeta extends CvModelBase {
 /// Main Festenao synchronized database wrapper.
 class FestenaoDb extends SyncedDbBase {
   bool _test = false;
+
+  /// The name of the database.
   var name = nameDefault;
+
+  /// Default database file name.
   static String nameDefault = 'festenao.db';
 
   /// In-memory database factory used for tests.
@@ -165,11 +169,14 @@ class FestenaoExportInfo {
   /// Exported data map keyed by store names.
   final Map<String, Object?> data;
 
+  /// Constructor for [FestenaoExportInfo].
   FestenaoExportInfo({required this.metaInfo, required this.data});
 }
 
+/// extension for RecordRef
 extension FestenaoDbExt on RecordRef {}
 
+/// extension for List of DbRecord
 extension FestenaoDbModelListExt on List<DbRecord> {
   /// Delete all records in this list from the provided [client].
   Future<void> delete(DatabaseClient client) async {

@@ -4,6 +4,7 @@ import 'package:tekartik_common_utils/int_utils.dart';
 export 'package:tekartik_app_date/calendar_day.dart';
 export 'package:tekartik_app_date/calendar_time.dart';
 
+/// Data offset.
 var dataOffset = const Duration(minutes: -60);
 
 /// For start-end format
@@ -16,14 +17,16 @@ CalendarDay parseCalendarDayOrThrow(String text) {
   return CalendarDay(text: text);
 }
 
+/// Compatibility extension on [CalendarTime].
 extension CalendarTimeCompatExt on CalendarTime {
+  /// Converts to input string format.
   String toInputString() {
     var hours = (seconds ~/ 3600);
     var minutes = (seconds ~/ 60) % 60;
     return '${from2Digits(hours)}:${from2Digits(minutes)}';
   }
 
-  // Return a time in the even timezone as UTC
+  /// Return a time in the even timezone as UTC
   DateTime toDateTime(CalendarDay day, {bool? isLocal = false}) {
     var year = day.dateTime.year;
     var month = day.dateTime.month;
@@ -41,10 +44,14 @@ extension CalendarTimeCompatExt on CalendarTime {
     return dateTime;
   }
 
+  /// Total hours.
   int get totalHours => seconds ~/ 3600;
+
+  /// Total days.
   int get totalDays => totalHours ~/ 24;
 }
 
+/// Compatibility extension on [CalendarDay].
 extension CalendarDayCompatExt on CalendarDay {
   /// UTC is the default
   DateTime toDateTime(CalendarTime time, {bool? isLocal = false}) {
@@ -52,6 +59,7 @@ extension CalendarDayCompatExt on CalendarDay {
   }
 }
 
+/// Formats a 2-digit number.
 String from2Digits(int value) {
   var sb = StringBuffer();
   value %= 100;
@@ -61,11 +69,13 @@ String from2Digits(int value) {
   return sb.toString();
 }
 
+/// Compatibility [CalendarTime] class.
 class CalendarTimeCompat implements Comparable<CalendarTimeCompat> {
   late int _seconds; // in seconds from midnight
+  /// Seconds from midnight.
   int get seconds => _seconds;
 
-  // Handle 11:00 and 1100
+  /// Handle 11:00 and 1100
   CalendarTimeCompat({String? text, int? seconds}) {
     if (seconds != null) {
       _seconds = seconds;
@@ -102,13 +112,14 @@ class CalendarTimeCompat implements Comparable<CalendarTimeCompat> {
     return '${from2Digits(hours)}:${from2Digits(minutes)}';
   }
 
+  /// Converts to input string format.
   String toInputString() {
     var hours = (_seconds ~/ 3600);
     var minutes = (_seconds ~/ 60) % 60;
     return '${from2Digits(hours)}:${from2Digits(minutes)}';
   }
 
-  // Return a time in the even timezone as UTC
+  /// Return a time in the even timezone as UTC
   DateTime toDateTime(CalendarDayCompat day, {bool? isLocal = false}) {
     var year = day.dateTime.year;
     var month = day.dateTime.month;
@@ -126,15 +137,20 @@ class CalendarTimeCompat implements Comparable<CalendarTimeCompat> {
     return dateTime;
   }
 
+  /// Total hours.
   int get totalHours => _seconds ~/ 3600;
+
+  /// Total days.
   int get totalDays => totalHours ~/ 24;
 }
 
+/// Returns a 2-digit number string.
 String twoDigitNumber(int number) {
   return (number < 10) ? '0$number' : '$number';
 }
 
 // 25:00 => 1:00
+/// Converts seconds to time string.
 String secondsToTimeString(int seconds) {
   var hours = seconds ~/ 3600;
   var minutes = (seconds - hours * 3600) ~/ 60;
@@ -144,6 +160,7 @@ String secondsToTimeString(int seconds) {
   return '${twoDigitNumber(hours)}:${twoDigitNumber(minutes)}';
 }
 
+/// Parses calendar day or null.
 CalendarDayCompat? parseCalendarDayOrNullCompat(String? text) {
   if (text == null) {
     return null;
@@ -151,6 +168,7 @@ CalendarDayCompat? parseCalendarDayOrNullCompat(String? text) {
   return parseCalendarDayCompat(text);
 }
 
+/// Parses calendar day.
 CalendarDayCompat? parseCalendarDayCompat(String text) {
   try {
     return CalendarDayCompat(text: text);
@@ -159,6 +177,7 @@ CalendarDayCompat? parseCalendarDayCompat(String text) {
   }
 }
 
+/// Parses calendar day or throws.
 CalendarDayCompat parseCalendarDayOrThrowCompat(String text) {
   return CalendarDayCompat(text: text);
 }
@@ -186,6 +205,7 @@ CalendarTimeCompat? parseEndCalendarTime(String text) {
   }
 }
 
+/// Compatibility [CalendarDay] class.
 class CalendarDayCompat implements Comparable<CalendarDayCompat> {
   late final DateTime _dateTime;
 
@@ -199,6 +219,7 @@ class CalendarDayCompat implements Comparable<CalendarDayCompat> {
     }
   }
 
+  /// The date time.
   DateTime get dateTime => _dateTime;
 
   @override
@@ -226,13 +247,16 @@ class CalendarDayCompat implements Comparable<CalendarDayCompat> {
   }
 }
 
+/// Formats week day in French.
 String dateFormatWeekDayFr(DateTime dateTime) {
   return dayOfWeekFr[dateTime.weekday]!;
 }
 
+/// Formats short week day in French.
 String dateFormatWeekDayFrShort(DateTime dateTime) =>
     dateFormatWeekDayFr(dateTime).substring(0, 3);
 
+/// Day of week in French.
 var dayOfWeekFr = {
   DateTime.monday: 'Lundi',
   DateTime.tuesday: 'Mardi',

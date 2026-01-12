@@ -91,4 +91,5 @@ class DbEvent extends DbStringRecordBase with DbArticleMixin {
   }
 }
 
+/// Default model instance for [DbEvent].
 final dbEventModel = DbEvent();

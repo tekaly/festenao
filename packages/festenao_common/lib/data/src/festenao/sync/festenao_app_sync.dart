@@ -14,25 +14,31 @@ void _log(Object? message) {
 
 /// Sync either from an export or from firestore
 abstract class FestenaoAppSync {
+  /// The database.
   FestenaoDb get db;
 
   /// synchronized (down)
   Future<void> sync();
 }
 
+/// Mixin for [FestenaoAppSync].
 mixin FestenaoAppSyncMixin implements FestenaoAppSync {
   @override
   late FestenaoDb db;
 }
 
+/// Type definition for fetching export meta.
 typedef FestenaoAppSyncFetchExportMeta =
     Future<Map<String, Object?>> Function();
+
+/// Type definition for fetching export string content.
 typedef FestenaoAppSyncFetchExport = Future<String> Function(int changeId);
 
 /// Sync from export
 class FestenaoAppSyncExport
     with FestenaoAppSyncMixin
     implements FestenaoAppSync {
+  /// Constructor for [FestenaoAppSyncExport].
   FestenaoAppSyncExport(
     FestenaoDb db, {
     required this.fetchExport,
@@ -74,10 +80,12 @@ class FestenaoAppSyncExport
 class FestenaoAppSyncFirestore
     with FestenaoAppSyncMixin
     implements FestenaoAppSync {
+  /// Constructor for [FestenaoAppSyncFirestore].
   FestenaoAppSyncFirestore(FestenaoDb db, this.sourceFirestore) {
     this.db = db;
   }
 
+  /// The source firestore.
   final FestenaoSourceFirestore sourceFirestore;
 
   @override

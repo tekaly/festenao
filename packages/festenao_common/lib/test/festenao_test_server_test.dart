@@ -11,14 +11,20 @@ import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
+/// Festenao server app for test.
 class FestenaoServerAppTest extends FestenaoServerApp {
+  /// Festenao server app for test.
   FestenaoServerAppTest({required super.context, super.app}) {
     initFestenaoFsEntityApiBuilders<FsProject>();
   }
+
+  /// Firestore database.
   late var fsDatabase = FestenaoFirestoreDatabase(
     firebaseContext: this.firebaseContext,
     flavorContext: appFlavorContext,
   );
+
+  /// Project handler.
   late final projectHandler = FestenaoEntityHandler(
     app: this,
     entityAccess: fsDatabase.projectDb,
@@ -40,39 +46,55 @@ class FestenaoServerAppTest extends FestenaoServerApp {
   }
 }
 
+/// Test api context.
 class FestenaoTestApiContext {
+  /// Api service.
   final FestenaoApiService apiService;
+
+  /// Project api client.
   late final FestenaoApiFsEntityClient<FsProject> projectApiClient;
+
+  /// Test api context.
   FestenaoTestApiContext({required this.apiService});
 
+  /// Close context.
   @mustCallSuper
   Future<void> close() async {
     await apiService.close();
   }
 }
 
+/// Test amp context.
 class FestenaoTestAmpContext {
+  /// Amp service.
   final FestenaoAmpService ampService;
 
+  /// Constructor for [FestenaoTestAmpContext].
   FestenaoTestAmpContext({required this.ampService});
 
+  /// Close context.
   @mustCallSuper
   Future<void> close() async {
     await ampService.close();
   }
 }
 
+/// Test ff server context.
 class FestenaoTestFfServerContext {
+  /// The ff server.
   final FfServer? ffServer;
 
+  /// Test server context.
   FestenaoTestFfServerContext({required this.ffServer});
 
+  /// Close context.
   @mustCallSuper
   Future<void> close() async {
     await ffServer?.close();
   }
 }
 
+/// Test server context.
 class FestenaoTestServerContext
     implements
         FestenaoTestApiContext,
@@ -86,8 +108,14 @@ class FestenaoTestServerContext
   final FfServer? ffServer;
   @override
   late final FestenaoApiFsEntityClient<FsProject> projectApiClient;
+
+  /// Firestore database.
   late final FestenaoFirestoreDatabase fsDatabase;
+
+  /// Firebase context.
   late final FirebaseContext ffContext;
+
+  /// Test server context.
   FestenaoTestServerContext({
     required this.apiService,
     this.ffServer,
@@ -105,6 +133,7 @@ class FestenaoTestServerContext
   }
 }
 
+/// Init all in memory.
 Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
   var ffServicesContext = await initFirebaseServicesSimMemory();
   var ffServerContext = await ffServicesContext.initServer();
@@ -169,6 +198,7 @@ Future<void> main() async {
   testFestenaoServerGroup(initFestenaoAllMemory);
 }
 
+/// Test server group.
 void testFestenaoServerGroup(
   Future<FestenaoTestServerContext> Function() initAllContext, {
   bool noFirestoreCheck = false,

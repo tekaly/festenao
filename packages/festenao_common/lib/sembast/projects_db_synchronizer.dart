@@ -5,7 +5,10 @@ import 'package:tkcms_common/tkcms_audi.dart';
 
 /// Projects db synchronizer helper for syncing projects between Firestore and local database.
 class ProjectsDbSynchronizer with AutoDisposeMixin {
+  /// The firestore instance.
   Firestore get firestore => fsProjects.firestore;
+
+  /// The local projects database.
   final ProjectsDb projectsDb;
 
   /// The Firestore entity access for projects.

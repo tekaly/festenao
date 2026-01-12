@@ -7,6 +7,7 @@ class FestenaoDataGlobalsOptions {
   /// for example 'festenao' (not available)
   final String fbProjectId; // Firestore project id
 
+  /// The root path of the app.
   String get appRootPath => 'app/$sourceId';
 
   /// Global options
