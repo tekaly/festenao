@@ -76,6 +76,27 @@ class ProjectsDb {
     initDbProjectsBuilders();
   }();
 
+  /// Sets the current identity ID and initializes the user record if needed.
+  Future<void> setCurrentIdentityId(String identityId) async {
+    var client = db;
+    await clientSetCurrentIdentityId(client, identityId);
+  }
+
+  /// Sets the current identity ID and initializes the user record if needed.
+  Future<void> clientSetCurrentIdentityId(
+    DatabaseClient client,
+    String identityId,
+  ) async {
+    var record = dbProjectUserStore.record(identityId);
+    var dbUser = dbProjectUserStore.record(identityId).getSync(client);
+    if (dbUser?.readyTimestamp.v == null) {
+      await record.put(
+        client,
+        DbProjectUser()..readyTimestamp.v = DbTimestamp.now(),
+      );
+    }
+  }
+
   /// Creates a new [ProjectsDb] with the given [factory] and [name].
   ProjectsDb({required this.factory, required this.name});
 

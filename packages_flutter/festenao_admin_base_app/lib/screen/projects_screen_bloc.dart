@@ -37,17 +37,11 @@ class ProjectsScreenBloc
   final bool selectMode;
 
   Future<void> setCurrentIdentityReady(
-    DatabaseClient client,
+    ProjectsDb projectsDb,
+
     String identityId,
   ) async {
-    var record = dbProjectUserStore.record(identityId);
-    var dbUser = dbProjectUserStore.record(identityId).getSync(client);
-    if (dbUser?.readyTimestamp.v == null) {
-      await record.put(
-        client,
-        DbProjectUser()..readyTimestamp.v = DbTimestamp.now(),
-      );
-    }
+    await projectsDb.clientSetCurrentIdentityId(projectsDb.db, identityId);
   }
 
   /// Projects screen bloc
@@ -211,10 +205,11 @@ class ProjectsScreenBloc
                                             .record(project.id)
                                             .put(txn, project);
                                       }
-                                      await setCurrentIdentityReady(
-                                        txn,
-                                        userId,
-                                      );
+                                      await projectsDb
+                                          .clientSetCurrentIdentityId(
+                                            txn,
+                                            userId,
+                                          );
                                     });
                                   });
                                 },
@@ -237,7 +232,7 @@ class ProjectsScreenBloc
                   );
                 } else {
                   await projectsDb.ready;
-                  await setCurrentIdentityReady(projectsDb.db, identityId);
+                  await setCurrentIdentityReady(projectsDb, identityId);
                 }
               }
             } else {
