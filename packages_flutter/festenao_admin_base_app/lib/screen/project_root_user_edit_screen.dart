@@ -6,7 +6,6 @@ import 'package:festenao_admin_base_app/utils/text_validator.dart';
 import 'package:festenao_admin_base_app/view/text_field.dart';
 import 'package:festenao_base_app/import/ui.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
-
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
@@ -206,6 +205,34 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
               );
             },
           ),
+        ),
+
+        StreamBuilder(
+          stream: globalTkCmsFbIdentityBloc.state,
+          builder: (_, snapshot) {
+            var user = snapshot.data;
+            if (user == null) {
+              return Container();
+            }
+
+            return BodyContainer(
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: () {
+                      admin.value = true;
+                      write.value = true;
+                      read.value = true;
+                      roleController.text = tkCmsUserAccessRoleAdmin;
+                      nameController.text = 'Me as admin';
+                      idController.text = user.identity?.userOrAccountId ?? '';
+                    },
+                    child: const Text('Fill with me as admin'),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ],
     );

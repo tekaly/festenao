@@ -124,7 +124,7 @@ class ProjectsScreenBloc
                                     .map(
                                       (id) => (fsDb.fsEntityCollectionRef
                                           .doc(id)
-                                          .onSnapshot(fsDb.firestore)),
+                                          .onSnapshotSupport(fsDb.firestore)),
                                     )
                                     .toList(),
                               ).listen(
