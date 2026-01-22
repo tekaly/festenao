@@ -78,6 +78,7 @@ Future<void> festenaoRunAdminApp({
   FestenaoAppFirebaseContext? appFirebaseContext,
   FirebaseContext? firebaseContext,
   FestenaoAdminParentAppController? parentAppController,
+  Widget Function(Widget child)? wrapperBuilder,
 }) async {
   if (kDebugMode) {
     gDebugLogFirestore = true;
@@ -267,7 +268,12 @@ Future<void> festenaoRunAdminApp({
     );
     print('storageBucket: ${globalFestenaoAppFirebaseContext.storageBucket}');
   }
-  runApp(FestenaoAdminApp(contentNavigatorDef: contentNavigatorDef));
+  var appWidget =
+      FestenaoAdminApp(contentNavigatorDef: contentNavigatorDef) as Widget;
+  if (wrapperBuilder != null) {
+    appWidget = wrapperBuilder(appWidget);
+  }
+  runApp(appWidget);
 }
 
 /// Festenao admin app

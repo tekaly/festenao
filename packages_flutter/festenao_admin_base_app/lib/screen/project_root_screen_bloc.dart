@@ -61,7 +61,7 @@ class ProjectRootScreenBloc
                 var projectsDb = globalProjectsDbOrNull;
                 if (projectsDb != null) {
                   _projectSubscription = audiAddStreamSubscription(
-                    globalProjectsDb
+                    projectsDb
                         .onProject(projectId, userId: newDbIdentityId!)
                         .listen((event) async {
                           var project = event;
