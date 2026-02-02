@@ -57,7 +57,7 @@ class EditInfoTile extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (trailing != null) trailing!,
+                    ?trailing,
                   ],
                 ),
                 //UnderlineWidget(),

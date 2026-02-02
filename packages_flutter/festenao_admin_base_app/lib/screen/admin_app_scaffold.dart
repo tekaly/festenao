@@ -105,7 +105,7 @@ class DebugAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
           ],
         ),
-        if (appBar != null) appBar,
+        ?appBar,
       ],
     );
     /*AppBar(
