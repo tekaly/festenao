@@ -13,7 +13,7 @@ class FsAppProjectViewScreenBlocState {
   /// Optional, if the project is not found in the local database
   final FsProject? fsProject;
 
-  /// Project view screen bloc state
+  /// Global app user access
   final TkCmsFsUserAccess? fsAppUserAccess;
 
   /// Project view screen bloc state
@@ -26,9 +26,13 @@ class FsAppProjectViewScreenBlocState {
     this.fsAppUserAccess,
   });
 
+  bool get isAppAdmin =>
+      (identity is TkCmsFbIdentityServiceAccount) ||
+      (fsAppUserAccess?.isAdmin ?? false);
   bool get isAdmin =>
       (identity is TkCmsFbIdentityServiceAccount) ||
       ((fsAppUserAccess?.isAdmin ?? false) || (fsUserAccess?.isAdmin ?? false));
+  bool get hasJoinedProject => (fsUserAccess?.isRead ?? false);
 }
 
 class FsAppProjectViewScreenBloc
@@ -99,6 +103,23 @@ class FsAppProjectViewScreenBloc
   Future<void> deleteProject(String projectId) async {
     var ffdb = this.ffdb;
     await ffdb.projectDb.fsEntityRef(projectId).delete(firestore);
+  }
+
+  Future<void> joinProject(String projectId) async {
+    var ffdb = this.ffdb;
+    var userId = this.userId!;
+    await ffdb.projectDb.joinEntity(
+      userId: userId,
+      entityId: projectId,
+      userAccess: TkCmsFsUserAccess.superAdmin(),
+    );
+    refresh();
+  }
+
+  Future<void> leaveProject(String projectId) async {
+    var userId = this.userId!;
+    var ffdb = this.ffdb;
+    await ffdb.projectDb.leaveEntity(projectId, userId: userId);
   }
 
   @override

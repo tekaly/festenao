@@ -15,100 +15,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appVersion => 'Version';
 
   @override
-  String get projectAccessAdmin => 'Admin access';
-
-  @override
-  String get projectAccessRead => 'Reader access';
-
-  @override
-  String get projectAccessRole => 'Role';
-
-  @override
-  String get projectAccessWrite => 'Editor access';
-
-  @override
-  String get projectDefaultName => 'Project';
-
-  @override
-  String get projectAccessNone => 'No access';
-
-  @override
-  String get projectDelete => 'Delete Project';
-
-  @override
-  String get projectDeleteConfirm =>
-      'Are you sure you want to delete this project?\nAll notes in this project will be deleted';
-
-  @override
-  String get projectEditTitle => 'Edit Project';
-
-  @override
-  String get projectInviteAccept => 'Accept project invite';
-
-  @override
-  String get projectInviteAcceptConfirm =>
-      'Are you sure you want to accept this project invite?';
-
-  @override
-  String get projectInviteDelete => 'Delete Project invite';
-
-  @override
-  String get projectInviteDeleteConfirm =>
-      'Are you sure you want to delete this project invite?';
-
-  @override
-  String get projectInviteLink => 'Project invite link';
-
-  @override
-  String get projectInviteLinkInformation =>
-      'Send this link to invite someone to this project';
-
-  @override
-  String get projectInviteMessage => 'You have a project invite';
-
-  @override
-  String get projectInviteMustBeLoggedIn =>
-      'You must be logged in to accept a project invite';
-
-  @override
-  String get projectInviteNotFound => 'Project invite not found';
-
-  @override
-  String get projectInviteTitle => 'Accept project invite';
-
-  @override
-  String get projectInviteView => 'View invite';
-
-  @override
-  String get projectLeave => 'Leave Project';
-
-  @override
-  String get projectLeaveConfirm =>
-      'Are you sure you want to leave this project?\nYou won\'t be able to access any notes contained in this project';
-
-  @override
-  String get projectNotFound => 'Project not found';
-
-  @override
-  String get projectShare => 'Share project';
-
-  @override
-  String get projectShareInformation =>
-      'Click on the Share button below to invite someone to this project';
-
-  @override
-  String get projectTypeLocal => 'Local';
-
-  @override
-  String get projectTypeSynced => 'Synced';
-
-  @override
-  String get projectViewNotes => 'View notes';
-
-  @override
-  String get projectsTitle => 'Projects';
-
-  @override
   String get cancelButtonLabel => 'Cancel';
 
   @override
@@ -136,6 +42,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editYouHaveUnsavedChanges =>
       'You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition, saving or discarding your changes';
+
+  @override
+  String get festenaoTitle => 'Festenao';
 
   @override
   String get genericCopied => 'Copied to clipboard';
@@ -198,9 +107,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noteTitleLabel => 'Title';
 
   @override
-  String get festenaoTitle => 'Festenao';
-
-  @override
   String get notesOthers => 'Other notes';
 
   @override
@@ -214,6 +120,103 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get privacyPolicy => 'Privacy Policy';
+
+  @override
+  String get projectAccessAdmin => 'Admin access';
+
+  @override
+  String get projectAccessNone => 'No access';
+
+  @override
+  String get projectAccessRead => 'Reader access';
+
+  @override
+  String get projectAccessRole => 'Role';
+
+  @override
+  String get projectAccessWrite => 'Editor access';
+
+  @override
+  String get projectDefaultName => 'Project';
+
+  @override
+  String get projectDelete => 'Delete Project';
+
+  @override
+  String get projectDeleteConfirm =>
+      'Are you sure you want to delete this project?\nAll notes in this project will be deleted';
+
+  @override
+  String get projectEditTitle => 'Edit Project';
+
+  @override
+  String get projectInviteAccept => 'Accept project invite';
+
+  @override
+  String get projectInviteAcceptConfirm =>
+      'Are you sure you want to accept this project invite?';
+
+  @override
+  String get projectInviteDelete => 'Delete Project invite';
+
+  @override
+  String get projectInviteDeleteConfirm =>
+      'Are you sure you want to delete this project invite?';
+
+  @override
+  String get projectInviteLink => 'Project invite link';
+
+  @override
+  String get projectInviteLinkInformation =>
+      'Send this link to invite someone to this project';
+
+  @override
+  String get projectInviteMessage => 'You have a project invite';
+
+  @override
+  String get projectInviteMustBeLoggedIn =>
+      'You must be logged in to accept a project invite';
+
+  @override
+  String get projectInviteNotFound => 'Project invite not found';
+
+  @override
+  String get projectInviteTitle => 'Accept project invite';
+
+  @override
+  String get projectInviteView => 'View invite';
+
+  @override
+  String get projectJoin => 'Join Project';
+
+  @override
+  String get projectLeave => 'Leave Project';
+
+  @override
+  String get projectLeaveConfirm =>
+      'Are you sure you want to leave this project?\nYou won\'t be able to access any notes contained in this project';
+
+  @override
+  String get projectNotFound => 'Project not found';
+
+  @override
+  String get projectShare => 'Share project';
+
+  @override
+  String get projectShareInformation =>
+      'Click on the Share button below to invite someone to this project';
+
+  @override
+  String get projectTypeLocal => 'Local';
+
+  @override
+  String get projectTypeSynced => 'Synced';
+
+  @override
+  String get projectViewNotes => 'View notes';
+
+  @override
+  String get projectsTitle => 'Projects';
 
   @override
   String settingCurrentProject(String project) {

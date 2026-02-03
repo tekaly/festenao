@@ -15,7 +15,118 @@ class AppLocalizationsFr extends AppLocalizations {
   String get appVersion => 'Version :';
 
   @override
+  String get cancelButtonLabel => 'Annuler';
+
+  @override
+  String get contentMarkdownInfo => 'Contenu au format Markdown';
+
+  @override
+  String get createProjectInfo =>
+      'Créez un livret pour commencer à stocker vos notes. Les livrets locaux sont stockés sur votre appareil, tandis que les livrets synchronisés sont stockés dans le cloud.';
+
+  @override
+  String get createProjectTitle => 'Créer un livret';
+
+  @override
+  String get deleteButtonLabel => 'Supprimer';
+
+  @override
+  String get editDiscardChanges => 'Supprimer';
+
+  @override
+  String get editSaveChanges => 'Enregistrer';
+
+  @override
+  String get editUnsavedChangesTitle => 'Modifications non enregistrées';
+
+  @override
+  String get editYouHaveUnsavedChanges =>
+      'Vous avez des modifications non enregistrées\n\nVous pouvez continuer l\'édition en choisissant d\'annuler ou de quitter l\'édition, en sauvegardant ou en supprimant vos modifications';
+
+  @override
+  String get festenaoTitle => 'Festenao';
+
+  @override
+  String get genericCopied => 'Copié dans le presse-papiers';
+
+  @override
+  String get leaveButtonLabel => 'Quitter';
+
+  @override
+  String get localProjectTitle => 'Livret local';
+
+  @override
+  String get manageProjectTitle => 'Gérer le livret';
+
+  @override
+  String get manageProjectsTitle => 'Gérer les livrets';
+
+  @override
+  String get markdownGuideAsset => 'markdown_guide_fr.md';
+
+  @override
+  String get markdownGuideTitle => 'Guide Markdown';
+
+  @override
+  String get nameLabel => 'Nom';
+
+  @override
+  String get nameRequired => 'Le nom est requis';
+
+  @override
+  String get notSignedInInfo => 'Vous n\'êtes pas connecté';
+
+  @override
+  String get noteContentHint => 'Contenu de la note';
+
+  @override
+  String get noteContentLabel => 'Contenu';
+
+  @override
+  String get noteCreateTitle => 'Créer une note';
+
+  @override
+  String get noteDelete => 'Supprimer la note';
+
+  @override
+  String get noteDeleteConfirm =>
+      'Confirmez-vous la suppression de cette note ?';
+
+  @override
+  String get noteDescriptionHint => 'Description de la note';
+
+  @override
+  String get noteDescriptionLabel => 'Description';
+
+  @override
+  String get noteEditTitle => 'Modifier la note';
+
+  @override
+  String get noteTitleHint => 'Titre de la note';
+
+  @override
+  String get noteTitleLabel => 'Titre';
+
+  @override
+  String get notesOthers => 'Autres notes';
+
+  @override
+  String get notesPinned => 'Notes épinglées';
+
+  @override
+  String get notesTitle => 'Notes';
+
+  @override
+  String get operationFailed => 'Échec de l\'opération\nVeuillez réessayer';
+
+  @override
+  String get privacyPolicy => 'Politique de confidentialité';
+
+  @override
   String get projectAccessAdmin => 'Accès administrateur';
+
+  @override
+  String get projectAccessNone => 'Aucun accès';
 
   @override
   String get projectAccessRead => 'Accès lecteur';
@@ -30,10 +141,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get projectDefaultName => 'Livret';
 
   @override
-  String get projectAccessNone => 'Aucun accès';
-
-  @override
-  String get projectDelete => 'Supprimer le livret';
+  String get projectDelete => 'Supprimer le projet';
 
   @override
   String get projectDeleteConfirm =>
@@ -80,6 +188,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get projectInviteView => 'Voir l\'invitation';
 
   @override
+  String get projectJoin => 'Rejoindre le projet';
+
+  @override
   String get projectLeave => 'Quitter le livret';
 
   @override
@@ -107,114 +218,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get projectsTitle => 'Carnets';
-
-  @override
-  String get cancelButtonLabel => 'Annuler';
-
-  @override
-  String get contentMarkdownInfo => 'Contenu au format Markdown';
-
-  @override
-  String get createProjectInfo =>
-      'Créez un livret pour commencer à stocker vos notes. Les livrets locaux sont stockés sur votre appareil, tandis que les livrets synchronisés sont stockés dans le cloud.';
-
-  @override
-  String get createProjectTitle => 'Créer un livret';
-
-  @override
-  String get deleteButtonLabel => 'Supprimer';
-
-  @override
-  String get editDiscardChanges => 'Supprimer';
-
-  @override
-  String get editSaveChanges => 'Enregistrer';
-
-  @override
-  String get editUnsavedChangesTitle => 'Modifications non enregistrées';
-
-  @override
-  String get editYouHaveUnsavedChanges =>
-      'Vous avez des modifications non enregistrées\n\nVous pouvez continuer l\'édition en choisissant d\'annuler ou de quitter l\'édition, en sauvegardant ou en supprimant vos modifications';
-
-  @override
-  String get genericCopied => 'Copié dans le presse-papiers';
-
-  @override
-  String get leaveButtonLabel => 'Quitter';
-
-  @override
-  String get localProjectTitle => 'Livret local';
-
-  @override
-  String get manageProjectTitle => 'Gérer le livret';
-
-  @override
-  String get manageProjectsTitle => 'Gérer les livrets';
-
-  @override
-  String get markdownGuideAsset => 'markdown_guide_fr.md';
-
-  @override
-  String get markdownGuideTitle => 'Guide Markdown';
-
-  @override
-  String get nameLabel => 'Name';
-
-  @override
-  String get nameRequired => 'Le nom est requis';
-
-  @override
-  String get notSignedInInfo => 'Vous n\'êtes pas connecté';
-
-  @override
-  String get noteContentHint => 'Contenu de la note';
-
-  @override
-  String get noteContentLabel => 'Contenu';
-
-  @override
-  String get noteCreateTitle => 'Créer une note';
-
-  @override
-  String get noteDelete => 'Supprimer la note';
-
-  @override
-  String get noteDeleteConfirm =>
-      'Confirmez-vous la suppression de cette note ?';
-
-  @override
-  String get noteDescriptionHint => 'Description de la note';
-
-  @override
-  String get noteDescriptionLabel => 'Description';
-
-  @override
-  String get noteEditTitle => 'Modifier la note';
-
-  @override
-  String get noteTitleHint => 'Titre de la note';
-
-  @override
-  String get noteTitleLabel => 'Titre';
-
-  @override
-  String get festenaoTitle => 'Festenao';
-
-  @override
-  String get notesOthers => 'Autres notes';
-
-  @override
-  String get notesPinned => 'Notes épinglées';
-
-  @override
-  String get notesTitle => 'Notes';
-
-  @override
-  String get operationFailed => 'Échec de l\'opération\nVeuillez réessayer';
-
-  @override
-  String get privacyPolicy => 'Politique de confidentialité';
 
   @override
   String settingCurrentProject(String project) {

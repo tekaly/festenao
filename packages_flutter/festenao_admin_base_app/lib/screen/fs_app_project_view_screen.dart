@@ -86,6 +86,70 @@ class FsAppProjectViewScreenState
     }
   }
 
+  Future<void> _confirmAndLeave(BuildContext context, String projectId) async {
+    var intl = festenaoAdminAppIntl(context);
+    var bloc = BlocProvider.of<FsAppProjectViewScreenBloc>(context);
+    var result = await busyAction(() async {
+      if (await showDialog<bool>(
+            context: context,
+            builder: (context) {
+              return AlertDialog(
+                title: Text(intl.projectLeave),
+                content: Text(intl.projectLeaveConfirm),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: Text(intl.cancelButtonLabel),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true);
+                    },
+                    child: Text(intl.leaveButtonLabel),
+                  ),
+                ],
+              );
+            },
+          ) ==
+          true) {
+        await bloc.leaveProject(projectId);
+        return true;
+      } else {
+        return false;
+      }
+    });
+    if (!result.busy) {
+      if (result.error != null) {
+        if (context.mounted) {
+          await muiSnack(context, result.error!.toString());
+        }
+      } else if (result.result == true) {
+        if (context.mounted) {
+          Navigator.pop(context, FsAppProjectViewResult(deleted: true));
+        }
+      }
+    }
+  }
+
+  Future<void> _join(BuildContext context, FsProject project) async {
+    var bloc = BlocProvider.of<FsAppProjectViewScreenBloc>(context);
+    var result = await busyAction(() async {
+      await bloc.joinProject(project.id);
+      return true;
+    });
+    if (!result.busy) {
+      if (result.error != null) {
+        if (context.mounted) {
+          await muiSnack(context, result.error!.toString());
+        }
+      } else if (result.result == true) {
+        // ok
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var intl = festenaoAdminAppIntl(context);
@@ -100,6 +164,8 @@ class FsAppProjectViewScreenState
         var fsAppUserAccess = state?.fsAppUserAccess;
         var canEdit = fsProject != null;
         var canDelete = fsProject != null && (state?.isAdmin ?? false);
+        var canJoin = fsProject != null && (state?.isAppAdmin ?? false);
+        var canLeave = fsProject != null && (state?.hasJoinedProject ?? false);
         //var canLeave = project != null;
         var projectName = fsProject?.name.v;
         var identity = state?.identity;
@@ -135,10 +201,7 @@ class FsAppProjectViewScreenState
                       ),
                     ),
                     Text(
-                      accessString(
-                        intl,
-                        fsAppUserAccess ?? TkCmsFsUserAccess(),
-                      ),
+                      'app ${accessString(intl, fsAppUserAccess ?? TkCmsFsUserAccess())}',
                     ),
                   ],
                 ],
@@ -230,6 +293,34 @@ class FsAppProjectViewScreenState
                                         'Project users'.toUpperCase(),
                                       ),
                                     ),
+                                    if (canJoin) ...[
+                                      const SizedBox(height: 24),
+
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(),
+                                        onPressed: () =>
+                                            _join(context, fsProject),
+                                        child: Text(
+                                          intl.projectJoin.toUpperCase(),
+                                        ),
+                                      ),
+                                    ],
+                                    if (canLeave) ...[
+                                      const SizedBox(height: 24),
+
+                                      ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: colorError,
+                                        ),
+                                        onPressed: () => _confirmAndLeave(
+                                          context,
+                                          fsProject.id,
+                                        ),
+                                        child: Text(
+                                          intl.projectLeave.toUpperCase(),
+                                        ),
+                                      ),
+                                    ],
                                   ],
                                 ),
                               ),

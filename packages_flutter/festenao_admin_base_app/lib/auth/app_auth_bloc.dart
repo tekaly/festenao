@@ -9,6 +9,8 @@ import 'package:tkcms_common/tkcms_auth.dart';
 
 class AppAuthBlocState {
   final TkCmsFbIdentity? identity;
+
+  /// Global user access for the app
   final TkCmsEditedFsUserAccess? userAccess;
   FirebaseUser? get user => identity?.user;
 

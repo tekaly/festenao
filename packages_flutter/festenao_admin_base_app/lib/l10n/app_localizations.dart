@@ -110,180 +110,6 @@ abstract class AppLocalizations {
   /// **'Version'**
   String get appVersion;
 
-  /// Project access admin
-  ///
-  /// In en, this message translates to:
-  /// **'Admin access'**
-  String get projectAccessAdmin;
-
-  /// Project access read
-  ///
-  /// In en, this message translates to:
-  /// **'Reader access'**
-  String get projectAccessRead;
-
-  /// User project access role
-  ///
-  /// In en, this message translates to:
-  /// **'Role'**
-  String get projectAccessRole;
-
-  /// No description provided for @projectAccessWrite.
-  ///
-  /// In en, this message translates to:
-  /// **'Editor access'**
-  String get projectAccessWrite;
-
-  /// Project default name
-  ///
-  /// In en, this message translates to:
-  /// **'Project'**
-  String get projectDefaultName;
-
-  /// No access
-  ///
-  /// In en, this message translates to:
-  /// **'No access'**
-  String get projectAccessNone;
-
-  /// Delete project
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Project'**
-  String get projectDelete;
-
-  /// Delete project confirmation message
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete this project?\nAll notes in this project will be deleted'**
-  String get projectDeleteConfirm;
-
-  /// Edit Project title
-  ///
-  /// In en, this message translates to:
-  /// **'Edit Project'**
-  String get projectEditTitle;
-
-  /// Accept project
-  ///
-  /// In en, this message translates to:
-  /// **'Accept project invite'**
-  String get projectInviteAccept;
-
-  /// Accept project invite confirmation message
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to accept this project invite?'**
-  String get projectInviteAcceptConfirm;
-
-  /// Delete project invite
-  ///
-  /// In en, this message translates to:
-  /// **'Delete Project invite'**
-  String get projectInviteDelete;
-
-  /// Delete project invite confirmation message
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to delete this project invite?'**
-  String get projectInviteDeleteConfirm;
-
-  /// Project invite link
-  ///
-  /// In en, this message translates to:
-  /// **'Project invite link'**
-  String get projectInviteLink;
-
-  /// Project invite link information
-  ///
-  /// In en, this message translates to:
-  /// **'Send this link to invite someone to this project'**
-  String get projectInviteLinkInformation;
-
-  /// Project invite message
-  ///
-  /// In en, this message translates to:
-  /// **'You have a project invite'**
-  String get projectInviteMessage;
-
-  /// Project invite not logged in message
-  ///
-  /// In en, this message translates to:
-  /// **'You must be logged in to accept a project invite'**
-  String get projectInviteMustBeLoggedIn;
-
-  /// Project invite not found
-  ///
-  /// In en, this message translates to:
-  /// **'Project invite not found'**
-  String get projectInviteNotFound;
-
-  /// Project invite title
-  ///
-  /// In en, this message translates to:
-  /// **'Accept project invite'**
-  String get projectInviteTitle;
-
-  /// View invite
-  ///
-  /// In en, this message translates to:
-  /// **'View invite'**
-  String get projectInviteView;
-
-  /// Leave project
-  ///
-  /// In en, this message translates to:
-  /// **'Leave Project'**
-  String get projectLeave;
-
-  /// Leave project confirmation message
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to leave this project?\nYou won\'t be able to access any notes contained in this project'**
-  String get projectLeaveConfirm;
-
-  /// Project not found
-  ///
-  /// In en, this message translates to:
-  /// **'Project not found'**
-  String get projectNotFound;
-
-  /// Share project
-  ///
-  /// In en, this message translates to:
-  /// **'Share project'**
-  String get projectShare;
-
-  /// Project share information
-  ///
-  /// In en, this message translates to:
-  /// **'Click on the Share button below to invite someone to this project'**
-  String get projectShareInformation;
-
-  /// Local project type
-  ///
-  /// In en, this message translates to:
-  /// **'Local'**
-  String get projectTypeLocal;
-
-  /// Synced project type
-  ///
-  /// In en, this message translates to:
-  /// **'Synced'**
-  String get projectTypeSynced;
-
-  /// View notes
-  ///
-  /// In en, this message translates to:
-  /// **'View notes'**
-  String get projectViewNotes;
-
-  /// Projects title
-  ///
-  /// In en, this message translates to:
-  /// **'Projects'**
-  String get projectsTitle;
-
   /// Cancel button label
   ///
   /// In en, this message translates to:
@@ -337,6 +163,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition, saving or discarding your changes'**
   String get editYouHaveUnsavedChanges;
+
+  /// App title
+  ///
+  /// In en, this message translates to:
+  /// **'Festenao'**
+  String get festenaoTitle;
 
   /// Copied to clipboard
   ///
@@ -458,12 +290,6 @@ abstract class AppLocalizations {
   /// **'Title'**
   String get noteTitleLabel;
 
-  /// App title
-  ///
-  /// In en, this message translates to:
-  /// **'Festenao'**
-  String get festenaoTitle;
-
   /// Other notes
   ///
   /// In en, this message translates to:
@@ -493,6 +319,186 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy Policy'**
   String get privacyPolicy;
+
+  /// Project access admin
+  ///
+  /// In en, this message translates to:
+  /// **'Admin access'**
+  String get projectAccessAdmin;
+
+  /// No access
+  ///
+  /// In en, this message translates to:
+  /// **'No access'**
+  String get projectAccessNone;
+
+  /// Project access read
+  ///
+  /// In en, this message translates to:
+  /// **'Reader access'**
+  String get projectAccessRead;
+
+  /// User project access role
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get projectAccessRole;
+
+  /// No description provided for @projectAccessWrite.
+  ///
+  /// In en, this message translates to:
+  /// **'Editor access'**
+  String get projectAccessWrite;
+
+  /// Project default name
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get projectDefaultName;
+
+  /// Delete project
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Project'**
+  String get projectDelete;
+
+  /// Delete project confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this project?\nAll notes in this project will be deleted'**
+  String get projectDeleteConfirm;
+
+  /// Edit Project title
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Project'**
+  String get projectEditTitle;
+
+  /// Accept project
+  ///
+  /// In en, this message translates to:
+  /// **'Accept project invite'**
+  String get projectInviteAccept;
+
+  /// Accept project invite confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to accept this project invite?'**
+  String get projectInviteAcceptConfirm;
+
+  /// Delete project invite
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Project invite'**
+  String get projectInviteDelete;
+
+  /// Delete project invite confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this project invite?'**
+  String get projectInviteDeleteConfirm;
+
+  /// Project invite link
+  ///
+  /// In en, this message translates to:
+  /// **'Project invite link'**
+  String get projectInviteLink;
+
+  /// Project invite link information
+  ///
+  /// In en, this message translates to:
+  /// **'Send this link to invite someone to this project'**
+  String get projectInviteLinkInformation;
+
+  /// Project invite message
+  ///
+  /// In en, this message translates to:
+  /// **'You have a project invite'**
+  String get projectInviteMessage;
+
+  /// Project invite not logged in message
+  ///
+  /// In en, this message translates to:
+  /// **'You must be logged in to accept a project invite'**
+  String get projectInviteMustBeLoggedIn;
+
+  /// Project invite not found
+  ///
+  /// In en, this message translates to:
+  /// **'Project invite not found'**
+  String get projectInviteNotFound;
+
+  /// Project invite title
+  ///
+  /// In en, this message translates to:
+  /// **'Accept project invite'**
+  String get projectInviteTitle;
+
+  /// View invite
+  ///
+  /// In en, this message translates to:
+  /// **'View invite'**
+  String get projectInviteView;
+
+  /// Join project button label
+  ///
+  /// In en, this message translates to:
+  /// **'Join Project'**
+  String get projectJoin;
+
+  /// Leave project
+  ///
+  /// In en, this message translates to:
+  /// **'Leave Project'**
+  String get projectLeave;
+
+  /// Leave project confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to leave this project?\nYou won\'t be able to access any notes contained in this project'**
+  String get projectLeaveConfirm;
+
+  /// Project not found
+  ///
+  /// In en, this message translates to:
+  /// **'Project not found'**
+  String get projectNotFound;
+
+  /// Share project
+  ///
+  /// In en, this message translates to:
+  /// **'Share project'**
+  String get projectShare;
+
+  /// Project share information
+  ///
+  /// In en, this message translates to:
+  /// **'Click on the Share button below to invite someone to this project'**
+  String get projectShareInformation;
+
+  /// Local project type
+  ///
+  /// In en, this message translates to:
+  /// **'Local'**
+  String get projectTypeLocal;
+
+  /// Synced project type
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get projectTypeSynced;
+
+  /// View notes
+  ///
+  /// In en, this message translates to:
+  /// **'View notes'**
+  String get projectViewNotes;
+
+  /// Projects title
+  ///
+  /// In en, this message translates to:
+  /// **'Projects'**
+  String get projectsTitle;
 
   /// Current project setting
   ///

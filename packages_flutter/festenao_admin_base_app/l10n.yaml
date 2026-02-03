@@ -4,3 +4,4 @@ template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
 format: true
 arb-translate-model: gemini-1.5-pro
+# untranslated-messages-file: .untranslated-messages.txt
