@@ -8,6 +8,8 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
+  collection: ">=1.18.0"
+  uuid: ">=3.0.6"
   dev_test: ">=1.0.1"
   path: ">=1.9.1"
   sembast: ">=3.8.5+1"
@@ -171,6 +173,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_rest.dart
       path: firestore_rest
+  tekartik_app_text:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      path: app_text
   # path: ^1.8.0
 
 dev_dependencies:
