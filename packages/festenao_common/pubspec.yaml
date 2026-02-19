@@ -177,6 +177,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
       path: app_text
+  tekartik_app_media:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      path: app_media
   # path: ^1.8.0
 
 dev_dependencies:
