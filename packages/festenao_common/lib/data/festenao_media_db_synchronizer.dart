@@ -1,7 +1,6 @@
 import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/data/festenao_media_db.dart';
 import 'package:festenao_common/data/festenao_media_source.dart';
-import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 
 /// Class to synchronize a local [FestenaoMediaDb] with a [FestenaoMediaSource].
 class FestenaoMediaDbSynchronizer {
@@ -14,36 +13,44 @@ class FestenaoMediaDbSynchronizer {
   /// Constructor for [FestenaoMediaDbSynchronizer].
   FestenaoMediaDbSynchronizer({required this.db, required this.source});
 
-  /// Synchronizes the local database with the source.
-  Future<void> sync() async {
-    var sourceRecords = await source.getAllRecords();
-    var localRecords = await db.getAllRecords();
-
-    var sourceIds = sourceRecords.map((e) => e.uid.v).toSet();
-    var localIds = localRecords.map((e) => e.ref.key).toSet();
-
-    // Download new files
-    for (var record in sourceRecords) {
-      var key = record.uid.v;
-      if (key != null) {
-        if (!localIds.contains(key)) {
-          var bytes = await source.readMediaFileBytes(key);
-          await db.addMediaFile(
-            bytes: bytes,
-            file: FestenaoMediaFile.from(
-              filename: record.originalFilename.v!,
-              type: record.type.v,
-            ),
-          );
-        }
+  /// Sync up
+  Future<void> syncUp() async {
+    var fileIds = await db.fileIdsToUpload();
+    for (var fileId in fileIds) {
+      var fileRecord = await db.getMediaFileRecord(fileId);
+      if (fileRecord != null) {
+        var bytes = await db.readMediaFileBytes(fileId);
+        await source.addMediaFile(file: fileRecord.toMediaFile(), bytes: bytes);
+        // Update status
+        await db.markLocalAndRemote(fileId);
       }
     }
+  }
 
-    // Delete old files
-    for (var record in localRecords) {
-      var key = record.ref.key;
-      if (!sourceIds.contains(key)) {
-        await db.deleteMediaFile(key);
+  /// Synchronizes the local database with the source.
+  Future<void> syncDown() async {
+    var fileIds = await db.fileIdsToDownload();
+    for (var fileId in fileIds) {
+      var fileRecord = await db.getMediaFileRecord(fileId);
+      if (fileRecord != null) {
+        var path = fileRecord.path.v!;
+        var ref = FestenaoMediaFileRef.fromPath(path);
+        var bytes = await source.readMediaFileBytes(ref);
+        await db.writeMediaFileBytes(ref, bytes);
+        // Update status
+        await db.markLocalAndRemote(fileId);
+      }
+    }
+    fileIds = await db.fileIdsToDelete();
+    for (var fileId in fileIds) {
+      var fileRecord = await db.getMediaFileRecord(fileId);
+      if (fileRecord != null) {
+        var path = fileRecord.path.v!;
+        var ref = FestenaoMediaFileRef.fromPath(path);
+
+        await db.deleteMediaFileBytes(ref);
+        // Update status
+        await db.markLocalDeleted(fileId);
       }
     }
   }

@@ -1,4 +1,5 @@
 import 'package:festenao_common/data/festenao_db.dart';
+import 'package:festenao_common/data/festenao_media_db.dart';
 import 'package:tekaly_sembast_synced/synced_db_internals.dart';
 
 /// Store reference for image records.
@@ -6,6 +7,13 @@ var dbImageStoreRef = cvStringStoreFactory.store<DbImage>('image');
 
 /// Store reference for artist records.
 var dbArtistStoreRef = cvStringStoreFactory.store<DbArtist>('artist');
+
+/// Store reference for media records.
+var dbMediaStoreRef = cvStringStoreFactory.store<DbFestenaoMediaFile>('media');
+
+/// Local store ref, excluded by default
+var dbMediaLocalStoreRef = cvStringStoreFactory
+    .store<DbFestenaoMediaStatusFile>('media_status_local');
 
 /// Store reference for event records.
 var dbEventStoreRef = cvStringStoreFactory.store<DbEvent>('event');

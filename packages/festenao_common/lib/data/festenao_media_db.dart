@@ -1,8 +1,9 @@
 import 'dart:typed_data';
 
+import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/data/festenao_media.dart';
+import 'package:festenao_common/festenao_sembast.dart';
 import 'package:fs_shim/fs_shim.dart';
-import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 
 /// Exception class for errors related to the FestenaoMediaDb.
 class FestenaoMediaDbException implements Exception {
@@ -16,8 +17,25 @@ class FestenaoMediaDbException implements Exception {
   String toString() => 'FestenaoMediaDbException: $message';
 }
 
+/// Not synced
+class DbFestenaoMediaStatusFile extends DbStringRecordBase {
+  /// Uploaded
+  final remote = CvField<bool>('remote');
+
+  /// Downloaded
+  final local = CvField<bool>('local');
+
+  /// Deleted local
+  final deletedLocal = CvField<bool>('deletedLocal');
+  @override
+  CvFields get fields => [remote, local, deletedLocal];
+}
+
+/// model
+final dbFestenaoMediaStatusFileModel = DbFestenaoMediaStatusFile();
+
 /// Database record class for media files in Festenao, using SDB for metadata storage.
-class DbFestenaoMediaFile extends ScvStringRecordBase {
+class DbFestenaoMediaFile extends DbStringRecordBase {
   /// Media type (mime type)
   final type = CvField<String>('type');
 
@@ -30,44 +48,63 @@ class DbFestenaoMediaFile extends ScvStringRecordBase {
   /// Path to the media file in the file system, stored as a string. This field is used to locate the media file for retrieval and management.
   final path = CvField<String>('path');
 
-  /// Timestamp when the media file was created.
-  final createdTimestamp = cvEncodedTimestampField('createdTimestamp');
+  /// Timestamp when the media file was created (local only)
+  final createdTimestamp = CvField<DbTimestamp>('createdTimestamp');
+
+  /// Set by uploader (if local is true and remote is false) then updated to true
+  /// Also set for media to delete
+  final uploaded = CvField<bool>('uploaded');
+
+  /// Mark as deleted, need to need manually purged
+  final deleted = CvField<bool>('deleted');
 
   @override
-  CvFields get fields => [type, size, originalFilename, path, createdTimestamp];
+  CvFields get fields => [
+    type,
+    size,
+    originalFilename,
+    path,
+    createdTimestamp,
+    uploaded,
+  ];
+
+  /// To media file
+  FestenaoMediaFile toMediaFile() {
+    var doc = FestenaoMediaFile(
+      originalFilename: originalFilename.v!,
+      path: path.v!,
+      uid: id,
+      type: type.v!,
+      size: size.v,
+    );
+    return doc;
+  }
 }
 
-final _dbFestenaoMediaFileStore = ScvStoreRef<String, DbFestenaoMediaFile>(
-  'file',
-);
-final _schema = SdbDatabaseSchema(stores: [_dbFestenaoMediaFileStore.schema()]);
-final _options = SdbOpenDatabaseOptions(version: 1, schema: _schema);
+/// model
+final dbFestenaoMediaFileModel = DbFestenaoMediaFile();
 
 /// Media database for Festenao, using SDB for metadata and the file system for media storage.
 class FestenaoMediaDb {
-  /// Factory for creating SDB instances, injected for flexibility and testing.
-  final SdbFactory sdbFactory;
+  /// Opened database
+  final Database database;
 
-  /// File system for storing media files, injected for flexibility and testing.
+  /// File system
   final FileSystem fs;
 
+  final Future<Database> _database;
+
   /// Constructor for FestenaoMediaDb, requiring an SDB factory and a file system.
-  FestenaoMediaDb({required this.sdbFactory, required this.fs}) {
-    cvAddConstructors([DbFestenaoMediaFile.new]);
+  FestenaoMediaDb({required this.fs, required this.database})
+    : _database = Future.value(database) {
+    cvAddConstructors([DbFestenaoMediaFile.new, DbFestenaoMediaStatusFile.new]);
   }
 
-  String get _rootPath {
-    if (fs is FsShimSandboxedFileSystem) {
-      return (fs as FsShimSandboxedFileSystem).rootDirectory.path;
-    } else {
-      return fs.currentDirectory.path;
-    }
+  Future<void> _writeMediaFileBytes(String path, Uint8List bytes) async {
+    var fsFile = fs.file(path);
+    await fsFile.parent.create(recursive: true);
+    await fsFile.writeAsBytes(bytes);
   }
-
-  late final _db = sdbFactory.openDatabase(
-    fs.path.join(_rootPath, 'festenao_media.db'),
-    options: _options,
-  );
 
   /// Adds a media file to the database and storage.
   /// [bytes] is the content of the media file.
@@ -76,34 +113,34 @@ class FestenaoMediaDb {
     required FestenaoMediaFile file,
     required Uint8List bytes,
   }) async {
-    var db = await _db;
-    var uid = file.uid.v!;
-    var path = file.path.v!;
-    await db.inStoreTransaction(
-      _dbFestenaoMediaFileStore.rawRef,
-      SdbTransactionMode.readWrite,
-      (txn) async {
-        var mediaRecord = _dbFestenaoMediaFileStore.record(uid).cv()
-          ..createdTimestamp.value = ScvTimestamp.now()
-          ..size.setValue(file.size.v)
-          ..originalFilename.setValue(file.originalFilename.v)
-          ..path.value = path;
+    var db = await _database;
+    var uid = file.uid;
+    var path = file.path;
 
-        await mediaRecord.put(txn);
-      },
-    );
+    // First write the file
+    await _writeMediaFileBytes(path, bytes);
 
-    var fsFile = fs.file(path);
-    await fsFile.parent.create(recursive: true);
-    await fsFile.writeAsBytes(bytes);
+    // Then add to db, we know it exists, locally only
+    await db.transaction((txn) async {
+      var mediaRecord = dbMediaStoreRef.record(uid).cv()
+        ..createdTimestamp.value = DbTimestamp.now()
+        ..size.setValue(file.size)
+        ..originalFilename.setValue(file.originalFilename)
+        ..path.value = path;
+      await mediaRecord.put(txn);
+      var statusRecord = dbMediaLocalStoreRef.record(uid).cv()
+        ..local.v = true
+        ..remote.v = false;
+      await statusRecord.put(txn);
+    });
 
     return uid;
   }
 
   /// Reads the media file bytes for the given [fileId].
   Future<File> getMediaFile(String fileId) async {
-    var db = await _db;
-    var fileRecord = await _dbFestenaoMediaFileStore.record(fileId).get(db);
+    var db = await _database;
+    var fileRecord = await dbMediaStoreRef.record(fileId).get(db);
 
     var path = _ensurePath(fileId, fileRecord);
     return fs.file(path);
@@ -130,19 +167,31 @@ class FestenaoMediaDb {
 
   /// Deletes the media file and its corresponding database record for the given [fileId].
   Future<void> deleteMediaFile(String fileId) async {
-    var db = await _db;
+    var db = await _database;
     DbFestenaoMediaFile? fileRecord;
-    await db.inStoreTransaction(
-      _dbFestenaoMediaFileStore.rawRef,
-      SdbTransactionMode.readWrite,
-      (txn) async {
-        fileRecord = await _dbFestenaoMediaFileStore.record(fileId).get(txn);
-        if (fileRecord != null) {
-          await _dbFestenaoMediaFileStore.record(fileId).delete(txn);
-        }
-      },
-    );
+    // Delete in db first
+    await db.transaction((txn) async {
+      var file = await dbMediaStoreRef.record(fileId).get(txn);
+      if (file != null) {
+        file
+          ..deleted.v = true
+          ..uploaded.v = false;
+        var status = dbMediaLocalStoreRef.record(fileId).cv();
+        status
+          ..local.v = true
+          ..remote.v = false;
 
+        await file.put(txn);
+        await status.put(txn);
+        await dbMediaLocalStoreRef.record(fileId).delete(txn);
+        await dbMediaStoreRef.record(fileId).delete(txn);
+        fileRecord = file;
+      }
+    });
+
+    if (fileRecord == null) {
+      return;
+    }
     var path = _ensurePath(fileId, fileRecord);
 
     final storageFile = fs.file(path);
@@ -154,15 +203,122 @@ class FestenaoMediaDb {
 
   /// Gets all media file records from the database.
   Future<List<DbFestenaoMediaFile>> getAllRecords() async {
-    var db = await _db;
-    var records = await _dbFestenaoMediaFileStore.findRecords(db);
+    var db = await _database;
+    var records = await dbMediaStoreRef.query().getRecords(db);
     return records;
+  }
+
+  /// File ids to upload (delete and create)
+  Future<List<String>> fileIdsToUpload() async {
+    var db = await _database;
+    return await dbMediaLocalStoreRef
+        .query(
+          finder: Finder(
+            filter: Filter.and([
+              Filter.equals(dbFestenaoMediaStatusFileModel.remote.name, false),
+              Filter.equals(dbFestenaoMediaStatusFileModel.local.name, true),
+            ]),
+          ),
+        )
+        .getKeys(db);
+  }
+
+  /// File to download
+  Future<List<String>> fileIdsToDownload() async {
+    var db = await _database;
+    return await dbMediaLocalStoreRef
+        .query(
+          finder: Finder(
+            filter: Filter.equals(
+              dbFestenaoMediaStatusFileModel.local.name,
+              false,
+            ),
+          ),
+        )
+        .getKeys(db);
+  }
+
+  /// File to download
+  Future<List<String>> fileIdsToDelete() async {
+    var db = await _database;
+    var idsToDelete = <String>[];
+    await db.transaction((txn) async {
+      var fileIds = await dbMediaStoreRef
+          .query(
+            finder: Finder(
+              filter: Filter.equals(
+                dbFestenaoMediaFileModel.deleted.name,
+                true,
+              ),
+            ),
+          )
+          .getKeys(txn);
+      for (var fileId in fileIds) {
+        var status = await dbMediaLocalStoreRef.record(fileId).get(txn);
+        if (status?.deletedLocal.v != true) {
+          idsToDelete.add(fileId);
+        }
+      }
+    });
+    return idsToDelete;
   }
 
   /// Get media file record
   Future<DbFestenaoMediaFile?> getMediaFileRecord(String fileId) async {
-    var db = await _db;
-    var record = await _dbFestenaoMediaFileStore.record(fileId).get(db);
+    var db = await _database;
+    var record = await dbMediaStoreRef.record(fileId).get(db);
     return record;
+  }
+
+  /// Mark a file as uploaded
+  Future<void> markLocalAndRemote(String fileId) async {
+    var db = await _database;
+    await db.transaction((txn) async {
+      var file = await dbMediaStoreRef.record(fileId).get(txn);
+      if (file != null) {
+        file.uploaded.v = true;
+        await file.put(txn);
+        var status = dbMediaLocalStoreRef.record(fileId).cv();
+        status
+          ..remote.v = true
+          ..local.v = true;
+        await status.put(txn);
+      }
+    });
+  }
+
+  /// Mark a file as uploaded
+  Future<void> markLocalDeleted(String fileId) async {
+    var db = await _database;
+    await db.transaction((txn) async {
+      var file = await dbMediaStoreRef.record(fileId).get(txn);
+      if (file != null) {
+        var status = dbMediaLocalStoreRef.record(fileId).cv();
+        status
+          ..remote.v = true
+          ..local.v = true
+          ..deletedLocal.v = true;
+        await status.put(txn);
+      }
+    });
+  }
+
+  /// Write media file bytes.
+  Future<void> writeMediaFileBytes(
+    FestenaoMediaFileRef ref,
+    Uint8List bytes,
+  ) async {
+    await _writeMediaFileBytes(ref.path, bytes);
+  }
+
+  /// Delete media file bytes
+  Future<void> deleteMediaFileBytes(FestenaoMediaFileRef ref) async {
+    var fsFile = fs.file(ref.path);
+    try {
+      await fsFile.delete(recursive: true);
+    } catch (e) {
+      // ignore: avoid_print
+      print('Error deleting file $fsFile');
+    }
   }
 }

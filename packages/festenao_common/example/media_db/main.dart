@@ -1,17 +1,7 @@
 // ignore_for_file: avoid_print
 
-import 'dart:typed_data';
-
-import 'package:collection/collection.dart';
-import 'package:festenao_common/data/festenao_media.dart';
-import 'package:festenao_common/data/festenao_media_db.dart';
-import 'package:fs_shim/fs_io.dart';
-import 'package:fs_shim/fs_memory.dart';
-import 'package:path/path.dart';
-import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
-import 'package:tekartik_app_media/mime_type.dart';
-
 Future<void> main() async {
+  /*
   var db = FestenaoMediaDb(
     fs: fileSystemIo.sandbox(path: join('.local', 'media_db')),
     sdbFactory: sdbFactoryIo,
@@ -31,5 +21,5 @@ Future<void> main() async {
       await db.readMediaFileBytes(fileId),
       content,
     ),
-  );
+  );*/
 }

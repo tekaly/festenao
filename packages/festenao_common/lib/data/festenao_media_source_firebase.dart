@@ -2,14 +2,10 @@ import 'dart:typed_data';
 
 import 'package:festenao_common/data/festenao_media_db.dart';
 import 'package:festenao_common/data/festenao_media_source.dart';
-import 'package:festenao_common/festenao_sembast.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
 
 import '../festenao_firestore.dart';
 import 'festenao_media.dart';
-
-/// Collection reference for media files.
-final _mediaCollection = CvCollectionReference<FsFestenaoMediaFile>('media');
 
 /// Database record class for media files in Festenao
 /// The uid is the file uid
@@ -23,11 +19,21 @@ class FsFestenaoMediaFile extends CvFirestoreDocumentBase {
   /// Path to the media file in the file system, stored as a string. This field is used to locate the media file for retrieval and management.
   final filePath = CvField<String>('path');
 
-  /// Timestamp when the media file was created.
+  /// Timestamp when the media file was created (local)
   final createdTimestamp = CvField<Timestamp>('createdTimestamp');
 
   /// File size
   final size = CvField<int>('size');
+
+  /// Server change id
+  final syncChangeNum = CvField<int>('syncChangeNum');
+
+  /// Timestamp when the media file was created on the server
+  final serverCreatedTimestamp = CvField<Timestamp>('createdTimestamp');
+
+  /// Deleted
+  final deleted = CvField<bool>('deleted');
+
   @override
   CvFields get fields => [
     type,
@@ -35,19 +41,15 @@ class FsFestenaoMediaFile extends CvFirestoreDocumentBase {
     filePath,
     createdTimestamp,
     size,
+    syncChangeNum,
+    serverCreatedTimestamp,
   ];
 }
 
 /// Firebase implementation of [FestenaoMediaSource].
 class FestenaoMediaSourceFirebase implements FestenaoMediaSource {
-  /// Firestore context
-  final FirestoreDatabaseContext firestoreContext;
-
   /// Storage context
   final FirebaseStorageContext storageContext;
-
-  /// Firestore
-  Firestore get firestore => firestoreContext.firestore;
 
   /// Bucket name
   String? get bucketName => storageContext.bucketName;
@@ -56,10 +58,7 @@ class FestenaoMediaSourceFirebase implements FestenaoMediaSource {
   Storage get storage => storageContext.storage;
 
   /// Constructor for [FestenaoMediaSourceFirebase].
-  FestenaoMediaSourceFirebase({
-    required this.firestoreContext,
-    required this.storageContext,
-  }) {
+  FestenaoMediaSourceFirebase({required this.storageContext}) {
     cvAddConstructors([DbFestenaoMediaFile.new]);
   }
 
@@ -68,24 +67,8 @@ class FestenaoMediaSourceFirebase implements FestenaoMediaSource {
     required Uint8List bytes,
     required FestenaoMediaFile file,
   }) async {
-    var uid = file.uid.v;
-    if (uid == null) {
-      throw ArgumentError.value(
-        uid,
-        'file.uid',
-        'UID must be provided for media file',
-      );
-    }
-    var path = file.path.v;
-    if (path == null) {
-      throw ArgumentError.value(
-        path,
-        'file.path',
-        'File path must be provided for media file',
-      );
-    }
-    var type = file.type.v;
-
+    var path = file.path;
+    var type = file.type;
 
     var bucket = storage.bucket(bucketName);
     var gsFile = bucket.file(path);
@@ -93,103 +76,23 @@ class FestenaoMediaSourceFirebase implements FestenaoMediaSource {
       bytes,
       options: StorageUploadFileOptions(contentType: type),
     );
-    /// Set to fs once uploaded
-    var fsDoc = file.toFsMediaFile();
-    await fsDoc.ref.set(firestore, fsDoc);
-
   }
 
   @override
-  Future<void> deleteMediaFile(String fileId) async {
-    var record = await getMediaFileRecord(fileId);
-    if (record?.path.v != null) {
-      var bucket = storage.bucket(bucketName);
-      var file = bucket.file(record!.path.v!);
-      try {
-        await file.delete();
-      } catch (_) {
-        // Ignore if file does not exist
-      }
+  Future<void> deleteMediaFile(FestenaoMediaFileRef ref) async {
+    var bucket = storage.bucket(bucketName);
+    var file = bucket.file(ref.path);
+    try {
+      await file.delete();
+    } catch (_) {
+      // Ignore if file does not exist
     }
-    await _mediaCollection.doc(fileId).delete(firestore);
   }
 
   @override
-  Future<FestenaoMediaFile?> getMediaFileRecord(String fileId) async {
-    var fsDoc = await _mediaCollection.doc(fileId).get(firestore);
-    return fsDoc.toMediaFileOrNull();
-  }
-
-  @override
-  Future<Uint8List> readMediaFileBytes(String fileId) async {
-    var record = await getMediaFileRecord(fileId);
-    if (record?.path.v != null) {
-      var bucket = storage.bucket(bucketName);
-      var file = bucket.file(record!.path.v!);
-      return await file.readAsBytes();
-    }
-    throw FestenaoMediaDbException('Media file not found: $fileId');
-  }
-
-  @override
-  Future<List<FestenaoMediaFile>> getAllRecords() async {
-    var fsDocs = await _mediaCollection.get(firestore);
-    return fsDocs.map((doc) => doc.toMediaFile()).toList();
-  }
-}
-
-Timestamp _fromDbTimestamp(DbTimestamp timestamp) {
-  return Timestamp(timestamp.seconds, timestamp.nanoseconds);
-}
-
-DbTimestamp _toDbTimestamp(Timestamp timestamp) {
-  return DbTimestamp(timestamp.seconds, timestamp.nanoseconds);
-}
-
-Timestamp? _fromDbTimestampOrNull(DbTimestamp? timestamp) {
-  if (timestamp == null) {
-    return null;
-  }
-  return _fromDbTimestamp(timestamp);
-}
-
-DbTimestamp? _toDbTimestampOrNull(Timestamp? timestamp) {
-  if (timestamp == null) {
-    return null;
-  }
-  return _toDbTimestamp(timestamp);
-}
-
-extension _FsFestenaoMediaFileExt on FsFestenaoMediaFile {
-  FestenaoMediaFile toMediaFile() {
-    var doc = FestenaoMediaFile()
-      ..path.fromCvField(filePath)
-      ..size.fromCvField(size)
-      ..type.fromCvField(type)
-      ..createdTimestamp.setValue(_toDbTimestampOrNull(createdTimestamp.v))
-      ..originalFilename.fromCvField(originalFilename)
-      ..uid.v = id;
-    return doc;
-  }
-
-  FestenaoMediaFile? toMediaFileOrNull() {
-    if (exists) {
-      return toMediaFile();
-    }
-    return null;
-  }
-}
-
-extension _FestenaoMediaFileExt on FestenaoMediaFile {
-  FsFestenaoMediaFile toFsMediaFile() {
-    var uid = this.uid.v!;
-
-    var fsDoc = _mediaCollection.doc(uid).cv()
-      ..filePath.fromCvField(path)
-      ..size.fromCvField(size)
-      ..type.fromCvField(type)
-      ..createdTimestamp.setValue(_fromDbTimestampOrNull(createdTimestamp.v))
-      ..originalFilename.fromCvField(originalFilename);
-    return fsDoc;
+  Future<Uint8List> readMediaFileBytes(FestenaoMediaFileRef ref) async {
+    var bucket = storage.bucket(bucketName);
+    var file = bucket.file(ref.path);
+    return await file.readAsBytes();
   }
 }

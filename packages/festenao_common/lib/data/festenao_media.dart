@@ -1,16 +1,22 @@
 import 'package:path/path.dart';
-import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
+import 'package:tekartik_app_media/mime_type.dart';
 import 'package:tekartik_app_text/sanitize.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
-/// Media file info in Festenao
-class FestenaoMediaFile extends CvModelBase {
-  /// Media file
-  FestenaoMediaFile();
+/// Media source ref
+class FestenaoMediaFileRef {
+  /// Path (relative)
+  final String path;
 
+  /// Constructor
+  FestenaoMediaFileRef.fromPath(this.path);
+}
+
+/// Media file info in Festenao
+class FestenaoMediaFile {
   /// Media file from info
   factory FestenaoMediaFile.from({
     required String filename,
@@ -26,14 +32,19 @@ class FestenaoMediaFile extends CvModelBase {
     var folder3 = uid.substring(4, 6).toLowerCase();
     var fixedName = '${uid}_${_sanitizeAndTruncateOriginalFilename(filename)}';
 
+    type ??= filenameMimeType(filename);
     var path = url.join(folder1, folder2, folder3, fixedName);
-    return FestenaoMediaFile()
-      ..originalFilename.v = filename
-      ..path.v = path
-      ..uid.v = uid
-      ..type.setValue(type)
-      ..size.setValue(size);
+    return FestenaoMediaFile(
+      path: path,
+      uid: uid,
+      type: type,
+      size: size,
+      originalFilename: filename,
+    );
   }
+
+  /// Ref
+  late final ref = FestenaoMediaFileRef.fromPath(path);
 
   /// Build original file name from a full name or path, only take the base name
   static String buildOriginalFilename(String filename) {
@@ -62,31 +73,27 @@ class FestenaoMediaFile extends CvModelBase {
     }
   }
 
+  /// Original filename
+  final String originalFilename;
+
   /// Required
-  final uid = CvField<String>('uid');
+  final String uid;
 
   /// Media type (mime type)
-  final type = CvField<String>('type');
+  final String type;
 
   /// Original filename of the media file, used to determine the file extension and for reference. This field is not used for storage but can be helpful for management and debugging purposes.
-  final originalFilename = CvField<String>('filename');
-
-  /// Path to the media file in the file system, stored as a string. This field is used to locate the media file for retrieval and management.
-  /// Path is the sharded
-  final path = CvField<String>('path');
-
-  /// Timestamp when the media file was created.
-  final createdTimestamp = cvEncodedTimestampField('createdTimestamp');
+  final String path;
 
   /// File size
-  final size = CvField<int>('size');
-  @override
-  CvFields get fields => [
-    uid,
-    type,
-    originalFilename,
-    path,
-    createdTimestamp,
-    size,
-  ];
+  final int? size;
+
+  /// Festenao media file
+  FestenaoMediaFile({
+    required this.uid,
+    required this.originalFilename,
+    required this.type,
+    required this.path,
+    required this.size,
+  });
 }

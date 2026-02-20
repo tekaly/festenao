@@ -7,7 +7,7 @@ void main() {
       filename: 'my\\file/test.webp',
       type: 'image/webp',
     );
-    var path = file.path.v!;
+    var path = file.path;
     expect(path, endsWith('_test.webp'));
     var parts = path.split('/');
     expect(parts, hasLength(4));
