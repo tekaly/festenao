@@ -14,13 +14,6 @@ void main() {
     test('stores', () async {
       expect(festenaoDb.dbSyncMetaStoreRef.name, 'faoM');
       expect(festenaoDb.dbSyncRecordStoreRef.name, 'faoR');
-      expect(festenaoDb.syncedStoreNames, [
-        'artist',
-        'event',
-        'image',
-        'info',
-        'meta',
-      ]);
     });
     test('add/delete record', () async {
       var db = await festenaoDb.database;

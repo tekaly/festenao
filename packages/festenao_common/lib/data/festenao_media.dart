@@ -20,12 +20,15 @@ class FestenaoMediaFile {
   /// Media file from info
   factory FestenaoMediaFile.from({
     required String filename,
-    String? uid,
+
+    /// Type is generated from filename if not provided
     String? type,
+
+    /// Optional size
     int? size,
   }) {
     filename = buildOriginalFilename(filename);
-    uid ??= _uuid.v4().replaceAll('-', '');
+    var uid = _uuid.v4().replaceAll('-', '');
 
     var folder1 = uid.substring(0, 2).toLowerCase();
     var folder2 = uid.substring(2, 4).toLowerCase();

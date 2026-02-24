@@ -2,6 +2,7 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
+import 'package:festenao_common/data/src/festenao_synced_db.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:path/path.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
@@ -85,11 +86,13 @@ class SingleFestenaoAdminAppProjectContext
     extends FestenaoAdminAppProjectContextBase {
   @override
   final String projectId;
-  final SyncedDb syncedDb;
+  SyncedDb get syncedDb => festenaoSyncedDb.syncedDb;
+  final FestenaoSyncedDb festenaoSyncedDb;
 
   SingleFestenaoAdminAppProjectContext({
     required this.projectId,
-    required this.syncedDb,
+
+    required this.festenaoSyncedDb,
     required super.firestore,
     required super.storage,
     required super.storageBucket,

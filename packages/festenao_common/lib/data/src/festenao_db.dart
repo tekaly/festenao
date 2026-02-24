@@ -11,15 +11,6 @@ import 'model/db_models.dart';
 export 'festenao/model/db_sync_meta.dart';
 export 'festenao/model/db_sync_record.dart';
 
-/// List of store references used for synchronization.
-final _syncStores = [
-  dbArtistStoreRef,
-  dbEventStoreRef,
-  dbImageStoreRef,
-  dbInfoStoreRef,
-  dbMetaStoreRef,
-];
-
 /// Default export file name for Festenao data.
 var festenaoExport = 'festenao_export.jsonl';
 
@@ -90,7 +81,7 @@ class FestenaoDb extends SyncedDbBase {
 
   FestenaoDb._(DatabaseFactory databaseFactory, this._test, {String? name}) {
     this.databaseFactory = databaseFactory;
-    syncedStoreNames = _syncStores.map((e) => e.name).toList();
+    //syncedStoreNames = _syncStores.map((e) => e.name).toList();
     initFestenaoDbBuilders();
 
     if (name != null) {
@@ -174,7 +165,7 @@ class FestenaoExportInfo {
 }
 
 /// extension for RecordRef
-extension FestenaoDbExt on RecordRef {}
+extension FestenaoDbRecordExt on RecordRef {}
 
 /// extension for List of DbRecord
 extension FestenaoDbModelListExt on List<DbRecord> {
@@ -183,5 +174,45 @@ extension FestenaoDbModelListExt on List<DbRecord> {
     for (var record in this) {
       await record.delete(client);
     }
+  }
+}
+
+/// FestenaoDb options
+class FestenaoDbOptions {
+  /// Db path
+  final String dbPath;
+
+  /// Medias path
+  final String mediasPath;
+
+  /// Db options
+  FestenaoDbOptions({required this.dbPath, required this.mediasPath});
+}
+
+/// FestenaoDb options
+class FestenaoSyncSourceOptions {
+  /// Firebase project id
+  final String firebaseProjectId;
+
+  /// Storage bucket
+  final String storageBucket;
+
+  /// Firestore root path (doc)
+  final String firestoreRoot;
+
+  /// Storage root path (could match firestore)
+  final String storageRoot;
+
+  /// Firebase db options
+  FestenaoSyncSourceOptions({
+    required this.firebaseProjectId,
+    required this.storageBucket,
+    required this.firestoreRoot,
+    required this.storageRoot,
+  });
+
+  @override
+  String toString() {
+    return 'FestenaoSyncSourceOptions(firebaseProjectId: $firebaseProjectId, storageBucket: $storageBucket, firestoreRoot: $firestoreRoot, storageRoot: $storageRoot)';
   }
 }

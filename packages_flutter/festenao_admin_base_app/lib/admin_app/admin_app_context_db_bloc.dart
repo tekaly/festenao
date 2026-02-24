@@ -2,6 +2,7 @@ import 'package:festenao_admin_base_app/admin_app/admin_app_project_context.dart
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/data/festenao_db.dart';
+import 'package:festenao_common/data/src/festenao_synced_db.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_base_bloc.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 
@@ -34,6 +35,30 @@ class AdminAppProjectContextDbBloc with AutoDisposableMixin {
         return (await _grabContentDb()).contentDb.syncedDb;
       } else if (projectsDbBloc is SingleCompatProjectDbBloc) {
         return projectsDbBloc.syncedDb;
+      } else {
+        throw StateError('Invalid projectsDbBloc $projectsDbBloc');
+      }
+    } else {
+      throw ArgumentError('Invalid project context $projectContext');
+    }
+  }
+
+  Future<FestenaoSyncedDb> grabFestenaoSyncedDb() async {
+    var festenaoSyncedDb = await _grabRawFestenaoSyncedDb();
+    await festenaoSyncedDb.ready;
+    return festenaoSyncedDb;
+  }
+
+  Future<FestenaoSyncedDb> _grabRawFestenaoSyncedDb() async {
+    if (projectContext is SingleFestenaoAdminAppProjectContext) {
+      return (projectContext as SingleFestenaoAdminAppProjectContext)
+          .festenaoSyncedDb;
+    } else if (projectContext is ByProjectIdAdminAppProjectContext) {
+      var projectsDbBloc = globalProjectsDbBloc;
+      if (projectsDbBloc is MultiProjectsDbBloc) {
+        return (await _grabContentDb()).festenaoSyncedDb;
+      } else if (projectsDbBloc is SingleCompatProjectDbBloc) {
+        return projectsDbBloc.festenaoSyncedDb;
       } else {
         throw StateError('Invalid projectsDbBloc $projectsDbBloc');
       }

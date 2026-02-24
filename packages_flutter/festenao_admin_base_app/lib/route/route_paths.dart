@@ -100,6 +100,10 @@ class ProjectArtistsContentPath extends _ProjectSubContentPath {
   ProjectArtistsContentPath() : super('artists');
 }
 
+class ProjectMediasContentPath extends _ProjectSubContentPath {
+  ProjectMediasContentPath() : super('medias');
+}
+
 class ProjectArtistContentPath extends _ProjectSubIdContentPath {
   ProjectArtistContentPath() : super('artist');
 }
@@ -136,6 +140,10 @@ class ProjectImagesContentPath extends _ProjectSubContentPath {
 
 class ProjectImageContentPath extends _ProjectSubIdContentPath {
   ProjectImageContentPath() : super('image');
+}
+
+class ProjectMediaContentPath extends _ProjectSubIdContentPath {
+  ProjectMediaContentPath() : super('media');
 }
 
 class HomeContentPath extends _SubContentPath {

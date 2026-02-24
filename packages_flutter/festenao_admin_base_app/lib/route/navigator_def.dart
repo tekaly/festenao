@@ -11,6 +11,8 @@ import 'package:festenao_admin_base_app/screen/admin_image_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_info_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_media_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_medias_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_users_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_users_screen_bloc.dart';
@@ -27,10 +29,14 @@ import 'package:festenao_admin_base_app/screen/projects_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/start_screen.dart';
 import 'package:festenao_admin_base_app/screen/start_screen_bloc.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
+import 'package:festenao_common/data/festenao_fs.dart';
+import 'package:festenao_common/data/src/festenao_db.dart';
+import 'package:festenao_common/data/src/festenao_synced_db.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 
+import '../data/file_system.dart';
 import 'route_paths.dart';
 
 export 'package:tekartik_app_navigator_flutter/content_navigator.dart';
@@ -52,7 +58,19 @@ FestenaoAdminAppProjectContext _byProjectIdAdminAppProjectContext({
   } else if (projectsDbBloc is SingleCompatProjectDbBloc) {
     return SingleFestenaoAdminAppProjectContext(
       projectId: projectId,
-      syncedDb: projectsDbBloc.syncedDb,
+      festenaoSyncedDb: FestenaoSyncedDb(
+        contentDb: null,
+        fs: globalFs.sandbox(path: 'compat'),
+        sourceOptions: FestenaoSyncSourceOptions(
+          firebaseProjectId: globalFestenaoAdminAppFirebaseContext.projectId,
+          storageBucket: globalFestenaoAppFirebaseContext.storageBucket,
+          firestoreRoot: globalFestenaoAppFirebaseContext.firestoreRootPath,
+          storageRoot: globalFestenaoAppFirebaseContext.storageRootPath,
+        ),
+        options: FestenaoDbOptions(dbPath: 'TODO', mediasPath: 'TODO'),
+        syncedDb: projectsDbBloc.syncedDb,
+      ),
+
       firestore: globalFestenaoAdminAppFirebaseContext.firestore,
       storage: globalFestenaoAdminAppFirebaseContext.storage,
       storageBucket: globalFestenaoAppFirebaseContext.storageBucket,
@@ -273,6 +291,39 @@ var projectImagePageDef = ContentPageDef(
   },
   path: ProjectImageContentPath(),
 );
+
+var projectMediaPageDef = ContentPageDef(
+  screenBuilder: (crps) {
+    var cp = ProjectMediaContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var subId = cp.sub.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder: () =>
+          AdminMediaScreenBloc(projectContext: projectContext, mediaId: subId),
+      child: const AdminMediaScreen(),
+    );
+  },
+  path: ProjectMediaContentPath(),
+);
+
+var projectMediasPageDef = ContentPageDef(
+  screenBuilder: (crps) {
+    var cp = ProjectMediasContentPath()..fromPath(crps.path);
+    var projectId = cp.project.value!;
+    var projectContext = _byProjectIdAdminAppProjectContext(
+      projectId: projectId,
+    );
+    return BlocProvider(
+      blocBuilder: () => AdminMediasScreenBloc(projectContext: projectContext),
+      child: const AdminMediasScreen(),
+    );
+  },
+  path: ProjectMediasContentPath(),
+);
+
 var projectEventsPageDef = ContentPageDef(
   screenBuilder: (crps) {
     var cp = ProjectEventsContentPath()..fromPath(crps.path);
@@ -424,6 +475,8 @@ final festenaoAdminAppPages = [
   projectArtistPageDef,
   projectImagesPageDef,
   projectImagePageDef,
+  projectMediasPageDef,
+  projectMediaPageDef,
   projectEventsPageDef,
   projectEventPageDef,
   projectExportsPageDef,
@@ -447,5 +500,6 @@ final festenaoAdminAppPages = [
 final _contentNavigatorDef = ContentNavigatorDef(
   defs: [...festenaoAdminAppPages],
 );
+
 ContentNavigatorDef get festenaoAdminAppContentNavigatorDef =>
     _contentNavigatorDef;

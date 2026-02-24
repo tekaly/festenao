@@ -23,6 +23,7 @@ import 'package:tkcms_user_app/view/body_container.dart';
 
 import '../view/project_leading.dart';
 import 'admin_exports_screen.dart';
+import 'admin_medias_screen.dart';
 import 'admin_metas_screen.dart';
 import 'project_root_screen_bloc.dart';
 
@@ -155,6 +156,15 @@ class ProjectRootScreenState extends AutoDisposeBaseState<ProjectRootScreen>
                                 label: 'Images',
                                 onTap: () {
                                   goToAdminImagesScreen(
+                                    context,
+                                    projectContext: bloc.projectContext,
+                                  );
+                                },
+                              ),
+                              EntryTile(
+                                label: 'Medias',
+                                onTap: () {
+                                  goToAdminMediasScreen(
                                     context,
                                     projectContext: bloc.projectContext,
                                   );

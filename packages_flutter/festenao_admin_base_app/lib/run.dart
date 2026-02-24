@@ -3,16 +3,17 @@ import 'package:festenao_admin_base_app/auth/app_auth_bloc.dart';
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/route/navigator_def.dart';
-
 // ignore: unused_import
 import 'package:festenao_admin_base_app/route/route_navigation.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
 import 'package:festenao_common/app/src/app_init_options.dart';
+import 'package:festenao_common/data/src/festenao_synced_db.dart';
 import 'package:festenao_common/data/src/model/db_models.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
+import 'package:tekartik_app_flutter_fs/fs.dart';
 import 'package:tekartik_app_flutter_sembast/sembast.dart';
 import 'package:tekartik_app_navigator_flutter/route_aware.dart';
 import 'package:tekartik_app_prefs/app_prefs.dart';
@@ -28,6 +29,7 @@ import 'package:tkcms_common/tkcms_sembast.dart';
 import 'package:tkcms_user_app/theme/theme1.dart';
 
 import 'admin_app/festenao_admin_app.dart';
+import 'data/file_system.dart';
 import 'firebase/firebase_local.dart';
 import 'l10n/app_intl.dart';
 import 'prefs/local_prefs.dart';
@@ -143,6 +145,15 @@ Future<void> festenaoRunAdminApp({
   gFsDatabaseService = fsDatabase;
   globalTkCmsAdminAppFlavorContext = appFlavorContext;
 
+  /// Create a unique location per app file system
+  var fileSystem = (await fs.getApplicationDocumentsDirectory(
+    packageName: packageName,
+  )).directory(appFlavorContext.uniqueAppName).sandbox();
+  globalFs = fileSystem;
+  if (kDebugMode) {
+    print('fs: $fileSystem');
+  }
+
   var appRootPath = fsAppRoot(fsDatabase.app).path;
   // TODO remove
   if (optionsMultiProjects != null) {
@@ -209,8 +220,22 @@ Future<void> festenaoRunAdminApp({
         }
       }
 
+      var fs = globalFs;
+      var localPath = fs.path.join('single');
+      fs = fs.sandbox(path: localPath);
       globalProjectsDbBlocOrNull ??= SingleCompatProjectDbBloc(
-        syncedDb: festenaoDb,
+        festenaoSyncedDb: FestenaoSyncedDb(
+          contentDb: null,
+          fs: fs,
+          options: FestenaoDbOptions(dbPath: 'TODO', mediasPath: 'TODO'),
+          sourceOptions: FestenaoSyncSourceOptions(
+            firebaseProjectId: 'TODO',
+            storageBucket: 'TODO',
+            firestoreRoot: 'TODO',
+            storageRoot: 'TODO',
+          ),
+          syncedDb: festenaoDb,
+        ),
         projectPath: options!.singleProject!.singleProjectRootPath,
       );
     }

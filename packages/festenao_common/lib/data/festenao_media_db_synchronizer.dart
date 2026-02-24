@@ -54,4 +54,10 @@ class FestenaoMediaDbSynchronizer {
       }
     }
   }
+
+  /// Sync media content
+  Future<void> sync() async {
+    await syncUp();
+    await syncDown();
+  }
 }

@@ -4,6 +4,7 @@ import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/festenao_sembast.dart';
 import 'package:fs_shim/fs_shim.dart';
+import 'package:tekartik_app_media/mime_type.dart';
 
 /// Exception class for errors related to the FestenaoMediaDb.
 class FestenaoMediaDbException implements Exception {
@@ -74,7 +75,7 @@ class DbFestenaoMediaFile extends DbStringRecordBase {
       originalFilename: originalFilename.v!,
       path: path.v!,
       uid: id,
-      type: type.v!,
+      type: type.v ?? filenameMimeType(originalFilename.v!),
       size: size.v,
     );
     return doc;
@@ -86,18 +87,36 @@ final dbFestenaoMediaFileModel = DbFestenaoMediaFile();
 
 /// Media database for Festenao, using SDB for metadata and the file system for media storage.
 class FestenaoMediaDb {
-  /// Opened database
-  final Database database;
+  /// Media part
+  static String mediaPart = 'media';
+
+  /// Google storage path
+  static List<String> projectStorageParts(String projectId) => [
+    'project',
+    projectId,
+  ];
+
+  /// Opened database, valid when ready
+  late final Database database;
 
   /// File system
   final FileSystem fs;
 
-  final Future<Database> _database;
+  final Future<Database> _futureDatabase;
+
+  /// Ready to use!
+  Future<void> get ready => _futureDatabase;
 
   /// Constructor for FestenaoMediaDb, requiring an SDB factory and a file system.
-  FestenaoMediaDb({required this.fs, required this.database})
-    : _database = Future.value(database) {
+  FestenaoMediaDb({
+    required this.fs,
+    Database? database,
+    Future<Database>? futureDatabase,
+  }) : _futureDatabase = futureDatabase ?? Future.value(database) {
     cvAddConstructors([DbFestenaoMediaFile.new, DbFestenaoMediaStatusFile.new]);
+    () async {
+      database = (await _futureDatabase);
+    }();
   }
 
   Future<void> _writeMediaFileBytes(String path, Uint8List bytes) async {
@@ -113,9 +132,10 @@ class FestenaoMediaDb {
     required FestenaoMediaFile file,
     required Uint8List bytes,
   }) async {
-    var db = await _database;
+    var db = await _futureDatabase;
     var uid = file.uid;
     var path = file.path;
+    var size = file.size ?? bytes.length;
 
     // First write the file
     await _writeMediaFileBytes(path, bytes);
@@ -124,7 +144,7 @@ class FestenaoMediaDb {
     await db.transaction((txn) async {
       var mediaRecord = dbMediaStoreRef.record(uid).cv()
         ..createdTimestamp.value = DbTimestamp.now()
-        ..size.setValue(file.size)
+        ..size.setValue(size)
         ..originalFilename.setValue(file.originalFilename)
         ..path.value = path;
       await mediaRecord.put(txn);
@@ -139,7 +159,7 @@ class FestenaoMediaDb {
 
   /// Reads the media file bytes for the given [fileId].
   Future<File> getMediaFile(String fileId) async {
-    var db = await _database;
+    var db = await _futureDatabase;
     var fileRecord = await dbMediaStoreRef.record(fileId).get(db);
 
     var path = _ensurePath(fileId, fileRecord);
@@ -167,7 +187,7 @@ class FestenaoMediaDb {
 
   /// Deletes the media file and its corresponding database record for the given [fileId].
   Future<void> deleteMediaFile(String fileId) async {
-    var db = await _database;
+    var db = await _futureDatabase;
     DbFestenaoMediaFile? fileRecord;
     // Delete in db first
     await db.transaction((txn) async {
@@ -203,14 +223,14 @@ class FestenaoMediaDb {
 
   /// Gets all media file records from the database.
   Future<List<DbFestenaoMediaFile>> getAllRecords() async {
-    var db = await _database;
+    var db = await _futureDatabase;
     var records = await dbMediaStoreRef.query().getRecords(db);
     return records;
   }
 
   /// File ids to upload (delete and create)
   Future<List<String>> fileIdsToUpload() async {
-    var db = await _database;
+    var db = await _futureDatabase;
     return await dbMediaLocalStoreRef
         .query(
           finder: Finder(
@@ -225,7 +245,7 @@ class FestenaoMediaDb {
 
   /// File to download
   Future<List<String>> fileIdsToDownload() async {
-    var db = await _database;
+    var db = await _futureDatabase;
     return await dbMediaLocalStoreRef
         .query(
           finder: Finder(
@@ -240,7 +260,7 @@ class FestenaoMediaDb {
 
   /// File to download
   Future<List<String>> fileIdsToDelete() async {
-    var db = await _database;
+    var db = await _futureDatabase;
     var idsToDelete = <String>[];
     await db.transaction((txn) async {
       var fileIds = await dbMediaStoreRef
@@ -265,14 +285,14 @@ class FestenaoMediaDb {
 
   /// Get media file record
   Future<DbFestenaoMediaFile?> getMediaFileRecord(String fileId) async {
-    var db = await _database;
+    var db = await _futureDatabase;
     var record = await dbMediaStoreRef.record(fileId).get(db);
     return record;
   }
 
   /// Mark a file as uploaded
   Future<void> markLocalAndRemote(String fileId) async {
-    var db = await _database;
+    var db = await _futureDatabase;
     await db.transaction((txn) async {
       var file = await dbMediaStoreRef.record(fileId).get(txn);
       if (file != null) {
@@ -289,7 +309,7 @@ class FestenaoMediaDb {
 
   /// Mark a file as uploaded
   Future<void> markLocalDeleted(String fileId) async {
-    var db = await _database;
+    var db = await _futureDatabase;
     await db.transaction((txn) async {
       var file = await dbMediaStoreRef.record(fileId).get(txn);
       if (file != null) {

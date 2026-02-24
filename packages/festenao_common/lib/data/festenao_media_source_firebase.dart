@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:festenao_common/data/festenao_media_db.dart';
 import 'package:festenao_common/data/festenao_media_source.dart';
+import 'package:path/path.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
 
 import '../festenao_firestore.dart';
@@ -67,7 +68,7 @@ class FestenaoMediaSourceFirebase implements FestenaoMediaSource {
     required Uint8List bytes,
     required FestenaoMediaFile file,
   }) async {
-    var path = file.path;
+    var path = _fixPath(file.path);
     var type = file.type;
 
     var bucket = storage.bucket(bucketName);
@@ -78,10 +79,15 @@ class FestenaoMediaSourceFirebase implements FestenaoMediaSource {
     );
   }
 
+  String _fixPath(String path) {
+    return url.join(storageContext.rootDirectory, path);
+  }
+
   @override
   Future<void> deleteMediaFile(FestenaoMediaFileRef ref) async {
     var bucket = storage.bucket(bucketName);
-    var file = bucket.file(ref.path);
+    var path = _fixPath(ref.path);
+    var file = bucket.file(path);
     try {
       await file.delete();
     } catch (_) {
@@ -92,7 +98,8 @@ class FestenaoMediaSourceFirebase implements FestenaoMediaSource {
   @override
   Future<Uint8List> readMediaFileBytes(FestenaoMediaFileRef ref) async {
     var bucket = storage.bucket(bucketName);
-    var file = bucket.file(ref.path);
+    var path = _fixPath(ref.path);
+    var file = bucket.file(path);
     return await file.readAsBytes();
   }
 }

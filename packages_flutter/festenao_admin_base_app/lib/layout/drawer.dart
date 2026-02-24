@@ -5,6 +5,7 @@ import 'package:festenao_admin_base_app/screen/admin_events_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_exports_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_images_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_infos_screen.dart';
+import 'package:festenao_admin_base_app/screen/admin_medias_screen.dart';
 import 'package:festenao_admin_base_app/screen/admin_metas_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_users_screen.dart';
@@ -155,6 +156,16 @@ class _ListDrawerState extends State<ListDrawer> {
             title: const Text('Images'),
             onTap: () {
               goToAdminImagesScreen(
+                context,
+                projectContext: appProjectContext,
+                transitionDelegate: drawerAnimationTransitionDelegate,
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Medias'),
+            onTap: () {
+              goToAdminMediasScreen(
                 context,
                 projectContext: appProjectContext,
                 transitionDelegate: drawerAnimationTransitionDelegate,
