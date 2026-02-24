@@ -144,6 +144,7 @@ class FestenaoMediaDb {
     await db.transaction((txn) async {
       var mediaRecord = dbMediaStoreRef.record(uid).cv()
         ..createdTimestamp.value = DbTimestamp.now()
+        ..type.setValue(file.type)
         ..size.setValue(size)
         ..originalFilename.setValue(file.originalFilename)
         ..path.value = path;

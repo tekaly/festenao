@@ -28,7 +28,10 @@ void main() {
     var record = (await db.getMediaFileRecord(fileId))!;
     expect(record.id, fileId);
     expect(record.toMap(), {
+      'type': 'image/webp',
+      'size': content.length,
       'filename': 'test.webp',
+      // example  'path': 'e1/65/bf/e165bf35b3fa495a81649535b9cfb444_test.webp',
       'path': record.path.v,
       'createdTimestamp': record.createdTimestamp.v,
     });
