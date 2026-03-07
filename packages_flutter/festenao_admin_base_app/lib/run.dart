@@ -71,16 +71,21 @@ Future<void> festenaoRunAdminAppSingleProject({
   );
 }
 
-Future<void> festenaoRunAdminApp({
-  ContentNavigatorDef? contentNavigatorDef,
-  AppFlavorContext? appFlavorContext,
+/// Init result
+class FestenaoAppInitResult {
+  final String packageName;
+
+  FestenaoAppInitResult({required this.packageName});
+}
+
+/// New gen, create default init like in run without running the app
+Future<FestenaoAppInitResult> festenaoAdminAppInit({
   String? packageName,
   FestenaoAppOptions? options,
+  required AppFlavorContext appFlavorContext,
+  required FirebaseContext firebaseContext,
   String? singleProjectId,
-  FestenaoAppFirebaseContext? appFirebaseContext,
-  FirebaseContext? firebaseContext,
   FestenaoAdminParentAppController? parentAppController,
-  Widget Function(Widget child)? wrapperBuilder,
 }) async {
   if (kDebugMode) {
     gDebugLogFirestore = true;
@@ -91,24 +96,30 @@ Future<void> festenaoRunAdminApp({
   // festenaoUseContentPathNavigation = devWarning(true);
   WidgetsFlutterBinding.ensureInitialized();
   webSplashReady();
-  packageName ??= 'festenao.admin_base_app';
-
+  packageName ??=
+      'festenao.admin_base_app${appFlavorContext.ifNotProdFlavorExtension}';
+  if (kDebugMode) {
+    print('packageName: $packageName');
+  }
   await initFestenaoLocalSembastFactory();
 
   /// Overriden appId if any (not for single project mode)
   var prefsFactory = getPrefsFactory(packageName: packageName);
-  var prefs = await prefsFactory.openPreferences('${packageName}_prefs.db');
+  var prefs = await prefsFactory.openPreferences('prefs_$packageName.db');
   globalPrefs = prefs;
 
   var appId = prefs.currentAppId;
-  appFlavorContext ??= AppFlavorContext.testLocal;
+
   if (appId != null) {
     appFlavorContext = appFlavorContext.copyWithAppId(appId);
   }
   appId = appFlavorContext.appId;
 
   //initFirebaseSim(projectId: 'festenao', packageName: packageName);
-  firebaseContext ??= await initFestenaoFirebaseServicesLocal();
+
+  if (kDebugMode) {
+    print('firebaseContext: ${firebaseContext.firebaseApp.firebase}');
+  }
 
   TkCmsFirestoreDatabaseServiceEntityAccess<FsProject>? projectDb;
   var optionsMultiProjects = options?.multiProjects;
@@ -276,9 +287,6 @@ Future<void> festenaoRunAdminApp({
   );
 
   initFestenaoDbBuilders();
-  sleep(300).then((_) {
-    webSplashHide();
-  }).unawait();
 
   if (kDebugMode) {
     print('Running $appFlavorContext');
@@ -293,20 +301,65 @@ Future<void> festenaoRunAdminApp({
     );
     print('storageBucket: ${globalFestenaoAppFirebaseContext.storageBucket}');
   }
+  return FestenaoAppInitResult(packageName: packageName);
+}
+
+Future<void> festenaoRunAdminApp({
+  ContentNavigatorDef? contentNavigatorDef,
+  AppFlavorContext? appFlavorContext,
+  String? packageName,
+  FestenaoAppOptions? options,
+  String? singleProjectId,
+  FestenaoAppFirebaseContext? appFirebaseContext,
+  FirebaseContext? firebaseContext,
+  FestenaoAdminParentAppController? parentAppController,
+  Widget Function(Widget child)? wrapperBuilder,
+  List<LocalizationsDelegate>? localizationsDelegates,
+  List<Locale>? supportedLocales,
+}) async {
+  /// Discouraged...
+  appFlavorContext ??= AppFlavorContext.testLocal;
+
+  /// Discouraged...
+  firebaseContext ??= await initFestenaoFirebaseServicesLocal();
+  await festenaoAdminAppInit(
+    packageName: packageName,
+    options: options,
+    appFlavorContext: appFlavorContext,
+    firebaseContext: firebaseContext,
+    singleProjectId: singleProjectId,
+    parentAppController: parentAppController,
+  );
+
   var appWidget =
-      FestenaoAdminApp(contentNavigatorDef: contentNavigatorDef) as Widget;
+      FestenaoAdminApp(
+            contentNavigatorDef: contentNavigatorDef,
+            localizationsDelegates: localizationsDelegates,
+            supportedLocales: supportedLocales,
+          )
+          as Widget;
   if (wrapperBuilder != null) {
     appWidget = wrapperBuilder(appWidget);
   }
+  sleep(300).then((_) {
+    webSplashHide();
+  }).unawait();
   runApp(appWidget);
 }
 
 /// Festenao admin app
 class FestenaoAdminApp extends StatelessWidget {
   final ContentNavigatorDef? contentNavigatorDef;
+  final List<LocalizationsDelegate>? localizationsDelegates;
+  final List<Locale>? supportedLocales;
 
   /// Festenao admin app
-  const FestenaoAdminApp({super.key, this.contentNavigatorDef});
+  const FestenaoAdminApp({
+    super.key,
+    this.contentNavigatorDef,
+    this.localizationsDelegates,
+    this.supportedLocales,
+  });
 
   // This widget is the root of your application.
   @override
@@ -324,11 +377,12 @@ class FestenaoAdminApp extends StatelessWidget {
             //navigatorObservers: [cn.routeObserver],
             routerDelegate: cn.routerDelegate,
             routeInformationParser: cn.routeInformationParser,
-            supportedLocales: festenaoAdminAppSupportedLocales,
+            supportedLocales:
+                supportedLocales ?? festenaoAdminAppSupportedLocales,
             //locale: Locale(getCurrentLocale()),
-            localizationsDelegates: const [
-              ...festenaoAdminAppAllLocalizationsDelegates,
-            ],
+            localizationsDelegates:
+                localizationsDelegates ??
+                const [...festenaoAdminAppAllLocalizationsDelegates],
           );
         },
       ),

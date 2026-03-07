@@ -9,18 +9,32 @@ import 'package:tkcms_common/tkcms_firebase.dart';
 FirebaseContext get globalFestenaoAdminAppFirebaseContext =>
     globalTkCmsAdminAppFirebaseContext;
 
-FestenaoAppFirebaseContext? globalFestenaoAppFirebaseContextOrNull;
+FestenaoAppFirebaseOptions? _globalFestenaoAppFirebaseOptionsOrNull;
+
+/// Compat
+FestenaoAppFirebaseOptions? get globalFestenaoAppFirebaseContextOrNull =>
+    _globalFestenaoAppFirebaseOptionsOrNull;
+
+/// Compat
+set globalFestenaoAppFirebaseContextOrNull(FestenaoAppFirebaseOptions? value) =>
+    _globalFestenaoAppFirebaseOptionsOrNull = value;
 
 /// Global festenao app firebase context
-FestenaoAppFirebaseContext get globalFestenaoAppFirebaseContext =>
+FestenaoAppFirebaseOptions get globalFestenaoAppFirebaseContext =>
     globalFestenaoAppFirebaseContextOrNull!;
 set globalFestenaoAppFirebaseContext(FestenaoAppFirebaseContext value) {
-  globalFestenaoAppFirebaseContextOrNull = value;
+  _globalFestenaoAppFirebaseOptionsOrNull = value;
 }
 
+set globalFestenaoAppFirebaseOptions(FestenaoAppFirebaseOptions value) {
+  _globalFestenaoAppFirebaseOptionsOrNull = value;
+}
+
+typedef FestenaoAppFirebaseContext = FestenaoAppFirebaseOptions;
+
 /// Festenao Firebase context
-class FestenaoAppFirebaseContext {
-  /// App path
+class FestenaoAppFirebaseOptions {
+  /// App path, typically 'app' and at the root for firestore and storage
   final String storageRootPath;
 
   /// Storage bucket
@@ -29,7 +43,7 @@ class FestenaoAppFirebaseContext {
   /// App path
   final String firestoreRootPath;
 
-  FestenaoAppFirebaseContext({
+  FestenaoAppFirebaseOptions({
     required this.storageRootPath,
     required this.firestoreRootPath,
     required this.storageBucket,

@@ -92,16 +92,21 @@ abstract class FestenaoAppProjectsOptions {
   String get projectCollectionPath;
 }
 
-/// Initialization options for a single Festenao project.
+/// Initialization options for a multi Festenao project.
 class FestenaoAppMultiProjectsOptions implements FestenaoAppProjectsOptions {
   /// The project collection reference.
   final TkCmsFirestoreDatabaseEntityCollectionRef<TkCmsFsProject>
   projectCollectionRef;
 
-  /// The root path for the single project, if specified.
+  /// The root path for the multi project, if specified.
   @override
   String get projectCollectionPath => projectCollectionRef.path;
 
   /// Creates a new [FestenaoAppMultiProjectsOptions] instance.
   const FestenaoAppMultiProjectsOptions({required this.projectCollectionRef});
 }
+
+/// Default multi-projects options.
+final defaultAppMultiProjectsOptions = FestenaoAppMultiProjectsOptions(
+  projectCollectionRef: fsProjectCollectionInfo.ref(),
+);
