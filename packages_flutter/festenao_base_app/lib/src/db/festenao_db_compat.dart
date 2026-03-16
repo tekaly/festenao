@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:tekaly_sembast_synced/synced_db_storage.dart';
+import 'package:tekartik_app_flutter_common_utils/asset/asset_utils.dart';
 import 'package:tekartik_app_flutter_sembast/sembast.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
@@ -24,6 +25,7 @@ set festenaoDb(FestenaoDb festenaoDb) => _festenaoDb = festenaoDb;
 
 FestenaoDb get festenaoDb => _festenaoDb!;
 final dbAppInfos = <String, AppInfo>{};
+
 Map<String, AppInfo> get appInfos => dbAppInfos;
 
 final appPlayerPlaylists = <String, AppPlayerPlayList>{};
@@ -324,13 +326,19 @@ Future<FesteanoAppDbDataContext> initWithAssetAndStorage({
   //var noCache = '&v=${DateTime.now().millisecondsSinceEpoch}';
 
   // print('storageBucket: $storageBucket');
-  await festenaoDb.importDatabaseFromUnauthenticatedStorage(
-    importContext: SyncedDbUnauthenticatedStorageApiImportContext(
-      storageApi: api,
-      rootPath: url.join(storageRootPath, storageDataDirPart),
-      metaBasenameSuffix: dev ? '_dev' : '',
-    ),
-  );
+  try {
+    await festenaoDb.importDatabaseFromUnauthenticatedStorage(
+      importContext: SyncedDbUnauthenticatedStorageApiImportContext(
+        storageApi: api,
+        rootPath: url.join(storageRootPath, storageDataDirPart),
+        metaBasenameSuffix: dev ? '_dev' : '',
+      ),
+    );
+  } catch (e) {
+    if (kDebugMode) {
+      print('fail to load from storage: $e');
+    }
+  }
 
   appDataContext = AppDataContext(
     projectId: projectId,
@@ -473,15 +481,9 @@ Future<void> initData(FestenaoDb festenaoDb) async {
       .toList();
 }
 
-Future<List<String>> getAssetList() async {
-  final manifestContent = await rootBundle.loadString('AssetManifest.json');
-
-  final manifestMap = jsonDecode(manifestContent) as Map;
-  return manifestMap.keys.cast<String>().toList();
-}
-
 extension AppPlayerCvAttributeExtension on CvAttribute {
   Uri? get uri => Uri.tryParse(value.v ?? '');
+
   bool get isInfo => uri?.scheme == articleKindInfo;
 
   /// Non-null if this is a song link
@@ -494,6 +496,7 @@ extension AppPlayerCvAttributeExtension on CvAttribute {
 
 extension AppPlayerAppInfoExtension on AppInfo {
   bool get isSong => dbInfo.type.v == infoTypeSong;
+
   bool get isPlaylist => dbInfo.type.v == infoTypePlaylist;
 }
 
@@ -543,6 +546,7 @@ abstract class AppPlayerSong {
       _AppPlayerSong(dbInfo: info);
 
   String? get title;
+
   String? get subtitle;
 
   String? get author;
@@ -560,17 +564,21 @@ class _AppPlayerSong implements AppPlayerSong {
 
   @override
   int? index;
+
   _AppPlayerSong({required this.dbInfo});
 
   @override
   String? get title => dbInfo.name.v;
+
   @override
   String? get subtitle => dbInfo.subtitle.v;
+
   @override
   String? get author => dbInfo.author.v;
 
   @override
   String get id => dbInfo.id;
+
   @override
   List<String> get urls =>
       dbInfo.attributes.v
