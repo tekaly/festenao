@@ -35,8 +35,10 @@ ThemeData poppinsThemeData1({Color? seedColor}) {
 ThemeData themeData1({
   TextTheme? textTheme,
   String? fontFamily,
+  Brightness? brightness,
   Color? seedColor,
 }) {
+  brightness ??= Brightness.dark;
   seedColor ??= colorFestenaoBlue;
   var isSeedColorDark = seedColor.isDark;
   var seedTextColor = isSeedColorDark ? Colors.white : Colors.black;
@@ -45,7 +47,7 @@ ThemeData themeData1({
     textTheme: textTheme,
     colorScheme: ColorScheme.fromSeed(
       seedColor: seedColor,
-      brightness: Brightness.dark,
+      brightness: brightness,
     ),
     visualDensity: VisualDensity.adaptivePlatformDensity,
   );
