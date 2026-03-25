@@ -2,6 +2,7 @@ import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/data/festenao_media_db.dart';
 import 'package:festenao_common/data/festenao_media_source.dart';
 
+/// TODO not tested, use media_sdb instead
 /// Class to synchronize a local [FestenaoMediaDb] with a [FestenaoMediaSource].
 class FestenaoMediaDbSynchronizer {
   /// The local db
