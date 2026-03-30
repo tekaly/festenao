@@ -1,60 +1,66 @@
-import 'package:festenao_common/data/festenao_db.dart';
-import 'package:path/path.dart' as url;
-import 'package:sembast/sembast_memory.dart';
-import 'package:sembast/utils/database_utils.dart';
-import 'package:sembast/utils/sembast_import_export.dart';
-import 'package:tekaly_sembast_synced/synced_db_internals.dart';
+import 'package:festenao_common/data/festenao_fs.dart';
+import 'package:festenao_common/data/festenao_media_sdb.dart';
+import 'package:tekaly_sdb_synced/sdb_scv.dart';
+import 'package:tekaly_sdb_synced/synced_sdb.dart';
+import 'package:tekartik_common_utils/foundation/constants.dart';
 
 import 'import.dart';
-import 'model/db_models.dart';
 
 export 'festenao/model/db_sync_meta.dart';
 export 'festenao/model/db_sync_record.dart';
 
-/// Default export file name for Festenao data.
-var festenaoExport = 'festenao_export.jsonl';
-
-/// Default export meta file name.
-var festenaoExportMeta = 'festenao_export_meta.json';
-
-/// Subdirectory name for images within exports or assets.
-var festenaoImgSubDir = 'img';
-
-/// Default database file name.
-var festenaoDbName = 'festenao.db';
-
-/// Default assets root path for embedded data.
-var assetsRootDataPath = url.join('assets', 'data');
-
-/// Default path to export meta file under assets.
-var assetsDataExportMetaPath = url.join(assetsRootDataPath, festenaoExportMeta);
-
-/// Default path to export data file under assets.
-var assetsDataExportPath = url.join(assetsRootDataPath, festenaoExport);
-
-/// System store names that belong to the festenao DB system.
-var festenaoDbSystemStoreNames = [
-  dbSyncRecordStoreRef.name,
-  dbSyncMetaStoreRef.name,
-];
-
-/// Must be JSON encodable: meta information about an export.
-class FestenaoExportMeta extends CvModelBase {
-  /// Last synchronized change id.
-  final lastChangeId = CvField<int>('lastChangeId');
-
-  /// Last timestamp of the export.
-  final lastTimestamp = CvField<String>('lastTimestamp');
-
-  /// Source version number.
-  final sourceVersion = CvField<int>('sourceVersion');
-
-  @override
-  List<CvField> get fields => [lastChangeId, lastTimestamp, sourceVersion];
-}
+/// Sdb options
+var festenaoSyncedSdbOptions = SyncedSdbOptions(
+  version: 1,
+  schema: SdbDatabaseSchema(stores: sdbMediaSchemaStores),
+);
 
 /// Main Festenao synchronized database wrapper.
-class FestenaoDb extends SyncedDbBase {
+class FestenaoSdb {
+  /// Database factory.
+  final SdbFactory sdbFactory;
+
+  /// The name of the database.
+  final String dbName;
+
+  /// Synced db options
+  final SyncedSdbOptions syncedSdbOptions;
+  late final SyncedSdb _db;
+  late final _ready = () async {
+    await _db.ready;
+    _mediaDb = FestenaoMediaSdb(fs: fs, database: await _db.database);
+  }();
+  late FestenaoMediaSdb _mediaDb;
+
+  /// Must be ready
+  FestenaoMediaSdb get mediaDb => _mediaDb;
+
+  /// File system
+  final FileSystem fs;
+
+  /// Constructor
+  FestenaoSdb({
+    required this.sdbFactory,
+    required this.dbName,
+    SyncedSdbOptions? syncedSdbOptions,
+    required this.fs,
+  }) : syncedSdbOptions = syncedSdbOptions ?? festenaoSyncedSdbOptions {
+    _db = SyncedSdb(
+      databaseFactory: sdbFactory,
+      options: this.syncedSdbOptions,
+    );
+    _ready.then((_) {
+      if (kFlutterDebugMode) {
+        // ignore: avoid_print
+        print('sdb ready');
+      }
+    });
+  }
+
+  /// Must be ready
+  SyncedSdb get syncedSdb => _db;
+
+  /*
   bool _test = false;
 
   /// The name of the database.
@@ -187,4 +193,5 @@ class FestenaoDbOptions {
 
   /// Db options
   FestenaoDbOptions({required this.dbPath, required this.mediasPath});
+}*/
 }

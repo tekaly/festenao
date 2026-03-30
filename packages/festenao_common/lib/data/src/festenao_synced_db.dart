@@ -9,6 +9,8 @@ import 'package:path/path.dart';
 import 'package:tkcms_common/tkcms_content.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
 
+import 'festenao/sync/sync_source_options.dart';
+
 /// Festenao syncedDb
 class FestenaoSyncedDb {
   StreamSubscription? _syncStatSubscription;

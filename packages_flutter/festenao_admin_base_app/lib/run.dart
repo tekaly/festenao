@@ -8,6 +8,7 @@ import 'package:festenao_admin_base_app/route/route_navigation.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/sembast/sembast.dart';
 import 'package:festenao_common/app/src/app_init_options.dart';
+import 'package:festenao_common/data/src/festenao/sync/sync_source_options.dart';
 import 'package:festenao_common/data/src/festenao_synced_db.dart';
 import 'package:festenao_common/data/src/model/db_models.dart';
 import 'package:flutter/foundation.dart';

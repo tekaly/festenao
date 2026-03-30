@@ -3,6 +3,7 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart'
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_media_db.dart';
+import 'package:festenao_common/data/src/festenao/sync/sync_source_options.dart';
 import 'package:festenao_common/data/src/festenao_synced_db.dart';
 import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:flutter/foundation.dart';
