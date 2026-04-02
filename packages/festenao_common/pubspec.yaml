@@ -185,6 +185,11 @@ dependencies:
     git:
       url: https://github.com/tekartikprj/tekaly.git
       path: packages/sdb_synced
+  googleapis: any
+  tekartik_gdrive_api_utils:
+    git:
+      url: https://github.com/tekartik/gapi.dart
+      path: gdrive_api_utils
   # path: ^1.8.0
 
 dev_dependencies:
