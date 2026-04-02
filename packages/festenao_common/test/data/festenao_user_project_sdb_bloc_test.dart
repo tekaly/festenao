@@ -1,0 +1,79 @@
+import 'package:festenao_common/data/festenao_projects_sdb.dart';
+import 'package:festenao_common/data/src/import.dart';
+import 'package:festenao_common/festenao_audi.dart';
+import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_common/firebase/firebase_sim_server.dart';
+import 'package:festenao_common/firebase/firestore_database.dart';
+import 'package:test/test.dart';
+
+void main() {
+  group('FestenaoUserProjectSdbBloc', () {
+    late UserProjectsSdb projectsSdb;
+    late FestenaoUserProjectsSdbBloc projectsSdbBloc;
+    final userId = 'test_user';
+    final projectId = 'test_project';
+    late Firestore firestore;
+
+    setUp(() async {
+      var firebaseApp = newFirebaseAppLocal(localPath: 'test');
+      firestore = newFirestoreServiceMemory().firestore(firebaseApp);
+      projectsSdb = UserProjectsSdb.inMemory();
+
+      // Initialize the user in the DB so onProjectsUserReady works
+      await projectsSdb.setCurrentIdentityId(userId);
+
+      projectsSdbBloc = FestenaoUserProjectsSdbBloc(
+        fsProjectDb: TkCmsFirestoreDatabaseServiceEntityAccess(
+          entityCollectionInfo: projectCollectionInfo,
+          firestore: firestore,
+        ),
+        projectsSdb: projectsSdb,
+        firebaseUserStream: BehaviorSubject<FirebaseUser?>.seeded(
+          StubFirebaseUser(uid: userId),
+        ),
+      );
+    });
+
+    tearDown(() async {
+      await projectsSdb.close();
+      await firestore.app.delete();
+    });
+
+    test('projectStream', () async {
+      var bloc = FestenaoUserProjectSdbBloc(
+        projectsSdbBloc: projectsSdbBloc,
+        projectId: projectId,
+      );
+
+      // Initially null
+      expect(await bloc.projectStream.first, isNull);
+
+      // Add a project to the DB
+      var project = SdbUserProject()
+        ..uid.v = projectId
+        ..userId.v = userId
+        ..name.v = 'Test Project';
+
+      await projectsSdb.ready;
+      await dbProjectStore.add(projectsSdb.db, project);
+
+      // Wait for the stream to emit the new project
+      var updatedProject = await bloc.projectStream
+          .where((p) => p != null)
+          .first;
+      expect(updatedProject!.name.v, 'Test Project');
+      expect(updatedProject.uid.v, projectId);
+
+      bloc.dispose();
+    });
+  });
+}
+
+class StubFirebaseUser implements FirebaseUser {
+  @override
+  final String uid;
+  StubFirebaseUser({required this.uid});
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
