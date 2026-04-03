@@ -8,7 +8,9 @@ import 'object_storage.dart';
 /// Google Drive implementation of [ObjectStorageMeta].
 class _GdriveMeta implements ObjectStorageMeta {
   @override
-  final String path;
+  final String name;
+  @override
+  final String path; // id
   @override
   final int? size;
   @override
@@ -17,7 +19,8 @@ class _GdriveMeta implements ObjectStorageMeta {
   final bool isLocation;
 
   _GdriveMeta({
-    required this.path,
+    required this.name,
+    required this.path, // id
     this.size,
     this.mimeType,
     required this.isLocation,
@@ -36,34 +39,14 @@ class _GdriveListResponse implements ObjectStorageListResponse {
 
 /// ObjectStorage implementation backed by Google Drive.
 ///
-/// Files are stored under [rootFolderId]. Paths like `"images/photo.jpg"`
 /// map to a folder named `"images"` containing a file named `"photo.jpg"`.
 class ObjectStorageGdrive extends ObjectStorage {
   /// The GDrive helper instance.
   final GDrive gdrive;
 
-  /// The Google Drive folder ID used as the root of the storage hierarchy.
-  final String rootFolderId;
-
   /// Constructor
-  ObjectStorageGdrive({required this.gdrive, required this.rootFolderId});
-
-  List<String> _splitPath(String path) =>
-      path.split('/').where((p) => p.isNotEmpty).toList();
-
-  Future<String?> _findFolderId(List<String> parts, String parentId) async {
-    if (parts.isEmpty) return parentId;
-    var name = parts.first;
-    var fileList = await gdrive.driveApi.files.list(
-      pageSize: 10,
-      q: "'$parentId' in parents and name='$name' and mimeType='${GDrive.folderMimeType}' and trashed = false",
-      $fields: 'files(id)',
-    );
-    var folder = fileList.files?.firstOrNull;
-    if (folder?.id == null) return null;
-    return _findFolderId(parts.sublist(1), folder!.id!);
-  }
-
+  ObjectStorageGdrive({required this.gdrive});
+  /*
   Future<String> _getOrCreateFolderId(
     List<String> parts,
     String parentId,
@@ -90,21 +73,21 @@ class ObjectStorageGdrive extends ObjectStorage {
     return _getOrCreateFolderId(parts.sublist(1), folderId);
   }
 
-  Future<gd.File?> _findFile(String path) async {
-    var parts = _splitPath(path);
-    if (parts.isEmpty) return null;
-    var fileName = parts.last;
-    var parentId = await _findFolderId(
-      parts.sublist(0, parts.length - 1),
-      rootFolderId,
-    );
-    if (parentId == null) return null;
+  Future<gd.File?> _findFile(String parentId, String name) async {
     var fileList = await gdrive.driveApi.files.list(
       pageSize: 10,
-      q: "'$parentId' in parents and name='$fileName' and trashed = false",
+      q: "'$parentId' in parents and name='$name' and trashed = false",
       $fields: 'files(id,name,mimeType,size)',
     );
     return fileList.files?.firstOrNull;
+  }*/
+
+  Future<Object> _getFile(String fileId) async {
+    var file = await gdrive.driveApi.files.get(
+      fileId,
+      $fields: 'files(id,name,mimeType,size)',
+    );
+    return file;
   }
 
   @override
@@ -113,22 +96,19 @@ class ObjectStorageGdrive extends ObjectStorage {
     String? pageToken,
     int? maxResults,
   }) async {
-    var parts = _splitPath(path);
-    var folderId = await _findFolderId(parts, rootFolderId);
-    if (folderId == null) {
-      return _GdriveListResponse(items: []);
-    }
+    await gdrive.ready;
+    var folderId = path;
     var fileList = await gdrive.driveApi.files.list(
       pageSize: maxResults ?? 100,
       q: "'$folderId' in parents and trashed = false",
       pageToken: pageToken,
       $fields: 'nextPageToken,files(id,name,mimeType,size)',
     );
-    var basePath = parts.isEmpty ? '' : '${parts.join('/')}/';
     var items = (fileList.files ?? []).map((f) {
       var isFolder = f.mimeType == GDrive.folderMimeType;
       return _GdriveMeta(
-        path: '$basePath${f.name}',
+        name: f.name!,
+        path: folderId,
         size: isFolder ? null : int.tryParse(f.size ?? ''),
         mimeType: isFolder ? null : f.mimeType,
         isLocation: isFolder,
@@ -141,30 +121,39 @@ class ObjectStorageGdrive extends ObjectStorage {
   }
 
   @override
-  Future<ObjectStorageMeta> getMeta(String path) async {
-    var file = await _findFile(path);
-    if (file == null) throw Exception('File not found: $path');
+  Future<ObjectStorageMeta> getItem(String path) async {
+    await gdrive.ready;
+    var object = await _getFile(path);
+    if (object is gd.File) {
+      return _toMeta(object);
+    }
+    throw Exception('Item not found: $path');
+  }
+
+  ObjectStorageMeta _toMeta(gd.File file) {
+    var isLocation = file.mimeType == GDrive.folderMimeType;
     return _GdriveMeta(
-      path: path,
+      name: file.name!,
+      path: file.id!,
       size: int.tryParse(file.size ?? ''),
       mimeType: file.mimeType,
-      isLocation: false,
+      isLocation: isLocation,
     );
   }
 
   @override
-  Future<ObjectStorageMeta> upload(String path, Uint8List data) async {
-    var parts = _splitPath(path);
-    if (parts.isEmpty) throw ArgumentError('Invalid path: $path');
-    var fileName = parts.last;
-    var parentId = await _getOrCreateFolderId(
-      parts.sublist(0, parts.length - 1),
-      rootFolderId,
-    );
+  Future<ObjectStorageMeta> upload(
+    String path, {
+    required String name,
+    required Uint8List data,
+    required String mimeType,
+  }) async {
+    await gdrive.ready;
+    var parentId = path;
 
     var existing = await gdrive.driveApi.files.list(
       pageSize: 10,
-      q: "'$parentId' in parents and name='$fileName' and trashed = false",
+      q: "'$parentId' in parents and name='$name' and trashed = false",
       $fields: 'files(id)',
     );
     var existingId = existing.files?.firstOrNull?.id;
@@ -173,7 +162,9 @@ class ObjectStorageGdrive extends ObjectStorage {
     gd.File result;
     if (existingId != null) {
       result = await gdrive.driveApi.files.update(
-        gd.File()..name = fileName,
+        gd.File()
+          ..name = name
+          ..mimeType = mimeType,
         existingId,
         uploadMedia: media,
         $fields: 'id,name,mimeType,size',
@@ -181,7 +172,8 @@ class ObjectStorageGdrive extends ObjectStorage {
     } else {
       result = await gdrive.driveApi.files.create(
         gd.File()
-          ..name = fileName
+          ..name = name
+          ..mimeType = mimeType
           ..parents = [parentId],
         uploadMedia: media,
         enforceSingleParent: true,
@@ -189,21 +181,16 @@ class ObjectStorageGdrive extends ObjectStorage {
       );
     }
 
-    return _GdriveMeta(
-      path: path,
-      size: int.tryParse(result.size ?? ''),
-      mimeType: result.mimeType,
-      isLocation: false,
-    );
+    return _toMeta(result);
   }
 
   @override
   Future<Uint8List> download(String path) async {
-    var file = await _findFile(path);
-    if (file == null) throw Exception('File not found: $path');
+    await gdrive.ready;
+    var fileId = path;
     var media =
         await gdrive.driveApi.files.get(
-              file.id!,
+              fileId,
               downloadOptions: gd.DownloadOptions.fullMedia,
             )
             as gd.Media;
@@ -216,8 +203,11 @@ class ObjectStorageGdrive extends ObjectStorage {
 
   @override
   Future<void> delete(String path) async {
-    var file = await _findFile(path);
-    if (file == null) throw Exception('File not found: $path');
-    await gdrive.deleteFile(file.id!);
+    await gdrive.ready;
+    var fileId = path;
+    var file = await _getFile(fileId);
+    if (file is gd.File) {
+      await gdrive.deleteFile(fileId);
+    }
   }
 }

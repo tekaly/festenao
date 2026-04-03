@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_print, unnecessary_import, depend_on_referenced_packages
 
+import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_common/festenao_firebase.dart';
 import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_common/festenao_server.dart';
@@ -24,11 +25,13 @@ Future<void> main(List<String> args) async {
     required FirebaseApp firebaseApp,
   }) {
     print('initFunctions');
+    var firebaseContext = firebaseServicesContext.initSync();
     var serverApp = FestenaoServerAppTest(
       context: TkCmsServerAppContext(
         flavorContext: FlavorContext.dev,
-        firebaseContext: firebaseServicesContext.initSync(),
+        firebaseContext: firebaseContext,
       ),
+      objectStorage: ObjectStorageFirebase(storage: firebaseContext.storage),
     );
     serverApp.initFunctions();
   }

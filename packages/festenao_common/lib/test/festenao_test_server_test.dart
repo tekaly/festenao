@@ -2,8 +2,13 @@ import 'package:dev_test/test.dart';
 import 'package:festenao_common/api/festenao_api_client.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
+import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/server/festeano_server_app.dart';
+import 'package:festenao_common/server/festeano_server_entity_handler.dart';
+import 'package:festenao_common/server/festeano_server_object_storage_handler.dart';
+import 'package:festenao_common/src/data/storage/object_storage_api.dart';
+import 'package:tekartik_app_media/mime_type.dart';
 import 'package:tekartik_firebase_functions/ff_server.dart';
 import 'package:tkcms_common/tkcms_app.dart';
 import 'package:tkcms_common/tkcms_common.dart';
@@ -13,8 +18,15 @@ import 'package:tkcms_common/tkcms_server.dart';
 
 /// Festenao server app for test.
 class FestenaoServerAppTest extends FestenaoServerApp {
+  /// Object storage.
+  final ObjectStorage objectStorage;
+
   /// Festenao server app for test.
-  FestenaoServerAppTest({required super.context, super.app}) {
+  FestenaoServerAppTest({
+    required super.context,
+    super.app,
+    required this.objectStorage,
+  }) {
     initFestenaoFsEntityApiBuilders<FsProject>();
   }
 
@@ -30,6 +42,11 @@ class FestenaoServerAppTest extends FestenaoServerApp {
     entityAccess: fsDatabase.projectDb,
   );
 
+  /// Object storage handler
+  late final objectStorageHandler = FestenaoObjectStorageHandler(
+    options: FestenaoObjectStorageHandlerOptions(objectStorage: objectStorage),
+  );
+
   @override
   Future<ApiResult> onCommand(ApiRequest apiRequest) async {
     var command = apiRequest.apiCommand;
@@ -41,6 +58,10 @@ class FestenaoServerAppTest extends FestenaoServerApp {
       if (result != null) {
         return result;
       }
+    }
+    var result = await objectStorageHandler.onCommandOrNull(apiRequest);
+    if (result != null) {
+      return result;
     }
     return super.onCommand(apiRequest);
   }
@@ -144,7 +165,13 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
     firebaseContext: ffServerContext,
     flavorContext: FlavorContext.test,
   );
-  var ffServerApp = FestenaoServerAppTest(context: serverAppContext);
+  var ffServerApp = FestenaoServerAppTest(
+    context: serverAppContext,
+    objectStorage: ObjectStorageFirebase(
+      storage: ffServerContext.storage,
+      bucket: ffServerContext.storage.bucket(),
+    ),
+  );
   ffServerApp.initFunctions();
   //var httpServer = await ff.serveHttp();
   //var ffServer = FfServerHttp(httpServer);
@@ -176,6 +203,7 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
     entityAccess: fsDatabase.projectDb,
   );
   await apiService.initClient();
+
   var ampUri = ffServer.uri.replace(path: ffServerApp.ampCommand);
   var ampService = FestenaoAmpService(
     httpsAmpUri: ampUri,
@@ -343,6 +371,48 @@ void testFestenaoServerGroup(
           .fsEntityRef(entityId)
           .get(fsDatabase.firestore);
       expect(entity.exists, isFalse);
+    }
+  });
+
+  test('object storage', () async {
+    var objectStorageApiClient = ObjectStorageApiClient(
+      httpsUri: apiService.httpsApiUri!,
+      httpClientFactory: apiService.httpClientFactory,
+    );
+
+    var path = 'test';
+    var data = Uint8List.fromList([1, 2, 3, 4, 5]);
+    var mimeType = mimeTypeOctetStream;
+
+    // Upload
+    var uploadResult = await objectStorageApiClient.upload(
+      path,
+      name: 'test.bin',
+      data: data,
+      mimeType: mimeType,
+    );
+    expect(uploadResult.size, data.length);
+
+    var filePath = uploadResult.path;
+    // Get Item
+    var item = await objectStorageApiClient.getItem(filePath);
+    expect(item.size, data.length);
+
+    // Download
+    var downloadedData = await objectStorageApiClient.download(filePath);
+    expect(downloadedData, data);
+
+    // List
+    var listResult = await objectStorageApiClient.list('test');
+    expect(listResult.items.map((e) => e.path), contains(filePath));
+
+    // Delete
+    await objectStorageApiClient.delete(filePath);
+    try {
+      await objectStorageApiClient.getItem(filePath);
+      fail('Should have thrown an error');
+    } catch (e) {
+      expect(e, isNot(isA<TestFailure>()));
     }
   });
 }

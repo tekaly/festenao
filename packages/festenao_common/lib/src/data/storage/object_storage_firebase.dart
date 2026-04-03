@@ -1,11 +1,14 @@
 import 'dart:typed_data';
 
+import 'package:path/path.dart';
 import 'package:tekartik_firebase_storage/storage.dart';
 
 import 'object_storage.dart';
 
 /// Firebase implementation of [ObjectStorageMeta].
 class _FirebaseMeta implements ObjectStorageMeta {
+  @override
+  String get name => url.basename(path);
   @override
   final String path;
   final FileMetadata? _meta;
@@ -44,7 +47,12 @@ class ObjectStorageFirebase extends ObjectStorage {
   final Bucket bucket;
 
   /// Create a new [ObjectStorageFirebase] instance.
-  ObjectStorageFirebase({required this.storage, required this.bucket});
+  ObjectStorageFirebase({required this.storage, Bucket? bucket})
+    : bucket = bucket ?? storage.bucket();
+
+  _FirebaseMeta _fileMetadataToStorageMeta(String path, FileMetadata meta) {
+    return _FirebaseMeta(path: path, meta: meta, isLocation: false);
+  }
 
   @override
   Future<ObjectStorageListResponse> list(
@@ -63,10 +71,7 @@ class ObjectStorageFirebase extends ObjectStorage {
     );
 
     var items = response.files
-        .map(
-          (f) =>
-              _FirebaseMeta(path: f.name, meta: f.metadata, isLocation: false),
-        )
+        .map((f) => _fileMetadataToStorageMeta(f.name, f.metadata!))
         .toList();
 
     return _FirebaseListResponse(
@@ -76,18 +81,27 @@ class ObjectStorageFirebase extends ObjectStorage {
   }
 
   @override
-  Future<ObjectStorageMeta> getMeta(String path) async {
+  Future<ObjectStorageMeta> getItem(String path) async {
     var file = bucket.file(path);
     var meta = await file.getMetadata();
-    return _FirebaseMeta(path: path, meta: meta, isLocation: false);
+    return _fileMetadataToStorageMeta(path, meta);
   }
 
   @override
-  Future<ObjectStorageMeta> upload(String path, Uint8List data) async {
-    var file = bucket.file(path);
-    await file.upload(data);
+  Future<ObjectStorageMeta> upload(
+    String path, {
+    required String name,
+    required Uint8List data,
+    required String mimeType,
+  }) async {
+    var filePath = url.join(path, name);
+    var file = bucket.file(filePath);
+    await file.upload(
+      data,
+      options: StorageUploadFileOptions(contentType: mimeType),
+    );
     var meta = await file.getMetadata();
-    return _FirebaseMeta(path: path, meta: meta, isLocation: false);
+    return _fileMetadataToStorageMeta(filePath, meta);
   }
 
   @override

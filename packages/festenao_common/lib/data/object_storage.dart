@@ -1,3 +1,5 @@
+export 'dart:typed_data' show Uint8List;
+
 export '../src/data/storage/object_storage.dart'
     show
         ObjectStorage,

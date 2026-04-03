@@ -8,6 +8,9 @@ abstract class ObjectStorageLocation {
 
 /// Abstract storage object metadata.
 abstract class ObjectStorageMeta {
+  /// The name of the object.
+  String get name;
+
   /// The path of the object.
   String get path;
 
@@ -42,10 +45,15 @@ abstract class ObjectStorage {
   });
 
   /// Get metadata for a single object.
-  Future<ObjectStorageMeta> getMeta(String path);
+  Future<ObjectStorageMeta> getItem(String path);
 
   /// Upload data to a path.
-  Future<ObjectStorageMeta> upload(String path, Uint8List data);
+  Future<ObjectStorageMeta> upload(
+    String path, {
+    required String name,
+    required Uint8List data,
+    required String mimeType,
+  });
 
   /// Download data from a path.
   Future<Uint8List> download(String path);
