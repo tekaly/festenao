@@ -231,6 +231,7 @@ void testFestenaoServerGroup(
   Future<FestenaoTestServerContext> Function() initAllContext, {
   bool noFirestoreCheck = false,
   bool noSignIn = false,
+  bool noObjectStorage = false,
 }) {
   late FestenaoTestServerContext context;
   late FestenaoApiService apiService;
@@ -414,5 +415,5 @@ void testFestenaoServerGroup(
     } catch (e) {
       expect(e, isNot(isA<TestFailure>()));
     }
-  });
+  }, skip: noObjectStorage);
 }
