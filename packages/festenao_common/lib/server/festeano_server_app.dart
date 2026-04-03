@@ -87,7 +87,6 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
     ampCommand = 'amp${flavorContext.ifNotProdFlavor}';
     super.initFunctions();
     functions[ampCommand] = amp;
-    // print('Initialized FestenaoServerApp functions');
   }
 }
 
