@@ -13,7 +13,7 @@ Future<FilePickerResult?> pickImageFile(BuildContext context) async {
   if (platformContext.io?.isLinux ?? false) {
     return await ioPickImageFile(context);
   } else {
-    var ffpResult = await FilePicker.platform.pickFiles(
+    var ffpResult = await FilePicker.pickFiles(
       type: FileType.image,
       allowMultiple: false,
 

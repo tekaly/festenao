@@ -39,7 +39,7 @@ dependencies:
       url: https://github.com/tekaly/festenao
       path: packages/festenao_blur_hash
   flutter_markdown:
-  file_picker:
+  file_picker: ">=11.0.2"
   file_selector:
   flutter_blurhash:
   path: ">=1.9.1"

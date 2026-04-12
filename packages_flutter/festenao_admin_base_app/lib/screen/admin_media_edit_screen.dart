@@ -255,7 +255,7 @@ class _AdminMediaEditScreenState
         return ElevatedButton(
           onPressed: () async {
             {
-              var ffpResult = await FilePicker.platform.pickFiles(
+              var ffpResult = await FilePicker.pickFiles(
                 allowMultiple: false,
                 withReadStream: true,
 
