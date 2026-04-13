@@ -4,17 +4,40 @@ import 'package:festenao_common/festenao_firestore.dart';
 /// Command name for creating an entity.
 const festenaoCreateEntityCommand = 'create-entity';
 
+/// Prefix for entity command
+String festenaoEntityCommandPrefix(String entityType) => 'entity/$entityType/';
+
+/// Command name for creating an entity.
+String festenaoEntityCreateCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}create';
+
 /// Command name for deleting an entity.
 const festenaoDeleteEntityCommand = 'delete-entity';
+
+/// Command name for deleting an entity.
+String festenaoEntityDeleteCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}delete';
 
 /// Command name for purging an entity.
 const festenaoPurgeEntityCommand = 'purge-entity';
 
+/// Command name for purging an entity.
+String festenaoEntityPurgeCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}purge';
+
 /// Command name for joining an entity.
 const festenaoJoinEntityCommand = 'join-entity';
 
+/// Command name for joining an entity.
+String festenaoEntityJoinCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}join';
+
 /// Command name for leaving an entity.
 const festenaoLeaveEntityCommand = 'leave-entity';
+
+/// Command name for leaving an entity.
+String festenaoEntityLeaveCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}leave';
 
 /// Initializes API builders for Festenao file system entities.
 void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
@@ -32,22 +55,20 @@ extension FestenaoFirestoreDatabaseEntityCollectionInfoApiExt<
   TEntity extends TkCmsFsEntity
 >
     on TkCmsFirestoreDatabaseEntityCollectionInfo<TEntity> {
-  String _command(String subCommand) => '$id-$subCommand';
-
   /// Command for creating an entity.
-  String get createCommand => _command(festenaoCreateEntityCommand);
+  String get createCommand => festenaoEntityCreateCommand(entityType);
 
   /// Command for deleting an entity.
-  String get deleteCommand => _command(festenaoDeleteEntityCommand);
+  String get deleteCommand => festenaoEntityDeleteCommand(entityType);
 
   /// Command for purging an entity.
-  String get purgeCommand => _command(festenaoPurgeEntityCommand);
+  String get purgeCommand => festenaoEntityPurgeCommand(entityType);
 
-  /// Command for joining an entity.
-  String get joinCommand => _command(festenaoJoinEntityCommand);
+  /// Command for joining an entity / could require an invite...
+  String get joinCommand => festenaoEntityJoinCommand(entityType);
 
   /// Command for leaving an entity.
-  String get leaveCommand => _command(festenaoLeaveEntityCommand);
+  String get leaveCommand => festenaoEntityLeaveCommand(entityType);
 }
 
 /// API query for creating a CMS entity.

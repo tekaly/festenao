@@ -29,8 +29,9 @@ Future<void> main() async {
     );
   });
   test('syncOne', () async {
+    expect(fsProjectsDb.fsEntityCollectionRef.path, 'app/test/project');
     var synchronizer = UserProjectsSdbSynchronizer(
-      projectsDb: projectsDb,
+      projectsSdb: projectsDb,
       fsProjects: fsProjectsDb,
     );
     var fsProject = FsProject()..name.setValue('test project');

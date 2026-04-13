@@ -29,14 +29,16 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
   /// Firestore instance.
   Firestore get firestore => entityAccess.firestore;
 
-  String get _collectionIdPrefix =>
-      _buildCollectionIdPrefix(entityAccess.entityCollectionInfo.id);
+  String get _entityType => entityAccess.entityCollectionInfo.id;
+  String get _collectionIdPrefix => _buildCollectionIdPrefix(_entityType);
   static String _buildCollectionIdPrefix(String entityCollectionId) =>
       '$entityCollectionId-';
 
   /// Checks if the [command] is an entity command for the given [entity].
   static bool isEntityCommand(String entity, String command) {
-    return command.startsWith(_buildCollectionIdPrefix(entity));
+    return command.startsWith(festenaoEntityCommandPrefix(entity)) ||
+        // compat v2
+        command.startsWith(_buildCollectionIdPrefix(entity));
   }
 
   /// Creates a new [FestenaoEntityHandler] with the given [app], [entityAccess], and [options].
@@ -49,6 +51,19 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
   /// Handles the command if it's an entity command, otherwise returns null.
   Future<ApiResult?> onCommandOrNull(ApiRequest apiRequest) async {
     var command = apiRequest.command.v!;
+    if (command == festenaoEntityCreateCommand(_entityType)) {
+      return await onCreateCommand(apiRequest);
+    } else if (command == festenaoEntityDeleteCommand(_entityType)) {
+      return await onDeleteCommand(apiRequest);
+    } else if (command == festenaoEntityPurgeCommand(_entityType)) {
+      return await onPurgeCommand(apiRequest);
+    } else if (command == festenaoEntityJoinCommand(_entityType)) {
+      return await onJoinCommand(apiRequest);
+    } else if (command == festenaoEntityLeaveCommand(_entityType)) {
+      return await onLeaveCommand(apiRequest);
+    }
+
+    // compat
     if (command.startsWith(_collectionIdPrefix)) {
       var subCommand = command.substring(_collectionIdPrefix.length);
       switch (subCommand) {

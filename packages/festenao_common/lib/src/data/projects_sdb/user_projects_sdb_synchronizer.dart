@@ -18,14 +18,14 @@ class UserProjectsSdbSynchronizer with AutoDisposeMixin {
   Firestore get firestore => fsProjects.firestore;
 
   /// The local projects database.
-  final UserProjectsSdb projectsDb;
+  final UserProjectsSdb projectsSdb;
 
   /// The Firestore entity access for projects.
   final TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> fsProjects;
 
-  /// Creates a new [UserProjectsSdbSynchronizer] with the given [projectsDb] and [fsProjects].
+  /// Creates a new [UserProjectsSdbSynchronizer] with the given [projectsSdb] and [fsProjects].
   UserProjectsSdbSynchronizer({
-    required this.projectsDb,
+    required this.projectsSdb,
     required this.fsProjects,
   });
 
@@ -50,8 +50,8 @@ class UserProjectsSdbSynchronizer with AutoDisposeMixin {
       _log('fsProject $fsProject');
     }
     var exists = fsProject.exists && fsProject.deleted.v != true;
-    await projectsDb.ready;
-    var db = projectsDb.db;
+    await projectsSdb.ready;
+    var db = projectsSdb.db;
     await dbProjectStore.inTransaction(db, SdbTransactionMode.readWrite, (
       txn,
     ) async {

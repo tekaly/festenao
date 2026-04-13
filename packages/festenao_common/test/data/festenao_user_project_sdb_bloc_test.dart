@@ -22,9 +22,14 @@ void main() {
       // Initialize the user in the DB so onProjectsUserReady works
       await projectsSdb.setCurrentIdentityId(userId);
 
+      var firestoreDatabaseContext = FirestoreDatabaseContext(
+        firestore: firestore,
+        rootDocumentPath: 'app/test',
+      );
       projectsSdbBloc = FestenaoUserProjectsSdbBloc(
         fsProjectDb: TkCmsFirestoreDatabaseServiceEntityAccess(
           entityCollectionInfo: projectCollectionInfo,
+          firestoreDatabaseContext: firestoreDatabaseContext,
           firestore: firestore,
         ),
         projectsSdb: projectsSdb,
@@ -65,6 +70,21 @@ void main() {
       expect(updatedProject.uid.v, projectId);
 
       bloc.dispose();
+    });
+
+    test('fromServer', () async {
+      var project = FsProject()..name.v = 'Test Project';
+      var projectId = await projectsSdbBloc.fsProjectDb.createEntity(
+        userId: userId,
+        entity: project,
+      );
+      var bloc = FestenaoUserProjectSdbBloc(
+        projectsSdbBloc: projectsSdbBloc,
+        projectId: projectId,
+      );
+
+      // Initially null
+      expect(await bloc.projectStream.first, isNotNull);
     });
   });
 }
