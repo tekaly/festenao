@@ -11,8 +11,12 @@ export 'festenao/model/db_sync_record.dart';
 
 /// Sdb options
 var festenaoSyncedSdbOptions = SyncedSdbOptions(
-  version: 1,
-  schema: SdbDatabaseSchema(stores: sdbMediaSchemaStores),
+  openDatabaseOptions: SdbOpenDatabaseOptions(
+    version: 1,
+    schema: SdbDatabaseSchema(
+      stores: [...sdbMediaSchemaStores, ...syncedSdbMetaSchema.stores],
+    ),
+  ),
 );
 
 /// Main Festenao synchronized database wrapper.

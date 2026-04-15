@@ -2,6 +2,7 @@ import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_common/festenao_audi.dart';
 import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_common/firebase/firebase_sim_server.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:test/test.dart';
@@ -27,6 +28,10 @@ void main() {
         rootDocumentPath: 'app/test',
       );
       projectsSdbBloc = FestenaoUserProjectsSdbBloc(
+        appFlavorContext: AppFlavorContext(
+          flavorContext: FlavorContext.dev,
+          app: 'test',
+        ),
         fsProjectDb: TkCmsFirestoreDatabaseServiceEntityAccess(
           entityCollectionInfo: projectCollectionInfo,
           firestoreDatabaseContext: firestoreDatabaseContext,
