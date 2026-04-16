@@ -95,7 +95,9 @@ final sdbMediaStoreSchema = sdbMediaStore.schema();
 
 /// Not synced
 final sdbMediaStatusLocalStore =
-    ScvStoreRef<String, SdbFestenaoMediaStatusFile>('media_status_local');
+    ScvStoreRef<String, SdbFestenaoMediaStatusFile>(
+      'local_media_status',
+    ); // local prefix to ignore sdb synchronization
 
 /// index local/remote/deleted
 final sdbMediaStatusLocalRemoteDeletedIndex = sdbMediaStatusLocalStore.index3(
