@@ -30,3 +30,25 @@ Future<FilePickerResult?> pickImageFile(BuildContext context) async {
   }
   return null;
 }
+
+Future<FilePickerResult?> pickAnyFile(BuildContext context) async {
+  // Tested on linux only
+  if (platformContext.io?.isLinux ?? false) {
+    return await ioPickImageFile(context);
+  } else {
+    var ffpResult = await FilePicker.pickFiles(
+      allowMultiple: false,
+
+      //allowedExtensions: ['.jpg', '.JPG', '.png', '.PNG']
+    );
+
+    if (ffpResult != null) {
+      var lastName = ffpResult.files.firstOrNull?.name;
+      if (lastName != null) {
+        lastDir = dirname(lastName);
+      }
+      return ffpResult;
+    }
+  }
+  return null;
+}

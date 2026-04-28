@@ -4,7 +4,6 @@ import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/festenao_sembast.dart';
 import 'package:fs_shim/fs_shim.dart';
-import 'package:tekartik_app_media/mime_type.dart';
 
 /// Exception class for errors related to the FestenaoMediaDb.
 class FestenaoMediaDbException implements Exception {

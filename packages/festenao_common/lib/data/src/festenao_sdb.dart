@@ -30,6 +30,8 @@ class FestenaoSdb {
   /// Synced db options
   final SyncedSdbOptions syncedSdbOptions;
   late final SyncedSdb _db;
+
+  /// When ready
   Future<void> get ready => _ready;
   late final _ready = () async {
     await _db.ready;

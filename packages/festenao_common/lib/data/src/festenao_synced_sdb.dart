@@ -1,8 +1,7 @@
-import 'dart:async';
-
 import 'package:festenao_common/data/festenao_media_db.dart';
 import 'package:festenao_common/data/festenao_media_sdb_synchronizer.dart';
 import 'package:festenao_common/data/festenao_media_source_firebase.dart';
+import 'package:festenao_common/data/src/import.dart';
 import 'package:path/path.dart';
 import 'package:tekaly_sdb_synced/synced_sdb.dart';
 import 'package:tekaly_sembast_synced/synced_db_firestore.dart';
@@ -18,6 +17,8 @@ class FestenaoSyncedSdb {
   late final FestenaoMediaSdbSynchronizer _mediaSynchronizer;
   late final SyncedSdbSynchronizer _syncedDbSynchronizer;
 
+  final _syncMediaLock = Lock();
+
   /// File system (sandbox to location)
   final FestenaoSdb db;
 
@@ -29,6 +30,8 @@ class FestenaoSyncedSdb {
 
   /// Firebase firestore
   final Firestore firestore;
+
+  var _disposed = false;
 
   /// Festenao synced db
   FestenaoSyncedSdb({
@@ -61,12 +64,47 @@ class FestenaoSyncedSdb {
     );
     _syncStatSubscription = _syncedDbSynchronizer.onSynced().listen((syncStat) {
       // On post sync with changes, trigger media sync
-      _mediaSynchronizer.sync();
+      unawaited(synchronizeMedias());
     });
+    db.syncedSdb.initialSynchronizationDone().then((_) {
+      unawaited(synchronizeMedias());
+    });
+
+    // Synchronize the media on start, should not try to access the network if not
+    // needed
+    synchronizeMedias();
+  }
+
+  /// Synchronize medias.
+  Future<SyncedSyncStat> synchronizeMedias() {
+    return _syncMediaLock.synchronized(() {
+      return _synchronizeMedias();
+    });
+  }
+
+  /// Synchronize database.
+  Future<SyncedSyncStat> synchronize() {
+    return _syncedDbSynchronizer.lazySync();
+  }
+
+  /// Synchronize medias.
+  Future<SyncedSyncStat> _synchronizeMedias() async {
+    if (_disposed) return SyncedSyncStat();
+    try {
+      // print('started syncMedia');
+      var syncResult = await _mediaSynchronizer.sync();
+      // print('syncMedia: $syncResult');
+      return syncResult;
+    } catch (e) {
+      //print('syncMedia failed $e');
+      rethrow;
+    }
   }
 
   /// Clean up
   void dispose() {
+    _disposed = true;
     _syncStatSubscription?.cancel();
+    _syncedDbSynchronizer.close();
   }
 }
