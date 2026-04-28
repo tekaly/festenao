@@ -8,6 +8,7 @@ import 'package:tekaly_sembast_synced/synced_db_firestore.dart';
 import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
 
+import '../festenao_media_source.dart';
 import 'festenao/sync/sync_source_options.dart';
 import 'festenao_sdb.dart';
 
@@ -32,6 +33,9 @@ class FestenaoSyncedSdb {
   final Firestore firestore;
 
   var _disposed = false;
+
+  /// The media source
+  FestenaoMediaSource get mediaSource => _mediaSynchronizer.source;
 
   /// Festenao synced db
   FestenaoSyncedSdb({

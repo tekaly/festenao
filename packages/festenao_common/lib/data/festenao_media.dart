@@ -14,6 +14,9 @@ class FestenaoMediaFileRef {
 
   /// Constructor
   FestenaoMediaFileRef.fromPath(this.path);
+
+  @override
+  String toString() => path;
 }
 
 /// Media file info in Festenao

@@ -349,6 +349,29 @@ class FestenaoMediaSdb {
     return record;
   }
 
+  /// Fix missing uploaded
+  Future<SdbFestenaoMediaFile?> fixMediaFileRecord(String fileId) async {
+    var db = database;
+    var record = await sdbMediaStore.record(fileId).get(db);
+    if (record != null) {
+      var changed = false;
+      /*
+      if (record.uploaded.v == null) {
+        record.uploaded.v = false;
+        changed = true;
+      }
+      if (record.deleted.v == null) {
+        record.deleted.v = false;
+        changed = true;
+      }*/
+      // ignore: dead_code
+      if (changed) {
+        await record.put(db);
+      }
+    }
+    return record;
+  }
+
   /// Write media file bytes.
   Future<void> writeMediaFileBytes(
     FestenaoMediaFileRef ref,
@@ -407,6 +430,26 @@ extension FestenaoMediaSdbInternalExt on FestenaoMediaSdb {
             ..remote.v = 0
             ..local.v = 0
             ..deleted.v = 1;
+          await status.put(txn);
+        }
+      },
+    );
+  }
+
+  /// Mark a file as to upload
+  Future<void> markToUpload(String fileId) async {
+    var db = database;
+    await db.inScvStoresTransaction(
+      [sdbMediaStore, sdbMediaStatusLocalStore],
+      SdbTransactionMode.readWrite,
+      (txn) async {
+        var file = await sdbMediaStore.record(fileId).get(txn);
+        if (file != null) {
+          var status = sdbMediaStatusLocalStore.record(fileId).cv();
+          status
+            ..remote.v = 0
+            ..local.v = 1
+            ..deleted.v = 0;
           await status.put(txn);
         }
       },

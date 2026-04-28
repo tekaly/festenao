@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:festenao_common/data/festenao_media_db.dart';
 import 'package:festenao_common/data/festenao_media_source.dart';
 import 'package:path/path.dart';
+import 'package:tekartik_firebase_storage/utils/link.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
 
 import '../festenao_firestore.dart';
@@ -61,6 +62,29 @@ class FestenaoMediaSourceFirebase implements FestenaoMediaSource {
   /// Constructor for [FestenaoMediaSourceFirebase].
   FestenaoMediaSourceFirebase({required this.storageContext}) {
     cvAddConstructors([DbFestenaoMediaFile.new]);
+  }
+
+  /// Get gs link
+  Uri getGsLink({required FestenaoMediaFileRef ref}) {
+    var path = _fixPath(ref.path);
+    var fileRef = StorageFileRef(bucketName!, path);
+
+    return fileRef.toLink();
+  }
+
+  /// Get download url
+  Future<String> getDownloadUrl({required FestenaoMediaFileRef ref}) async {
+    try {
+      var link = getGsLink(ref: ref);
+      var fileRef = storage.ref(link.toString());
+
+      var url = await fileRef.getDownloadUrl();
+      return url;
+    } catch (e, st) {
+      // ignore: avoid_print
+      print('getDownloadUrl: $e $st');
+      rethrow;
+    }
   }
 
   @override
