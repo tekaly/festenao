@@ -30,6 +30,7 @@ class FestenaoSdb {
   /// Synced db options
   final SyncedSdbOptions syncedSdbOptions;
   late final SyncedSdb _db;
+  Future<void> get ready => _ready;
   late final _ready = () async {
     await _db.ready;
     _mediaDb = FestenaoMediaSdb(fs: fs, database: await _db.database);

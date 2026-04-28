@@ -44,6 +44,7 @@ class FestenaoSyncedSdb {
     _syncedDbSynchronizer = SyncedSdbSynchronizer(
       db: db.syncedSdb,
       source: source,
+      autoSync: true,
     );
     _mediaSynchronizer = FestenaoMediaSdbSynchronizer(
       db: db.mediaDb,

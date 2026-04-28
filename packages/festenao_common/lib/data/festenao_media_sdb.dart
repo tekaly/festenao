@@ -4,6 +4,7 @@ import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/festenao_sdb.dart';
 import 'package:fs_shim/fs_shim.dart';
 import 'package:meta/meta.dart';
+import 'package:tekaly_sdb_synced/synced_sdb.dart';
 import 'package:tekartik_app_media/mime_type.dart';
 
 /// Exception class for errors related to the FestenaoMediaDb.
@@ -123,6 +124,12 @@ final sdbMediaStatusLocalStoreSchema = sdbMediaStatusLocalStore.schema(
 final sdbMediaSchemaStores = [
   sdbMediaStoreSchema,
   sdbMediaStatusLocalStoreSchema,
+];
+
+/// All synced stores for media and their content
+final syncedSdbMediaSchemaStores = [
+  ...sdbMediaSchemaStores,
+  ...syncedSdbMetaSchema.stores,
 ];
 
 /// Media database for Festenao, using SDB for metadata and the file system for media storage.

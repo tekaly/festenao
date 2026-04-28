@@ -79,6 +79,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
       path: app_common
+  tekartik_app_flutter_common_web_utils:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_common_web
 dev_dependencies:
   flutter_test:
     sdk: flutter
