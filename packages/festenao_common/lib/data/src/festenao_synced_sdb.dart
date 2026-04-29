@@ -14,6 +14,19 @@ import 'festenao_sdb.dart';
 
 /// Festenao syncedDb
 class FestenaoSyncedSdb {
+  /// Output debug log
+  static bool _debugLog = false;
+
+  /// Get output debug log
+  static bool get debugLog => _debugLog;
+
+  /// Set debug log
+  @doNotSubmit
+  static set debugLog(bool value) {
+    _debugLog = value;
+    FestenaoMediaSdbSynchronizer.debugLog = value;
+  }
+
   StreamSubscription? _syncStatSubscription;
   late final FestenaoMediaSdbSynchronizer _mediaSynchronizer;
   late final SyncedSdbSynchronizer _syncedDbSynchronizer;
@@ -44,6 +57,9 @@ class FestenaoSyncedSdb {
     required this.firebaseStorage,
     required this.firestore,
   }) {
+    if (_debugLog) {
+      log('Creating synced Sdb $sourceOptions');
+    }
     var source = SyncedSourceFirestore(
       firestore: firestore,
       rootPath: sourceOptions.firestoreRoot,
@@ -68,9 +84,15 @@ class FestenaoSyncedSdb {
     );
     _syncStatSubscription = _syncedDbSynchronizer.onSynced().listen((syncStat) {
       // On post sync with changes, trigger media sync
+      if (_debugLog) {
+        log('Synced done');
+      }
       unawaited(synchronizeMedias());
     });
     db.syncedSdb.initialSynchronizationDone().then((_) {
+      if (_debugLog) {
+        log('initial synchronization done');
+      }
       unawaited(synchronizeMedias());
     });
 
@@ -91,16 +113,27 @@ class FestenaoSyncedSdb {
     return _syncedDbSynchronizer.lazySync();
   }
 
+  /// Log message
+  static void log(Object? message) {
+    // ignore: avoid_print
+    print('[FestenaoSyncedSdb] $message');
+  }
+
   /// Synchronize medias.
   Future<SyncedSyncStat> _synchronizeMedias() async {
     if (_disposed) return SyncedSyncStat();
     try {
+      if (debugLog) {
+        log('Starting media sync');
+      }
       // print('started syncMedia');
       var syncResult = await _mediaSynchronizer.sync();
-      // print('syncMedia: $syncResult');
+      if (debugLog) {
+        log('media sync: $syncResult');
+      }
       return syncResult;
     } catch (e) {
-      //print('syncMedia failed $e');
+      log('sync medias failed $e');
       rethrow;
     }
   }

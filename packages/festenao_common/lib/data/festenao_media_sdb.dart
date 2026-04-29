@@ -20,7 +20,7 @@ class FestenaoMediaSdbException implements Exception {
 
 /// Not synced
 /// Id is same as file id
-class SdbFestenaoMediaStatusFile extends ScvStringRecordBase {
+class SdbFestenaoMediaFileStatus extends ScvStringRecordBase {
   /// Downloaded (1 or 0) or present locally
   final local = CvField<int>('local');
 
@@ -33,8 +33,29 @@ class SdbFestenaoMediaStatusFile extends ScvStringRecordBase {
   CvFields get fields => [remote, local, deleted];
 }
 
+/// Extension for [SdbFestenaoMediaFileStatus] to provide boolean helpers.
+extension SdbFestenaoMediaFileStatusExt on SdbFestenaoMediaFileStatus {
+  /// Whether the file is present locally.
+  bool get isLocal => local.v == 1;
+
+  /// Whether the file is present remotely.
+  bool get isRemote => remote.v == 1;
+
+  /// Whether the file is marked as deleted.
+  bool get isDeleted => deleted.v == 1;
+
+  /// Set the local status.
+  void setLocal(bool? local) => this.local.v = (local ?? false) ? 1 : 0;
+
+  /// Set the remote status.
+  void setRemote(bool? remote) => this.remote.v = (remote ?? false) ? 1 : 0;
+
+  /// Set the deleted status.
+  void setDeleted(bool? deleted) => this.deleted.v = (deleted ?? false) ? 1 : 0;
+}
+
 /// model
-final sdbFestenaoMediaStatusFileModel = SdbFestenaoMediaStatusFile();
+final sdbFestenaoMediaStatusFileModel = SdbFestenaoMediaFileStatus();
 
 /// Database record class for media files in Festenao, using SDB for metadata storage.
 class SdbFestenaoMediaFile extends ScvStringRecordBase {
@@ -95,7 +116,7 @@ final sdbMediaStoreSchema = sdbMediaStore.schema();
 
 /// Not synced
 final sdbMediaStatusLocalStore =
-    ScvStoreRef<String, SdbFestenaoMediaStatusFile>(
+    ScvStoreRef<String, SdbFestenaoMediaFileStatus>(
       'local_media_status',
     ); // local prefix to ignore sdb synchronization
 
@@ -155,7 +176,7 @@ class FestenaoMediaSdb {
   FestenaoMediaSdb({required this.fs, required this.database}) {
     cvAddConstructors([
       SdbFestenaoMediaFile.new,
-      SdbFestenaoMediaStatusFile.new,
+      SdbFestenaoMediaFileStatus.new,
     ]);
   }
 
@@ -168,6 +189,8 @@ class FestenaoMediaSdb {
   /// Adds a media file to the database and storage.
   /// [bytes] is the content of the media file.
   /// [filename] is the original filename, used to determine the file extension.
+  ///
+  /// Returns the mediaId.
   Future<String> addMediaFile({
     required FestenaoMediaFile file,
     required Uint8List bytes,
@@ -205,6 +228,11 @@ class FestenaoMediaSdb {
 
   /// Reads the media file bytes for the given [fileId].
   Future<File> getMediaFile(String fileId) async {
+    return (await _getMediaFile(fileId)).$2;
+  }
+
+  /// Reads the media file bytes for the given [fileId].
+  Future<(SdbFestenaoMediaFile, File file)> _getMediaFile(String fileId) async {
     var db = database;
     var fileRecord = await sdbMediaStore.record(fileId).get(db);
     if (fileRecord == null) {
@@ -214,12 +242,19 @@ class FestenaoMediaSdb {
     }
 
     var path = _ensurePath(fileId, fileRecord);
-    return fs.file(path);
+    return (fileRecord, fs.file(path));
   }
 
   /// Reads the media file bytes for the given [fileId].
   Future<Uint8List> readMediaFileBytes(String fileId) async {
     return (await getMediaFile(fileId)).readAsBytes();
+  }
+
+  /// Checks if a media file exists locally and matches the recorded size.
+  Future<bool> mediaFileExists(String fileId) async {
+    var (mediaFile, file) = await _getMediaFile(fileId);
+    var stat = await file.stat();
+    return stat.size == mediaFile.size.v;
   }
 
   String _ensurePath(String fileId, SdbFestenaoMediaFile? fileRecord) {
@@ -342,6 +377,28 @@ class FestenaoMediaSdb {
         .findRecordPrimaryKeys(db);
   }
 
+  /// file record entry
+  Future<List<String>> findFileRecordKeys({SdbClient? client}) async {
+    var dbClient = client ?? database;
+    var keys = await sdbMediaStore.findRecordKeys(dbClient);
+    return keys;
+  }
+
+  /// file status entry
+  Future<List<String>> findFileStatusRecordKeys({SdbClient? client}) async {
+    var dbClient = client ?? database;
+    var keys = await sdbMediaStatusLocalStore.findRecordKeys(dbClient);
+    return keys;
+  }
+
+  /// Files to inspect
+  Future<List<String>> fileIdsDirty() async {
+    var db = database;
+    return await sdbMediaStatusLocalRemoteDeletedIndex
+        .record(0, 0, 0)
+        .findRecordPrimaryKeys(db);
+  }
+
   /// Get media file record
   Future<SdbFestenaoMediaFile?> getMediaFileRecord(String fileId) async {
     var db = database;
@@ -355,7 +412,6 @@ class FestenaoMediaSdb {
     var record = await sdbMediaStore.record(fileId).get(db);
     if (record != null) {
       var changed = false;
-      /*
       if (record.uploaded.v == null) {
         record.uploaded.v = false;
         changed = true;
@@ -363,8 +419,7 @@ class FestenaoMediaSdb {
       if (record.deleted.v == null) {
         record.deleted.v = false;
         changed = true;
-      }*/
-      // ignore: dead_code
+      }
       if (changed) {
         await record.put(db);
       }
@@ -395,6 +450,34 @@ class FestenaoMediaSdb {
 /// Internal extension for FestenaoMediaSdb
 extension FestenaoMediaSdbInternalExt on FestenaoMediaSdb {
   /// Mark a file as uploaded
+  Future<void> updateStatus(
+    String fileId, {
+    bool? local,
+    bool? remote,
+    bool? localDeleted,
+  }) async {
+    var db = database;
+    await db.inScvStoresTransaction(
+      [sdbMediaStatusLocalStore],
+      SdbTransactionMode.readWrite,
+      (txn) async {
+        var status =
+            (await sdbMediaStatusLocalStore.record(fileId).get(txn)) ??
+            sdbMediaStatusLocalStore.record(fileId).cv();
+
+        local ??= status.isLocal;
+        remote ??= status.isRemote;
+        localDeleted ??= status.isDeleted;
+        status
+          ..setLocal(local)
+          ..setDeleted(localDeleted)
+          ..setRemote(remote);
+        await status.put(txn);
+      },
+    );
+  }
+
+  /// Mark a file as uploaded
   Future<void> markDownloadedAndUploaded(String fileId) async {
     var db = database;
     await db.inScvStoresTransaction(
@@ -407,9 +490,9 @@ extension FestenaoMediaSdbInternalExt on FestenaoMediaSdb {
           await file.put(txn);
           var status = sdbMediaStatusLocalStore.record(fileId).cv();
           status
-            ..local.v = 1
-            ..remote.v = 1
-            ..deleted.v = 0;
+            ..setLocal(true)
+            ..setRemote(true)
+            ..setDeleted(false);
           await status.put(txn);
         }
       },
@@ -427,9 +510,9 @@ extension FestenaoMediaSdbInternalExt on FestenaoMediaSdb {
         if (file != null) {
           var status = sdbMediaStatusLocalStore.record(fileId).cv();
           status
-            ..remote.v = 0
-            ..local.v = 0
-            ..deleted.v = 1;
+            ..setLocal(false)
+            ..setRemote(false)
+            ..setDeleted(true);
           await status.put(txn);
         }
       },
@@ -447,9 +530,9 @@ extension FestenaoMediaSdbInternalExt on FestenaoMediaSdb {
         if (file != null) {
           var status = sdbMediaStatusLocalStore.record(fileId).cv();
           status
-            ..remote.v = 0
-            ..local.v = 1
-            ..deleted.v = 0;
+            ..setLocal(true)
+            ..setRemote(false)
+            ..setDeleted(false);
           await status.put(txn);
         }
       },
@@ -472,8 +555,8 @@ extension FestenaoMediaSdbInternalExt on FestenaoMediaSdb {
             await file.put(txn);
           }
           fileStatus
-            ..remote.v = 0
-            ..deleted.v = 1;
+            ..setRemote(false)
+            ..setDeleted(true);
           await fileStatus.put(txn);
         }
       },
@@ -492,10 +575,54 @@ extension FestenaoMediaSdbInternalExt on FestenaoMediaSdb {
         var statusRef = sdbMediaStatusLocalStore.record(fileId);
         var fileStatus = (await statusRef.get(txn)) ?? statusRef.cv();
         if (file != null) {
-          fileStatus.local.v = 0;
+          fileStatus.setLocal(false);
           await fileStatus.put(txn);
         }
       },
     );
   }
+
+  /// Mark a file as no info, check on synchronization
+  Future<void> markStatusCleared(String fileId) async {
+    var db = database;
+    await db.inScvStoresTransaction(
+      [sdbMediaStore, sdbMediaStatusLocalStore],
+      SdbTransactionMode.readWrite,
+      (txn) async {
+        var file = await sdbMediaStore.record(fileId).get(txn);
+        var statusRef = sdbMediaStatusLocalStore.record(fileId);
+        var fileStatus = (await statusRef.get(txn)) ?? statusRef.cv();
+        if (file != null) {
+          fileStatus
+            ..setLocal(false)
+            ..setRemote(false)
+            ..setDeleted(false);
+          await fileStatus.put(txn);
+        }
+      },
+    );
+  }
+
+  /// Mark a file as no info, check on synchronization
+  @visibleForTesting
+  Future<void> deleteStatusRecord(String fileId) async {
+    var db = database;
+    await db.inScvStoresTransaction(
+      [sdbMediaStore, sdbMediaStatusLocalStore],
+      SdbTransactionMode.readWrite,
+      (txn) async {
+        var statusRef = sdbMediaStatusLocalStore.record(fileId);
+        await statusRef.delete(txn);
+      },
+    );
+  }
+}
+
+/// Extension for [SdbFestenaoMediaFile] to provide status helpers.
+extension SdbFestenaoMediaFileExt on SdbFestenaoMediaFile {
+  /// Whether the file is marked as deleted.
+  bool get isDeleted => deleted.v ?? false;
+
+  /// Whether the file has been uploaded.
+  bool get isUploaded => uploaded.v ?? false;
 }

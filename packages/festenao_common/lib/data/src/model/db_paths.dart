@@ -13,7 +13,7 @@ var dbMediaStoreRef = cvStringStoreFactory.store<DbFestenaoMediaFile>('media');
 
 /// Local store ref, excluded by default
 var dbMediaLocalStoreRef = cvStringStoreFactory
-    .store<DbFestenaoMediaStatusFile>('media_status_local');
+    .store<DbFestenaoMediaFileStatus>('media_status_local');
 
 /// Store reference for event records.
 var dbEventStoreRef = cvStringStoreFactory.store<DbEvent>('event');

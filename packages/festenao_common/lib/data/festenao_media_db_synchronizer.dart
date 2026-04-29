@@ -1,6 +1,7 @@
 import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/data/festenao_media_db.dart';
 import 'package:festenao_common/data/festenao_media_source.dart';
+import 'package:tekartik_common_utils/env_utils.dart';
 
 /// TODO not tested, use media_sdb instead
 /// Class to synchronize a local [FestenaoMediaDb] with a [FestenaoMediaSource].
@@ -20,10 +21,22 @@ class FestenaoMediaDbSynchronizer {
     for (var fileId in fileIds) {
       var fileRecord = await db.getMediaFileRecord(fileId);
       if (fileRecord != null) {
-        var bytes = await db.readMediaFileBytes(fileId);
-        await source.addMediaFile(file: fileRecord.toMediaFile(), bytes: bytes);
-        // Update status
-        await db.markLocalAndRemote(fileId);
+        try {
+          var bytes = await db.readMediaFileBytes(fileId);
+          await source.addMediaFile(
+            file: fileRecord.toMediaFile(),
+            bytes: bytes,
+          );
+          // Update status
+          await db.markLocalAndRemote(fileId);
+        } catch (e, st) {
+          // ignore: avoid_print
+          print('ignoring error $e');
+          if (isDebug) {
+            // ignore: avoid_print
+            print(st);
+          }
+        }
       }
     }
   }

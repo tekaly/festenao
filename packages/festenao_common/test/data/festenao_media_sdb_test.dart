@@ -30,7 +30,7 @@ void main() {
     );
     expect(
       await sdbMediaStatusLocalStore.record(fileId).get(db.database),
-      SdbFestenaoMediaStatusFile()
+      SdbFestenaoMediaFileStatus()
         ..local.v = 1
         ..remote.v = 0
         ..deleted.v = 0,
@@ -52,7 +52,7 @@ void main() {
     await db.deleteMediaFile(fileId);
     expect(
       await sdbMediaStatusLocalStore.record(fileId).get(db.database),
-      SdbFestenaoMediaStatusFile()
+      SdbFestenaoMediaFileStatus()
         ..local.v = 0
         ..remote.v = 0
         ..deleted.v = 1,
@@ -122,7 +122,7 @@ void main() {
     await db.markRemoteDeleted(fileId);
     expect(
       await sdbMediaStatusLocalStore.record(fileId).get(db.database),
-      SdbFestenaoMediaStatusFile()
+      SdbFestenaoMediaFileStatus()
         ..local.v = 1
         ..remote.v = 0
         ..deleted.v = 1,

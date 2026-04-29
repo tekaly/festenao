@@ -84,4 +84,31 @@ void main() {
     expect(await synchronizer.sync(), SyncedSyncStat(localDeletedCount: 1));
     expect(await db.getMediaFileRecord(id), isNull);
   });
+  test('add then sync then delete file and invalidate', () async {
+    var id = await db.addMediaFile(
+      file: FestenaoMediaFile.from(filename: 'test.txt'),
+      bytes: utf8.encode('test_content'),
+    );
+    expect(await synchronizer.sync(), SyncedSyncStat(remoteCreatedCount: 1));
+
+    var file = await db.getMediaFile(id);
+    expect(await file.exists(), isTrue);
+    await file.delete();
+    expect(await file.exists(), isFalse);
+    file = await db.getMediaFile(id);
+    expect(file, isNotNull);
+    expect(await file.exists(), isFalse);
+    await expectLater(
+      () => db.readMediaFileBytes(id),
+      throwsA(isA<FileSystemException>()),
+    );
+    expect(await synchronizer.sync(), SyncedSyncStat());
+    await db.markToUpload(id);
+    expect(await synchronizer.sync(), SyncedSyncStat(localCreatedCount: 1));
+    await db.markStatusCleared(id);
+    expect(await synchronizer.sync(), SyncedSyncStat(localCreatedCount: 1));
+    expect(await synchronizer.sync(), SyncedSyncStat());
+    await db.deleteStatusRecord(id);
+    expect(await synchronizer.sync(), SyncedSyncStat(localCreatedCount: 1));
+  });
 }

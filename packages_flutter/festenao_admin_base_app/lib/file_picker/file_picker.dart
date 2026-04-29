@@ -16,6 +16,7 @@ Future<FilePickerResult?> pickImageFile(BuildContext context) async {
     var ffpResult = await FilePicker.pickFiles(
       type: FileType.image,
       allowMultiple: false,
+      withData: true,
 
       //allowedExtensions: ['.jpg', '.JPG', '.png', '.PNG']
     );

@@ -18,7 +18,7 @@ class FestenaoMediaDbException implements Exception {
 }
 
 /// Not synced
-class DbFestenaoMediaStatusFile extends DbStringRecordBase {
+class DbFestenaoMediaFileStatus extends DbStringRecordBase {
   /// Uploaded
   final remote = CvField<bool>('remote');
 
@@ -32,7 +32,7 @@ class DbFestenaoMediaStatusFile extends DbStringRecordBase {
 }
 
 /// model
-final dbFestenaoMediaStatusFileModel = DbFestenaoMediaStatusFile();
+final dbFestenaoMediaStatusFileModel = DbFestenaoMediaFileStatus();
 
 /// Database record class for media files in Festenao, using SDB for metadata storage.
 class DbFestenaoMediaFile extends DbStringRecordBase {
@@ -112,7 +112,7 @@ class FestenaoMediaDb {
     Database? database,
     Future<Database>? futureDatabase,
   }) : _futureDatabase = futureDatabase ?? Future.value(database) {
-    cvAddConstructors([DbFestenaoMediaFile.new, DbFestenaoMediaStatusFile.new]);
+    cvAddConstructors([DbFestenaoMediaFile.new, DbFestenaoMediaFileStatus.new]);
     () async {
       database = (await _futureDatabase);
     }();

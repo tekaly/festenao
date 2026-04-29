@@ -20,7 +20,7 @@ class AdminMediaScreenResult {}
 class AdminMediaScreenBlocState {
   final String? mediaId;
   final DbFestenaoMediaFile? media;
-  final DbFestenaoMediaStatusFile? status;
+  final DbFestenaoMediaFileStatus? status;
 
   AdminMediaScreenBlocState({this.mediaId, this.media, this.status});
 }
