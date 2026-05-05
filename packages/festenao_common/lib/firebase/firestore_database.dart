@@ -41,6 +41,7 @@ final projectCollectionInfo =
     );
 
 /// User private collection info.
+@Deprecated('User private collection is not used yet, may be removed')
 final userPrvCollectionInfo =
     TkCmsFirestoreDatabaseEntityCollectionInfo<FsUserPrv>(
       id: 'project_user',
@@ -66,6 +67,7 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
   late TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp> appDb;
 
   /// User private database access.
+  @Deprecated('unused to remove')
   late TkCmsFirestoreDatabaseServiceEntityAccess<FsUserPrv> userPrvDb;
 
   /// Constructor for FestenaoFirestoreDatabase.
@@ -88,7 +90,9 @@ class FestenaoFirestoreDatabase extends TkCmsFirestoreDatabaseService {
           rootDocument: fsAppRoot(app),
         );
 
+    // ignore: deprecated_member_use_from_same_package
     userPrvDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsUserPrv>(
+      // ignore: deprecated_member_use_from_same_package
       entityCollectionInfo: userPrvCollectionInfo,
       firestore: firestore,
       rootDocument: fsAppRoot(app),
