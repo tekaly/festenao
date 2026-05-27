@@ -15,11 +15,7 @@ class _FirebaseMeta implements ObjectStorageMeta {
   @override
   final bool isLocation;
 
-  _FirebaseMeta({
-    required this.path,
-    FileMetadata? meta,
-    required this.isLocation,
-  }) : _meta = meta;
+  _FirebaseMeta({required this.path, this._meta, required this.isLocation});
 
   @override
   int? get size => _meta?.size;

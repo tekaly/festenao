@@ -27,9 +27,9 @@ class _ObjectStorageFirebaseTestMemoryContext
   }
 
   _ObjectStorageFirebaseTestMemoryContext({
-    required FirebaseApp app,
+    required this._app,
     required super.storage,
-  }) : _app = app;
+  });
   @override
   Future<void> dispose() async {
     await _app.delete();
