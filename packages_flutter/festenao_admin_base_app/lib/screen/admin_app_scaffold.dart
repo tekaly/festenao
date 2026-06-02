@@ -27,6 +27,7 @@ class FestenaoAdminAppScaffold extends StatefulWidget {
 
 const _appBarHeight = 32.0;
 const _useAppBar = !kIsWeb;
+
 //final _useAppBar = devWarning(false); // !kIsWeb;
 
 class _AppBarHistory {

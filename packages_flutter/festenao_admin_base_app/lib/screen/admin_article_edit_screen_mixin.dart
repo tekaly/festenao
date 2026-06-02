@@ -54,6 +54,7 @@ var imageColumnType = {
   dbArticleCommonModel.thumbnail: imageTypeThumbnail,
   dbArticleCommonModel.squareImage: imageTypeSquare,
 };
+
 /*
 var imageColumnConstraintsColumn =
     <CvColumn<String>, CvColumn<FestenaoAppImageOptions>>{

@@ -153,6 +153,7 @@ class HomeContentPath extends _SubContentPath {
 class FestenaoHomeContentPath extends _SubContentPath {
   FestenaoHomeContentPath() : super('festenao_home');
 }
+
 /*
 class ProjectInviteContentPath extends ContentPathBase {
   final invite = ContentPathField('invite');
