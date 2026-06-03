@@ -31,7 +31,6 @@ import 'package:tkcms_user_app/theme/theme1.dart';
 
 import 'admin_app/festenao_admin_app.dart';
 import 'data/file_system.dart';
-import 'firebase/firebase_local.dart';
 import 'l10n/app_intl.dart';
 import 'prefs/local_prefs.dart';
 import 'sembast/projects_db_bloc.dart';
@@ -39,10 +38,10 @@ import 'sembast/projects_db_bloc.dart';
 /// Prefer festenaoRunAdminApp
 Future<void> festenaoRunApp({
   ContentNavigatorDef? contentNavigatorDef,
-  AppFlavorContext? appFlavorContext,
+  required AppFlavorContext appFlavorContext,
   String? packageName,
   String? singleProjectId,
-  FirebaseContext? firebaseContext,
+  required FirebaseContext firebaseContext,
 }) => festenaoRunAdminApp(
   appFlavorContext: appFlavorContext,
   contentNavigatorDef: contentNavigatorDef,
@@ -54,10 +53,10 @@ Future<void> festenaoRunApp({
 /// Compat mode mainly
 Future<void> festenaoRunAdminAppSingleProject({
   ContentNavigatorDef? contentNavigatorDef,
-  AppFlavorContext? appFlavorContext,
+  required AppFlavorContext appFlavorContext,
   String? packageName,
   String? singleProjectId,
-  FirebaseContext? firebaseContext,
+  required FirebaseContext firebaseContext,
   FestenaoAppOptions? options,
   required FestenaoAppFirebaseContext appFirebaseContext,
 }) async {
@@ -307,22 +306,17 @@ Future<FestenaoAppInitResult> festenaoAdminAppInit({
 
 Future<void> festenaoRunAdminApp({
   ContentNavigatorDef? contentNavigatorDef,
-  AppFlavorContext? appFlavorContext,
+  required AppFlavorContext appFlavorContext,
   String? packageName,
   FestenaoAppOptions? options,
   String? singleProjectId,
-  FestenaoAppFirebaseContext? appFirebaseContext,
-  FirebaseContext? firebaseContext,
+  FestenaoAppFirebaseOptions? appFirebaseContext,
+  required FirebaseContext firebaseContext,
   FestenaoAdminParentAppController? parentAppController,
   Widget Function(Widget child)? wrapperBuilder,
   List<LocalizationsDelegate>? localizationsDelegates,
   List<Locale>? supportedLocales,
 }) async {
-  /// Discouraged...
-  appFlavorContext ??= AppFlavorContext.testLocal;
-
-  /// Discouraged...
-  firebaseContext ??= await initFestenaoFirebaseServicesLocal();
   await festenaoAdminAppInit(
     packageName: packageName,
     options: options,

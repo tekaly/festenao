@@ -1,4 +1,4 @@
-import 'package:festenao_admin_base_app/run.dart';
+import 'package:festenao_admin_base_app/main_local.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/app/app_options.dart';
 import 'package:festenao_common/festenao_firestore.dart';
@@ -18,7 +18,7 @@ Future<void> main() async {
       projectId: 'singleQH8VoZRZf4A56hknguH4',
     ),
   );
-  await festenaoRunAdminApp(
+  await localFestenaoRunAdminApp(
     packageName: 'festenao_admin_base_app.lib.main_top_single_project',
     options: options,
     appFlavorContext: FlavorContext.dev.toAppFlavorContext(

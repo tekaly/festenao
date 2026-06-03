@@ -1,8 +1,9 @@
-import 'package:festenao_admin_base_app/run.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/app/app_options.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/festenao_flavor.dart';
+
+import 'main_local.dart';
 
 final _topProjectCollectionInfo = fsProjectCollectionInfo.copyWith(
   id: 'top_project',
@@ -17,7 +18,7 @@ Future<void> main() async {
     ),
   );
   gDebugLogFirestore = true;
-  await festenaoRunAdminApp(
+  await localFestenaoRunAdminApp(
     options: options,
     appFlavorContext: FlavorContext.dev.toAppFlavorContext(
       appId: 'festenao_top_projects',

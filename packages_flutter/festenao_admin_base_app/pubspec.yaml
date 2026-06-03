@@ -93,10 +93,6 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
       path: app_sembast_firestore_type_adapters
-  tekartik_app_flutter_sembast:
-    git:
-      url: https://github.com/tekartik/app_flutter_utils.dart
-      path: app_sembast
   tekaly_sembast_synced:
     git:
       url: https://github.com/tekartikprj/tekaly
@@ -166,7 +162,12 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
       path: app_fs
+  tekartik_app_flutter_sembast:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_sembast
 dev_dependencies:
+
   dev_build: ">=1.1.7+3"
   flutter_test:
     sdk: flutter
