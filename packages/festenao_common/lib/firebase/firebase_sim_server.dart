@@ -1,7 +1,7 @@
 // ignore_for_file: avoid_print
+import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/festenao_firebase.dart';
 import 'package:path/path.dart';
-import 'package:tekartik_app_sembast/sembast.dart';
 import 'package:tekartik_firebase_auth_sembast/auth_sembast.dart';
 import 'package:tekartik_firebase_auth_sim/auth_sim_server.dart';
 import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart';
@@ -45,13 +45,14 @@ class FestenaoSimServer {
 
 /// Global init function
 Future<FestenaoSimServer> initFestenaoSimServer({
+  required DatabaseFactory sembastDatabaseFactory,
   void Function({
     required FirebaseServicesContext firebaseServicesContext,
     required FirebaseApp firebaseApp,
   })?
   initFunction,
 }) async {
-  var databaseFactory = getDatabaseFactory();
+  var databaseFactory = sembastDatabaseFactory;
   var firebaseLocal = FirebaseLocal(
     localPath: join('.local', 'firebase_festenao'),
   );

@@ -8,6 +8,7 @@ import 'package:festenao_common/firebase/firebase_sim.dart';
 import 'package:festenao_common/firebase/firebase_sim_server.dart';
 import 'package:festenao_common/test/festenao_test_server_test.dart';
 import 'package:festenao_support/festenao_support.dart';
+import 'package:tekartik_app_sembast/sembast.dart';
 import 'package:tekartik_firebase_auth_sembast/auth_sembast.dart';
 import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart';
 import 'package:tekartik_firebase_functions_io/firebase_functions_io.dart';
@@ -36,7 +37,9 @@ Future<void> main(List<String> args) async {
     serverApp.initFunctions();
   }
 
+  var sembastDatabaseFactory = getDatabaseFactory();
   var festenaoSimServer = await initFestenaoSimServer(
+    sembastDatabaseFactory: sembastDatabaseFactory,
     initFunction: initFunctions,
   );
   print('url ${festenaoSimServer.uri}');
