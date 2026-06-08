@@ -2,6 +2,7 @@ import 'package:dev_test/test.dart';
 import 'package:festenao_common/api/festenao_api_client.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
+import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/server/festeano_server_app.dart';
@@ -68,21 +69,15 @@ class FestenaoServerAppTest extends FestenaoServerApp {
 }
 
 /// Test api context.
-class FestenaoTestApiContext {
+abstract class FestenaoTestApiContext {
   /// Api service.
-  final FestenaoApiService apiService;
+  FestenaoApiService get apiService;
 
   /// Project api client.
-  late final FestenaoApiFsEntityClient<FsProject> projectApiClient;
-
-  /// Test api context.
-  FestenaoTestApiContext({required this.apiService});
+  FestenaoApiFsEntityClient<FsProject> get projectApiClient;
 
   /// Close context.
-  @mustCallSuper
-  Future<void> close() async {
-    await apiService.close();
-  }
+  Future<void> close();
 }
 
 /// Test amp context.
@@ -115,14 +110,60 @@ class FestenaoTestFfServerContext {
   }
 }
 
+/// Festenao client context.
+abstract class FestenaoTestClientContext {
+  /// Api service.
+  FestenaoApiService get apiService;
+
+  /// Firebase auth.
+  FirebaseAuth? get firebaseAuth;
+
+  /// Credentials.
+  TkCmsEmailPasswordCredentials? get credentials;
+
+  /// Constructor for [FestenaoTestClientContext].
+  factory FestenaoTestClientContext({
+    required FestenaoApiService apiService,
+    FirebaseAuth? firebaseAuth,
+    TkCmsEmailPasswordCredentials? credentials,
+  }) => _FestenaoTestClientContext(
+    apiService: apiService,
+    firebaseAuth: firebaseAuth,
+    credentials: credentials,
+  );
+}
+
+/// Internal implementation of [FestenaoTestClientContext].
+class _FestenaoTestClientContext implements FestenaoTestClientContext {
+  @override
+  final FestenaoApiService apiService;
+
+  @override
+  final FirebaseAuth? firebaseAuth;
+
+  @override
+  final TkCmsEmailPasswordCredentials? credentials;
+
+  /// Constructor for [_FestenaoTestClientContext].
+  _FestenaoTestClientContext({
+    required this.apiService,
+    this.firebaseAuth,
+    this.credentials,
+  });
+}
+
 /// Test server context.
 class FestenaoTestServerContext
     implements
         FestenaoTestApiContext,
         FestenaoTestAmpContext,
         FestenaoTestFfServerContext {
+  /// Client context.
+  final FestenaoTestClientContext clientContext;
+
   @override
-  final FestenaoApiService apiService;
+  FestenaoApiService get apiService => clientContext.apiService;
+
   @override
   final FestenaoAmpService ampService;
   @override
@@ -138,7 +179,7 @@ class FestenaoTestServerContext
 
   /// Test server context.
   FestenaoTestServerContext({
-    required this.apiService,
+    required this.clientContext,
     this.ffServer,
     required this.ampService,
   }) {
@@ -148,15 +189,18 @@ class FestenaoTestServerContext
   @override
   Future<void> close() async {
     //await ffServer.close();
-    await apiService.close();
+    await clientContext.apiService.close();
     await ffServer?.close();
     await ampService.close();
   }
 }
 
 /// Init all in memory.
-Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
-  var ffServicesContext = await initFirebaseServicesSimMemory();
+Future<FestenaoTestServerContext>
+initFestenaoTestServerContextAllMemory() async {
+  var ffServicesContext = initFirebaseServicesLocalMemory(
+    projectId: 'festenao_test_memory',
+  );
   var ffServerContext = await ffServicesContext.initServer();
 
   var httpClientFactory = httpClientFactoryMemory;
@@ -212,7 +256,14 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
   await ampService.initClient();
 
   return FestenaoTestServerContext(
-      apiService: apiService,
+      clientContext: FestenaoTestClientContext(
+        apiService: apiService,
+        firebaseAuth: ffContext.auth,
+        credentials: const TkCmsEmailPasswordCredentials(
+          email: 'test',
+          password: 'test',
+        ),
+      ),
       ffServer: ffServer,
       ampService: ampService,
     )
@@ -223,7 +274,7 @@ Future<FestenaoTestServerContext> initFestenaoAllMemory() async {
 
 Future<void> main() async {
   debugWebServices = true;
-  testFestenaoServerGroup(initFestenaoAllMemory);
+  testFestenaoServerGroup(initFestenaoTestServerContextAllMemory);
 }
 
 /// Test server group.
@@ -283,41 +334,79 @@ void testFestenaoServerGroup(
     print(timestamp);
   });
   test('create/join/leave/delete/purge/Entity', () async {
+    var auth = context.clientContext.firebaseAuth;
+    if (auth == null || noSignIn) {
+      return;
+    }
     var client = context.projectApiClient;
+    var fsDatabase = context.fsDatabase;
+
+    await auth.signOut();
+
+    var projectDb = fsDatabase.projectDb;
     var now = DateTime.timestamp().toIso8601String();
     var name = 'Test $now';
     var createEntityId = 'test';
     try {
-      await client.deleteEntity(entityId: createEntityId);
+      await projectDb.adminDeleteEntity(createEntityId);
     } catch (_) {}
     try {
-      await client.purgeEntity(entityId: createEntityId);
+      await projectDb.adminPurgeEntity(createEntityId);
     } catch (_) {}
-    var entity = await client.createEntity(
-      entity: FsProject()..name.v = name,
-      entityId: createEntityId,
-    );
-    expect(entity.name.v, name);
-    var entityId = entity.id;
-    expect(entityId, entityId);
-    var fsDatabase = context.fsDatabase;
-    if (!noFirestoreCheck) {
-      entity = await fsDatabase.projectDb
-          .fsEntityRef(entityId)
-          .get(fsDatabase.firestore);
-      expect(entity.exists, isTrue);
+
+    Future<FsProject> createEntity() async {
+      var entity = await client.createEntity(
+        entity: FsProject()..name.v = name,
+        entityId: createEntityId,
+      );
       expect(entity.name.v, name);
+      var entityId = entity.id;
+      expect(entityId, entityId);
+
+      if (!noFirestoreCheck) {
+        entity = await projectDb
+            .fsEntityRef(entityId)
+            .get(fsDatabase.firestore);
+        expect(entity.exists, isTrue);
+        expect(entity.name.v, name);
+        return entity;
+      }
+      return entity;
     }
 
-    String userId;
+    late String userId;
     var fsUserAccess = TkCmsFsUserAccess()..grantAdminAccess();
-    if (!noFirestoreCheck && !noSignIn) {
-      var user = await context.ffContext.auth.signInWithEmailAndPassword(
-        email: 'test2',
-        password: 'test',
+
+    var credentials = context.clientContext.credentials;
+
+    if (!noSignIn) {
+      if (credentials == null) {
+        throw StateError('Auth and credentials are required for this test');
+      }
+      var user = await auth.signInWithEmailAndPassword(
+        email: credentials.email,
+        password: credentials.password,
       );
       userId = user.user.uid;
 
+      if (!noFirestoreCheck) {
+        expect(
+          (await fsDatabase.projectDb
+                  .fsEntityUserAccessRef(createEntityId, userId)
+                  .get(fsDatabase.firestore))
+              .exists,
+          isFalse,
+        );
+      }
+    } else {
+      userId = 'test_user_id';
+    }
+    var entity = await createEntity();
+    var entityId = entity.id;
+
+    if (!noFirestoreCheck && !noSignIn) {
+      // Leave first
+      await client.leaveEntity(entityId: entityId);
       expect(
         (await fsDatabase.projectDb
                 .fsEntityUserAccessRef(entityId, userId)

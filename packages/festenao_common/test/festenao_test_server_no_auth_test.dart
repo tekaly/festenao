@@ -4,5 +4,10 @@ import 'package:festenao_common/test/festenao_test_server_test.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 
 Future<void> main() async {
-  testFestenaoServerGroup(initFestenaoTestServerContextAllMemory);
+  // debugWebServices = devTrue;
+  // gDebugLogFirestore = devTrue;
+  testFestenaoServerGroup(
+    initFestenaoTestServerContextAllMemory,
+    noSignIn: true,
+  );
 }
