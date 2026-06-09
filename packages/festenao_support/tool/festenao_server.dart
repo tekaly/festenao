@@ -6,7 +6,7 @@ import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_common/festenao_server.dart';
 import 'package:festenao_common/firebase/firebase_sim.dart';
 import 'package:festenao_common/firebase/firebase_sim_server.dart';
-import 'package:festenao_common/test/festenao_test_server_test.dart';
+import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
 import 'package:festenao_support/festenao_support.dart';
 import 'package:tekartik_app_sembast/sembast.dart';
 import 'package:tekartik_firebase_auth_sembast/auth_sembast.dart';
