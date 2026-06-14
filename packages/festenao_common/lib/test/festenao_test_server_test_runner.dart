@@ -227,7 +227,7 @@ initFestenaoTestServerContextAllMemory() async {
         serverApp: ffServerApp,
       );
 
-  await ffContext.auth.signInWithEmailAndPassword(
+  await ffContext.auth.signInOrUpWithEmailAndPassword(
     email: 'test',
     password: 'test',
   );
