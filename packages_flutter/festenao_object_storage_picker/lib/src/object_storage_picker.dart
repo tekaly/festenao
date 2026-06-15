@@ -1,10 +1,10 @@
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Callback when files are selected.
-typedef ObjectStoragePickerOnSelect = void Function(
-  List<ObjectStorageMeta> selected,
-);
+typedef ObjectStoragePickerOnSelect =
+    void Function(List<ObjectStorageMeta> selected);
 
 /// A widget that allows browsing an [ObjectStorage] and picking files.
 class ObjectStoragePicker extends StatefulWidget {
@@ -24,6 +24,9 @@ class ObjectStoragePicker extends StatefulWidget {
   /// Whether multi-selection is enabled.
   final bool allowMultiSelect;
 
+  /// Whether developer mode is enabled.
+  final bool developerMode;
+
   /// Create a new [ObjectStoragePicker] widget.
   const ObjectStoragePicker({
     super.key,
@@ -32,6 +35,7 @@ class ObjectStoragePicker extends StatefulWidget {
     this.allowedMimeTypes,
     required this.onSelect,
     this.allowMultiSelect = false,
+    this.developerMode = false,
   });
 
   @override
@@ -97,6 +101,7 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
   }
 
   void _navigateInto(String path) {
+    print('Navigating into $path');
     setState(() {
       _currentPath = path;
       _pathStack.add(path);
@@ -147,6 +152,33 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
     return Icons.insert_drive_file;
   }
 
+  Future<void> _openInBrowser(ObjectStorageMeta item) async {
+    String urlString;
+    if (item.path.startsWith('http://') || item.path.startsWith('https://')) {
+      urlString = item.path;
+    } else {
+      urlString = 'https://drive.google.com/open?id=${item.path}';
+    }
+    final url = Uri.parse(urlString);
+    try {
+      if (await canLaunchUrl(url)) {
+        await launchUrl(url, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Could not launch browser for $urlString')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error launching browser: $e')));
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Filter items: show all directories, and only allowed files
@@ -159,7 +191,9 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
         // Path navigation/Breadcrumb bar
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          color: Theme.of(
+            context,
+          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           child: Row(
             children: [
               if (_pathStack.length > 1)
@@ -176,10 +210,12 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
                       var path = _pathStack[index];
                       var name = path == widget.parentPath
                           ? 'Root'
-                          : path.split('/').lastWhere(
-                              (p) => p.isNotEmpty,
-                              orElse: () => 'Folder',
-                            );
+                          : path
+                                .split('/')
+                                .lastWhere(
+                                  (p) => p.isNotEmpty,
+                                  orElse: () => 'Folder',
+                                );
                       var isLast = index == _pathStack.length - 1;
 
                       return Row(
@@ -187,8 +223,9 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
                           if (index > 0)
                             const Icon(Icons.chevron_right, size: 16),
                           TextButton(
-                            onPressed:
-                                isLast ? null : () => _navigateToIndex(index),
+                            onPressed: isLast
+                                ? null
+                                : () => _navigateToIndex(index),
                             child: Text(
                               name,
                               style: TextStyle(
@@ -216,79 +253,118 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _errorMessage != null
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            _errorMessage!,
-                            style: const TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _loadItems,
-                            child: const Text('Retry'),
-                          ),
-                        ],
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        _errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
                       ),
-                    )
-                  : displayItems.isEmpty
-                      ? const Center(child: Text('This folder is empty.'))
-                      : ListView.separated(
-                          itemCount: displayItems.length,
-                          separatorBuilder: (context, index) =>
-                              const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            var item = displayItems[index];
-                            var isSelected = _selectedItems.contains(item);
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadItems,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                )
+              : displayItems.isEmpty
+              ? const Center(child: Text('This folder is empty.'))
+              : ListView.separated(
+                  itemCount: displayItems.length,
+                  separatorBuilder: (context, index) =>
+                      const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    var item = displayItems[index];
+                    var isSelected = _selectedItems.contains(item);
 
-                            if (item.isLocation) {
-                              return ListTile(
-                                leading: const Icon(
-                                  Icons.folder,
-                                  color: Colors.amber,
-                                ),
-                                title: Text(item.name),
-                                trailing: const Icon(Icons.chevron_right),
-                                onTap: () => _navigateInto(item.path),
-                              );
-                            } else {
-                              return ListTile(
-                                leading: Icon(
-                                  _getFileIcon(item.mimeType),
-                                  color: isSelected
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.blueGrey,
-                                ),
-                                title: Text(item.name),
-                                subtitle: item.size != null
-                                    ? Text(
-                                        '${(item.size! / 1024).toStringAsFixed(1)} KB')
-                                    : null,
-                                trailing: widget.allowMultiSelect
-                                    ? Checkbox(
-                                        value: isSelected,
-                                        onChanged: (_) => _toggleSelection(item),
-                                      )
-                                    : isSelected
-                                        ? const Icon(
-                                            Icons.check_circle,
-                                            color: Colors.green,
-                                          )
-                                        : null,
-                                selected: isSelected,
-                                onTap: () {
-                                  if (widget.allowMultiSelect) {
-                                    _toggleSelection(item);
-                                  } else {
-                                    widget.onSelect([item]);
-                                  }
-                                },
-                              );
-                            }
-                          },
+                    if (item.isLocation) {
+                      return ListTile(
+                        leading: const Icon(Icons.folder, color: Colors.amber),
+                        title: Text(item.name),
+                        subtitle: widget.developerMode
+                            ? Text(
+                                'ID: ${item.path}',
+                                style: const TextStyle(fontSize: 12),
+                              )
+                            : null,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.developerMode)
+                              IconButton(
+                                icon: const Icon(Icons.open_in_new),
+                                onPressed: () => _openInBrowser(item),
+                                tooltip: 'Open in browser',
+                              ),
+                            const Icon(Icons.chevron_right),
+                          ],
                         ),
+                        onTap: () => _navigateInto(item.path),
+                      );
+                    } else {
+                      return ListTile(
+                        leading: Icon(
+                          _getFileIcon(item.mimeType),
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary
+                              : Colors.blueGrey,
+                        ),
+                        title: Text(item.name),
+                        subtitle: widget.developerMode
+                            ? Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (item.size != null)
+                                    Text(
+                                      '${(item.size! / 1024).toStringAsFixed(1)} KB',
+                                    ),
+                                  Text(
+                                    'ID: ${item.path}',
+                                    style: const TextStyle(fontSize: 12),
+                                  ),
+                                ],
+                              )
+                            : (item.size != null
+                                  ? Text(
+                                      '${(item.size! / 1024).toStringAsFixed(1)} KB',
+                                    )
+                                  : null),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (widget.developerMode)
+                              IconButton(
+                                icon: const Icon(Icons.open_in_new),
+                                onPressed: () => _openInBrowser(item),
+                                tooltip: 'Open in browser',
+                              ),
+                            if (widget.allowMultiSelect)
+                              Checkbox(
+                                value: isSelected,
+                                onChanged: (_) => _toggleSelection(item),
+                              )
+                            else if (isSelected)
+                              const Icon(
+                                Icons.check_circle,
+                                color: Colors.green,
+                              ),
+                          ],
+                        ),
+                        selected: isSelected,
+                        onTap: () {
+                          if (widget.allowMultiSelect) {
+                            _toggleSelection(item);
+                          } else {
+                            widget.onSelect([item]);
+                          }
+                        },
+                      );
+                    }
+                  },
+                ),
         ),
 
         // Multi-select actions bar

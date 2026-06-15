@@ -15,6 +15,13 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages/festenao_common
+  url_launcher: ">=6.3.0"
+  tekartik_app_cv_sdb:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      path: app_cv_sdb
+
+
 
 dev_dependencies:
   flutter_test:
