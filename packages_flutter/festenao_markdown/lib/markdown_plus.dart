@@ -1,1 +1,1 @@
-export 'src/markdown_widget_plus.dart';
+export 'src/markdown_widget_plus.dart' show FestenaoMarkdownWidget;

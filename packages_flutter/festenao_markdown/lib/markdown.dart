@@ -1,1 +1,1 @@
-export 'src/markdown_widget.dart';
+export 'markdown_plus.dart';

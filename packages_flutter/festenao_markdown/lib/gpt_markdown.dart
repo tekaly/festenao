@@ -1,1 +1,1 @@
-export 'src/gpt_markdown_widget.dart';
+export 'markdown.dart';
