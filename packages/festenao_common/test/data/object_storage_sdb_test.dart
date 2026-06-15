@@ -1,4 +1,5 @@
 import 'package:festenao_common/data/object_storage.dart';
+import 'package:fs_shim/fs_io.dart';
 import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 import 'package:test/test.dart';
 
@@ -33,15 +34,25 @@ class ObjectStorageSdbTestContext implements ObjectStorageTestContext {
 
   static ObjectStorageSdbTestContext io(String name) {
     var factory = sdbFactoryIo;
-    var dbName =
-        '.dart_tool/festenao_common/test/object_storage_sdb/test_$name.db';
+    var dbName = '.dart_tool/festenao_common/test/object_storage_sdb/test_$name.db';
+    var fs = fileSystemIo;
+    var rootPath = fs.path.join('.dart_tool', 'festenao_common', 'test', 'object_storage_sdb', 'fs_$name');
 
     Future<void> onDispose() async {
       await factory.deleteDatabase(dbName);
+      var dir = fs.directory(rootPath);
+      if (await dir.exists()) {
+        await dir.delete(recursive: true);
+      }
     }
 
     return ObjectStorageSdbTestContext(
-      storage: ObjectStorageSdb(factory: factory, name: dbName),
+      storage: ObjectStorageSdb(
+        factory: factory,
+        fileSystem: fs,
+        name: dbName,
+        rootPath: rootPath,
+      ),
       dbName: dbName,
       onDispose: onDispose,
     );

@@ -21,4 +21,5 @@ workspace:
   - packages_flutter/festenao_lyrics_player/example/flp_example
   - packages_flutter/festenao_media_base_app
   - packages_flutter/festenao_google_auth
+  - packages_flutter/festenao_object_storage_picker
 

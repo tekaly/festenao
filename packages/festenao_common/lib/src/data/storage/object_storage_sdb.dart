@@ -1,9 +1,11 @@
 import 'dart:typed_data';
+import 'package:fs_shim/fs_memory.dart';
+import 'package:path/path.dart' as p;
 import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 
 import 'object_storage.dart';
 
-/// SDB record for stored objects.
+/// SDB record for stored objects metadata.
 class SdbObjectRecord extends ScvStringRecordBase {
   /// Name of the object.
   final name = CvField<String>('name');
@@ -17,11 +19,8 @@ class SdbObjectRecord extends ScvStringRecordBase {
   /// MIME type.
   final mimeType = CvField<String>('mimeType');
 
-  /// Content data.
-  final data = CvField<Uint8List>('data');
-
   @override
-  CvFields get fields => [name, path, size, mimeType, data];
+  CvFields get fields => [name, path, size, mimeType];
 }
 
 final _sdbObjectModel = SdbObjectRecord();
@@ -72,10 +71,16 @@ class _SdbListResponse implements ObjectStorageListResponse {
   _SdbListResponse({required this.items}) : nextPageToken = null;
 }
 
-/// SDB implementation of [ObjectStorage].
+/// SDB implementation of [ObjectStorage] storing content on a [FileSystem].
 class ObjectStorageSdb extends ObjectStorage {
   /// The database factory.
   final SdbFactory factory;
+
+  /// The underlying file system.
+  final FileSystem fileSystem;
+
+  /// The root directory for the files.
+  final String rootPath;
 
   /// The database name.
   final String? name;
@@ -89,18 +94,28 @@ class ObjectStorageSdb extends ObjectStorage {
       name ?? objectStorageSdbName,
       options: SdbOpenDatabaseOptions(
         version: 1,
-        schema: SdbDatabaseSchema(stores: [sdbObjectStore.schema()]),
+        schema: SdbDatabaseSchema(
+          stores: [sdbObjectStore.schema()],
+        ),
       ),
     );
     initSdbObjectBuilders();
   }();
 
   /// Create a new [ObjectStorageSdb] instance.
-  ObjectStorageSdb({required this.factory, this.name});
+  ObjectStorageSdb({
+    required this.factory,
+    required this.fileSystem,
+    this.name,
+    this.rootPath = '/',
+  });
 
   /// Create a new in-memory [ObjectStorageSdb] instance.
   ObjectStorageSdb.inMemory()
-    : this(factory: sdbFactoryMemory, name: 'in_memory');
+      : factory = sdbFactoryMemory,
+        fileSystem = newFileSystemMemory(),
+        rootPath = '/root',
+        name = 'in_memory';
 
   /// Close the database.
   Future<void> close() async {
@@ -108,17 +123,84 @@ class ObjectStorageSdb extends ObjectStorage {
     await db.close();
   }
 
+  String _toFsPath(String posixPath) {
+    var parts = p.posix.split(posixPath);
+    var filteredParts = parts
+        .where((part) => part.isNotEmpty && part != '.' && part != '..')
+        .toList();
+    return fileSystem.path.joinAll([rootPath, ...filteredParts]);
+  }
+
+  /// Checks if the local database record exists and the file is present in the filesystem.
+  Future<bool> hasLocalContent(String path) async {
+    await ready;
+    var record = await sdbObjectStore.record(path).get(db);
+    if (record == null) return false;
+    var file = fileSystem.file(_toFsPath(path));
+    return await file.exists();
+  }
+
+  /// Writes directly to the SDB store and filesystem (used by cached client).
+  Future<void> cacheWrite(
+    String path, {
+    required String name,
+    required int size,
+    required String mimeType,
+    Uint8List? data,
+  }) async {
+    await ready;
+    var record = SdbObjectRecord()
+      ..name.v = name
+      ..path.v = path
+      ..size.v = size
+      ..mimeType.v = mimeType;
+    await sdbObjectStore.record(path).put(db, record);
+
+    if (data != null) {
+      var fsPath = _toFsPath(path);
+      var file = fileSystem.file(fsPath);
+      var parentDir = file.parent;
+      if (!await parentDir.exists()) {
+        await parentDir.create(recursive: true);
+      }
+      await file.writeAsBytes(data);
+    }
+  }
+
   @override
   Future<void> delete(String path) async {
     await ready;
 
-    var exists = await sdbObjectStore.record(path).get(db) != null;
-    if (exists) {
+    var record = await sdbObjectStore.record(path).get(db);
+    if (record != null) {
       await sdbObjectStore.record(path).delete(db);
+      var fsPath = _toFsPath(path);
+      var file = fileSystem.file(fsPath);
+      if (await file.exists()) {
+        await file.delete();
+      }
       return;
     }
 
     var prefix = path.endsWith('/') ? path : '$path/';
+    var records = await sdbObjectStore.findRecords(
+      db,
+      options: SdbFindOptions(
+        filter: SdbFilter.custom((record) {
+          var pathValue = record[_sdbObjectModel.path.name] as String?;
+          return pathValue != null && pathValue.startsWith(prefix);
+        }),
+      ),
+    );
+
+    for (var r in records) {
+      var fsPath = _toFsPath(r.path.v!);
+      var file = fileSystem.file(fsPath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+
     await sdbObjectStore.rawRef.delete(
       db,
       options: SdbFindOptions(
@@ -128,6 +210,12 @@ class ObjectStorageSdb extends ObjectStorage {
         }),
       ),
     );
+
+    var fsPath = _toFsPath(path);
+    var dir = fileSystem.directory(fsPath);
+    if (await dir.exists()) {
+      await dir.delete(recursive: true);
+    }
   }
 
   @override
@@ -137,7 +225,12 @@ class ObjectStorageSdb extends ObjectStorage {
     if (record == null) {
       throw Exception('File not found: $path');
     }
-    return record.data.v!;
+    var fsPath = _toFsPath(path);
+    var file = fileSystem.file(fsPath);
+    if (!await file.exists()) {
+      throw Exception('File content not found: $path');
+    }
+    return Uint8List.fromList(await file.readAsBytes());
   }
 
   @override
@@ -167,9 +260,7 @@ class ObjectStorageSdb extends ObjectStorage {
     );
 
     if (count > 0) {
-      var name = path
-          .split('/')
-          .lastWhere((part) => part.isNotEmpty, orElse: () => '');
+      var name = path.split('/').lastWhere((part) => part.isNotEmpty, orElse: () => '');
       return _SdbMeta(
         name: name,
         path: path,
@@ -215,26 +306,22 @@ class ObjectStorageSdb extends ObjectStorage {
         var dirPosixPath = prefix.isEmpty ? dirName : '$prefix$dirName';
 
         if (seenLocations.add(dirPosixPath)) {
-          items.add(
-            _SdbMeta(
-              name: dirName,
-              path: dirPosixPath,
-              size: null,
-              mimeType: null,
-              isLocation: true,
-            ),
-          );
+          items.add(_SdbMeta(
+            name: dirName,
+            path: dirPosixPath,
+            size: null,
+            mimeType: null,
+            isLocation: true,
+          ));
         }
       } else {
-        items.add(
-          _SdbMeta(
-            name: file.name.v!,
-            path: filePath,
-            size: file.size.v,
-            mimeType: file.mimeType.v,
-            isLocation: false,
-          ),
-        );
+        items.add(_SdbMeta(
+          name: file.name.v!,
+          path: filePath,
+          size: file.size.v,
+          mimeType: file.mimeType.v,
+          isLocation: false,
+        ));
       }
     }
 
@@ -256,14 +343,23 @@ class ObjectStorageSdb extends ObjectStorage {
         ? name
         : (path.endsWith('/') ? '$path$name' : '$path/$name');
 
+    // 1. Put metadata
     var record = SdbObjectRecord()
       ..name.v = name
       ..path.v = filePosixPath
       ..size.v = data.length
-      ..mimeType.v = mimeType
-      ..data.v = data;
+      ..mimeType.v = mimeType;
 
     await sdbObjectStore.record(filePosixPath).put(db, record);
+
+    // 2. Put content in FileSystem
+    var fsPath = _toFsPath(filePosixPath);
+    var file = fileSystem.file(fsPath);
+    var parentDir = file.parent;
+    if (!await parentDir.exists()) {
+      await parentDir.create(recursive: true);
+    }
+    await file.writeAsBytes(data);
 
     return _SdbMeta(
       name: name,
