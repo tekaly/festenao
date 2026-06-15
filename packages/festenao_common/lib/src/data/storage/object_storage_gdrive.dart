@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:googleapis/drive/v3.dart' as gd;
+import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_gdrive_api_utils/gdrive.dart';
 
 import 'object_storage.dart';
@@ -82,12 +83,20 @@ class ObjectStorageGdrive extends ObjectStorage {
     return fileList.files?.firstOrNull;
   }*/
 
-  Future<Object> _getFile(String fileId) async {
+  Future<gd.File> _getFile(String fileId) async {
     var file = await gdrive.driveApi.files.get(
       fileId,
-      $fields: 'files(id,name,mimeType,size)',
+      $fields: 'id,name,mimeType,size',
     );
-    return file;
+    return file as gd.File;
+  }
+
+  String _folderIdFromPath(String path) {
+    return path;
+  }
+
+  String _folderIdToPath(String folderId) {
+    return folderId;
   }
 
   @override
@@ -97,7 +106,8 @@ class ObjectStorageGdrive extends ObjectStorage {
     int? maxResults,
   }) async {
     await gdrive.ready;
-    var folderId = path;
+    var folderId = _folderIdFromPath;
+
     var fileList = await gdrive.driveApi.files.list(
       pageSize: maxResults ?? 100,
       q: "'$folderId' in parents and trashed = false",
@@ -106,11 +116,14 @@ class ObjectStorageGdrive extends ObjectStorage {
     );
     var items = (fileList.files ?? []).map((f) {
       var isFolder = f.mimeType == GDrive.folderMimeType;
+      var folderId = f.id!;
+      var mimeType = f.mimeType;
+      var path = _folderIdToPath(folderId);
       return _GdriveMeta(
         name: f.name!,
-        path: folderId,
+        path: path,
         size: isFolder ? null : int.tryParse(f.size ?? ''),
-        mimeType: isFolder ? null : f.mimeType,
+        mimeType: mimeType,
         isLocation: isFolder,
       );
     }).toList();
@@ -124,10 +137,9 @@ class ObjectStorageGdrive extends ObjectStorage {
   Future<ObjectStorageMeta> getItem(String path) async {
     await gdrive.ready;
     var object = await _getFile(path);
-    if (object is gd.File) {
-      return _toMeta(object);
-    }
-    throw Exception('Item not found: $path');
+    return _toMeta(object);
+
+    //    throw Exception('Item not found: $path');
   }
 
   ObjectStorageMeta _toMeta(gd.File file) {
@@ -205,9 +217,18 @@ class ObjectStorageGdrive extends ObjectStorage {
   Future<void> delete(String path) async {
     await gdrive.ready;
     var fileId = path;
-    var file = await _getFile(fileId);
-    if (file is gd.File) {
+    try {
+      await _getFile(fileId);
       await gdrive.deleteFile(fileId);
+    } catch (e) {
+      if (isDebug) {
+        _log('Error getting file for deletion: $e');
+      }
     }
   }
+}
+
+void _log(Object? message) {
+  // ignore: avoid_print
+  print(message);
 }
