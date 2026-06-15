@@ -101,7 +101,7 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
   }
 
   void _navigateInto(String path) {
-    print('Navigating into $path');
+    // print('Navigating into $path');
     setState(() {
       _currentPath = path;
       _pathStack.add(path);
