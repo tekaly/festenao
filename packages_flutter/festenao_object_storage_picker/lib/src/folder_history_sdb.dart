@@ -29,26 +29,22 @@ class FolderHistorySdb {
       name ?? 'folder_history_v1.db',
       options: SdbOpenDatabaseOptions(
         version: 1,
-        schema: SdbDatabaseSchema(
-          stores: [
-            dbFolderHistoryStore.schema(),
-          ],
-        ),
+        schema: SdbDatabaseSchema(stores: [dbFolderHistoryStore.schema()]),
       ),
     );
     cvAddConstructors([SdbFolderHistoryItem.new]);
   }();
 
   /// Sembast store for history items.
-  static final dbFolderHistoryStore =
-      scvStringStoreFactory.store<SdbFolderHistoryItem>('folder_history');
+  static final dbFolderHistoryStore = scvStringStoreFactory
+      .store<SdbFolderHistoryItem>('folder_history');
 
   /// Constructor.
   FolderHistorySdb({required this.factory, this.name});
 
   /// In-memory helper constructor.
   FolderHistorySdb.inMemory()
-      : this(factory: sdbFactoryMemory, name: 'in_memory');
+    : this(factory: sdbFactoryMemory, name: 'in_memory');
 
   /// Add a folder ID/URL to history, keeping only the last 100 entries.
   Future<void> addFolderId(String folderId) async {
@@ -70,7 +66,9 @@ class FolderHistorySdb {
             ..sort((a, b) => b.timestamp.v!.compareTo(a.timestamp.v!));
 
           for (var i = 100; i < sorted.length; i++) {
-            await dbFolderHistoryStore.record(sorted[i].folderId.v!).delete(txn);
+            await dbFolderHistoryStore
+                .record(sorted[i].folderId.v!)
+                .delete(txn);
           }
         }
       },
@@ -85,7 +83,6 @@ class FolderHistorySdb {
       ..sort((a, b) => b.timestamp.v!.compareTo(a.timestamp.v!));
     return sorted.map((e) => e.folderId.v!).toList();
   }
-
 
   /// Close the database connection.
   Future<void> close() async {

@@ -161,18 +161,19 @@ class _ObjectStoragePickerFlowScreenState
 
     // Push the picker screen
     if (mounted) {
-      final selected = await Navigator.of(context).push<List<ObjectStorageMeta>>(
-        MaterialPageRoute(
-          builder: (context) => ObjectStoragePickerScreen(
-            title: 'Select Files',
-            storage: widget.storage,
-            parentPath: folderId,
-            allowedMimeTypes: widget.allowedMimeTypes,
-            allowMultiSelect: widget.allowMultiSelect,
-            developerMode: widget.developerMode,
-          ),
-        ),
-      );
+      final selected = await Navigator.of(context)
+          .push<List<ObjectStorageMeta>>(
+            MaterialPageRoute(
+              builder: (context) => ObjectStoragePickerScreen(
+                title: 'Select Files',
+                storage: widget.storage,
+                parentPath: folderId,
+                allowedMimeTypes: widget.allowedMimeTypes,
+                allowMultiSelect: widget.allowMultiSelect,
+                developerMode: widget.developerMode,
+              ),
+            ),
+          );
 
       // If files were selected, pop and return them to the caller
       if (selected != null && mounted) {
@@ -184,9 +185,7 @@ class _ObjectStoragePickerFlowScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Select Google Drive Folder'),
-      ),
+      appBar: AppBar(title: const Text('Select Google Drive Folder')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -218,7 +217,9 @@ class _ObjectStoragePickerFlowScreenState
             ],
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: _parsedId.isEmpty ? null : () => _openFolder(_parsedId),
+              onPressed: _parsedId.isEmpty
+                  ? null
+                  : () => _openFolder(_parsedId),
               icon: const Icon(Icons.folder_open),
               label: const Text('Open Folder'),
             ),
@@ -238,29 +239,26 @@ class _ObjectStoragePickerFlowScreenState
               child: _isLoadingHistory
                   ? const Center(child: CircularProgressIndicator())
                   : _history.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No folder history yet.',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        )
-                      : ListView.separated(
-                          itemCount: _history.length,
-                          separatorBuilder: (context, index) =>
-                              const Divider(height: 1),
-                          itemBuilder: (context, index) {
-                            var item = _history[index];
-                            return ListTile(
-                              leading: const Icon(Icons.folder_outlined),
-                              title: Text(
-                                item,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () => _openFolder(item),
-                            );
-                          },
-                        ),
+                  ? const Center(
+                      child: Text(
+                        'No folder history yet.',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
+                  : ListView.separated(
+                      itemCount: _history.length,
+                      separatorBuilder: (context, index) =>
+                          const Divider(height: 1),
+                      itemBuilder: (context, index) {
+                        var item = _history[index];
+                        return ListTile(
+                          leading: const Icon(Icons.folder_outlined),
+                          title: Text(item, overflow: TextOverflow.ellipsis),
+                          trailing: const Icon(Icons.chevron_right),
+                          onTap: () => _openFolder(item),
+                        );
+                      },
+                    ),
             ),
           ],
         ),

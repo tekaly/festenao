@@ -94,9 +94,7 @@ class ObjectStorageSdb extends ObjectStorage {
       name ?? objectStorageSdbName,
       options: SdbOpenDatabaseOptions(
         version: 1,
-        schema: SdbDatabaseSchema(
-          stores: [sdbObjectStore.schema()],
-        ),
+        schema: SdbDatabaseSchema(stores: [sdbObjectStore.schema()]),
       ),
     );
     initSdbObjectBuilders();
@@ -112,10 +110,10 @@ class ObjectStorageSdb extends ObjectStorage {
 
   /// Create a new in-memory [ObjectStorageSdb] instance.
   ObjectStorageSdb.inMemory()
-      : factory = sdbFactoryMemory,
-        fileSystem = newFileSystemMemory(),
-        rootPath = '/root',
-        name = 'in_memory';
+    : factory = sdbFactoryMemory,
+      fileSystem = newFileSystemMemory(),
+      rootPath = '/root',
+      name = 'in_memory';
 
   /// Close the database.
   Future<void> close() async {
@@ -260,7 +258,9 @@ class ObjectStorageSdb extends ObjectStorage {
     );
 
     if (count > 0) {
-      var name = path.split('/').lastWhere((part) => part.isNotEmpty, orElse: () => '');
+      var name = path
+          .split('/')
+          .lastWhere((part) => part.isNotEmpty, orElse: () => '');
       return _SdbMeta(
         name: name,
         path: path,
@@ -306,22 +306,26 @@ class ObjectStorageSdb extends ObjectStorage {
         var dirPosixPath = prefix.isEmpty ? dirName : '$prefix$dirName';
 
         if (seenLocations.add(dirPosixPath)) {
-          items.add(_SdbMeta(
-            name: dirName,
-            path: dirPosixPath,
-            size: null,
-            mimeType: null,
-            isLocation: true,
-          ));
+          items.add(
+            _SdbMeta(
+              name: dirName,
+              path: dirPosixPath,
+              size: null,
+              mimeType: null,
+              isLocation: true,
+            ),
+          );
         }
       } else {
-        items.add(_SdbMeta(
-          name: file.name.v!,
-          path: filePath,
-          size: file.size.v,
-          mimeType: file.mimeType.v,
-          isLocation: false,
-        ));
+        items.add(
+          _SdbMeta(
+            name: file.name.v!,
+            path: filePath,
+            size: file.size.v,
+            mimeType: file.mimeType.v,
+            isLocation: false,
+          ),
+        );
       }
     }
 

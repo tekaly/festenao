@@ -138,7 +138,11 @@ class ObjectStorageSdbCached extends ObjectStorage {
 
       unawaited(() async {
         try {
-          await _refreshList(path, pageToken: pageToken, maxResults: maxResults);
+          await _refreshList(
+            path,
+            pageToken: pageToken,
+            maxResults: maxResults,
+          );
         } catch (_) {}
       }());
 

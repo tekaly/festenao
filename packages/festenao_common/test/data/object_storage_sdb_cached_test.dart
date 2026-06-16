@@ -73,7 +73,12 @@ void main() {
       // 1. Upload directly to the delegate to bypass cached writer (simulating another client uploading)
       var text1 = 'Content 1';
       var data1 = Uint8List.fromList(text1.codeUnits);
-      await ctx.delegate.upload('my_test', name: 'cached.txt', data: data1, mimeType: 'text/plain');
+      await ctx.delegate.upload(
+        'my_test',
+        name: 'cached.txt',
+        data: data1,
+        mimeType: 'text/plain',
+      );
 
       // 2. Fetch via cached storage. First fetch must go to the delegate (cache miss)
       var meta = await ctx.storage.getItem('my_test/cached.txt');
@@ -85,7 +90,12 @@ void main() {
       // 3. Now modify the delegate content directly (simulating another client updating)
       var text2 = 'Content 2';
       var data2 = Uint8List.fromList(text2.codeUnits);
-      await ctx.delegate.upload('my_test', name: 'cached.txt', data: data2, mimeType: 'text/plain');
+      await ctx.delegate.upload(
+        'my_test',
+        name: 'cached.txt',
+        data: data2,
+        mimeType: 'text/plain',
+      );
 
       // 4. Download from cached storage. It should hit the cache and return the OLD content first
       var cachedDownloaded = await ctx.storage.download('my_test/cached.txt');

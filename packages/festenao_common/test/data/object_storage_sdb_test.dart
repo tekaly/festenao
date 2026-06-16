@@ -34,9 +34,16 @@ class ObjectStorageSdbTestContext implements ObjectStorageTestContext {
 
   static ObjectStorageSdbTestContext io(String name) {
     var factory = sdbFactoryIo;
-    var dbName = '.dart_tool/festenao_common/test/object_storage_sdb/test_$name.db';
+    var dbName =
+        '.dart_tool/festenao_common/test/object_storage_sdb/test_$name.db';
     var fs = fileSystemIo;
-    var rootPath = fs.path.join('.dart_tool', 'festenao_common', 'test', 'object_storage_sdb', 'fs_$name');
+    var rootPath = fs.path.join(
+      '.dart_tool',
+      'festenao_common',
+      'test',
+      'object_storage_sdb',
+      'fs_$name',
+    );
 
     Future<void> onDispose() async {
       await factory.deleteDatabase(dbName);
