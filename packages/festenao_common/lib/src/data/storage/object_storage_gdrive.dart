@@ -106,7 +106,7 @@ class ObjectStorageGdrive extends ObjectStorage {
     int? maxResults,
   }) async {
     await gdrive.ready;
-    var folderId = _folderIdFromPath;
+    var folderId = _folderIdFromPath(path);
 
     var fileList = await gdrive.driveApi.files.list(
       pageSize: maxResults ?? 100,
