@@ -58,6 +58,70 @@ abstract class ObjectStorage {
   /// Download data from a path.
   Future<Uint8List> download(String path);
 
+  /// Download a part of the file content (start, size).
+  Future<Uint8List> downloadPart(String path, int start, int size);
+
+  /// Download a file (or part of it) as a stream of chunks.
+  Stream<Uint8List> downloadStream(
+    String path, {
+    int? start,
+    int? size,
+    int? chunkSize,
+  }) {
+    return objectStorageDownloadStreamHelper(
+      this,
+      path,
+      start: start,
+      size: size,
+      chunkSize: chunkSize,
+    );
+  }
+
   /// Delete an object.
   Future<void> delete(String path);
+}
+
+/// Helper to implement downloadStream using downloadPart.
+Stream<Uint8List> objectStorageDownloadStreamHelper(
+  ObjectStorage storage,
+  String path, {
+  int? start,
+  int? size,
+  int? chunkSize,
+}) async* {
+  var currentStart = start ?? 0;
+  var remaining = size;
+  var chunkLimit = chunkSize ?? 1024 * 1024; // Default to 1MB chunks
+
+  while (remaining == null || remaining > 0) {
+    var nextSize = chunkLimit;
+    if (remaining != null && nextSize > remaining) {
+      nextSize = remaining;
+    }
+
+    Uint8List chunk;
+    try {
+      chunk = await storage.downloadPart(path, currentStart, nextSize);
+    } catch (e) {
+      if (remaining == null && currentStart > 0) {
+        break;
+      }
+      rethrow;
+    }
+
+    if (chunk.isEmpty) {
+      break;
+    }
+
+    yield chunk;
+
+    currentStart += chunk.length;
+    if (remaining != null) {
+      remaining -= chunk.length;
+    }
+
+    if (chunk.length < nextSize) {
+      break;
+    }
+  }
 }

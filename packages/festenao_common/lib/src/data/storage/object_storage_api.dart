@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_common/festenao_http.dart';
 import 'package:festenao_common/src/data/storage/gdrive_api_service.dart';
+import 'object_storage.dart';
 
 /// Client implementation of [ObjectStorageMeta].
 class _ObjectStorageApiMeta implements ObjectStorageMeta {
@@ -65,6 +66,33 @@ class ObjectStorageApiClient implements ObjectStorage {
   Future<Uint8List> download(String path) async {
     var result = await _api.download(GdriveApiDownloadQuery()..path.v = path);
     return Uint8List.fromList(base64Decode(result.content.v!));
+  }
+
+  @override
+  Future<Uint8List> downloadPart(String path, int start, int size) async {
+    var result = await _api.download(
+      GdriveApiDownloadQuery()
+        ..path.v = path
+        ..start.v = start
+        ..size.v = size,
+    );
+    return Uint8List.fromList(base64Decode(result.content.v!));
+  }
+
+  @override
+  Stream<Uint8List> downloadStream(
+    String path, {
+    int? start,
+    int? size,
+    int? chunkSize,
+  }) {
+    return objectStorageDownloadStreamHelper(
+      this,
+      path,
+      start: start,
+      size: size,
+      chunkSize: chunkSize,
+    );
   }
 
   @override

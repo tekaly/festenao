@@ -110,8 +110,14 @@ class GdriveApiDownloadQuery extends ApiQuery {
   /// Path.
   late final path = CvField<String>('path');
 
+  /// Start offset.
+  late final start = CvField<int>('start');
+
+  /// Size.
+  late final size = CvField<int>('size');
+
   @override
-  late final CvFields fields = [path];
+  late final CvFields fields = [path, start, size];
 }
 
 /// GDrive download result.

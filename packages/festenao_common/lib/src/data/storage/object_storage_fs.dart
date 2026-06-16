@@ -105,6 +105,46 @@ class ObjectStorageFs extends ObjectStorage {
   }
 
   @override
+  Future<Uint8List> downloadPart(String path, int start, int size) async {
+    var fsPath = _toFsPath(path);
+    var file = fileSystem.file(fsPath);
+    if (!await file.exists()) {
+      throw Exception('File not found: $path');
+    }
+    try {
+      var stream = file.openRead(start, start + size);
+      var bytes = <int>[];
+      await for (var chunk in stream) {
+        bytes.addAll(chunk);
+      }
+      return Uint8List.fromList(bytes);
+    } catch (_) {
+      var allBytes = await file.readAsBytes();
+      var end = start + size;
+      if (end > allBytes.length) {
+        end = allBytes.length;
+      }
+      return Uint8List.fromList(allBytes.sublist(start, end));
+    }
+  }
+
+  @override
+  Stream<Uint8List> downloadStream(
+    String path, {
+    int? start,
+    int? size,
+    int? chunkSize,
+  }) {
+    var fsPath = _toFsPath(path);
+    var file = fileSystem.file(fsPath);
+    int? end;
+    if (size != null) {
+      end = (start ?? 0) + size;
+    }
+    return file.openRead(start, end).map(Uint8List.fromList);
+  }
+
+  @override
   Future<ObjectStorageMeta> getItem(String path) async {
     var fsPath = _toFsPath(path);
 

@@ -72,6 +72,46 @@ void objectStorageTest(ObjectStorageTestContext Function() newContext) {
     expect(result, data);
   });
 
+  test('downloadPart', () async {
+    var data = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    var file = await ctx.storage.upload(
+      'test',
+      name: 'part_file.bin',
+      data: data,
+      mimeType: mimeTypeOctetStream,
+    );
+    var result = await ctx.storage.downloadPart(file.path, 2, 4);
+    expect(result, Uint8List.fromList([3, 4, 5, 6]));
+
+    // Test end bounds
+    var resultEnd = await ctx.storage.downloadPart(file.path, 8, 5);
+    expect(resultEnd, Uint8List.fromList([9, 10]));
+  });
+
+  test('downloadStream', () async {
+    var data = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+    var file = await ctx.storage.upload(
+      'test',
+      name: 'stream_file.bin',
+      data: data,
+      mimeType: mimeTypeOctetStream,
+    );
+    // Download full file as stream with small chunks
+    var chunks = await ctx.storage
+        .downloadStream(file.path, chunkSize: 3)
+        .toList();
+    expect(Uint8List.fromList(chunks.expand((c) => c).toList()), data);
+
+    // Download part as stream
+    var partChunks = await ctx.storage
+        .downloadStream(file.path, start: 2, size: 5, chunkSize: 2)
+        .toList();
+    expect(
+      Uint8List.fromList(partChunks.expand((c) => c).toList()),
+      Uint8List.fromList([3, 4, 5, 6, 7]),
+    );
+  });
+
   test('getMeta', () async {
     var data = Uint8List.fromList([10, 20, 30]);
     var meta = await ctx.storage.upload(

@@ -214,6 +214,16 @@ class ObjectStorageGdrive extends ObjectStorage {
   }
 
   @override
+  Future<Uint8List> downloadPart(String path, int start, int size) async {
+    var allBytes = await download(path);
+    var end = start + size;
+    if (end > allBytes.length) {
+      end = allBytes.length;
+    }
+    return Uint8List.fromList(allBytes.sublist(start, end));
+  }
+
+  @override
   Future<void> delete(String path) async {
     await gdrive.ready;
     var fileId = path;

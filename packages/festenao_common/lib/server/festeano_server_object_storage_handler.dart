@@ -89,7 +89,14 @@ class FestenaoObjectStorageHandler {
   /// Handles the download command.
   Future<ApiResult> onDownloadCommand(ApiRequest apiRequest) async {
     var query = apiRequest.query<GdriveApiDownloadQuery>();
-    var data = await _objectStorage.download(query.path.v!);
+    var start = query.start.v;
+    var size = query.size.v;
+    Uint8List data;
+    if (start != null && size != null) {
+      data = await _objectStorage.downloadPart(query.path.v!, start, size);
+    } else {
+      data = await _objectStorage.download(query.path.v!);
+    }
     return GdriveApiDownloadResult()..content.v = base64Encode(data);
   }
 

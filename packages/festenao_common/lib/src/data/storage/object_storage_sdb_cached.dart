@@ -52,6 +52,49 @@ class ObjectStorageSdbCached extends ObjectStorage {
     }
   }
 
+  @override
+  Future<Uint8List> downloadPart(String path, int start, int size) async {
+    if (await cache.hasLocalContent(path)) {
+      unawaited(() async {
+        try {
+          await _refreshDownload(path);
+        } catch (_) {}
+      }());
+      return await cache.downloadPart(path, start, size);
+    } else {
+      return await delegate.downloadPart(path, start, size);
+    }
+  }
+
+  @override
+  Stream<Uint8List> downloadStream(
+    String path, {
+    int? start,
+    int? size,
+    int? chunkSize,
+  }) async* {
+    if (await cache.hasLocalContent(path)) {
+      unawaited(() async {
+        try {
+          await _refreshDownload(path);
+        } catch (_) {}
+      }());
+      yield* cache.downloadStream(
+        path,
+        start: start,
+        size: size,
+        chunkSize: chunkSize,
+      );
+    } else {
+      yield* delegate.downloadStream(
+        path,
+        start: start,
+        size: size,
+        chunkSize: chunkSize,
+      );
+    }
+  }
+
   Future<Uint8List> _refreshDownload(String path) async {
     try {
       var data = await delegate.download(path);
