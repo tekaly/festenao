@@ -1,6 +1,6 @@
-# festenao_admin_base_app
+# festenao_firebase_flutter
 
-Admin base app
+Firebase flutter, typical, include rest, flutter (auth, storage, functions, firestore)
 
 ```yaml
   festenao_firebase_flutter:
