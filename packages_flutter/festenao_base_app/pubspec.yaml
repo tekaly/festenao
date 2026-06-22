@@ -83,6 +83,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
       path: app_common_web
+  tekartik_web_splash:
+    git:
+      url: https://github.com/tekartik/app_web_utils.dart
+      path: packages/web_splash
 dev_dependencies:
   flutter_test:
     sdk: flutter
