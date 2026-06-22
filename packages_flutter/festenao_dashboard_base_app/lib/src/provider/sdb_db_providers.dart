@@ -104,6 +104,16 @@ class SdbProjectsContentCache {
   }
 }
 
+class SdbProjectContentOptions {
+  final String dataId;
+  final SdbOpenDatabaseOptions openDatabaseOptions;
+
+  SdbProjectContentOptions({
+    required this.dataId,
+    required this.openDatabaseOptions,
+  });
+}
+
 /// Per-project synced SDB holding artist, event, image, and location stores.
 class SdbProjectContent {
   /// Default data id for festenao
@@ -121,6 +131,12 @@ class SdbProjectContent {
   late FestenaoSyncedSdb _festenaoSyncedSdb;
   //late AutoSynchronizedFirestoreSyncedSdb _autoSyncedSdb;
 
+  // Add a global option
+  static void addContentOptions(SdbProjectContentOptions options) {
+    _map[options.dataId] = options;
+  }
+
+  static final _map = <String, SdbProjectContentOptions>{};
   SyncedSdb get syncedSdb => _festenaoSyncedSdb.db.syncedSdb;
 
   SdbProjectContent({
@@ -132,6 +148,8 @@ class SdbProjectContent {
     () async {
       initSdfConstructors();
       try {
+        var openOptions =
+            _map[dataId]?.openDatabaseOptions ?? sdfContentOpenOptions;
         var festenaoSyncedSdb = await openProjectFestenaoSyncedSdb(
           fs: fs,
           projectsSdbBloc: cache.projectsSdbBloc,
@@ -140,7 +158,7 @@ class SdbProjectContent {
           dataId: dataId,
           firestore: Firestore.instance,
           firebaseStorage: FirebaseStorage.instance,
-          openOptions: sdfContentOpenOptions,
+          openOptions: openOptions,
         );
         _festenaoSyncedSdb = festenaoSyncedSdb;
         /*
