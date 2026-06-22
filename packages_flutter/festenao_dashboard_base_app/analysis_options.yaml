@@ -1,0 +1,3 @@
+include: package:flutter_lints/flutter.yaml
+
+# Generated riverpod files are excluded from linting via type=lint ignores.
