@@ -14,7 +14,6 @@ import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_provid
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tekaly_sdb_synced/synced_sdb_firestore.dart';
 import 'package:tekartik_common_utils/map/lru_map.dart';
-
 part 'sdb_db_providers.g.dart';
 
 // ─── Generic helper ───────────────────────────────────────────────────────────
@@ -169,7 +168,7 @@ class SdbProjectContent {
         dataId: dataId,
         openOptions: sdfContentOpenOptions,
       );*/
-        contentSdb = SdfContentSdb._(
+        contentSdb = SdfContentSdb(
           fs: fs,
           db: await _festenaoSyncedSdb.db.syncedSdb.database,
         );
@@ -352,16 +351,4 @@ Stream<List<SdfLocation>> locationEntries(
         loading: () => Stream.value([]),
         error: (_, _) => Stream.value([]),
       );
-}
-
-/// Typed access to all festenao-content stores inside a single [SdbDatabase].
-class SdfContentSdb {
-  final FileSystem fs;
-  final SdbDatabase _db;
-
-  late final mediaDb = FestenaoMediaSdb(fs: fs, database: _db);
-
-  SdfContentSdb._({required this.fs, required this._db});
-
-  SdbDatabase get db => _db;
 }

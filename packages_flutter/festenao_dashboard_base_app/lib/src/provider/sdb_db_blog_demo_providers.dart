@@ -2,7 +2,6 @@ import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
-import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 
 export 'package:festenao_dashboard_base_app/src/provider/blog_providers.dart'
     show
