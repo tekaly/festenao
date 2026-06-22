@@ -2,3 +2,4 @@
 library;
 
 export 'src/router/content_navigator_go_router_bridge.dart';
+export 'src/router/dashboard_router.dart';

@@ -13,6 +13,7 @@ dependencies:
 
   # State management
   flutter_riverpod: ">=3.0.0"
+  hooks_riverpod: ">=3.0.0"
   riverpod: ">=3.0.0"
   riverpod_annotation: ">=4.0.0"
 
@@ -23,7 +24,11 @@ dependencies:
   idb_shim:
   meta:
 
-  # Festenao common + admin base app
+  # Festenao common + base apps
+  tkcms_common:
+    git:
+      url: https://github.com/tekartikprj/tkcms.git
+      path: packages/tkcms_common
   festenao_common:
     git:
       url: https://github.com/tekaly/festenao
@@ -32,6 +37,22 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_admin_base_app
+  festenao_base_app:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_base_app
+  tkcms_admin_app:
+    git:
+      url: https://github.com/tekartikprj/tkcms.git
+      path: flutter_packages/tkcms_admin_app
+  tkcms_user_app:
+    git:
+      url: https://github.com/tekartikprj/tkcms.git
+      path: flutter_packages/tkcms_user_app
+  tekartik_firebase_ui_auth:
+    git:
+      url: https://github.com/tekartik/firebase_ui.dart
+      path: packages/firebase_ui_auth
 
   # Synced sdb
   tekaly_sdb_synced:
@@ -52,6 +73,20 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
       path: app_bloc
+
+  # Widgets / blocs / utils used by the relocated screens
+  tekartik_app_flutter_widget:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_widget
+  tekartik_app_rx_bloc:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      path: app_rx_bloc
+  tekartik_app_url_launcher_flutter:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_url_launcher
 
   tekartik_common_utils:
     git: https://github.com/tekartik/common_utils.dart
