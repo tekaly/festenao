@@ -166,7 +166,7 @@ class _ContentMediaEditScreenState
     if (fileName.trim().isEmpty) {
       return;
     }
-    Uint8List? bytes = file.bytes;
+    var bytes = file.bytes;
     if (bytes == null && file.path != null) {
       bytes = await File(file.path!).readAsBytes();
     }

@@ -1,7 +1,7 @@
 import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_dashboard_base_app/src/provider/auth_rpd.dart';
-import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 import 'package:festenao_dashboard_base_app/src/provider/auth_screen.dart';
+import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_home_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/projects_access_screen.dart';
 import 'package:flutter/foundation.dart';
@@ -24,7 +24,7 @@ class DashboardHomePage extends ConsumerWidget {
           SliverFillRemaining(
             hasScrollBody: false,
             child: authStateValue.maybeWhen(
-              orElse: () => SizedBox.shrink(),
+              orElse: () => const SizedBox.shrink(),
               data: ((authState) {
                 var identity = authState.identity;
                 return Column(

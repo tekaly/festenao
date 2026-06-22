@@ -1,10 +1,10 @@
+import 'package:festenao_base_app/blurhash/flutter_blurhash.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_providers.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_image_edit_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_image_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:festenao_base_app/blurhash/flutter_blurhash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -66,7 +66,7 @@ class ContentImagesScreen extends ConsumerWidget {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(img.id, style: TextStyle(fontSize: 8)),
+                    Text(img.id, style: const TextStyle(fontSize: 8)),
                     if (img.copyright.v != null) Text('© ${img.copyright.v}'),
                   ],
                 ),

@@ -89,7 +89,7 @@ class _DashboardProjectHomeScreenState
                   ],
                 );
               }
-              return CenteredProgress();
+              return const CenteredProgress();
             },
           ),
         ],

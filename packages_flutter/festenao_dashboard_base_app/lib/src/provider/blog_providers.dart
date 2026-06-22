@@ -1,12 +1,12 @@
+import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
+import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 import 'package:festenao_dashboard_base_app/src/provider/firebase_app_rpd.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tekaly_sdb_synced/synced_sdb_firestore.dart';
 import 'package:tekartik_common_utils/map/lru_map.dart';
-import 'package:festenao_common/data/src/import.dart';
-import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
-import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 
 part 'blog_providers.g.dart';
 
@@ -106,7 +106,7 @@ Future<void> accessPublicProject(
   UserProjectsSdb projectsSdb,
   String projectId,
 ) async {
-  var userId = ""; // No userId, representing public/unauthenticated list
+  var userId = ''; // No userId, representing public/unauthenticated list
   await projectsSdb.setCurrentIdentityId(userId);
   var existing = await projectsSdb.getProject(projectId, userId: userId);
   if (existing == null) {
@@ -159,7 +159,7 @@ class SdbProjectsContentBlogCache {
     var cached = _lru[key];
     if (cached != null) return cached;
 
-    var userId = ""; // without userId
+    var userId = ''; // without userId
     await projectsSdbBloc.projectsSdb.setCurrentIdentityId(userId);
 
     // Make sure the project is added if accessed for the first time
@@ -218,5 +218,5 @@ Stream<List<DbBlog>> blogEntries(Ref ref, String projectId, String dataId) {
 @riverpod
 Stream<List<SdbUserProject>> publicUserProjects(Ref ref) {
   var projectsDb = ref.watch(rpdUserProjectsDbProvider);
-  return projectsDb.onProjects(userId: "");
+  return projectsDb.onProjects(userId: '');
 }

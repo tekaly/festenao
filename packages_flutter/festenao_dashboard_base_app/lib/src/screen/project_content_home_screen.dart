@@ -70,7 +70,7 @@ class _DashboardProjectContentHomeScreenState
                     ),
                     if (sdbContent != null) ...[
                       ListTile(
-                        title: Text('Media source'),
+                        title: const Text('Media source'),
                         subtitle: Text(sdbContent.mediaSource.toString()),
                       ),
                     ],
@@ -89,7 +89,7 @@ class _DashboardProjectContentHomeScreenState
                   ],
                 );
               }
-              return CenteredProgress();
+              return const CenteredProgress();
             },
           ),
         ],

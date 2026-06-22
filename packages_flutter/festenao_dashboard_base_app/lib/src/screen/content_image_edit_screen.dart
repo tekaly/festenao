@@ -230,7 +230,7 @@ class _ContentImageEditScreenState
     final file = result.files.firstOrNull;
     if (file == null) return;
 
-    Uint8List? bytes = file.bytes;
+    var bytes = file.bytes;
     if (bytes == null && file.path != null) {
       bytes = await File(file.path!).readAsBytes();
     }
