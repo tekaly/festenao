@@ -3,6 +3,7 @@ import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_dashboard_base_app/src/screen/project_sdb_share_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_users_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_view_screen_bloc.dart';
 import 'package:flutter/material.dart';
@@ -243,6 +244,20 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                           : null,
                                       icon: const Icon(Icons.people),
                                       label: const Text('Utilisateurs'),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    ElevatedButton.icon(
+                                      onPressed: project != null
+                                          ? () {
+                                              goToProjectSdbShareScreen(
+                                                context,
+                                                projectId: bloc.projectId,
+                                                projectsDb: bloc.projectsDb,
+                                              );
+                                            }
+                                          : null,
+                                      icon: const Icon(Icons.share),
+                                      label: const Text('Partager / Inviter'),
                                     ),
                                     const SizedBox(height: 24),
                                     ElevatedButton(

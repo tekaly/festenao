@@ -23,6 +23,7 @@ dependencies:
   cupertino_icons: ">=1.0.9"
   idb_shim:
   meta:
+  barcode_widget: ">=2.0.4"
 
   # Festenao common + base apps
   tkcms_common:
