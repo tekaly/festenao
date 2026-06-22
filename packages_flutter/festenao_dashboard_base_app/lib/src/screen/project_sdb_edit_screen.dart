@@ -26,8 +26,12 @@ class ProjectSdbEditScreenState
     with AutoDisposedBusyScreenStateMixin<ProjectSdbEditScreen> {
   final formKey = GlobalKey<FormState>();
   TextEditingController? _nameController;
+  TextEditingController? _idController;
 
   bool _gotInitialProject = false;
+
+  /// True when creating a new project (id can be specified).
+  bool _isCreate = false;
   late SdbUserProject initialProject;
 
   bool get _hasChanges {
@@ -35,14 +39,23 @@ class ProjectSdbEditScreenState
       return false;
     }
     var project = _projectFromInput;
-    return (project.name.v?.trimmedNonEmpty() !=
-        initialProject.name.v?.trimmedNonEmpty());
+    if (project.name.v?.trimmedNonEmpty() !=
+        initialProject.name.v?.trimmedNonEmpty()) {
+      return true;
+    }
+    if (_isCreate && project.uid.v?.trimmedNonEmpty() != null) {
+      return true;
+    }
+    return false;
   }
 
   SdbUserProject get _projectFromInput {
     var name = _nameController!.text.trimmedNonEmpty();
     var project = initialProject.clone();
     project.name.v = name;
+    if (_isCreate) {
+      project.uid.v = _idController!.text.trimmedNonEmpty();
+    }
     return project;
   }
 
@@ -86,9 +99,15 @@ class ProjectSdbEditScreenState
         var state = snapshot.data;
         if (state != null && !_gotInitialProject) {
           _gotInitialProject = true;
+          _isCreate = bloc.isCreate;
           initialProject = state.project ?? SdbUserProject();
           _nameController = audiAddTextEditingController(
             TextEditingController(text: initialProject.name.v),
+          );
+          _idController = audiAddTextEditingController(
+            TextEditingController(
+              text: _isCreate ? null : initialProject.uid.v,
+            ),
           );
         }
 
@@ -132,6 +151,21 @@ class ProjectSdbEditScreenState
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            const SizedBox(height: 16),
+                            BodyHPadding(
+                              child: TextFormField(
+                                decoration: InputDecoration(
+                                  hintText: _isCreate
+                                      ? 'Project id (optional)'
+                                      : 'Project id',
+                                  labelText: 'Id',
+                                ),
+                                readOnly: !_isCreate,
+                                enabled: _isCreate,
+                                controller: _idController,
+                                maxLines: 1,
+                              ),
+                            ),
                             const SizedBox(height: 16),
                             BodyHPadding(
                               child: TextFormField(

@@ -5,9 +5,9 @@ import 'package:festenao_common/data/festenao_media_source_firebase.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
-import 'package:flutter/services.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_media_edit_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:tekartik_app_url_launcher_flutter/web_launch_uri.dart';
@@ -100,7 +100,7 @@ class ContentMediaScreen extends HookConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.auto_fix_high),
                         onPressed: () async {
-                          mediaDb?.fixMediaFileRecord(mediaId);
+                          await mediaDb?.fixMediaFileRecord(mediaId);
                         },
                       ),
                   ],
@@ -116,7 +116,7 @@ class ContentMediaScreen extends HookConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.auto_fix_high),
                         onPressed: () async {
-                          mediaDb?.fixMediaFileRecord(mediaId);
+                          await mediaDb?.fixMediaFileRecord(mediaId);
                         },
                       ),
                   ],
@@ -141,7 +141,7 @@ class ContentMediaScreen extends HookConsumerWidget {
                               await mediaDb.markStatusCleared(mediaId);
                             }
                           },
-                          icon: Icon(Icons.refresh),
+                          icon: const Icon(Icons.refresh),
                         ),
                       ],
                     ),
@@ -271,7 +271,7 @@ class ContentMediaScreen extends HookConsumerWidget {
                   },
                 ),
               ],
-              SizedBox(height: 64),
+              const SizedBox(height: 64),
             ],
           );
         },

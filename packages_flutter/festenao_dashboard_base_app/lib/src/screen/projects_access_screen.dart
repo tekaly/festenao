@@ -1,11 +1,11 @@
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
-import 'package:festenao_dashboard_base_app/src/screen/project_leading.dart';
-import 'package:festenao_dashboard_base_app/src/screen/project_sdb_edit_screen.dart';
-import 'package:festenao_dashboard_base_app/src/screen/projects_sdb_screen_bloc.dart';
 import 'package:festenao_dashboard_base_app/src/provider/auth_rpd.dart';
 import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_access_screen.dart';
+import 'package:festenao_dashboard_base_app/src/screen/project_leading.dart';
+import 'package:festenao_dashboard_base_app/src/screen/project_sdb_edit_screen.dart';
+import 'package:festenao_dashboard_base_app/src/screen/projects_sdb_screen_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,7 +23,7 @@ class DashboardProjectsAccessScreen extends ConsumerStatefulWidget {
   /// Projects screen
   const DashboardProjectsAccessScreen({super.key});
 
-  static const routeLocation = '/projects_access';
+  static const routeLocation = 'projects_access';
 
   @override
   ConsumerState<DashboardProjectsAccessScreen> createState() =>
@@ -128,7 +128,7 @@ class _ProjectsScreenState
                             } else {
                               var projectId = project.fsId;
 
-                              context.push(
+                              await context.push(
                                 DashboardProjectAccessScreen.location(
                                   projectId,
                                 ),

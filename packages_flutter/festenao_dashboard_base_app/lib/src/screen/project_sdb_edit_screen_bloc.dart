@@ -56,6 +56,7 @@ class ProjectEditScreenBloc
       var projectUid = await fsDb.projectDb.createEntity(
         userId: userId,
         entity: fsProject,
+        entityId: project.uid.v,
       );
       if (userId == null) {
         var newDbProject = SdbUserProject()
