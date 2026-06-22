@@ -23,7 +23,7 @@ class DashboardProjectsAccessScreen extends ConsumerStatefulWidget {
   /// Projects screen
   const DashboardProjectsAccessScreen({super.key});
 
-  static const routeLocation = 'projects_access';
+  static const routeLocation = '/projects_access';
 
   @override
   ConsumerState<DashboardProjectsAccessScreen> createState() =>
