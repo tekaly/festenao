@@ -7,7 +7,11 @@ import 'package:tkcms_common/tkcms_firestore.dart';
 void initFestenaoFsBuilders() {
   initTkCmsFsBuilders();
   initFestenaoCvBuilders();
-  cvAddConstructors([FsExport.new, FsProject.new]);
+  cvAddConstructors([
+    FsExport.new,
+    FsProject.new,
+    TkCmsFsInviteEntity<FsProject>.new,
+  ]);
   initFsFormBuilders();
 }
 
