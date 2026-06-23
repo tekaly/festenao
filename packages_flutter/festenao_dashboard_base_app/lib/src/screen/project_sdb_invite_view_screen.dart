@@ -32,6 +32,30 @@ class ProjectSdbInviteViewScreen extends StatefulWidget {
 class _ProjectSdbInviteViewScreenState
     extends AutoDisposeBaseState<ProjectSdbInviteViewScreen> {
   bool _busy = false;
+  bool _admin = false;
+  bool _write = false;
+  bool _read = true;
+
+  Future<void> _updateRole(
+    BuildContext context,
+    ProjectSdbInviteViewScreenBloc bloc, {
+    required bool admin,
+    required bool write,
+    required bool read,
+  }) async {
+    setState(() => _busy = true);
+    try {
+      await bloc.updateInviteAccess(admin: admin, write: write, read: read);
+    } catch (e) {
+      if (context.mounted) {
+        await muiSnack(context, 'Erreur: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
 
   Future<void> _accept(
     BuildContext context,
@@ -118,6 +142,15 @@ class _ProjectSdbInviteViewScreenState
         var invite = state?.invite;
         var user = state?.user;
         var canAccept = !_busy && (invite?.exists ?? false) && user != null;
+        var canEditRole = canAccept && (state?.userProject?.isAdmin ?? false);
+
+        if (invite != null && invite.exists && !_busy) {
+          var ua = invite.userAccess.v!;
+          _admin = ua.admin.v ?? false;
+          _write = ua.write.v ?? false;
+          _read = ua.read.v ?? false;
+        }
+
         return Scaffold(
           appBar: AppBar(
             title: const Text('Invitation'),
@@ -153,8 +186,79 @@ class _ProjectSdbInviteViewScreenState
                       const SizedBox(height: 16),
                       ListTile(
                         title: Text(invite!.entity.v?.name.v ?? '(projet)'),
-                        subtitle: accessText(intl, invite.userAccess.v!),
+                        subtitle: canEditRole
+                            ? const Text('Niveau d\'accès (Édition)')
+                            : accessText(intl, invite.userAccess.v!),
                       ),
+                      if (canEditRole) ...[
+                        CheckboxListTile(
+                          title: Text(intl.projectAccessAdmin),
+                          value: _admin,
+                          onChanged: !_busy
+                              ? (on) {
+                                  var newAdmin = on ?? false;
+                                  var newWrite = _write;
+                                  var newRead = _read;
+                                  if (newAdmin) {
+                                    newWrite = true;
+                                    newRead = true;
+                                  }
+                                  _updateRole(
+                                    context,
+                                    bloc,
+                                    admin: newAdmin,
+                                    write: newWrite,
+                                    read: newRead,
+                                  );
+                                }
+                              : null,
+                        ),
+                        CheckboxListTile(
+                          title: Text(intl.projectAccessWrite),
+                          value: _write,
+                          onChanged: !_busy
+                              ? (on) {
+                                  var newWrite = on ?? false;
+                                  var newAdmin = _admin;
+                                  var newRead = _read;
+                                  if (newWrite) {
+                                    newRead = true;
+                                  } else {
+                                    newAdmin = false;
+                                  }
+                                  _updateRole(
+                                    context,
+                                    bloc,
+                                    admin: newAdmin,
+                                    write: newWrite,
+                                    read: newRead,
+                                  );
+                                }
+                              : null,
+                        ),
+                        CheckboxListTile(
+                          title: Text(intl.projectAccessRead),
+                          value: _read,
+                          onChanged: !_busy
+                              ? (on) {
+                                  var newRead = on ?? false;
+                                  var newWrite = _write;
+                                  var newAdmin = _admin;
+                                  if (!newRead) {
+                                    newWrite = false;
+                                    newAdmin = false;
+                                  }
+                                  _updateRole(
+                                    context,
+                                    bloc,
+                                    admin: newAdmin,
+                                    write: newWrite,
+                                    read: newRead,
+                                  );
+                                }
+                              : null,
+                        ),
+                      ],
                       const SizedBox(height: 16),
                       Center(
                         child: ElevatedButton(
