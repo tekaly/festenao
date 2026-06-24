@@ -82,6 +82,7 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+  # Needed for default splash screen
   assets:
     - packages/tekaly_assets/img/tekartik_logo_256.png
     - packages/tekaly_assets/js/tekaly_splash.js
