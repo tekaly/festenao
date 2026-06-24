@@ -186,6 +186,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/gapi.dart
       path: gdrive_api_utils
+  tekartik_firebase_functions_call_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      path: functions_call_rest
   # path: ^1.8.0
 
 dev_dependencies:
