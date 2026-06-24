@@ -1,4 +1,5 @@
 import 'package:festenao_common/festenao_firebase.dart';
+import 'package:tekartik_firebase_functions_call_rest/functions_call_rest.dart';
 
 import '../festenao_firebase_rest.dart';
 
@@ -23,4 +24,50 @@ Future<FirebaseContext> festenaoInitFirebaseRest({
     authService: firebaseAuthServiceRest,
     storageService: storageServiceRest,
   ).init();
+}
+
+/// festenao services
+Future<FirebaseServicesContext> festenaoInitFirebaseServicesContextRest({
+  required FirebaseAppOptions appOptions,
+  GoogleAuthOptions? googleAuthOptions,
+}) async {
+  var firebase = firebaseRest;
+  var firestoreService = firestoreServiceRest;
+  var storageService = storageServiceRest;
+  var functionsCallService = firebaseFunctionsCallServiceRest;
+  var authService = FirebaseAuthServiceRest(
+    persistence: FirebaseRestAuthPersistenceFile(),
+    providers: () => <AuthProviderRest>[
+      // When adding google, must also provider built-in one...but why?
+      BuiltInAuthProviderRest(),
+      if (googleAuthOptions != null)
+        GoogleAuthProviderRestIo(
+          options: googleAuthOptions,
+          credentialPath:
+              '.local/google_auth_firebase_${appOptions.projectId}.json',
+        ),
+    ],
+  );
+  var firebaseServicesContext = FirebaseServicesContext(
+    appOptions: appOptions,
+    firebase: firebase,
+    authService: authService,
+    firestoreService: firestoreService,
+    storageService: storageService,
+    functionsCallService: functionsCallService,
+    functionsCallRegion: regionBelgium,
+  );
+  return firebaseServicesContext;
+}
+
+/// Festenao rest app
+Future<FirebaseContext> festenaoInitFirebaseRestApp({
+  required FirebaseAppOptions appOptions,
+  GoogleAuthOptions? googleAuthOptions,
+}) async {
+  var firebaseServicesContext = await festenaoInitFirebaseServicesContextRest(
+    appOptions: appOptions,
+    googleAuthOptions: googleAuthOptions,
+  );
+  return await firebaseServicesContext.init();
 }
