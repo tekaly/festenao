@@ -2,6 +2,11 @@ import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:fs_shim/fs.dart';
 
+void _log(Object? message) {
+  // ignore: avoid_print
+  print(message);
+}
+
 /// Typed access to all festenao-content stores inside a single [SdbDatabase].
 class SdfContentSdb {
   /// The file system
@@ -18,4 +23,24 @@ class SdfContentSdb {
 
   /// The database
   SdbDatabase get db => _db;
+}
+
+/// Helper extension
+extension SdfContentPersonSdbExt on SdfContentSdb {
+  /// Dump info
+  void dumpInfo() {
+    _log('FS: ${fs.unsandbox()}');
+    //print('FS: ${fs.absolutePath(fs.currentDirectory.path)}');
+    _log('Database path: ${_db.name} ${_db.factory.fullPath(_db.name)}');
+  }
+
+  /// Delete project data
+  Future<void> deleteData() async {
+    try {
+      await fs.unsandbox().delete();
+    } catch (_) {}
+    var name = _db.name;
+    await _db.close();
+    await _db.factory.deleteDatabase(name);
+  }
 }

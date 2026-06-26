@@ -116,6 +116,8 @@ class SdbProjectContentOptions {
 class SdbProjectContent {
   /// Default data id for festenao
   static const defaultDataId = 'content';
+
+  /// RAM cache
   final SdbProjectsContentCache cache;
   final SdbUserProject project;
   final String dataId;

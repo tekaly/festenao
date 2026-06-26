@@ -44,6 +44,14 @@ class FestenaoUserProjectsSdbBloc extends AutoDisposeBaseBloc {
     }();
   }
 
+  /// Must restart after that
+  Future<void> deleteData() async {
+    var sdbFactory = projectsSdb.factory;
+    var name = projectsSdb.db.name;
+    await projectsSdb.close();
+    await sdbFactory.deleteDatabase(name);
+  }
+
   /// Firebase user stream
   ValueStream<FirebaseUser?> get firebaseUserStream =>
       _firebaseUserSubject.stream;
