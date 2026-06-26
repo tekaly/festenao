@@ -3,6 +3,7 @@ import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/festenao_sembast.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
+import 'package:tekartik_common_utils/env_utils.dart';
 export 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 
 /// Database record for a project user.
@@ -129,6 +130,11 @@ class UserProjectsSdb {
 
   /// Future that completes when the database is ready.
   late final Future<void> ready = () async {
+    var dbName = name ?? projectsDbName;
+    if (isDebug) {
+      // ignore: avoid_print
+      print('UserProjectSdb Opening ${factory.fullPath(dbName)}');
+    }
     db = await factory.openDatabase(
       name ?? projectsDbName,
       options: SdbOpenDatabaseOptions(

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:festenao_common/data/festenao_media_source.dart';
@@ -14,6 +12,7 @@ import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_provid
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tekaly_sdb_synced/synced_sdb_firestore.dart';
 import 'package:tekartik_common_utils/map/lru_map.dart';
+import 'package:tkcms_common/tkcms_common.dart';
 part 'sdb_db_providers.g.dart';
 
 // ─── Generic helper ───────────────────────────────────────────────────────────
@@ -50,9 +49,9 @@ Future<FestenaoSyncedSdb> openProjectFestenaoSyncedSdb({
     storageBucket: firebaseStorage.app.options.storageBucket!,
   );
   fileSystem ??= rootFs!.sandbox(path: rootFs.path.join(projectUid, dataId));
-
+  var factory = sdbFactory.sandbox(path: join(projectUid, dataId));
   var festenaoSdb = FestenaoSdb(
-    sdbFactory: sdbFactory,
+    sdbFactory: factory,
     dbName: dbName,
     fs: fileSystem,
     syncedSdbOptions: SyncedSdbOptions(openDatabaseOptions: openOptions),
