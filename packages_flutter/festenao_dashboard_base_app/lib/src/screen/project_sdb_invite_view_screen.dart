@@ -17,12 +17,14 @@ class ProjectSdbInviteViewResult {
 ///
 /// Dashboard counterpart of Notelio's `BookletInviteViewScreen`.
 class ProjectSdbInviteViewScreen extends StatefulWidget {
+  /// To set on start until a better solution is found
+  static String? baseUrl;
   const ProjectSdbInviteViewScreen({super.key});
 
   /// Relative deep-link path for an invite. The consuming app maps this to a
   /// route that opens this screen.
   static String inviteLink(String projectId, String inviteId) =>
-      '/project/$projectId/invite/$inviteId';
+      '${baseUrl ?? Uri.base.toString()}project/$projectId/invite/$inviteId';
 
   @override
   State<ProjectSdbInviteViewScreen> createState() =>
