@@ -1,6 +1,7 @@
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_common/festenao_firebase.dart';
 import 'package:festenao_common/festenao_firebase_rest.dart';
+import 'package:tekartik_firebase_functions_call_rest/functions_call_rest.dart';
 
 /// Initializes Firebase IO with a service account map.
 ///
@@ -25,6 +26,8 @@ Future<FirebaseContext> festenaoInitFirebaseIoWithServiceAccount({
     firestoreService: firestoreServiceRest,
     authService: firebaseAuthServiceRest,
     storageService: storageServiceRest,
+    functionsCallService: firebaseFunctionsCallServiceRest,
+    functionsCallRegion: regionBelgium,
     firebaseApp: firebaseApp,
   ).init();
 }
