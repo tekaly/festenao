@@ -78,6 +78,21 @@ class FestenaoAppInitResult {
   FestenaoAppInitResult({required this.packageName});
 }
 
+void _log(Object? message) {
+  // ignore: avoid_print
+  print(message);
+}
+
+void _dumpDefaults({FlavorContext? flavorContext}) {
+  var uri = Uri.base;
+  flavorContext ??= tkCmsFlavorContextFromUri(uri);
+  if (kDebugMode) {
+    var defaultFlavorContext = tkCmsFlavorContextFromUri(uri);
+    _log('defaultFlavorContext: $defaultFlavorContext');
+  }
+  _log('$uri: $flavorContext');
+}
+
 /// New gen, create default init like in run without running the app
 Future<FestenaoAppInitResult> festenaoAdminAppInit({
   String? packageName,
@@ -99,6 +114,7 @@ Future<FestenaoAppInitResult> festenaoAdminAppInit({
   packageName ??=
       'festenao.admin_base_app${appFlavorContext.ifNotProdFlavorExtension}';
   if (kDebugMode) {
+    _dumpDefaults(flavorContext: appFlavorContext.flavorContext);
     print('packageName: $packageName');
   }
   await initFestenaoLocalSembastFactory();
