@@ -133,7 +133,9 @@ class UserProjectsSdb {
     var dbName = name ?? projectsDbName;
     if (isDebug) {
       // ignore: avoid_print
-      print('UserProjectSdb Opening ${factory.fullPath(dbName)}');
+      print(
+        'UserProjectSdb ${factory.name} Opening ${await factory.getDatabaseFullPath(dbName)}',
+      );
     }
     db = await factory.openDatabase(
       name ?? projectsDbName,

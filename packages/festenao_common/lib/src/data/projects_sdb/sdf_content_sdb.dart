@@ -28,10 +28,12 @@ class SdfContentSdb {
 /// Helper extension
 extension SdfContentPersonSdbExt on SdfContentSdb {
   /// Dump info
-  void dumpInfo() {
+  Future<void> dumpInfo() async {
     _log('FS: ${fs.unsandbox()}');
     //print('FS: ${fs.absolutePath(fs.currentDirectory.path)}');
-    _log('Database path: ${_db.name} ${_db.factory.fullPath(_db.name)}');
+    _log(
+      'Database path: ${_db.name} ${await _db.factory.getDatabaseFullPath(_db.name)}',
+    );
   }
 
   /// Delete project data
