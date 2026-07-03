@@ -165,7 +165,9 @@ Future<void> main() async {
   debugFirestoreRest = true;
   var emulatorSupported = await emulatorService.isSupported();
   if (!emulatorSupported) {
-    stderr.writeln('Firebase emulator not supported');
+    test('Firebase emulator not supported', () {
+      stderr.writeln('Firebase emulator not supported');
+    });
     return;
   }
 
