@@ -3,10 +3,12 @@ import 'package:festenao_common/api/festenao_api_client.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
+import 'package:festenao_common/data/firestore_doc.dart';
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/server/festeano_server_app.dart';
 import 'package:festenao_common/server/festeano_server_entity_handler.dart';
+import 'package:festenao_common/server/festeano_server_firestore_handler.dart';
 import 'package:festenao_common/server/festeano_server_object_storage_handler.dart';
 import 'package:tekartik_app_media/mime_type.dart';
 import 'package:tekartik_firebase_functions/ff_server.dart';
@@ -47,6 +49,11 @@ class FestenaoServerAppTest extends FestenaoServerApp {
     options: FestenaoObjectStorageHandlerOptions(objectStorage: objectStorage),
   );
 
+  /// Firestore doc handler
+  late final firestoreHandler = FestenaoFirestoreHandler(
+    options: FestenaoFirestoreHandlerOptions(firestore: fsDatabase.firestore),
+  );
+
   @override
   Future<ApiResult> onCommand(ApiRequest apiRequest) async {
     var command = apiRequest.apiCommand;
@@ -60,6 +67,10 @@ class FestenaoServerAppTest extends FestenaoServerApp {
       }
     }
     var result = await objectStorageHandler.onCommandOrNull(apiRequest);
+    if (result != null) {
+      return result;
+    }
+    result = await firestoreHandler.onCommandOrNull(apiRequest);
     if (result != null) {
       return result;
     }
@@ -282,6 +293,7 @@ void testFestenaoServerGroup(
   bool noFirestoreCheck = false,
   bool noSignIn = false,
   bool noObjectStorage = false,
+  bool noFirestoreDoc = false,
 }) {
   late FestenaoTestServerContext context;
   late FestenaoApiService apiService;
@@ -508,4 +520,24 @@ void testFestenaoServerGroup(
       expect(e, isNot(isA<TestFailure>()));
     }
   }, skip: noObjectStorage);
+
+  test('firestore doc', () async {
+    var firestoreDocApiService = FirestoreDocApiService(
+      httpsApiUri: apiService.httpsApiUri,
+      callableApi: apiService.callableApi,
+      httpClientFactory: apiService.httpClientFactory,
+      app: apiService.app,
+    );
+
+    var path = 'test/firestore_doc_test';
+    expect(await firestoreDocApiService.getDoc(path), isNull);
+
+    var data = {'message': 'hello', 'count': 1};
+    await firestoreDocApiService.setDoc(path, data);
+    expect(await firestoreDocApiService.getDoc(path), data);
+
+    var updatedData = {'message': 'world', 'count': 2};
+    await firestoreDocApiService.setDoc(path, updatedData);
+    expect(await firestoreDocApiService.getDoc(path), updatedData);
+  }, skip: noFirestoreDoc);
 }

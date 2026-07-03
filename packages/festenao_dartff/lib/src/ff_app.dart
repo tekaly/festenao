@@ -1,0 +1,48 @@
+import 'package:festenao_common/festenao_api.dart';
+import 'package:festenao_common/festenao_server.dart';
+import 'package:festenao_common/firebase/firestore_database.dart';
+import 'package:festenao_common/server/festeano_server_firestore_handler.dart';
+
+/// Festenao server app for the Dart (admin sdk) cloud functions.
+class FfApp extends FestenaoServerApp {
+  /// Creates a new [FfApp] with the given [app] and [context].
+  FfApp({required super.context, super.app}) {
+    initFestenaoFsEntityApiBuilders<FsProject>();
+  }
+
+  /// Firestore database.
+  late var fsDatabase = FestenaoFirestoreDatabase(
+    firebaseContext: firebaseContext,
+    flavorContext: appFlavorContext,
+  );
+
+  /// Project handler.
+  late final projectHandler = FestenaoEntityHandler(
+    app: this,
+    entityAccess: fsDatabase.projectDb,
+  );
+
+  /// Firestore doc handler.
+  late final firestoreHandler = FestenaoFirestoreHandler(
+    options: FestenaoFirestoreHandlerOptions(firestore: fsDatabase.firestore),
+  );
+
+  @override
+  Future<ApiResult> onCommand(ApiRequest apiRequest) async {
+    var command = apiRequest.apiCommand;
+    if (FestenaoEntityHandler.isEntityCommand(
+      projectCollectionInfo.id,
+      command,
+    )) {
+      var result = await projectHandler.onCommandOrNull(apiRequest);
+      if (result != null) {
+        return result;
+      }
+    }
+    var result = await firestoreHandler.onCommandOrNull(apiRequest);
+    if (result != null) {
+      return result;
+    }
+    return super.onCommand(apiRequest);
+  }
+}

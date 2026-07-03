@@ -5,6 +5,8 @@ environment:
 workspace:
   - packages/festenao_blur_hash
   - packages/festenao_common
+  - packages/festenao_dartff
+  - packages/festenao_dartff/functions
   - packages/festenao_support
   - packages_flutter/festenao_admin_base_app
   - packages_flutter/festenao_audio_player

@@ -1,0 +1,35 @@
+name: festenao_dartff_functions
+description: An app using Dart with Cloud Functions for Firebase
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  firebase_functions: ">=0.6.0"
+  tekartik_firebase_admin_sdk:
+    git:
+      url: https://github.com/tekartik/firebase_admin_sdk.dart
+      path: firebase_admin_sdk
+  tekartik_firebase_functions_admin_sdk:
+    git:
+      url: https://github.com/tekartik/firebase_admin_sdk.dart
+      path: firebase_functions_admin_sdk
+  tkcms_common:
+    git:
+      url: https://github.com/tekartikprj/tkcms.git
+      path: packages/tkcms_common
+  festenao_dartff:
+    path: ../
+  festenao_common:
+    path: ../../festenao_common
+
+dev_dependencies:
+  build_runner: ">=2.15.0"
+  lints: ">=6.1.0"
+  tekartik_lints:
+    git:
+      url: https://github.com/tekartik/common.dart
+      path: packages/lints
+resolution: workspace
