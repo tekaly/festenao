@@ -2,12 +2,14 @@ import 'package:festenao_common/festenao_api.dart';
 import 'package:festenao_common/festenao_server.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/server/festeano_server_firestore_handler.dart';
+import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// Festenao server app for the Dart (admin sdk) cloud functions.
 class FfApp extends FestenaoServerApp {
   /// Creates a new [FfApp] with the given [app] and [context].
   FfApp({required super.context, super.app}) {
     initFestenaoFsEntityApiBuilders<FsProject>();
+    initFestenaoFsEntityApiBuilders<TkCmsFsApp>();
   }
 
   /// Firestore database.
@@ -20,6 +22,12 @@ class FfApp extends FestenaoServerApp {
   late final projectHandler = FestenaoEntityHandler(
     app: this,
     entityAccess: fsDatabase.projectDb,
+  );
+
+  /// App (top entity) handler.
+  late final appHandler = FestenaoEntityHandler(
+    app: this,
+    entityAccess: fsDatabase.appDb,
   );
 
   /// Firestore doc handler.
@@ -35,6 +43,15 @@ class FfApp extends FestenaoServerApp {
       command,
     )) {
       var result = await projectHandler.onCommandOrNull(apiRequest);
+      if (result != null) {
+        return result;
+      }
+    }
+    if (FestenaoEntityHandler.isEntityCommand(
+      tkCmsFsAppCollectionInfo.id,
+      command,
+    )) {
+      var result = await appHandler.onCommandOrNull(apiRequest);
       if (result != null) {
         return result;
       }

@@ -532,11 +532,11 @@ void testFestenaoServerGroup(
     var path = 'test/firestore_doc_test';
     expect(await firestoreDocApiService.getDoc(path), isNull);
 
-    var data = {'message': 'hello', 'count': 1};
+    var data = {'message': 'hello', 'count': 1, 'when': Timestamp.now()};
     await firestoreDocApiService.setDoc(path, data);
     expect(await firestoreDocApiService.getDoc(path), data);
 
-    var updatedData = {'message': 'world', 'count': 2};
+    var updatedData = {'message': 'world', 'count': 2, 'when': Timestamp.now()};
     await firestoreDocApiService.setDoc(path, updatedData);
     expect(await firestoreDocApiService.getDoc(path), updatedData);
   }, skip: noFirestoreDoc);

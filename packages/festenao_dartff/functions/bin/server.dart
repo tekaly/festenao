@@ -40,6 +40,10 @@ void main(List<String> args) {
       firebaseApp: firebase.firebaseApp,
     )).initSync();
 
+    // Some festenao_common server handlers use the deprecated global
+    // firebase context.
+    firebaseContextOrNull = fbContext;
+
     var appDev = FfApp(
       context: TkCmsServerAppContext(
         firebaseContext: fbContext,

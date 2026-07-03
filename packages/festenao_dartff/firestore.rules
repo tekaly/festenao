@@ -1,0 +1,161 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+  	
+    // Check public access for some document
+		match /{top}/{topId}/public/get/{document=**} {
+    	allow get: if true;
+		}
+     // Check public access for some document
+		match /public/get/{document=**} {
+    	allow get: if true;
+		}
+    //
+    // Top (Example: app/<app_id>)
+    //
+
+    // Standalone (no backend)
+    // 
+    // access/{entity_type}/entity_id/{entity_id}/user_access/{user_id} (TkCmsFsUserAccess) - used for checking access
+    // access/{entity_type}/user_id/{user_id}/entity_access/{entity_id} (TkCmsFsUserAccess) - used for user enumeration
+    // access/{entity_type}/user_id/{user_id}/invite_access/{invite_code} (TkCmsFsUserAccess) - used for allowing creating invite
+    // access/{entity_type}/user_id/{user_id}/invite_access/{invite_code} (TkCmsFsUserAccess) - used for allowing creating invite
+    // invite/{entity_type}/invite_id/{invite_id}/invite_entity/{entity_id} (TkCmsFsEntityInvite)
+
+    // set invite/project/invite_id/1UbSX2KnzBQxNCIdx5Ky/invite_entity/Xd3PEVGM4tx63d2Yh1sx T1 {entityId: Xd3PEVGM4tx63d2Yh1sx, entity: {}, userAccess: {admin: true, write: true, read: true}, timestamp: FieldValueType.serverTimestamp, inviteCode: ddBkYWbP3v7nnQGpurmn}
+
+    function inviteMatchesInviteCode(entity, userId, inviteCode) {
+      return inviteCode != null && get(/databases/$(database)/documents/access/$(entity)/user_id/$(userId)/invite_access/$(inviteCode)).data.admin == true;
+    }
+    function accessMatchesInvite(entity, entityId, inviteId) {
+      return inviteId != null 
+        && get(/databases/$(database)/documents/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId)).data.userAccess.admin == true;
+    }
+    match /invite/{entity}/invite_id/{document=**} {
+      allow create: if inviteMatchesInviteCode(entity, request.auth.uid, request.resource.data.inviteCode);
+      allow read: if request.auth.uid != null && resource.data.entityId != null;
+      allow delete: if request.auth.uid != null;
+    }
+    
+    match /access/{entity}/entity_id/{entityId}/user_access/{document} {
+      allow create: if accessMatchesInvite(entity, entityId, request.resource.data.inviteId);
+      allow read, write: if hasEntityAdminAccess(entity, entityId, request.auth.uid);
+    }
+    
+    match /access/{entity}/user_id/{userId}/entity_access/{entityId} {
+      allow create: if accessMatchesInvite(entity, entityId, request.resource.data.inviteId);
+      allow read, write: if hasEntityAdminAccess(entity, entityId, request.auth.uid);
+    }
+         
+    match /invite/{entity}/invite_id/{document=**} {
+      allow write: if hasEntityAdminAccess(entity, request.resource.data.entityId, request.auth.uid);
+    }
+    
+    // Common (Standalone & Cloud functions supported)
+    
+    function hasEntityAdminAccess(entity, entityId, userId) {
+      return get(/databases/$(database)/documents/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.admin == true;
+    }
+    function hasEntityWriteAccess(entity, entityId, userId) {
+      return get(/databases/$(database)/documents/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.write == true;
+    }
+    
+    match /invite/{entity}/invite_id/{inviteId}/invite_entity/{entityId} {
+      allow read: if request.auth.uid != null;
+    }
+    
+    match /{entity}/{entityId} {
+      allow read, write: if hasEntityWriteAccess(entity, entityId, request.auth.uid);
+    }
+    match /{entity}/{entityId}/{document=**} {
+      allow read, write: if hasEntityWriteAccess(entity, entityId, request.auth.uid);
+    }
+    
+    match /access/{entity}/entity_id/{entityId}/user_access/{userId} {
+      allow read: if request.auth.uid == userId;
+
+    }
+    match /access/{entity}/user_id/{userId}/entity_access/{entityId} {
+      allow read: if request.auth.uid == userId;
+    }
+    
+    match /access/{entity}/user_id/{userId} {
+      allow read: if request.auth.uid == userId;
+    }
+    
+    //
+    // Sub
+    //
+    
+    // Standalone (no backend)
+    // 
+    // access/{entity_type}/entity_id/{entity_id}/user_access/{user_id} (TkCmsFsUserAccess) - used for checking access
+    // access/{entity_type}/user_id/{user_id}/entity_access/{entity_id} (TkCmsFsUserAccess) - used for user enumeration
+    // access/{entity_type}/user_id/{user_id}/invite_access/{invite_code} (TkCmsFsUserAccess) - used for allowing creating invite
+    // access/{entity_type}/user_id/{user_id}/invite_access/{invite_code} (TkCmsFsUserAccess) - used for allowing creating invite
+    // invite/{entity_type}/invite_id/{invite_id}/invite_entity/{entity_id} (TkCmsFsEntityInvite)
+
+    // set invite/project/invite_id/1UbSX2KnzBQxNCIdx5Ky/invite_entity/Xd3PEVGM4tx63d2Yh1sx T1 {entityId: Xd3PEVGM4tx63d2Yh1sx, entity: {}, userAccess: {admin: true, write: true, read: true}, timestamp: FieldValueType.serverTimestamp, inviteCode: ddBkYWbP3v7nnQGpurmn}
+
+    function subInviteMatchesInviteCode(top, topId, entity, userId, inviteCode) {
+      return inviteCode != null && get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/user_id/$(userId)/invite_access/$(inviteCode)).data.admin == true;
+    }
+    function subAccessMatchesInvite(top, topId, entity, entityId, inviteId) {
+      return inviteId != null 
+        && get(/databases/$(database)/documents/$(top)/$(topId)/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId)).data.userAccess.admin == true;
+    }
+    match /{top}/{topId}/invite/{entity}/invite_id/{document=**} {
+      allow create: if subInviteMatchesInviteCode(top, topId, entity, request.auth.uid, request.resource.data.inviteCode);
+      allow read: if request.auth.uid != null && resource.data.entityId != null;
+      allow delete: if request.auth.uid != null;
+    }
+    
+    match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{document} {
+      allow create: if subAccessMatchesInvite(top, topId, entity, entityId, request.resource.data.inviteId);
+      allow read, write: if subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
+    }
+    
+    match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
+      allow create: if subAccessMatchesInvite(top, topId, entity, entityId, request.resource.data.inviteId);
+      allow read, write: if subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
+    }
+         
+    match /{top}/{topId}/invite/{entity}/invite_id/{document=**} {
+      allow write: if subHasEntityAdminAccess(top, topId, entity, request.resource.data.entityId, request.auth.uid);
+    }
+    
+    // Common (Standalone & Cloud functions supported)
+    
+    function subHasEntityAdminAccess(top, topId, entity, entityId, userId) {
+      return get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.admin == true;
+    }
+    function subHasEntityWriteAccess(top, topId, entity, entityId, userId) {
+      return get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.write == true;
+    }
+    
+    match /{top}/{topId}/invite/{entity}/invite_id/{inviteId}/invite_entity/{entityId} {
+      allow read: if request.auth.uid != null;
+    }
+    
+    match /{top}/{topId}/{entity}/{entityId} {
+      allow read, write: if subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
+    }
+    match /{top}/{topId}/{entity}/{entityId}/{document=**} {
+      allow read, write: if subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
+    }
+    
+    match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
+      allow read: if request.auth.uid == userId;
+
+    }
+    match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
+      allow read: if request.auth.uid == userId;
+    }
+    
+    match /{top}/{topId}/access/{entity}/user_id/{userId} {
+      allow read: if request.auth.uid == userId;
+    }
+  
+  }
+}

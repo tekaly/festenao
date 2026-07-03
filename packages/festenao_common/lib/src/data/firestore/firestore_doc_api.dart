@@ -1,4 +1,5 @@
 import 'package:festenao_common/festenao_api.dart';
+import 'package:tekartik_firebase_firestore/utils/json_utils.dart';
 
 /// Firestore get document query.
 class FirestoreDocGetQuery extends ApiQuery {
@@ -79,7 +80,8 @@ class FirestoreDocApiService extends FestenaoApiService {
     if (result.exists.v != true) {
       return null;
     }
-    return result.data.v?.cast<String, Object?>();
+    var jsonData = result.data.v?.cast<String, Object?>();
+    return documentDataFromJsonMapNoFirestore(jsonData)?.asMap();
   }
 
   /// Writes [data] at document [path].
@@ -87,7 +89,7 @@ class FirestoreDocApiService extends FestenaoApiService {
     await getApiResult<FirestoreDocSetResult>(
       (FirestoreDocSetQuery()
             ..path.v = path
-            ..data.v = data)
+            ..data.v = documentDataMapToJsonMap(data))
           .request(setCommand),
     );
   }
