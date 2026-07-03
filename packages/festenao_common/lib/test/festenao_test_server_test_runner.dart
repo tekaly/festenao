@@ -539,5 +539,8 @@ void testFestenaoServerGroup(
     var updatedData = {'message': 'world', 'count': 2, 'when': Timestamp.now()};
     await firestoreDocApiService.setDoc(path, updatedData);
     expect(await firestoreDocApiService.getDoc(path), updatedData);
+
+    await firestoreDocApiService.deleteDoc(path);
+    expect(await firestoreDocApiService.getDoc(path), isNull);
   }, skip: noFirestoreDoc);
 }

@@ -54,6 +54,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_rest.dart
       path: firestore_rest
+  tekartik_firebase_firestore:
+    git:
+      url: https://github.com/tekartik/firebase_firestore.dart
+      path: firestore
 dev_dependencies:
   lints: ">=6.1.0"
   test: ">=1.24.0"

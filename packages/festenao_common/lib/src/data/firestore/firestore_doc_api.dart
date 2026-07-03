@@ -37,6 +37,18 @@ class FirestoreDocSetQuery extends ApiQuery {
 /// Firestore set document result.
 class FirestoreDocSetResult extends ApiResult {}
 
+/// Firestore delete document query.
+class FirestoreDocDeleteQuery extends ApiQuery {
+  /// Firestore document path (e.g. `collection/docId`).
+  late final path = CvField<String>('path');
+
+  @override
+  late final CvFields fields = [path];
+}
+
+/// Firestore delete document result.
+class FirestoreDocDeleteResult extends ApiResult {}
+
 bool _firestoreDocApiBuildersInitialized = false;
 
 /// Init firestore doc API builders.
@@ -49,6 +61,8 @@ void initFirestoreDocApiBuilders() {
       FirestoreDocGetResult.new,
       FirestoreDocSetQuery.new,
       FirestoreDocSetResult.new,
+      FirestoreDocDeleteQuery.new,
+      FirestoreDocDeleteResult.new,
     ]);
   }
 }
@@ -61,6 +75,9 @@ class FirestoreDocApiService extends FestenaoApiService {
 
   /// Set document command.
   static const setCommand = 'firestore/set';
+
+  /// Delete document command.
+  static const deleteCommand = 'firestore/delete';
 
   /// Constructor.
   FirestoreDocApiService({
@@ -91,6 +108,13 @@ class FirestoreDocApiService extends FestenaoApiService {
             ..path.v = path
             ..data.v = documentDataMapToJsonMap(data))
           .request(setCommand),
+    );
+  }
+
+  /// Deletes the document at [path].
+  Future<void> deleteDoc(String path) async {
+    await getApiResult<FirestoreDocDeleteResult>(
+      (FirestoreDocDeleteQuery()..path.v = path).request(deleteCommand),
     );
   }
 }

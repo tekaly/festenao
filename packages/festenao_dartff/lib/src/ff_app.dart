@@ -14,7 +14,7 @@ class FfApp extends FestenaoServerApp {
 
   /// Firestore database.
   late var fsDatabase = FestenaoFirestoreDatabase(
-    firebaseContext: firebaseContext,
+    firebaseContext: super.firebaseContext,
     flavorContext: appFlavorContext,
   );
 

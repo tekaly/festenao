@@ -7,6 +7,7 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
   final FestenaoApiService apiService;
 
   /// The entity access service for Firestore operations.
+  /// firestore is not used as an accessor here but for data conversion
   final TkCmsFirestoreDatabaseServiceEntityAccess<T> entityAccess;
 
   /// Creates a new [FestenaoApiFsEntityClient] instance.

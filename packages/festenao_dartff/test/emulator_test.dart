@@ -8,15 +8,13 @@ import 'dart:io';
 import 'package:festenao_common/api/festenao_api_client.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
+import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
 import 'package:http/http.dart' as http;
 import 'package:tekartik_app_http/app_http.dart';
-import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
-import 'package:tekartik_firebase_firestore/utils/firestore_mock.dart';
 import 'package:tekartik_firebase_functions_call_http/functions_call_http.dart';
 import 'package:tekartik_firebase_local/firebase_local.dart';
-import 'package:tekartik_firebase_rest/firebase_rest.dart';
 import 'package:test/test.dart';
 import 'package:tkcms_common/tkcms_app.dart';
 import 'package:tkcms_common/tkcms_common.dart';
@@ -40,6 +38,7 @@ Future<FirebaseEmulator> startServer(String projectId) async {
 
 class FestenaoTestServerEmulatorContext extends FestenaoTestServerContext {
   final FirebaseEmulator emulator;
+
   FestenaoTestServerEmulatorContext({
     required super.clientContext,
     required this.emulator,
@@ -110,6 +109,7 @@ var testAppId = 'festenao';
 /// `_FirestoreEmulatorClient` in `firestore_rest_impl.dart`), i.e. it always
 /// acts as the emulator admin/owner and bypasses `firestore.rules`
 /// entirely -- unusable for testing per-user rule enforcement.
+@Deprecated('user firestore(Rest).set() instead')
 Future<http.Response> firestoreEmulatorRestSet({
   required String projectId,
   required String path,
@@ -136,6 +136,7 @@ Future<http.Response> firestoreEmulatorRestSet({
 
 /// Reads the document at [path], authenticated as [idToken]. See
 /// [firestoreEmulatorRestSet] for why this bypasses `FirestoreRest`.
+@Deprecated('user firestore(Rest).put() instead')
 Future<http.Response> firestoreEmulatorRestGet({
   required String projectId,
   required String path,
@@ -161,6 +162,7 @@ String userCredentialIdToken(UserCredential credential) {
 
 Future<void> main() async {
   debugWebServices = true;
+  debugFirestoreRest = true;
   var emulatorSupported = await emulatorService.isSupported();
   if (!emulatorSupported) {
     stderr.writeln('Firebase emulator not supported');
@@ -172,6 +174,7 @@ Future<void> main() async {
     late String projectId;
     late Uri httpsApiUri;
     late FirebaseAuthRest auth;
+    late FirestoreRest firestore;
 
     setUpAll(() async {
       projectId = await emulatorService.getProjectId();
@@ -195,7 +198,12 @@ Future<void> main() async {
         options: FirebaseAppOptions(projectId: projectId, apiKey: 'dummy'),
       );
       auth = firebaseAuthServiceRest.auth(restApp);
+      firestore = firestoreServiceRest.firestore(restApp);
       await auth.useAuthEmulator(authEmulatorHost, authEmulatorPort);
+      await firestore.useFirestoreEmulator(
+        firestoreEmulatorHost,
+        firestoreEmulatorPort,
+      );
     });
 
     tearDownAll(() async {
@@ -209,8 +217,8 @@ Future<void> main() async {
         email: 'admin@festenao-dartff-test.local',
         password: 'test1234',
       );
+      expect(auth.currentUser, isNotNull);
       var adminUid = adminCredential.user.uid;
-      var adminIdToken = userCredentialIdToken(adminCredential);
 
       // Bootstrap the "app" (top) entity and grant this user admin access to
       // it, using the cloud function's entity create command: this runs
@@ -222,13 +230,18 @@ Future<void> main() async {
         httpClientFactory: httpClientFactoryIo,
         httpsApiUri: httpsApiUri,
       )..userIdOrNull = adminUid;
+
       var appApiClient = FestenaoApiFsEntityClient<TkCmsFsApp>(
         apiService: bootstrapApiService,
         entityAccess: TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp>(
           entityCollectionInfo: tkCmsFsAppCollectionInfo,
-          firestore: FirestoreMock(),
+          firestore: firestore, // Not used for access
         ),
       );
+
+      // Delete if it exists...
+      await firestore.doc('app/$testAppId').delete();
+
       await appApiClient.createEntity(
         entity: TkCmsFsApp(),
         entityId: testAppId,
@@ -236,44 +249,36 @@ Future<void> main() async {
 
       // Signed in as the admin, a direct Firestore write (subject to
       // security rules, unlike the admin SDK above) must be allowed.
+      /*
       var adminSetResponse = await firestoreEmulatorRestSet(
         projectId: projectId,
         path: 'app/$testAppId',
         idToken: adminIdToken,
         fields: {'probe': 'admin-write-ok'},
       );
-      expect(adminSetResponse.statusCode, 200, reason: adminSetResponse.body);
+      expect(adminSetResponse.statusCode, 200, reason: adminSetResponse.body);*/
+      var docRef = firestore.doc('app/$testAppId');
+      await docRef.set({'probe': 'admin-write-ok'});
 
-      var adminGetResponse = await firestoreEmulatorRestGet(
-        projectId: projectId,
-        path: 'app/$testAppId',
-        idToken: adminIdToken,
-      );
-      expect(adminGetResponse.statusCode, 200, reason: adminGetResponse.body);
-      var adminFields =
-          (jsonDecode(adminGetResponse.body) as Map)['fields'] as Map;
-      var adminProbeField = adminFields['probe'] as Map;
-      expect(adminProbeField['stringValue'], 'admin-write-ok');
+      var snapshot = await docRef.get();
+      var data = snapshot.data;
+      expect(data, {'probe': 'admin-write-ok'});
 
       // A different, unrelated user has no access grant on this entity: a
       // direct Firestore write must be rejected by the security rules.
       await auth.signOut();
-      var strangerCredential = await auth.signInOrUpWithEmailAndPassword(
+      expect(auth.currentUser, isNull);
+      await auth.signInOrUpWithEmailAndPassword(
         email: 'stranger@festenao-dartff-test.local',
         password: 'test1234',
       );
-      var strangerIdToken = userCredentialIdToken(strangerCredential);
-      var strangerSetResponse = await firestoreEmulatorRestSet(
-        projectId: projectId,
-        path: 'app/$testAppId',
-        idToken: strangerIdToken,
-        fields: {'probe': 'stranger-write'},
-      );
-      expect(
-        strangerSetResponse.statusCode,
-        403,
-        reason: strangerSetResponse.body,
-      );
+      expect(auth.currentUser, isNotNull);
+      try {
+        await docRef.set({'probe': 'stranger-write'});
+        fail('should fail');
+      } on FirestoreException catch (e) {
+        expect(e.code, FirestoreErrorCode.permissionDenied);
+      }
     });
   }, timeout: Timeout(Duration(minutes: 5)));
 

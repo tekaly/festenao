@@ -13,7 +13,7 @@ class FestenaoFirestoreHandlerOptions {
   const FestenaoFirestoreHandlerOptions({required this.firestore});
 }
 
-/// Handler for raw Firestore document get/set commands.
+/// Handler for raw Firestore document get/set/delete commands.
 class FestenaoFirestoreHandler {
   /// Options for the handler.
   final FestenaoFirestoreHandlerOptions options;
@@ -33,6 +33,8 @@ class FestenaoFirestoreHandler {
         return await onGetCommand(apiRequest);
       case FirestoreDocApiService.setCommand:
         return await onSetCommand(apiRequest);
+      case FirestoreDocApiService.deleteCommand:
+        return await onDeleteCommand(apiRequest);
     }
 
     return null;
@@ -53,5 +55,14 @@ class FestenaoFirestoreHandler {
     var data = documentDataMapFromJsonMap(_firestore, asModel(query.data.v!));
     await _firestore.doc(query.path.v!).set(data);
     return FirestoreDocSetResult();
+  }
+
+  /// Handles the delete document command.
+  Future<FirestoreDocDeleteResult> onDeleteCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FirestoreDocDeleteQuery>();
+    await _firestore.doc(query.path.v!).delete();
+    return FirestoreDocDeleteResult();
   }
 }

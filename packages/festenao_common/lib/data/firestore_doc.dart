@@ -5,4 +5,6 @@ export '../src/data/firestore/firestore_doc_api.dart'
         FirestoreDocGetResult,
         FirestoreDocSetQuery,
         FirestoreDocSetResult,
+        FirestoreDocDeleteQuery,
+        FirestoreDocDeleteResult,
         initFirestoreDocApiBuilders;
