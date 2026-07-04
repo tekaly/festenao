@@ -9,5 +9,6 @@ Future<void> main() async {
   testFestenaoServerGroup(
     initFestenaoTestServerContextAllMemory,
     noSignIn: true,
+    options: TestFestenaoServerGroupOptions(addFirestoreDoc: true),
   );
 }

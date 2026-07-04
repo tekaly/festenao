@@ -289,6 +289,7 @@ Future<void> main() async {
       initEmulatorServerContext,
       noSignIn: true,
       noObjectStorage: true,
+      options: TestFestenaoServerGroupOptions(addFirestoreDoc: true),
     );
   }, timeout: Timeout(Duration(minutes: 5)));
 }

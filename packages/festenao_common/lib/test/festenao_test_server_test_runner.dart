@@ -284,7 +284,19 @@ initFestenaoTestServerContextAllMemory() async {
 
 Future<void> main() async {
   debugWebServices = true;
-  testFestenaoServerGroup(initFestenaoTestServerContextAllMemory);
+  testFestenaoServerGroup(
+    initFestenaoTestServerContextAllMemory,
+    options: TestFestenaoServerGroupOptions(addFirestoreDoc: true),
+  );
+}
+
+/// Server group options
+class TestFestenaoServerGroupOptions {
+  /// Requires auth and firestore doc function
+  final bool addFirestoreDoc;
+
+  /// Constructor for [TestFestenaoServerGroupOptions].
+  TestFestenaoServerGroupOptions({this.addFirestoreDoc = false});
 }
 
 /// Test server group.
@@ -294,7 +306,10 @@ void testFestenaoServerGroup(
   bool noSignIn = false,
   bool noObjectStorage = false,
   bool noFirestoreDoc = false,
+  TestFestenaoServerGroupOptions? options,
 }) {
+  options ??= TestFestenaoServerGroupOptions();
+
   late FestenaoTestServerContext context;
   late FestenaoApiService apiService;
   late FestenaoAmpService ampService;
@@ -360,11 +375,10 @@ void testFestenaoServerGroup(
     var now = DateTime.timestamp().toIso8601String();
     var name = 'Test $now';
     var createEntityId = 'test';
+
     try {
-      await projectDb.adminDeleteEntity(createEntityId);
-    } catch (_) {}
-    try {
-      await projectDb.adminPurgeEntity(createEntityId);
+      await client.deleteEntity(entityId: createEntityId);
+      await client.purgeEntity(entityId: createEntityId);
     } catch (_) {}
 
     Future<FsProject> createEntity() async {
@@ -542,5 +556,5 @@ void testFestenaoServerGroup(
 
     await firestoreDocApiService.deleteDoc(path);
     expect(await firestoreDocApiService.getDoc(path), isNull);
-  }, skip: noFirestoreDoc);
+  }, skip: !options.addFirestoreDoc);
 }
