@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 class PlayScreen extends StatefulWidget {
   final String lrc;
   final double? speed;
+
   const PlayScreen({super.key, this.lrc = lrcDemo1, this.speed});
 
   @override
@@ -23,6 +24,7 @@ const lrcDemo1 = '''
 
 class _PlayScreenState extends State<PlayScreen> {
   LyricsDataController? controllerOrNull;
+
   LyricsDataController get controller => controllerOrNull!;
 
   @override

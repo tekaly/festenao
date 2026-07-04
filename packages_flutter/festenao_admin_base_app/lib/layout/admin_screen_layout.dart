@@ -10,6 +10,7 @@ class AdminScreenLayout extends StatefulWidget {
   final Widget? floatingActionButton;
   final ValueNotifier<bool>? waiting;
   final bool useDrawer;
+
   const AdminScreenLayout({
     super.key,
     this.appBar,

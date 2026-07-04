@@ -16,7 +16,8 @@ class FestenaoEntityHandlerOptions {
 }
 
 /// Entity handler for Festenao entities.
-class FestenaoEntityHandler<T extends TkCmsFsEntity> {
+class FestenaoEntityHandler<T extends TkCmsFsEntity>
+    implements FestenaoApiHandler {
   /// Options for the handler.
   final FestenaoEntityHandlerOptions options;
 
@@ -49,6 +50,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
   });
 
   /// Handles the command if it's an entity command, otherwise returns null.
+  @override
   Future<ApiResult?> onCommandOrNull(ApiRequest apiRequest) async {
     var command = apiRequest.command.v!;
     if (command == festenaoEntityCreateCommand(_entityType)) {
@@ -92,7 +94,11 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
         ..fromMap(apiRequest.data.v!);
       var userId = apiRequest.userId.v;
       if (userId == null) {
-        throw StateError('Missing userId');
+        throw (ApiError()
+              ..code.v = apiErrorCodeInternal
+              ..message.v = 'Missing userId'
+              ..noRetry.v = true)
+            .exception();
       }
       var entityId = query.entityId.v;
       //var entity = entityAccess.fsEntityRef(entityId).cv()..fsDataFromJsonMap(firestore, query.data.v!);
@@ -118,8 +124,22 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity> {
     {
       var query = apiRequest.query<FsCmsEntityDeleteApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
-      var userId = apiRequest.userId.v!;
-      var entityId = query.entityId.v!;
+      var userId = apiRequest.userId.v;
+      if (userId == null) {
+        throw (ApiError()
+              ..code.v = apiErrorCodeInternal
+              ..message.v = 'Missing userId'
+              ..noRetry.v = true)
+            .exception();
+      }
+      var entityId = query.entityId.v;
+      if (entityId == null) {
+        throw (ApiError()
+              ..code.v = apiErrorCodeInternal
+              ..message.v = 'Missing entityId'
+              ..noRetry.v = true)
+            .exception();
+      }
       await entityAccess.deleteEntity(entityId, userId: userId);
 
       var result = FsCmsEntityDeleteApiResult()..entityId.setValue(entityId);

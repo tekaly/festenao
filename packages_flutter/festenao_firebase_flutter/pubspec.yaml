@@ -75,4 +75,4 @@ resolution: workspace
   #         weight: 700
   #
   # For details regarding fonts in packages, see
-  # https://flutter.dev/to/font-from-package
+# https://flutter.dev/to/font-from-package

@@ -19,8 +19,11 @@ abstract class FormScreenController {
     BuildContext context, {
     required int questionIndex,
   });
+
   Widget newQuestionScreen();
+
   Future<void> goToFormEndScreen(BuildContext context);
+
   Widget newEndScreen();
 
   Future<void> goToQuestionOrEndScreen(
@@ -28,23 +31,27 @@ abstract class FormScreenController {
 
     required int questionIndex,
   });
+
   Widget newStartScreen();
 }
 
 class FormQuestionContentPath extends ContentPathBase {
   final question = ContentPathField('question');
+
   @override
   List<ContentPathField> get fields => [question];
 }
 
 class FormStartContentPath extends ContentPathBase {
   final _part = ContentPathPart('start');
+
   @override
   List<ContentPathField> get fields => [_part];
 }
 
 class FormEndContentPath extends ContentPathBase {
   final _part = ContentPathPart('end');
+
   @override
   List<ContentPathField> get fields => [_part];
 }

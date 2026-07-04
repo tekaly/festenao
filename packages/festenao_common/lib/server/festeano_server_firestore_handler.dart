@@ -14,7 +14,7 @@ class FestenaoFirestoreHandlerOptions {
 }
 
 /// Handler for raw Firestore document get/set/delete commands.
-class FestenaoFirestoreHandler {
+class FestenaoFirestoreHandler implements FestenaoApiHandler {
   /// Options for the handler.
   final FestenaoFirestoreHandlerOptions options;
 
@@ -26,6 +26,7 @@ class FestenaoFirestoreHandler {
   }
 
   /// Handles the command if it's a firestore doc command, otherwise returns null.
+  @override
   Future<ApiResult?> onCommandOrNull(ApiRequest apiRequest) async {
     var command = apiRequest.command.v!;
     switch (command) {

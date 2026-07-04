@@ -89,6 +89,7 @@ class FsCmsEntityCreateApiResult<T extends TkCmsFsEntity>
     implements ApiResult {
   /// The created entity as a map.
   final entity = CvField<Map>('entity');
+
   @override
   CvFields get fields => [...super.fields, entity];
 }
@@ -121,6 +122,7 @@ class FsCmsEntityJoinApiQuery<T extends TkCmsFsEntity>
     implements ApiQuery {
   /// Data representing user access.
   final access = CvField<Map>('access');
+
   @override
   CvFields get fields => [...super.fields, access];
 }

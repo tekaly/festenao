@@ -11,7 +11,9 @@ import 'package:go_router/go_router.dart';
 
 class DashboardHomePage extends ConsumerWidget {
   static String get routeName => 'home';
+
   static String get routeLocation => '/';
+
   const DashboardHomePage({super.key});
 
   @override

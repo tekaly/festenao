@@ -21,13 +21,13 @@ import 'package:tkcms_common/tkcms_server.dart';
 /// Festenao server app for test.
 class FestenaoServerAppTest extends FestenaoServerApp {
   /// Object storage.
-  final ObjectStorage objectStorage;
+  final ObjectStorage? objectStorage;
 
   /// Festenao server app for test.
   FestenaoServerAppTest({
     required super.context,
     super.app,
-    required this.objectStorage,
+    this.objectStorage,
   }) {
     initFestenaoFsEntityApiBuilders<FsProject>();
   }
@@ -45,18 +45,33 @@ class FestenaoServerAppTest extends FestenaoServerApp {
   );
 
   /// Object storage handler
-  late final objectStorageHandler = FestenaoObjectStorageHandler(
-    options: FestenaoObjectStorageHandlerOptions(objectStorage: objectStorage),
-  );
+  late final objectStorageHandler = objectStorage != null
+      ? FestenaoObjectStorageHandler(
+          options: FestenaoObjectStorageHandlerOptions(
+            objectStorage: objectStorage!,
+          ),
+        )
+      : null;
 
   /// Firestore doc handler
   late final firestoreHandler = FestenaoFirestoreHandler(
     options: FestenaoFirestoreHandlerOptions(firestore: fsDatabase.firestore),
   );
 
+  late final _handlers = <FestenaoApiHandler>[
+    firestoreHandler,
+    ?objectStorageHandler,
+    projectHandler,
+  ];
   @override
   Future<ApiResult> onCommand(ApiRequest apiRequest) async {
     var command = apiRequest.apiCommand;
+    for (var handler in _handlers) {
+      var result = await handler.onCommandOrNull(apiRequest);
+      if (result != null) {
+        return result;
+      }
+    }
     if (FestenaoEntityHandler.isEntityCommand(
       projectCollectionInfo.id,
       command,
@@ -66,7 +81,7 @@ class FestenaoServerAppTest extends FestenaoServerApp {
         return result;
       }
     }
-    var result = await objectStorageHandler.onCommandOrNull(apiRequest);
+    var result = await objectStorageHandler?.onCommandOrNull(apiRequest);
     if (result != null) {
       return result;
     }
@@ -378,9 +393,17 @@ void testFestenaoServerGroup(
 
     try {
       await client.deleteEntity(entityId: createEntityId);
+    } catch (_) {}
+    try {
       await client.purgeEntity(entityId: createEntityId);
     } catch (_) {}
 
+    try {
+      await projectDb.adminDeleteEntity(createEntityId);
+    } catch (_) {}
+    try {
+      await projectDb.adminPurgeEntity(createEntityId);
+    } catch (_) {}
     Future<FsProject> createEntity() async {
       var entity = await client.createEntity(
         entity: FsProject()..name.v = name,

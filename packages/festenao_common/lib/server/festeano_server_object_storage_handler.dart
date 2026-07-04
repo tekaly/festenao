@@ -15,7 +15,7 @@ class FestenaoObjectStorageHandlerOptions {
 }
 
 /// Handler for Festenao object storage commands.
-class FestenaoObjectStorageHandler {
+class FestenaoObjectStorageHandler implements FestenaoApiHandler {
   /// Options for the handler.
   final FestenaoObjectStorageHandlerOptions options;
 
@@ -25,6 +25,7 @@ class FestenaoObjectStorageHandler {
   FestenaoObjectStorageHandler({required this.options});
 
   /// Handles the command if it's an object storage command, otherwise returns null.
+  @override
   Future<ApiResult?> onCommandOrNull(ApiRequest apiRequest) async {
     var command = apiRequest.command.v!;
     switch (command) {
@@ -106,4 +107,10 @@ class FestenaoObjectStorageHandler {
     await _objectStorage.delete(query.path.v!);
     return GdriveApiDeleteResult();
   }
+}
+
+/// Handler for Festenao api commands commands.
+abstract class FestenaApiHandler {
+  /// Handles the command if it's an object storage command, otherwise returns null.
+  Future<ApiResult?> onCommandOrNull(ApiRequest apiRequest);
 }

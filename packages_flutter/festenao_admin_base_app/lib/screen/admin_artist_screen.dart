@@ -49,11 +49,13 @@ class AdminArtistScreen extends StatefulWidget {
 class _AdminArtistScreenState extends State<AdminArtistScreen>
     with AdminArticleScreenMixin {
   DbArtist? dbArtist;
+
   @override
   DbArticle? get dbArticle => dbArtist;
 
   AdminArtistScreenBloc get bloc =>
       BlocProvider.of<AdminArtistScreenBloc>(context);
+
   @override
   Widget build(BuildContext context) {
     var bloc = this.bloc;

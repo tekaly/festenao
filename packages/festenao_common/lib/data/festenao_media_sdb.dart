@@ -29,6 +29,7 @@ class SdbFestenaoMediaFileStatus extends ScvStringRecordBase {
 
   /// Deleted
   final deleted = CvField<int>('deleted');
+
   @override
   CvFields get fields => [remote, local, deleted];
 }

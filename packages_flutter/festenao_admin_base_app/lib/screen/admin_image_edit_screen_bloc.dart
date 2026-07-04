@@ -54,6 +54,7 @@ class AdminImageEditScreenBloc
 
   String get imageStorageDirPath =>
       join(projectContext.storagePath, storageImageDirPart);
+
   AdminImageEditScreenBloc({
     required this.imageId,
     required this.param,

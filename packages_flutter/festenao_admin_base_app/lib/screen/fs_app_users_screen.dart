@@ -73,7 +73,8 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                           child: Center(
                             child: Column(
                               children: [
-                                IdentityWarningTile(), // appIntl(context).notSignedInInfo),
+                                IdentityWarningTile(),
+                                // appIntl(context).notSignedInInfo),
                                 SizedBox(height: 8),
                                 /*
                             ElevatedButton(
