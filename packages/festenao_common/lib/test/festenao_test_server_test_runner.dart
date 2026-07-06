@@ -135,13 +135,22 @@ class FestenaoTestFfServerContext {
   }
 }
 
+/// Test client extension
+extension FestenaoTestClientContextExt on FestenaoTestClientContext {
+  /// Firestore
+  Firestore? get firestore => firebaseApp.firestore();
+
+  /// Firestore
+  FirebaseAuth? get firebaseAuth => firebaseApp.auth();
+}
+
 /// Festenao client context.
 abstract class FestenaoTestClientContext {
   /// Api service.
   FestenaoApiService get apiService;
 
   /// Firebase auth.
-  FirebaseAuth? get firebaseAuth;
+  FirebaseApp get firebaseApp;
 
   /// Credentials.
   TkCmsEmailPasswordCredentials? get credentials;
@@ -149,11 +158,11 @@ abstract class FestenaoTestClientContext {
   /// Constructor for [FestenaoTestClientContext].
   factory FestenaoTestClientContext({
     required FestenaoApiService apiService,
-    FirebaseAuth? firebaseAuth,
+    required FirebaseApp firebaseApp,
     TkCmsEmailPasswordCredentials? credentials,
   }) => _FestenaoTestClientContext(
     apiService: apiService,
-    firebaseAuth: firebaseAuth,
+    firebaseApp: firebaseApp,
     credentials: credentials,
   );
 }
@@ -164,7 +173,7 @@ class _FestenaoTestClientContext implements FestenaoTestClientContext {
   final FestenaoApiService apiService;
 
   @override
-  final FirebaseAuth? firebaseAuth;
+  final FirebaseApp firebaseApp;
 
   @override
   final TkCmsEmailPasswordCredentials? credentials;
@@ -172,7 +181,7 @@ class _FestenaoTestClientContext implements FestenaoTestClientContext {
   /// Constructor for [_FestenaoTestClientContext].
   _FestenaoTestClientContext({
     required this.apiService,
-    this.firebaseAuth,
+    required this.firebaseApp,
     this.credentials,
   });
 }
@@ -283,7 +292,7 @@ initFestenaoTestServerContextAllMemory() async {
   return FestenaoTestServerContext(
       clientContext: FestenaoTestClientContext(
         apiService: apiService,
-        firebaseAuth: ffContext.auth,
+        firebaseApp: ffContext.firebaseApp,
         credentials: const TkCmsEmailPasswordCredentials(
           email: 'test',
           password: 'test',
