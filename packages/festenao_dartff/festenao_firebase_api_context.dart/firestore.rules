@@ -1,0 +1,42 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+    
+    
+    // Common (Standalone & Cloud functions supported)
+    
+    function subHasEntityAdminAccess(top, topId, entity, entityId, userId) {
+      return get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.admin == true;
+    }
+    function subHasEntityWriteAccess(top, topId, entity, entityId, userId) {
+      return get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.write == true;
+    }
+    
+    match /{top}/{topId}/invite/{entity}/invite_id/{inviteId}/invite_entity/{entityId} {
+      allow read: if request.auth.uid != null;
+    }
+    
+    match /{top}/{topId}/{entity}/{entityId} {
+      allow read, write: if subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
+    }
+    match /{top}/{topId}/{entity}/{entityId}/{document=**} {
+      allow read, write: if subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
+    }
+    
+    match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
+      allow read: if request.auth.uid == userId;
+
+    }
+    match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
+      allow read: if request.auth.uid == userId;
+    }
+    
+    match /{top}/{topId}/access/{entity}/user_id/{userId} {
+      allow read: if request.auth.uid == userId;
+    }
+  }
+}

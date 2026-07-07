@@ -25,4 +25,6 @@ workspace:
   - packages_flutter/festenao_google_auth
   - packages_flutter/festenao_object_storage_picker
   - packages_flutter/festenao_dashboard_base_app
+  - packages/festenao_dartff/festenao_firebase_api_context.dart
+  - packages/festenao_dartff/festenao_firebase_no_api_context.dart
 

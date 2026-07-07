@@ -190,6 +190,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_rest.dart
       path: functions_call_rest
+  tekartik_firebase_emulator:
+    git:
+      url: https://github.com/tekartik/firebase_node.dart
+      path: firebase_emulator
   # path: ^1.8.0
 
 dev_dependencies:

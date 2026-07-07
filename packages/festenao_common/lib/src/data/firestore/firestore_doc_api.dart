@@ -67,6 +67,17 @@ void initFirestoreDocApiBuilders() {
   }
 }
 
+/// Helper
+extension FirestoreApiServiceDocExt on FestenaoApiService {
+  /// Doc api serivce helper
+  FirestoreDocApiService get docApiService => FirestoreDocApiService(
+    httpClientFactory: httpClientFactory,
+    httpsApiUri: httpsApiUri,
+    callableApi: callableApi,
+    app: app,
+  );
+}
+
 /// Firestore doc API service/helper, giving raw read/write access to a
 /// single Firestore document through the REST/callable API.
 class FirestoreDocApiService extends FestenaoApiService {
