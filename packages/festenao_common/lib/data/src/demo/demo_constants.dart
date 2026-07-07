@@ -13,7 +13,7 @@ var demoFbProjectId = 'festenao-free-dev';
 const demoSourceId = 'BLXblf7NNlE0e0RgcrpH';
 
 /// Test app ID.
-//@deprecated
+@Deprecated('do not use - 2026-07-07')
 const testAppId = demoSourceId;
 
 /// Test root path.

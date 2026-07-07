@@ -209,10 +209,11 @@ Future<void> main() async {
   }
   late FestenaoTestServerEmulatorContext testContext;
   late final firestore = testContext.clientContext.firestore!;
-  setUpAll(() async {
-    testContext = await initEmulatorServerContext();
-  });
-  group('app admin access', () {
+  group('admin access', () {
+    setUpAll(() async {
+      testContext = await initEmulatorServerContext();
+    });
+
     group('emulator_test', () {
       adminAccessTestRunner(() async => testContext.clientContext);
       testFestenaoServerGroup(
