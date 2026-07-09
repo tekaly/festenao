@@ -10,6 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:path/path.dart';
 import 'package:tekaly_sembast_synced/synced_db_storage.dart';
 import 'package:tekartik_app_flutter_common_utils/asset/asset_utils.dart';
+// compat project must include tekartik_app_flutter_sembast dependency
+// ignore: depend_on_referenced_packages
 import 'package:tekartik_app_flutter_sembast/sembast.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
