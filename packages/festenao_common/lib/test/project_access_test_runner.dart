@@ -360,3 +360,141 @@ void appProjectStandaloneAccessTestRunner(
     });
   });
 }
+
+/// Check access using standard public rules
+/// // Public access flag: access/{entity}/entity_id/{entityId}/public_access/public {read: true}
+///     function hasEntityPublicReadAccess(entity, entityId) {
+///       return get(/databases/$(database)/documents/access/$(entity)/entity_id/$(entityId)/public_access/public).data.read == true;
+///     }
+///
+///     match /{entity}/{entityId} {
+///       allow read: if hasEntityPublicReadAccess(entity, entityId);
+///     }
+///     match /{entity}/{entityId}/{document=**} {
+///       allow read: if hasEntityPublicReadAccess(entity, entityId);
+///     }
+///
+///     // Anyone can check the flag; only entity admins can set it
+///     match /access/{entity}/entity_id/{entityId}/public_access/{document} {
+///       allow read: if true;
+///       allow write: if hasEntityAdminAccess(entity, entityId, request.auth.uid);
+///     }
+void appProjectPublicAccessTestRunner(
+  Future<FestenaoTestClientContext> Function() contextBuilder,
+) {
+  late FestenaoTestClientContext testContext;
+  late FirebaseAuth auth;
+  late final firestore = testContext.firestore!;
+  late final docApiService = testContext.apiService.docApiService;
+
+  setUp(() async {
+    initTkCmsFsBuilders();
+    initFestenaoFsEntityApiBuilders<TkCmsFsProject>();
+    testContext = await contextBuilder();
+    auth = testContext.firebaseAuth!;
+    testContext.apiService.httpsApiUri!;
+  });
+
+  test('project public access', () async {
+    var credential = const TkCmsEmailPasswordCredentials(
+      email: 'admin@festenao-dartff-test.local',
+      password: 'test1234',
+    );
+    // Sign in.
+    var userCredential = await auth.signInOrUpWithEmailAndPassword(
+      email: credential.email,
+      password: credential.password,
+    );
+    expect(auth.currentUser, isNotNull);
+    var userId = userCredential.user.uid;
+
+    var entity = 'project';
+    var entityId = 'test_public_project';
+
+    var publicAccessRef = firestore.doc(
+      'access/$entity/entity_id/$entityId/public_access/public',
+    );
+    var entityRef = firestore.doc('$entity/$entityId');
+    var entitySubRef = firestore.doc(
+      '$entity/$entityId/sub_collection/sub_document',
+    );
+
+    Future<void> expectPermissionError(Future<void> Function() action) async {
+      try {
+        await action();
+        fail('should fail before');
+      } catch (e) {
+        expect(isExceptionPermissionError(e), isTrue, reason: '$e');
+      }
+    }
+
+    var projectCollectionInfo = fsProjectCollectionInfo;
+    var entityAccess =
+        TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsProject>(
+          entityCollectionInfo: projectCollectionInfo,
+          firestore: firestore,
+        );
+
+    var accessRef = entityAccess.fsEntityUserAccessRef(entityId, userId);
+    await docApiService.cvSetDoc(accessRef.cv()..grantAdminAccess());
+
+    // As an admin, user can set the public access flag:
+    await publicAccessRef.set({'read': true});
+
+    // Anyone (even signed out) can read the public access flag
+    var flagSnapshot = await publicAccessRef.get();
+    expect(flagSnapshot.data['read'], isTrue);
+
+    // Let's sign out to test public read access
+    await auth.signOut();
+
+    // Anyone can read the flag
+    flagSnapshot = await publicAccessRef.get();
+    expect(flagSnapshot.data['read'], isTrue);
+
+    // Anyone can read the entity and sub-collection/sub-document since public read is enabled
+    var entitySnapshot = await entityRef.get();
+    expect(entitySnapshot.exists, isFalse);
+
+    var subSnapshot = await entitySubRef.get();
+    expect(subSnapshot.exists, isFalse);
+
+    // Let's sign back in to change the flag:
+    userCredential = await auth.signInOrUpWithEmailAndPassword(
+      email: credential.email,
+      password: credential.password,
+    );
+
+    // Set public read to false:
+    await publicAccessRef.set({'read': false});
+
+    // Sign out again:
+    await auth.signOut();
+
+    // Now, unauthenticated user should get permission error reading the entity:
+    await expectPermissionError(() async {
+      await entityRef.get();
+    });
+    await expectPermissionError(() async {
+      await entitySubRef.get();
+    });
+
+    // Unauthenticated user cannot write to public access flag:
+    await expectPermissionError(() async {
+      await publicAccessRef.set({'read': true});
+    });
+
+    // Non-admin user cannot write to public access flag:
+    var otherCredential = const TkCmsEmailPasswordCredentials(
+      email: 'user@festenao-dartff-test.local',
+      password: 'test1234',
+    );
+    await auth.signInOrUpWithEmailAndPassword(
+      email: otherCredential.email,
+      password: otherCredential.password,
+    );
+    await expectPermissionError(() async {
+      await publicAccessRef.set({'read': true});
+    });
+  });
+}
