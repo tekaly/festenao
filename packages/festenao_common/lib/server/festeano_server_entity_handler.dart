@@ -69,14 +69,6 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       return await onDeleteInviteCommand(apiRequest);
     }
 
-    if (command == 'createEntityInvite') {
-      return await onCreateInviteCommand(apiRequest);
-    } else if (command == 'acceptEntityInvite') {
-      return await onAcceptInviteCommand(apiRequest);
-    } else if (command == 'deleteEntityInvite') {
-      return await onDeleteInviteCommand(apiRequest);
-    }
-
     // compat
     if (command.startsWith(_collectionIdPrefix)) {
       var subCommand = command.substring(_collectionIdPrefix.length);

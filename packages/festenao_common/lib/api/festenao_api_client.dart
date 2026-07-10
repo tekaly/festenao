@@ -55,6 +55,18 @@ class FestenaoAmpService {
   }
 }
 
+/// Global service if any
+FestenaoApiService? globalFestenaoApiServiceOrNull;
+
+/// Global service if any
+FestenaoApiService get globalFestenaoApiService =>
+    globalFestenaoApiServiceOrNull!;
+
+/// Set global service if any
+set globalFestenaoApiService(FestenaoApiService value) {
+  globalFestenaoApiServiceOrNull = value;
+}
+
 /// Festenao API service for CMS operations.
 class FestenaoApiService extends TkCmsApiServiceBaseV2 {
   /// Create a [FestenaoApiService] with optional [httpClientFactory], [httpsApiUri], [callableApi], and [app].

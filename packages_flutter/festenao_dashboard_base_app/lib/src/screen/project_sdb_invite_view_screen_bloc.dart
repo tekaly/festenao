@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
+import 'package:festenao_common/festenao_api.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
@@ -98,11 +99,20 @@ class ProjectSdbInviteViewScreenBloc
 
   /// Accept the invite, granting access to the current user.
   Future<void> acceptInvite() async {
-    await _projectDb.acceptInviteEntity(
-      userId: userId,
-      inviteId: inviteId,
-      entityId: projectId,
-    );
+    var apiService = globalFestenaoApiServiceOrNull;
+    if (apiService != null) {
+      var client = FestenaoApiFsEntityClient<FsProject>(
+        apiService: apiService,
+        entityAccess: _projectDb,
+      );
+      await client.acceptEntityInvite(entityId: projectId, inviteId: inviteId);
+    } else {
+      await _projectDb.acceptInviteEntity(
+        userId: userId,
+        inviteId: inviteId,
+        entityId: projectId,
+      );
+    }
     add(
       ProjectSdbInviteViewScreenBlocState(
         user: _user,
@@ -115,10 +125,19 @@ class ProjectSdbInviteViewScreenBloc
 
   /// Delete the invite.
   Future<void> deleteInvite() async {
-    await _projectDb.deleteInviteEntity(
-      inviteId: inviteId,
-      entityId: projectId,
-    );
+    var apiService = globalFestenaoApiServiceOrNull;
+    if (apiService != null) {
+      var client = FestenaoApiFsEntityClient<FsProject>(
+        apiService: apiService,
+        entityAccess: _projectDb,
+      );
+      await client.deleteEntityInvite(entityId: projectId, inviteId: inviteId);
+    } else {
+      await _projectDb.deleteInviteEntity(
+        inviteId: inviteId,
+        entityId: projectId,
+      );
+    }
   }
 
   /// Update the invite's user access role.

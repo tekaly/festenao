@@ -69,4 +69,50 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
         ..setQuery(FsCmsEntityLeaveApiQuery<T>()..entityId.setValue(entityId)),
     );
   }
+
+  /// Creates a new invite for the entity. Returns the invite ID.
+  Future<String> createEntityInvite({
+    required String entityId,
+    required TkCmsFsUserAccess fsUserAccess,
+  }) async {
+    var result = await apiService
+        .getApiResult<FsCmsEntityCreateInviteApiResult<T>>(
+          ApiRequest(command: entityAccess.info.createInviteCommand)..setQuery(
+            FsCmsEntityCreateInviteApiQuery<T>()
+              ..entityId.setValue(entityId)
+              ..write.v = fsUserAccess.write.v
+              ..admin.v = fsUserAccess.admin.v
+              ..read.v = fsUserAccess.read.v,
+          ),
+        );
+    return result.inviteId.v!;
+  }
+
+  /// Accepts an invite for the entity.
+  Future<void> acceptEntityInvite({
+    required String entityId,
+    required String inviteId,
+  }) async {
+    await apiService.getApiResult<FsCmsEntityAcceptInviteApiResult<T>>(
+      ApiRequest(command: entityAccess.info.acceptInviteCommand)..setQuery(
+        FsCmsEntityAcceptInviteApiQuery<T>()
+          ..entityId.setValue(entityId)
+          ..inviteId.setValue(inviteId),
+      ),
+    );
+  }
+
+  /// Deletes an invite for the entity.
+  Future<void> deleteEntityInvite({
+    required String entityId,
+    required String inviteId,
+  }) async {
+    await apiService.getApiResult<FsCmsEntityDeleteInviteApiResult<T>>(
+      ApiRequest(command: entityAccess.info.deleteInviteCommand)..setQuery(
+        FsCmsEntityDeleteInviteApiQuery<T>()
+          ..entityId.setValue(entityId)
+          ..inviteId.setValue(inviteId),
+      ),
+    );
+  }
 }
