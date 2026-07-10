@@ -1,6 +1,7 @@
 import 'package:festenao_common/amp/amp_page.dart';
 import 'package:festenao_common/api/festenao_api_client.dart';
 import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
@@ -24,6 +25,17 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
       default:
         return super.onCommand(apiRequest);
     }
+  }
+
+  @override
+  Future<ApiResult> onCronCommand(ApiRequest apiRequest) async {
+    var db = FestenaoFirestoreDatabase(
+      firebaseContext: firebaseContext,
+      flavorContext: appFlavorContext,
+    );
+    await db.projectDb.purgeDeletedEntities();
+    await db.projectDb.deleteOldInvites();
+    return ApiEmpty();
   }
 
   /// Handles HTTPS AMP requests.

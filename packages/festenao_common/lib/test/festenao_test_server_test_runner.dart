@@ -384,6 +384,7 @@ void testFestenaoServerGroup(
     // ignore: avoid_print
     print(timestamp);
   });
+
   test('create/join/leave/delete/purge/Entity', () async {
     var auth = context.clientContext.firebaseAuth;
     if (auth == null || noSignIn) {
@@ -506,6 +507,80 @@ void testFestenaoServerGroup(
                 .get(fsDatabase.firestore))
             .exists,
         isTrue,
+      );
+    }
+
+    // ignore: no_literal_bool_comparisons, dead_code
+    if (false && (!noFirestoreCheck && !noSignIn)) {
+      // Create invite
+      var fsUserAccessRead = TkCmsFsUserAccess()..read.v = true;
+      var inviteId = await client.createEntityInvite(
+        entityId: entityId,
+        fsUserAccess: fsUserAccessRead,
+      );
+
+      var invite = await fsDatabase.projectDb
+          .fsInviteEntityRef(inviteId, entityId)
+          .get(fsDatabase.firestore);
+      var userAccess = invite.userAccess.v!;
+      expect(userAccess.isAdmin, isFalse);
+      expect(userAccess.isWrite, isFalse);
+      expect(userAccess.isRead, isTrue);
+      expect(invite.entity.v!.name.v, name);
+      expect(invite.entityId.v, entityId);
+      expect(invite.timestamp.v, isNotNull);
+
+      // Accept invite with a second user
+      var userId2 = await auth
+          .signInOrUpWithEmailAndPassword(email: 'test2', password: 'test2')
+          .then((credentials) => credentials.user.uid);
+
+      var inviteIdRef = fsDatabase.projectDb.fsInviteIdRef(inviteId);
+      var inviteIdDoc = await inviteIdRef.get(fsDatabase.firestore);
+      expect(inviteIdDoc.timestamp.v, isNotNull);
+
+      await client.acceptEntityInvite(entityId: entityId, inviteId: inviteId);
+
+      var entityUserAccessRef = fsDatabase.projectDb.fsEntityUserAccessRef(
+        entityId,
+        userId2,
+      );
+      var userEntityAccessRef = fsDatabase.projectDb.fsUserEntityAccessRef(
+        userId2,
+        entityId,
+      );
+      var entityUserAccess = await entityUserAccessRef.get(
+        fsDatabase.firestore,
+      );
+      var userEntityAccess = await userEntityAccessRef.get(
+        fsDatabase.firestore,
+      );
+
+      expect(entityUserAccess.inviteId.v, inviteId);
+      expect(entityUserAccess.admin.v, isFalse);
+      expect(entityUserAccess.write.v, isFalse);
+      expect(entityUserAccess.read.v, isTrue);
+      expect(entityUserAccess, userEntityAccess);
+
+      expect(
+        (await fsDatabase.projectDb
+                .fsInviteIdRef(inviteId)
+                .get(fsDatabase.firestore))
+            .exists,
+        isFalse,
+      );
+      expect(
+        (await fsDatabase.projectDb
+                .fsInviteEntityRef(inviteId, entityId)
+                .get(fsDatabase.firestore))
+            .exists,
+        isFalse,
+      );
+
+      // Sign back as user 1
+      await auth.signInWithEmailAndPassword(
+        email: credentials!.email,
+        password: credentials.password,
       );
     }
 

@@ -1,5 +1,3 @@
-// ignore_for_file: depend_on_referenced_packages
-
 @TestOn('vm')
 library;
 
@@ -8,12 +6,14 @@ import 'dart:io';
 import 'package:festenao_common/api/festenao_api_client.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
+import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/festenao_firebase_rest.dart';
+import 'package:festenao_common/festenao_flavor.dart';
+import 'package:festenao_common/firebase/firestore_database.dart';
+import 'package:festenao_common/test/festenao_doc_test_server_test_runner.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
-import 'package:tekartik_app_http/app_http.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:tekartik_firebase_functions_call_http/functions_call_http.dart';
-import 'package:tekartik_firebase_local/firebase_local.dart';
 import 'package:test/test.dart';
 import 'package:tkcms_common/tkcms_app.dart';
 import 'package:tkcms_common/tkcms_common.dart';
@@ -71,41 +71,56 @@ Future<FestenaoTestServerEmulatorContext> initEmulatorServerContext() async {
   );
   var auth = firebaseAuthServiceRest.auth(restApp);
   var firestore = firestoreServiceRest.firestore(restApp);
-  await auth.useAuthEmulator(authEmulatorHost, authEmulatorPort);
-  await firestore.useFirestoreEmulator(
-    firestoreEmulatorHost,
-    firestoreEmulatorPort,
-  );
-  var callableApp = newFirebaseAppMemory(
-    options: FirebaseAppOptions(projectId: projectId),
-  );
   var functionsCall = firebaseFunctionsCallServiceHttp.functionsCall(
-    callableApp,
+    restApp,
     options: FirebaseFunctionsCallOptions(region: defaultRegion),
   );
+  var fbContext = FirebaseContext(
+    firebaseApp: restApp,
+    auth: auth,
+    firestore: firestore,
+    functionsCall: functionsCall,
+  );
+  await fbContext.useEmulator();
+
   var apiService = FestenaoApiService(
-    httpClientFactory: httpClientFactoryIo,
     httpsApiUri: httpsApiUri,
     callableApi: functionsCall.callableFromUri(callableApiUri),
     app: tkCmsAppDev,
   );
   await apiService.initClient();
 
-  var ampService = FestenaoAmpService(
-    httpClientFactory: httpClientFactoryIo,
-    httpsAmpUri: ampUri,
-  );
+  var ampService = FestenaoAmpService(httpsAmpUri: ampUri);
   await ampService.initClient();
-
-  return FestenaoTestServerEmulatorContext(
-    emulator: emulator,
-    clientContext: FestenaoTestClientContext(
-      apiService: apiService,
-      firebaseApp: restApp,
+  var fsDatabase = FestenaoFirestoreDatabase(
+    firebaseContext: fbContext,
+    flavorContext: AppFlavorContext(
+      flavorContext: FlavorContext.dev,
+      app: apiService.app,
     ),
-    ampService: ampService,
   );
+  var projectApiClient = FestenaoApiFsEntityClient(
+    apiService: apiService,
+    entityAccess: fsDatabase.projectDb,
+  );
+  return FestenaoTestServerEmulatorContext(
+      emulator: emulator,
+      clientContext: FestenaoTestClientContext(
+        apiService: apiService,
+        firebaseApp: restApp,
+        credentials: emulatorCredentials,
+      ),
+      ampService: ampService,
+    )
+    ..ffContext = fbContext
+    ..projectApiClient = projectApiClient
+    ..fsDatabase = fsDatabase;
 }
+
+const emulatorCredentials = TkCmsEmailPasswordCredentials(
+  email: 'festenao@gmail.com',
+  password: 'test1234',
+);
 
 var authEmulatorHost = 'localhost';
 var authEmulatorPort = 9099;
@@ -144,10 +159,8 @@ void adminAccessTestRunner(
     // the only way to create the very first admin for an entity.
     initTkCmsFsBuilders();
     initFestenaoFsEntityApiBuilders<TkCmsFsApp>();
-    var bootstrapApiService = FestenaoApiService(
-      httpClientFactory: httpClientFactoryIo,
-      httpsApiUri: httpsApiUri,
-    )..userIdOrNull = adminUid;
+    var bootstrapApiService = FestenaoApiService(httpsApiUri: httpsApiUri)
+      ..userIdOrNull = adminUid;
 
     var appApiClient = FestenaoApiFsEntityClient<TkCmsFsApp>(
       apiService: bootstrapApiService,
@@ -218,10 +231,12 @@ Future<void> main() async {
       adminAccessTestRunner(() async => testContext.clientContext);
       testFestenaoServerGroup(
         () async => testContext,
-        noSignIn: true,
+
         noObjectStorage: true,
+
         options: TestFestenaoServerGroupOptions(addFirestoreDoc: true),
       );
+      testFestenaoDocServerGroup(() async => testContext);
     }, timeout: Timeout(Duration(minutes: 5)));
     tearDownAll(() async {
       await testContext.close();
