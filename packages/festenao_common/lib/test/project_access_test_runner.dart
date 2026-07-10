@@ -1,6 +1,5 @@
 import 'package:dev_test/test.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity.dart';
-import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/festenao_support.dart';
 import 'package:festenao_common/src/data/firestore/firestore_doc_api.dart';
@@ -86,13 +85,13 @@ void appProjectAccessTestRunner(
     await entityRef.get(firestore);
 
     // Remove write access
-    await docApiService.cvSetDoc((accessRef.cv()..read.v = false)..fixAccess());
+    await docApiService.cvSetDoc((accessRef.cv()..read.v = true)..fixAccess());
     // Cannot write
     await expectPermissionError(() async {
       await firestore.cvSet(entityRef.cv()..name.v = 'test3');
     });
     // can still read
-    // NOT yet await entityRef.get(firestore);
+    // NOT yet in the core rules ! await entityRef.get(firestore);
 
     // Remove read access
     await docApiService.cvSetDoc((accessRef.cv()..read.v = false)..fixAccess());
@@ -107,7 +106,7 @@ void appProjectAccessTestRunner(
     await expectPermissionError(() async {
       await entityRef.get(firestore);
     });
-  }, solo: true);
+  });
 }
 
 /// Check access using standard common rules
@@ -127,7 +126,7 @@ void appProjectStandaloneAccessTestRunner(
     testContext.apiService.httpsApiUri!;
   });
 
-  test('min project access', () async {
+  test('standalone project access', () async {
     var credential = const TkCmsEmailPasswordCredentials(
       email: 'admin@festenao-dartff-test.local',
       password: 'test1234',
@@ -163,7 +162,7 @@ void appProjectStandaloneAccessTestRunner(
     await firestore.cvSet(entityRef.cv()..name.v = 'test');
     await entityRef.get(firestore);
     // User can can write access
-    // NO in the core rules ! await firestore.cvSet(accessRef.cv()..grantAdminAccess());
+    await firestore.cvSet(accessRef.cv()..grantAdminAccess());
 
     Future<void> expectPermissionError(Future<void> Function() action) async {
       // Cannot read
@@ -181,8 +180,13 @@ void appProjectStandaloneAccessTestRunner(
     await firestore.cvSet(entityRef.cv()..name.v = 'test2');
     await entityRef.get(firestore);
 
+    // User cannot cannot write access
+    await expectPermissionError(() async {
+      await firestore.cvSet(accessRef.cv()..grantAdminAccess());
+    });
+
     // Remove write access
-    await docApiService.cvSetDoc((accessRef.cv()..read.v = false)..fixAccess());
+    await docApiService.cvSetDoc((accessRef.cv()..read.v = true)..fixAccess());
     // Cannot write
     await expectPermissionError(() async {
       await firestore.cvSet(entityRef.cv()..name.v = 'test3');
@@ -203,5 +207,5 @@ void appProjectStandaloneAccessTestRunner(
     await expectPermissionError(() async {
       await entityRef.get(firestore);
     });
-  }, solo: true);
+  });
 }
