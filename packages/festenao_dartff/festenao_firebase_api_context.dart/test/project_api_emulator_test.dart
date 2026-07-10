@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:festenao_common/test/festenao_test_server_emulator_helper.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
+import 'package:festenao_common/test/project_access_test_runner.dart';
 import 'package:festenao_common/test/project_api_access_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:test/test.dart';
@@ -42,8 +43,11 @@ Future<void> main() async {
         region: defaultRegion,
       );
     });
-    group('project access', () {
+    group('project api access', () {
       appProjectAccessApiTestRunner(() async => testContext.clientContext);
+    });
+    group('project access', () {
+      appProjectAccessTestRunner(() async => testContext.clientContext);
     });
     tearDownAll(() async {
       await testContext.close();

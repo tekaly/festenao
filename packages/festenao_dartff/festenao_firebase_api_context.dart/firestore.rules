@@ -26,11 +26,12 @@ service cloud.firestore {
     match /{top}/{topId}/{entity}/{entityId}/{document=**} {
       allow read, write: if subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
     }
-    
+
+    // Should not be necessary
     match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
       allow read: if request.auth.uid == userId;
-
     }
+
     match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
       allow read: if request.auth.uid == userId;
     }

@@ -1,6 +1,8 @@
 import 'package:festenao_common/festenao_api.dart';
 import 'package:tekartik_firebase_firestore/utils/json_utils.dart';
 
+import '../../../data/src/festenao/cv_import.dart';
+
 /// Firestore get document query.
 class FirestoreDocGetQuery extends ApiQuery {
   /// Firestore document path (e.g. `collection/docId`).
@@ -127,5 +129,28 @@ class FirestoreDocApiService extends FestenaoApiService {
     await getApiResult<FirestoreDocDeleteResult>(
       (FirestoreDocDeleteQuery()..path.v = path).request(deleteCommand),
     );
+  }
+
+  /// Set
+  Future<void> cvSetDoc<T extends CvFirestoreDocument>(T data) async {
+    await setDoc(data.path, data.toMap());
+  }
+
+  /// Get
+  Future<T?> cvGetDoc<T extends CvFirestoreDocument>(
+    CvDocumentReference<T> ref,
+  ) async {
+    var data = await getDoc(ref.path);
+    if (data == null) {
+      return null;
+    }
+    return data.cv<T>();
+  }
+
+  /// Delete
+  Future<void> cvDeleteDoc<T extends CvFirestoreDocument>(
+    CvDocumentReference<T> ref,
+  ) async {
+    await deleteDoc(ref.path);
   }
 }
