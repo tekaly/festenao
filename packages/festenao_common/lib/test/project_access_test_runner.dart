@@ -110,6 +110,157 @@ void appProjectAccessTestRunner(
 }
 
 /// Check access using standard common rules
+///     match /{top}/{topId}/user_prv/{userId} {
+//       allow read, write: if request.auth != null && request.auth.uid == userId;
+//     }
+void appUserPrvAccessTestRunner(
+  Future<FestenaoTestClientContext> Function() contextBuilder,
+) {
+  late FestenaoTestClientContext testContext;
+  late FirebaseAuth auth;
+  late final firestore = testContext.firestore!;
+
+  setUp(() async {
+    initTkCmsFsBuilders();
+    initFestenaoFsEntityApiBuilders<TkCmsFsProject>();
+    testContext = await contextBuilder();
+    auth = testContext.firebaseAuth!;
+    testContext.apiService.httpsApiUri!;
+  });
+
+  test('user prv access', () async {
+    var credential = const TkCmsEmailPasswordCredentials(
+      email: 'admin@festenao-dartff-test.local',
+      password: 'test1234',
+    );
+    // Sign in.
+    var userCredential = await auth.signInOrUpWithEmailAndPassword(
+      email: credential.email,
+      password: credential.password,
+    );
+    expect(auth.currentUser, isNotNull);
+    var userId = userCredential.user.uid;
+
+    var appId = 'test_app';
+    var userPrvRef = firestore.doc(
+      'app/$appId/$tkCmsUserPrvFirestorePathPart/$userId',
+    );
+    var otherUserPrvRef = firestore.doc(
+      'app/$appId/$tkCmsUserPrvFirestorePathPart/other_user',
+    );
+
+    Future<void> expectPermissionError(Future<void> Function() action) async {
+      try {
+        await action();
+        fail('should fail before');
+      } catch (e) {
+        expect(isExceptionPermissionError(e), isTrue, reason: '$e');
+      }
+    }
+
+    // Can write and read own user_prv
+    await userPrvRef.set({'test': 'value'});
+    var snapshot = await userPrvRef.get();
+    expect(snapshot.data, {'test': 'value'});
+
+    // Cannot write or read other user_prv
+    await expectPermissionError(() async {
+      await otherUserPrvRef.set({'test': 'value'});
+    });
+    await expectPermissionError(() async {
+      await otherUserPrvRef.get();
+    });
+
+    // Sign out
+    await auth.signOut();
+
+    // Cannot read or write own user_prv when signed out
+    await expectPermissionError(() async {
+      await userPrvRef.get();
+    });
+    await expectPermissionError(() async {
+      await userPrvRef.set({'test': 'value'});
+    });
+  });
+}
+
+/// Check access using standard common rules
+///     match /{top}/{topId}/{entity}/{entityId}/user_prv/{userId} {
+//       allow read, write: if request.auth != null && request.auth.uid == userId;
+//     }
+void appProjectUserPrvAccessTestRunner(
+  Future<FestenaoTestClientContext> Function() contextBuilder,
+) {
+  late FestenaoTestClientContext testContext;
+  late FirebaseAuth auth;
+  late final firestore = testContext.firestore!;
+
+  setUp(() async {
+    initTkCmsFsBuilders();
+    initFestenaoFsEntityApiBuilders<TkCmsFsProject>();
+    testContext = await contextBuilder();
+    auth = testContext.firebaseAuth!;
+    testContext.apiService.httpsApiUri!;
+  });
+
+  test('project user prv access', () async {
+    var credential = const TkCmsEmailPasswordCredentials(
+      email: 'admin@festenao-dartff-test.local',
+      password: 'test1234',
+    );
+    // Sign in.
+    var userCredential = await auth.signInOrUpWithEmailAndPassword(
+      email: credential.email,
+      password: credential.password,
+    );
+    expect(auth.currentUser, isNotNull);
+    var userId = userCredential.user.uid;
+
+    var appId = 'test_app';
+    var projectId = 'test_project';
+    var userPrvRef = firestore.doc(
+      'app/$appId/project/$projectId/$tkCmsUserPrvFirestorePathPart/$userId',
+    );
+    var otherUserPrvRef = firestore.doc(
+      'app/$appId/project/$projectId/$tkCmsUserPrvFirestorePathPart/other_user',
+    );
+
+    Future<void> expectPermissionError(Future<void> Function() action) async {
+      try {
+        await action();
+        fail('should fail before');
+      } catch (e) {
+        expect(isExceptionPermissionError(e), isTrue, reason: '$e');
+      }
+    }
+
+    // Can write and read own user_prv
+    await userPrvRef.set({'test': 'value'});
+    var snapshot = await userPrvRef.get();
+    expect(snapshot.data, {'test': 'value'});
+
+    // Cannot write or read other user_prv
+    await expectPermissionError(() async {
+      await otherUserPrvRef.set({'test': 'value'});
+    });
+    await expectPermissionError(() async {
+      await otherUserPrvRef.get();
+    });
+
+    // Sign out
+    await auth.signOut();
+
+    // Cannot read or write own user_prv when signed out
+    await expectPermissionError(() async {
+      await userPrvRef.get();
+    });
+    await expectPermissionError(() async {
+      await userPrvRef.set({'test': 'value'});
+    });
+  });
+}
+
+/// Check access using standard common rules
 void appProjectStandaloneAccessTestRunner(
   Future<FestenaoTestClientContext> Function() contextBuilder,
 ) {

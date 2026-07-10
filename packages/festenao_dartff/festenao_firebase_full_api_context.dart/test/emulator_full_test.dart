@@ -49,6 +49,8 @@ Future<void> main() async {
         () async => testContext.clientContext,
       );
       appProjectAccessTestRunner(() async => testContext.clientContext);
+      appUserPrvAccessTestRunner(() async => testContext.clientContext);
+      appProjectUserPrvAccessTestRunner(() async => testContext.clientContext);
     });
     tearDownAll(() async {
       await testContext.close();

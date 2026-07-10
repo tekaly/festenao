@@ -11,9 +11,7 @@ Future main() async {
   if (await _emulatorService.isSupported()) {
     stdout.writeln('firebase emulator is supported');
   } else {
-    test('firebase emulator not supported', () {
-      stderr.writeln('firebase emulator not supported');
-    });
+    stderr.writeln('firebase emulator not supported');
     return;
   }
 

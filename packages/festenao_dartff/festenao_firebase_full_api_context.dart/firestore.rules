@@ -156,6 +156,13 @@ service cloud.firestore {
     match /{top}/{topId}/access/{entity}/user_id/{userId} {
       allow read: if request.auth.uid == userId;
     }
-  
+
+    // User private
+    match /{top}/{topId}/user_prv/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /{top}/{topId}/{entity}/{entityId}/user_prv/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
   }
 }
