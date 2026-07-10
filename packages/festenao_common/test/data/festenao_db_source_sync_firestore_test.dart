@@ -58,7 +58,7 @@ void main() {
           ..syncId.v = sourceRecord.syncId.v
           ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..syncChangeId.v = 1
-          ..record.v = (FaoSourceRecordData()
+          ..record.v = (SyncedSourceRecordData()
             ..store.v = dbArtistStoreRef.name
             ..key.v = 'a1'
             ..deleted.v = false
@@ -110,7 +110,7 @@ void main() {
             ..syncId.v = sourceRecord.syncId.v
             ..syncTimestamp.v = sourceRecord.syncTimestamp.v
             ..syncChangeId.v = 1
-            ..record.v = (FaoSourceRecordData()
+            ..record.v = (SyncedSourceRecordData()
               ..store.v = dbArtistStoreRef.name
               ..key.v = 'a1'
               ..deleted.v = false
@@ -165,7 +165,7 @@ void main() {
           ..syncId.v = sourceRecord.syncId.v
           ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..syncChangeId.v = 1
-          ..record.v = (FaoSourceRecordData()
+          ..record.v = (SyncedSourceRecordData()
             ..store.v = storeName
             ..key.v = 'a1'
             ..deleted.v = false
@@ -186,7 +186,7 @@ void main() {
         FaoSourceRecord()
           //..syncId.v = sourceRecord.syncId.v
           // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-          ..record.v = (FaoSourceRecordData()
+          ..record.v = (SyncedSourceRecordData()
             ..store.v = dbArtistStoreRef.name
             ..key.v = 'a1'
             ..value.v = {'name': 'test1'}),
@@ -219,7 +219,7 @@ void main() {
         FaoSourceRecord()
           //..syncId.v = sourceRecord.syncId.v
           // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-          ..record.v = (FaoSourceRecordData()
+          ..record.v = (SyncedSourceRecordData()
             ..store.v = dbImageStoreRef.name
             ..key.v = 'a1'
             ..value.v = {'name': 'test1'}),
@@ -267,7 +267,7 @@ void main() {
         FaoSourceRecord()
           //..syncId.v = sourceRecord.syncId.v
           // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-          ..record.v = (FaoSourceRecordData()
+          ..record.v = (SyncedSourceRecordData()
             ..store.v = dbArtistStoreRef.name
             ..key.v = 'a1'
             ..value.v = {'name': 'test1'}),
@@ -282,7 +282,7 @@ void main() {
         FaoSourceRecord()
           //..syncId.v = sourceRecord.syncId.v
           // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-          ..record.v = (FaoSourceRecordData()
+          ..record.v = (SyncedSourceRecordData()
             ..store.v = dbArtistStoreRef.name
             ..key.v = 'a1'
             ..value.v = {'name': 'test2'}),
@@ -304,7 +304,7 @@ void main() {
           ..syncId.v = '1'
           ..syncChangeId.v = 1
           ..syncTimestamp.v = Timestamp(1, 0)
-          ..record.v = (FaoSourceRecordData()
+          ..record.v = (SyncedSourceRecordData()
             ..store.v = dbArtistStoreRef.name
             ..key.v = 'a1'
             ..value.v = {'name': 'test1'}),
@@ -325,7 +325,7 @@ void main() {
           ..syncId.v = '1'
           ..syncChangeId.v = 1
           ..syncTimestamp.v = Timestamp(1, 0)
-          ..record.v = (FaoSourceRecordData()
+          ..record.v = (SyncedSourceRecordData()
             ..store.v = dbArtistStoreRef.name
             ..key.v = 'a1'
             ..value.v = {'name': 'test2'}),

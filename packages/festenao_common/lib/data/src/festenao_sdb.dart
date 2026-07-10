@@ -6,9 +6,6 @@ import 'package:tekartik_common_utils/foundation/constants.dart';
 
 import 'import.dart';
 
-export 'festenao/model/db_sync_meta.dart';
-export 'festenao/model/db_sync_record.dart';
-
 /// Sdb options
 var festenaoSyncedSdbOptions = SyncedSdbOptions(
   openDatabaseOptions: SdbOpenDatabaseOptions(

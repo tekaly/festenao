@@ -1,5 +1,6 @@
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:sembast/utils/sembast_import_export.dart';
+import 'package:tekaly_sembast_synced/src/sync/model/db_sync_record.dart';
 import 'package:test/test.dart';
 
 void main() {

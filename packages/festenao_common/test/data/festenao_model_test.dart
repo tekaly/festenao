@@ -46,7 +46,7 @@ void main() {
     });
     test('source', () async {
       var sourceRecord = FaoSourceRecord()
-        ..record.v = (FaoSourceRecordData()
+        ..record.v = (SyncedSourceRecordData()
           ..store.v = 'test'
           ..deleted.v = true
           ..value.v = {'test': 1}

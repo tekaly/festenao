@@ -8,8 +8,7 @@ import 'package:tekaly_sembast_synced/synced_db_internals.dart';
 import 'import.dart';
 import 'model/db_models.dart';
 
-export 'festenao/model/db_sync_meta.dart';
-export 'festenao/model/db_sync_record.dart';
+export 'package:tekaly_sembast_synced/synced_db.dart';
 
 /// Default export file name for Festenao data.
 var festenaoExport = 'festenao_export.jsonl';
