@@ -495,7 +495,7 @@ void appPublicAccessTestRunner(
     await expectPermissionError(() async {
       await firestore.cvSet(publicAccessRef.cv()..read.v = true);
     });
-  }, solo: true);
+  });
 }
 
 /// Check access using standard project public rules
