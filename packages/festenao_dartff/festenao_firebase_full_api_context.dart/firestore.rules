@@ -188,5 +188,24 @@ service cloud.firestore {
       allow read: if true;
       allow write: if hasEntityAdminAccess(entity, entityId, request.auth.uid);
     }
+
+    //
+    // Public access (project)
+    //
+    function subHasEntityPublicReadAccess(top, topId, entity, entityId) {
+      return get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/public_access/public).data.read == true;
+    }
+
+    match /{top}/{topId}/{entity}/{entityId} {
+      allow read: if subHasEntityPublicReadAccess(top, topId, entity, entityId);
+    }
+    match /{top}/{topId}/{entity}/{entityId}/{document=**} {
+      allow read: if subHasEntityPublicReadAccess(top, topId, entity, entityId);
+    }
+
+    match /{top}/{topId}/access/{entity}/entity_id/{entityId}/public_access/{document} {
+      allow read: if true;
+      allow write: if subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
+    }
   }
 }

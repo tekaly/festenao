@@ -379,6 +379,141 @@ void appProjectStandaloneAccessTestRunner(
 ///       allow read: if true;
 ///       allow write: if hasEntityAdminAccess(entity, entityId, request.auth.uid);
 ///     }
+void appPublicAccessTestRunner(
+  Future<FestenaoTestClientContext> Function() contextBuilder,
+) {
+  late FestenaoTestClientContext testContext;
+  late FirebaseAuth auth;
+  late final firestore = testContext.firestore!;
+  late final docApiService = testContext.apiService.docApiService;
+
+  setUp(() async {
+    initTkCmsFsBuilders();
+    initFestenaoFsEntityApiBuilders<TkCmsFsProject>();
+    testContext = await contextBuilder();
+    auth = testContext.firebaseAuth!;
+    testContext.apiService.httpsApiUri!;
+  });
+
+  test('public access', () async {
+    var credential = const TkCmsEmailPasswordCredentials(
+      email: 'admin@festenao-dartff-test.local',
+      password: 'test1234',
+    );
+    // Sign in.
+    var userCredential = await auth.signInOrUpWithEmailAndPassword(
+      email: credential.email,
+      password: credential.password,
+    );
+    expect(auth.currentUser, isNotNull);
+    var userId = userCredential.user.uid;
+
+    var entity = 'app';
+    var entityId = 'test_public_app';
+
+    var publicAccessRef = CvCollectionReference<TkCmsFsPublicAccess>(
+      'access/$entity/entity_id/$entityId/public_access',
+    ).doc('public');
+    var entityRef = firestore.doc('$entity/$entityId');
+    var entitySubRef = firestore.doc(
+      '$entity/$entityId/sub_collection/sub_document',
+    );
+
+    Future<void> expectPermissionError(Future<void> Function() action) async {
+      try {
+        await action();
+        fail('should fail before');
+      } catch (e) {
+        expect(isExceptionPermissionError(e), isTrue, reason: '$e');
+      }
+    }
+
+    var collectionInfo = tkCmsFsAppCollectionInfo;
+    var entityAccess = TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp>(
+      entityCollectionInfo: collectionInfo,
+      firestore: firestore,
+    );
+
+    var accessRef = entityAccess.fsEntityUserAccessRef(entityId, userId);
+    await docApiService.cvSetDoc(accessRef.cv()..grantAdminAccess());
+
+    // As an admin, user can set the public access flag:
+    await firestore.cvSet(publicAccessRef.cv()..read.v = true);
+
+    // Anyone (even signed out) can read the public access flag
+    var flagDoc = await publicAccessRef.get(firestore);
+    expect(flagDoc.read.v, isTrue);
+
+    // Let's sign out to test public read access
+    await auth.signOut();
+
+    // Anyone can read the flag
+    flagDoc = await publicAccessRef.get(firestore);
+    expect(flagDoc.read.v, isTrue);
+
+    // Anyone can read the entity and sub-collection/sub-document since public read is enabled
+    var entitySnapshot = await entityRef.get();
+    expect(entitySnapshot.exists, isFalse);
+
+    var subSnapshot = await entitySubRef.get();
+    expect(subSnapshot.exists, isFalse);
+
+    // Let's sign back in to change the flag:
+    userCredential = await auth.signInOrUpWithEmailAndPassword(
+      email: credential.email,
+      password: credential.password,
+    );
+
+    // Set public read to false:
+    await firestore.cvSet(publicAccessRef.cv()..read.v = false);
+
+    // Sign out again:
+    await auth.signOut();
+
+    // Now, unauthenticated user should get permission error reading the entity:
+    await expectPermissionError(() async {
+      await entityRef.get();
+    });
+    await expectPermissionError(() async {
+      await entitySubRef.get();
+    });
+
+    // Unauthenticated user cannot write to public access flag:
+    await expectPermissionError(() async {
+      await firestore.cvSet(publicAccessRef.cv()..read.v = true);
+    });
+
+    // Non-admin user cannot write to public access flag:
+    var otherCredential = const TkCmsEmailPasswordCredentials(
+      email: 'user@festenao-dartff-test.local',
+      password: 'test1234',
+    );
+    await auth.signInOrUpWithEmailAndPassword(
+      email: otherCredential.email,
+      password: otherCredential.password,
+    );
+    await expectPermissionError(() async {
+      await firestore.cvSet(publicAccessRef.cv()..read.v = true);
+    });
+  }, solo: true);
+}
+
+/// Check access using standard project public rules
+/// function subHasEntityPublicReadAccess(top, topId, entity, entityId) {
+///   return get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/public_access/public).data.read == true;
+/// }
+///
+/// match /{top}/{topId}/{entity}/{entityId} {
+///   allow read: if subHasEntityPublicReadAccess(top, topId, entity, entityId);
+/// }
+/// match /{top}/{topId}/{entity}/{entityId}/{document=**} {
+///   allow read: if subHasEntityPublicReadAccess(top, topId, entity, entityId);
+/// }
+///
+/// match /{top}/{topId}/access/{entity}/entity_id/{entityId}/public_access/{document} {
+///   allow read: if true;
+///   allow write: if subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
+/// }
 void appProjectPublicAccessTestRunner(
   Future<FestenaoTestClientContext> Function() contextBuilder,
 ) {
@@ -408,15 +543,16 @@ void appProjectPublicAccessTestRunner(
     expect(auth.currentUser, isNotNull);
     var userId = userCredential.user.uid;
 
+    var appId = 'test_app';
     var entity = 'project';
     var entityId = 'test_public_project';
 
-    var publicAccessRef = firestore.doc(
-      'access/$entity/entity_id/$entityId/public_access/public',
-    );
-    var entityRef = firestore.doc('$entity/$entityId');
+    var publicAccessRef = CvCollectionReference<TkCmsFsPublicAccess>(
+      'app/$appId/access/$entity/entity_id/$entityId/public_access',
+    ).doc('public');
+    var entityRef = firestore.doc('app/$appId/$entity/$entityId');
     var entitySubRef = firestore.doc(
-      '$entity/$entityId/sub_collection/sub_document',
+      'app/$appId/$entity/$entityId/sub_collection/sub_document',
     );
 
     Future<void> expectPermissionError(Future<void> Function() action) async {
@@ -433,24 +569,25 @@ void appProjectPublicAccessTestRunner(
         TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsProject>(
           entityCollectionInfo: projectCollectionInfo,
           firestore: firestore,
+          rootDocument: fsAppRoot(appId),
         );
 
     var accessRef = entityAccess.fsEntityUserAccessRef(entityId, userId);
     await docApiService.cvSetDoc(accessRef.cv()..grantAdminAccess());
 
     // As an admin, user can set the public access flag:
-    await publicAccessRef.set({'read': true});
+    await firestore.cvSet(publicAccessRef.cv()..read.v = true);
 
     // Anyone (even signed out) can read the public access flag
-    var flagSnapshot = await publicAccessRef.get();
-    expect(flagSnapshot.data['read'], isTrue);
+    var flagDoc = await publicAccessRef.get(firestore);
+    expect(flagDoc.read.v, isTrue);
 
     // Let's sign out to test public read access
     await auth.signOut();
 
     // Anyone can read the flag
-    flagSnapshot = await publicAccessRef.get();
-    expect(flagSnapshot.data['read'], isTrue);
+    flagDoc = await publicAccessRef.get(firestore);
+    expect(flagDoc.read.v, isTrue);
 
     // Anyone can read the entity and sub-collection/sub-document since public read is enabled
     var entitySnapshot = await entityRef.get();
@@ -466,7 +603,7 @@ void appProjectPublicAccessTestRunner(
     );
 
     // Set public read to false:
-    await publicAccessRef.set({'read': false});
+    await firestore.cvSet(publicAccessRef.cv()..read.v = false);
 
     // Sign out again:
     await auth.signOut();
@@ -481,7 +618,7 @@ void appProjectPublicAccessTestRunner(
 
     // Unauthenticated user cannot write to public access flag:
     await expectPermissionError(() async {
-      await publicAccessRef.set({'read': true});
+      await firestore.cvSet(publicAccessRef.cv()..read.v = true);
     });
 
     // Non-admin user cannot write to public access flag:
@@ -494,7 +631,7 @@ void appProjectPublicAccessTestRunner(
       password: otherCredential.password,
     );
     await expectPermissionError(() async {
-      await publicAccessRef.set({'read': true});
+      await firestore.cvSet(publicAccessRef.cv()..read.v = true);
     });
   });
 }
