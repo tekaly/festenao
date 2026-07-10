@@ -1,5 +1,4 @@
 import 'package:festenao_common/data/festenao_db.dart';
-import 'package:festenao_common/data/src/festenao/model/source_record.dart';
 import 'package:festenao_common/data/src/festenao/sync/festenao_db_source_sync.dart';
 import 'package:festenao_common/data/src/festenao/sync/festenao_source.dart';
 import 'package:festenao_common/data/src/festenao/sync/festenao_source_firestore.dart';
@@ -54,7 +53,7 @@ void main() {
       ))!;
       expect(
         sourceRecord,
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..syncId.v = sourceRecord.syncId.v
           ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..syncChangeId.v = 1
@@ -106,7 +105,7 @@ void main() {
         ))!;
         expect(
           sourceRecord,
-          FaoSourceRecord()
+          SyncedSourceRecord()
             ..syncId.v = sourceRecord.syncId.v
             ..syncTimestamp.v = sourceRecord.syncTimestamp.v
             ..syncChangeId.v = 1
@@ -161,7 +160,7 @@ void main() {
       ))!;
       expect(
         sourceRecord,
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..syncId.v = sourceRecord.syncId.v
           ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..syncChangeId.v = 1
@@ -183,7 +182,7 @@ void main() {
 
     test('syncOneFromRemote', () async {
       var sourceRecord = (await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           //..syncId.v = sourceRecord.syncId.v
           // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..record.v = (SyncedSourceRecordData()
@@ -216,7 +215,7 @@ void main() {
 
     test('syncOneImageFromRemote', () async {
       var sourceRecord = (await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           //..syncId.v = sourceRecord.syncId.v
           // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..record.v = (SyncedSourceRecordData()
@@ -264,7 +263,7 @@ void main() {
 
     test('syncUpdateFromRemote', () async {
       await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           //..syncId.v = sourceRecord.syncId.v
           // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..record.v = (SyncedSourceRecordData()
@@ -279,7 +278,7 @@ void main() {
 
       /// update
       await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           //..syncId.v = sourceRecord.syncId.v
           // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..record.v = (SyncedSourceRecordData()
@@ -300,7 +299,7 @@ void main() {
           ..minIncrementalChangeId.v = 0,
       );
       await source.putRawRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..syncId.v = '1'
           ..syncChangeId.v = 1
           ..syncTimestamp.v = Timestamp(1, 0)
@@ -321,7 +320,7 @@ void main() {
           ..minIncrementalChangeId.v = 0,
       );
       await source.putRawRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..syncId.v = '1'
           ..syncChangeId.v = 1
           ..syncTimestamp.v = Timestamp(1, 0)

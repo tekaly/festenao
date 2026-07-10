@@ -39,6 +39,27 @@ const festenaoLeaveEntityCommand = 'leave-entity';
 String festenaoEntityLeaveCommand(String entityType) =>
     '${festenaoEntityCommandPrefix(entityType)}leave';
 
+/// Command name for creating an entity invite.
+const festenaoCreateInviteCommand = 'create-invite';
+
+/// Command name for creating an entity invite.
+String festenaoEntityCreateInviteCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}create-invite';
+
+/// Command name for accepting an entity invite.
+const festenaoAcceptInviteCommand = 'accept-invite';
+
+/// Command name for accepting an entity invite.
+String festenaoEntityAcceptInviteCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}accept-invite';
+
+/// Command name for deleting an entity invite.
+const festenaoDeleteInviteCommand = 'delete-invite';
+
+/// Command name for deleting an entity invite.
+String festenaoEntityDeleteInviteCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}delete-invite';
+
 /// Initializes API builders for Festenao file system entities.
 void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
   cvAddConstructors([
@@ -47,6 +68,9 @@ void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
     FsCmsEntityDeleteApiQuery<T>.new,
     FsCmsEntityDeleteApiResult<T>.new,
     FsCmsEntityJoinApiQuery<T>.new,
+    FsCmsEntityCreateInviteApiQuery<T>.new,
+    FsCmsEntityCreateInviteApiResult<T>.new,
+    FsCmsEntityAcceptInviteApiQuery<T>.new,
   ]);
 }
 
@@ -69,6 +93,18 @@ extension FestenaoFirestoreDatabaseEntityCollectionInfoApiExt<
 
   /// Command for leaving an entity.
   String get leaveCommand => festenaoEntityLeaveCommand(entityType);
+
+  /// Command for creating an entity invite.
+  String get createInviteCommand =>
+      festenaoEntityCreateInviteCommand(entityType);
+
+  /// Command for accepting an entity invite.
+  String get acceptInviteCommand =>
+      festenaoEntityAcceptInviteCommand(entityType);
+
+  /// Command for deleting an entity invite.
+  String get deleteInviteCommand =>
+      festenaoEntityDeleteInviteCommand(entityType);
 }
 
 /// API query for creating a CMS entity.
@@ -144,3 +180,48 @@ class FsCmsEntityEntityIdBaseApiCommon<T extends TkCmsFsEntity>
   @override
   CvFields get fields => [entityId];
 }
+
+/// API query for creating a CMS entity invite.
+class FsCmsEntityCreateInviteApiQuery<T extends TkCmsFsEntity> extends ApiQuery
+    with TkCmsCvUserAccessMixin {
+  /// The entity ID.
+  final entityId = CvField<String>('entityId');
+
+  @override
+  late final CvFields fields = [entityId, ...userAccessFields];
+}
+
+/// API result for creating a CMS entity invite.
+class FsCmsEntityCreateInviteApiResult<T extends TkCmsFsEntity>
+    extends ApiResult {
+  /// The invite ID.
+  final inviteId = CvField<String>('inviteId');
+
+  @override
+  CvFields get fields => [inviteId];
+}
+
+/// API query for accepting a CMS entity invite.
+class FsCmsEntityAcceptInviteApiQuery<T extends TkCmsFsEntity>
+    extends ApiQuery {
+  /// The invite ID.
+  final inviteId = CvField<String>('inviteId');
+
+  /// The entity ID.
+  final entityId = CvField<String>('entityId');
+
+  @override
+  late final CvFields fields = [inviteId, entityId];
+}
+
+/// API result for accepting a CMS entity invite.
+typedef FsCmsEntityAcceptInviteApiResult<T extends TkCmsFsEntity> =
+    FsCmsEntityCreateInviteApiResult<T>;
+
+/// API query for deleting a CMS entity invite.
+typedef FsCmsEntityDeleteInviteApiQuery<T extends TkCmsFsEntity> =
+    FsCmsEntityAcceptInviteApiQuery<T>;
+
+/// API result for deleting a CMS entity invite.
+typedef FsCmsEntityDeleteInviteApiResult<T extends TkCmsFsEntity> =
+    FsCmsEntityAcceptInviteApiResult<T>;

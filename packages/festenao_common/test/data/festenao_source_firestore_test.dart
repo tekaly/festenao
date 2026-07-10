@@ -1,4 +1,3 @@
-import 'package:festenao_common/data/src/festenao/model/source_record.dart';
 import 'package:festenao_common/data/src/festenao/sync/festenao_source.dart';
 import 'package:festenao_common/data/src/festenao/sync/festenao_source_firestore.dart';
 import 'package:tekaly_sembast_synced/synced_db_internals.dart';
@@ -26,7 +25,7 @@ void main() {
     });
     test('putRecord', () async {
       var record = (await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..record.v = (SyncedSourceRecordData()
             ..store.v = 'test'
             ..key.v = '1'),
@@ -43,7 +42,7 @@ void main() {
       expect(record.recordStore, 'test');
       expect(record.syncChangeId.v, 1);
       record = (await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..record.v = (SyncedSourceRecordData()
             ..store.v = 'test'
             ..key.v = '1')
@@ -59,7 +58,7 @@ void main() {
       expect(record.syncChangeId.v, 2);
       // Changing!
       record = (await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..record.v = (SyncedSourceRecordData()
             ..store.v = 'test2'
             ..key.v = '2')
@@ -84,7 +83,7 @@ void main() {
       var record = await source.getSourceRecord(ref);
       expect(record, isNull);
       record = await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..record.v = (SyncedSourceRecordData()
             ..store.v = 'test'
             ..key.v = '1')
@@ -114,7 +113,7 @@ void main() {
       var list = (await source.getSourceRecordList()).list;
       expect(list, isEmpty);
       var record = await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..record.v = (SyncedSourceRecordData()
             ..store.v = 'test'
             ..key.v = '1'
@@ -124,7 +123,7 @@ void main() {
       expect(list, hasLength(1));
       expect(list.first.syncId.v, record.syncId.v);
       var record2 = await source.putSourceRecord(
-        FaoSourceRecord()
+        SyncedSourceRecord()
           ..record.v = (SyncedSourceRecordData()
             ..store.v = 'test'
             ..key.v = '2'

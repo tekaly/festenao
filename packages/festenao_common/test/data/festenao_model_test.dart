@@ -1,5 +1,4 @@
 import 'package:festenao_common/data/festenao_db.dart';
-import 'package:festenao_common/data/src/festenao/model/source_record.dart';
 import 'package:festenao_common/data/src/model/db_models.dart';
 import 'package:sembast/timestamp.dart';
 import 'package:tekaly_sembast_synced/synced_db_internals.dart';
@@ -45,7 +44,7 @@ void main() {
       });
     });
     test('source', () async {
-      var sourceRecord = FaoSourceRecord()
+      var sourceRecord = SyncedSourceRecord()
         ..record.v = (SyncedSourceRecordData()
           ..store.v = 'test'
           ..deleted.v = true
@@ -67,7 +66,7 @@ void main() {
         },
       });
       expect(
-        (FaoSourceRecord()..fromMap(sourceRecord.toMap())).toMap(),
+        (SyncedSourceRecord()..fromMap(sourceRecord.toMap())).toMap(),
         sourceRecord.toMap(),
       );
     });

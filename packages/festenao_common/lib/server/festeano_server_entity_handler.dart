@@ -4,8 +4,6 @@ import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_firestore/utils/json_utils.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
-import 'festeano_server_app.dart';
-
 /// Options for entity handler.
 class FestenaoEntityHandlerOptions {
   /// Creates a new [FestenaoEntityHandlerOptions] with optional [customIdGenerator].
@@ -22,7 +20,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
   final FestenaoEntityHandlerOptions options;
 
   /// The server app.
-  final FestenaoServerApp app;
+  final TkCmsServerAppV2 app;
 
   /// Entity access for Firestore operations.
   final TkCmsFirestoreDatabaseServiceEntityAccess<T> entityAccess;
@@ -63,6 +61,20 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       return await onJoinCommand(apiRequest);
     } else if (command == festenaoEntityLeaveCommand(_entityType)) {
       return await onLeaveCommand(apiRequest);
+    } else if (command == festenaoEntityCreateInviteCommand(_entityType)) {
+      return await onCreateInviteCommand(apiRequest);
+    } else if (command == festenaoEntityAcceptInviteCommand(_entityType)) {
+      return await onAcceptInviteCommand(apiRequest);
+    } else if (command == festenaoEntityDeleteInviteCommand(_entityType)) {
+      return await onDeleteInviteCommand(apiRequest);
+    }
+
+    if (command == 'createEntityInvite') {
+      return await onCreateInviteCommand(apiRequest);
+    } else if (command == 'acceptEntityInvite') {
+      return await onAcceptInviteCommand(apiRequest);
+    } else if (command == 'deleteEntityInvite') {
+      return await onDeleteInviteCommand(apiRequest);
     }
 
     // compat
@@ -79,6 +91,15 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
           return await onJoinCommand(apiRequest);
         case festenaoLeaveEntityCommand:
           return await onLeaveCommand(apiRequest);
+        case festenaoCreateInviteCommand:
+        case 'createEntityInvite':
+          return await onCreateInviteCommand(apiRequest);
+        case festenaoAcceptInviteCommand:
+        case 'acceptEntityInvite':
+          return await onAcceptInviteCommand(apiRequest);
+        case festenaoDeleteInviteCommand:
+        case 'deleteEntityInvite':
+          return await onDeleteInviteCommand(apiRequest);
         default:
       }
     }
@@ -200,5 +221,81 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       var result = FsCmsEntityLeaveApiResult()..entityId.setValue(entityId);
       return result;
     }
+  }
+
+  /// Handles the create invite command.
+  Future<FsCmsEntityCreateInviteApiResult<T>> onCreateInviteCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityCreateInviteApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = apiRequest.userId.v;
+    if (userId == null) {
+      throw (ApiError()
+            ..code.v = apiErrorCodeInternal
+            ..message.v = 'Missing userId'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var entityId = query.entityId.v!;
+    var userAccess = TkCmsCvUserAccess()..copyAccessFrom(query);
+    var fsEntity = await entityAccess.fsEntityCollectionRef
+        .doc(entityId)
+        .get(firestore);
+    userAccess.fixAccess();
+    var id = await entityAccess.createInviteEntity(
+      userId: userId,
+      entityId: entityId,
+      userAccess: userAccess,
+      entity: fsEntity,
+    );
+    return FsCmsEntityCreateInviteApiResult<T>()..inviteId.v = id;
+  }
+
+  /// Handles the accept invite command.
+  Future<FsCmsEntityAcceptInviteApiResult<T>> onAcceptInviteCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityAcceptInviteApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = apiRequest.userId.v;
+    if (userId == null) {
+      throw (ApiError()
+            ..code.v = apiErrorCodeInternal
+            ..message.v = 'Missing userId'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var entityId = query.entityId.v!;
+    var inviteId = query.inviteId.v!;
+    await entityAccess.acceptInviteEntity(
+      userId: userId,
+      inviteId: inviteId,
+      entityId: entityId,
+    );
+    return FsCmsEntityAcceptInviteApiResult<T>()..inviteId.v = inviteId;
+  }
+
+  /// Handles the delete invite command.
+  Future<FsCmsEntityDeleteInviteApiResult<T>> onDeleteInviteCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityDeleteInviteApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = apiRequest.userId.v;
+    if (userId == null) {
+      throw (ApiError()
+            ..code.v = apiErrorCodeInternal
+            ..message.v = 'Missing userId'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var entityId = query.entityId.v!;
+    var inviteId = query.inviteId.v!;
+    await entityAccess.deleteInviteEntity(
+      inviteId: inviteId,
+      entityId: entityId,
+    );
+    return FsCmsEntityDeleteInviteApiResult<T>()..inviteId.v = inviteId;
   }
 }
