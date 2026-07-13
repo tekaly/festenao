@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_dashboard_base_app/src/provider/auth_rpd.dart';
@@ -48,14 +50,15 @@ class _ProjectsScreenState
                 title: const Text(
                   'Dashboard Projects prv sdb',
                 ), // appIntl(context).ProjectsTitle),
-                /*actions: [
-                IconButton(
+                actions: [
+                  IconButton(
+                    tooltip: 'Sync projects from access list',
                     onPressed: () {
-                      ContentNavigator.of(context)
-                          .pushPath<void>(SettingsContentPath());
+                      unawaited(bloc.syncUserProjects());
                     },
-                    icon: const Icon(Icons.settings)),
-              ],*/
+                    icon: const Icon(Icons.sync),
+                  ),
+                ],
                 // automaticallyImplyLeading: false,
               ),
               body: Builder(

@@ -2,6 +2,7 @@ import 'package:festenao_common/festenao_audi.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/festenao_sembast.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
+import 'package:tekaly_sdb_synced/synced_sdb_firestore.dart';
 import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
 export 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
@@ -117,16 +118,78 @@ final userProjectIndexSchema = userProjectIndex.schema(
   keyPath: [dbProjectModel.userId.key, dbProjectModel.uid.key],
 );
 
+/// Store schemas for the projects database.
+List<SdbStoreSchema> userProjectsSdbStoreSchemas() => [
+  dbProjectUserStore.schema(),
+  dbProjectStore.schema(
+    indexes: [userProjectIndexSchema, userProjectsIndexSchema],
+  ),
+];
+
+/// Firestore root document path of the per user private projects database
+/// `app/<appId>/user_prv/<userId>/data/projects`.
+String fsUserPrvProjectsPath({required String app, required String userId}) =>
+    fsAppRoot(app)
+        .collection('user_prv')
+        .doc(userId)
+        .collection('data')
+        .doc('projects')
+        .path;
+
+/// Sync options for a per user synced [UserProjectsSdb].
+class UserProjectsSdbSyncOptions {
+  /// Firestore instance.
+  final Firestore firestore;
+
+  /// App id.
+  final String app;
+
+  /// User id.
+  final String userId;
+
+  /// Sync options for a per user synced [UserProjectsSdb].
+  UserProjectsSdbSyncOptions({
+    required this.firestore,
+    required this.app,
+    required this.userId,
+  });
+}
+
 /// Projects database manager.
 class UserProjectsSdb {
-  /// Database factory.
+  /// Database factory (sandboxed to the user id for a per user database).
   final SdbFactory factory;
 
   /// Name of the database.
   final String? name;
 
+  /// Sync options, non null for a per user database synced to firestore.
+  final UserProjectsSdbSyncOptions? syncOptions;
+
+  /// User id, non null for a per user database.
+  String? get userId => syncOptions?.userId;
+
+  /// True when the database is synchronized to firestore.
+  bool get isSynced => syncOptions != null;
+
+  AutoSynchronizedFirestoreSyncedSdb? _autoSyncedSdb;
+
+  /// The synced database, only valid when [isSynced] and [ready].
+  AutoSynchronizedFirestoreSyncedSdb get autoSyncedSdb => _autoSyncedSdb!;
+
   /// The database instance.
   late final SdbDatabase db;
+
+  SdbOpenDatabaseOptions _openDatabaseOptions({required bool synced}) =>
+      SdbOpenDatabaseOptions(
+        version: 2,
+        schema: SdbDatabaseSchema(
+          stores: [
+            ...userProjectsSdbStoreSchemas(),
+            if (synced) ...syncedSdbMetaSchema.stores,
+          ],
+        ),
+      );
 
   /// Future that completes when the database is ready.
   late final Future<void> ready = () async {
@@ -137,30 +200,65 @@ class UserProjectsSdb {
         'UserProjectSdb ${factory.name} Opening ${await factory.getDatabaseFullPath(dbName)}',
       );
     }
-    db = await factory.openDatabase(
-      name ?? projectsDbName,
-      options: SdbOpenDatabaseOptions(
-        version: 2,
-        schema: SdbDatabaseSchema(
-          stores: [
-            dbProjectUserStore.schema(),
-            dbProjectStore.schema(
-              indexes: [userProjectIndexSchema, userProjectsIndexSchema],
-            ),
-          ],
+    var syncOptions = this.syncOptions;
+    if (syncOptions != null) {
+      var autoSyncedSdb = await AutoSynchronizedFirestoreSyncedSdb.open(
+        options: AutoSynchronizedFirestoreSyncedSdbOptions(
+          firestore: syncOptions.firestore,
+          databaseFactory: factory,
+          dbName: dbName,
+          rootDocumentPath: fsUserPrvProjectsPath(
+            app: syncOptions.app,
+            userId: syncOptions.userId,
+          ),
+          syncedSdbOptions: SyncedSdbOptions(
+            openDatabaseOptions: _openDatabaseOptions(synced: true),
+          ),
         ),
-      ),
-    );
+      );
+      _autoSyncedSdb = autoSyncedSdb;
+      db = autoSyncedSdb.database;
+    } else {
+      db = await factory.openDatabase(
+        dbName,
+        options: _openDatabaseOptions(synced: false),
+      );
+    }
     initDbProjectsBuilders();
   }();
   final _projectUserUpdated = BehaviorSubject<SdbProjectsUser?>();
 
   /// Creates a new [UserProjectsSdb] with the given [factory] and [name].
-  UserProjectsSdb({required this.factory, required this.name});
+  UserProjectsSdb({required this.factory, required this.name})
+    : syncOptions = null;
+
+  /// Per user database synced to firestore
+  /// `app/<app>/user_prv/<userId>/data/projects`.
+  ///
+  /// The [factory] is sandboxed to the user id so that each user gets its own
+  /// local database.
+  UserProjectsSdb.userSynced({
+    required SdbFactory factory,
+    this.name,
+    required Firestore firestore,
+    required String app,
+    required String userId,
+  }) : factory = factory.sandbox(path: userId),
+       syncOptions = UserProjectsSdbSyncOptions(
+         firestore: firestore,
+         app: app,
+         userId: userId,
+       );
 
   /// All in memory database
   UserProjectsSdb.inMemory()
     : this(factory: sdbFactoryMemory, name: 'in_memory');
+
+  /// Trigger a firestore synchronization (no-op for a local only database).
+  Future<void> synchronize() async {
+    await ready;
+    await _autoSyncedSdb?.synchronize();
+  }
 
   /// Project user
   Stream<SdbProjectsUser?> onProjectsUser({required String userId}) async* {
@@ -301,9 +399,15 @@ class UserProjectsSdb {
     _projectUserUpdated.add(dbUser);
   }
 
-  /// Closing the db (test only)
+  /// Closing the db (stops the synchronizer for a synced database)
   Future<void> close() async {
-    await db.close();
+    await ready;
+    var autoSyncedSdb = _autoSyncedSdb;
+    if (autoSyncedSdb != null) {
+      await autoSyncedSdb.close();
+    } else {
+      await db.close();
+    }
     await _projectUserUpdated.close();
   }
 }

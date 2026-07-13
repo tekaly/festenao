@@ -48,6 +48,52 @@ Future<void> main() async {
     expect(await projectsDb.getProject(projectId, userId: userId), isNull);
     synchronizer.dispose();
   });
+  test('syncUserProjects', () async {
+    var synchronizer = UserProjectsSdbSynchronizer(
+      projectsSdb: projectsDb,
+      fsProjects: fsProjectsDb,
+    );
+    var firestore = fsProjectsDb.firestore;
+
+    // No access yet: user marked ready with an empty project list
+    await synchronizer.syncUserProjects(userId: userId);
+    expect(await projectsDb.projectsUserReady(userId: userId), isNotNull);
+    expect(await projectsDb.getProjects(userId: userId), isEmpty);
+
+    // Create a project with admin access
+    await fsProjectsDb.createEntity(
+      userId: userId,
+      entity: FsProject()..name.setValue('test project'),
+      entityId: projectId,
+    );
+    await synchronizer.syncUserProjects(userId: userId);
+    var dbProject = (await projectsDb.getProjects(userId: userId)).single;
+    expect(dbProject.name.v, 'test project');
+    expect(dbProject.fsId, projectId);
+    expect(dbProject.isAdmin, isTrue);
+
+    // Rename the project
+    await fsProjectsDb
+        .fsEntityRef(projectId)
+        .set(firestore, FsProject()..name.setValue('renamed project'));
+    await synchronizer.syncUserProjects(userId: userId);
+    dbProject = (await projectsDb.getProjects(userId: userId)).single;
+    expect(dbProject.name.v, 'renamed project');
+
+    // Local records can be keyed by a different identity id
+    await synchronizer.syncUserProjects(
+      userId: userId,
+      identityId: 'local_identity',
+    );
+    dbProject = (await projectsDb.getProjects(userId: 'local_identity')).single;
+    expect(dbProject.name.v, 'renamed project');
+
+    // Delete the project
+    await fsProjectsDb.deleteEntity(projectId, userId: userId);
+    await synchronizer.syncUserProjects(userId: userId);
+    expect(await projectsDb.getProjects(userId: userId), isEmpty);
+    synchronizer.dispose();
+  });
   test('autoSyncOne', () async {
     var synchronizer = ProjectsDbSingleProjectAutoSynchronizer(
       projectsDb: projectsDb,

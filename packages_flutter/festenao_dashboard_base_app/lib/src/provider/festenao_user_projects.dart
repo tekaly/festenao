@@ -1,13 +1,28 @@
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/data/src/import.dart';
+import 'package:festenao_dashboard_base_app/src/provider/user_projects_sdb_setup.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'festenao_user_projects.g.dart';
 
-/// Users projects
+/// Users projects, the current (possibly per user) database.
 @Riverpod(keepAlive: true)
 UserProjectsSdb rpdUserProjectsDb(Ref ref) {
-  return UserProjectsSdb.inMemory();
+  var manager = globalFestenaoUserProjectsSdbManagerOrNull;
+  if (manager != null) {
+    var db = manager.currentDb;
+    // Rebuild when the per user database changes.
+    var subscription = manager.onCurrentDb.listen((newDb) {
+      if (!identical(newDb, db)) {
+        ref.invalidateSelf();
+      }
+    });
+    ref.onDispose(subscription.cancel);
+    if (db != null) {
+      return db;
+    }
+  }
+  return globalProjectsSdbOrNull ?? UserProjectsSdb.inMemory();
 }
 
 /// User projects

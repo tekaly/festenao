@@ -1,6 +1,4 @@
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
-//import 'package:festenao_admin_base_app/sembast/projects_db.dart';
-import 'package:festenao_admin_base_app/sembast/sembast.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:flutter/foundation.dart';
@@ -32,10 +30,16 @@ class ProjectsSdbScreenBloc
       // ignore: cancel_subscriptions
       _projectDetailsSubscription;
   String? _dbIdentityId;
+  TkCmsFbIdentity? _identity;
 
   late final _lock = Lock(); // globalProjectsBloc.syncLock;
   final _fsLock = Lock();
   final bool selectMode;
+
+  UserProjectsSdbSynchronizer get _synchronizer => UserProjectsSdbSynchronizer(
+    projectsSdb: projectsDb,
+    fsProjects: globalFestenaoFirestoreDatabase.projectDb,
+  );
 
   Future<void> setCurrentIdentityReady(
     UserProjectsSdb projectsDb,
@@ -45,6 +49,23 @@ class ProjectsSdbScreenBloc
     await projectsDb.clientSetCurrentIdentityId(projectsDb.db, identityId);
   }
 
+  /// Trigger a one shot user access synchronization (rebuild the local
+  /// projects list from the firestore access list). No-op when not
+  /// authenticated.
+  Future<void> syncUserProjects() async {
+    var identity = _identity;
+    var userId = identity?.userId;
+    if (identity == null || userId == null) {
+      return;
+    }
+    await _fsLock.synchronized(() async {
+      await _synchronizer.syncUserProjects(
+        userId: userId,
+        identityId: identity.userOrAccountId,
+      );
+    });
+  }
+
   /// Projects screen bloc
   ProjectsSdbScreenBloc({required this.projectsDb, this.selectMode = false}) {
     () async {
@@ -52,6 +73,7 @@ class ProjectsSdbScreenBloc
         globalTkCmsFbIdentityBloc.state.listen((state) {
           _lock.synchronized(() async {
             var identity = state.identity;
+            _identity = identity;
 
             var identityId =
                 identity?.userOrAccountId; // updated to user?.localId
@@ -85,132 +107,55 @@ class ProjectsSdbScreenBloc
                         .listen(
                           (list) async {
                             var fsProjectUids = list.map((e) => e.id).toList();
-                            var fsProjectAccessMap =
-                                <String, TkCmsFsUserAccess>{};
-                            for (var item in list) {
-                              fsProjectAccessMap[item.id] = item;
-                            }
 
                             audiDispose(_projectDetailsSubscription);
 
                             if (fsProjectUids.isEmpty) {
-                              await projectsDb.ready;
-                              await projectsDb.deleteProjects(userId: userId);
-                              await dbProjectUserStore
-                                  .record(identityId)
-                                  .put(
-                                    projectsDb.db,
-                                    SdbProjectsUser()
-                                      ..readyTimestamp.v = DbTimestamp.now(),
-                                  );
-
+                              await _fsLock.synchronized(() async {
+                                await _synchronizer.applyUserProjects(
+                                  userId: userId,
+                                  identityId: identityId,
+                                  userAccessList: list,
+                                  fsProjectList: [],
+                                );
+                              });
                               return;
                             }
                             // Some error might happen (access) so handle it.
-                            _projectDetailsSubscription = audiAddStreamSubscription(
-                              streamJoinAllOrError(
-                                fsProjectUids
-                                    .map(
-                                      (id) => (fsDb.fsEntityCollectionRef
-                                          .doc(id)
-                                          .onSnapshotSupport(fsDb.firestore)),
-                                    )
-                                    .toList(),
-                              ).listen(
-                                (items) {
-                                  _fsLock.synchronized(() async {
-                                    // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
-                                    var dbProjects = await projectsDb
-                                        .getProjects(userId: identityId);
-                                    var projectMap = {
-                                      for (var project in dbProjects)
-                                        if (project.uid.isNotNull)
-                                          project.fsId: project,
-                                    };
-                                    var toDelete = dbProjects
-                                        .map((e) => e.id)
-                                        .toSet();
-                                    var toSet = <SdbUserProject>[];
-                                    for (var item in items) {
-                                      if (item.error == null) {
-                                        var fsProject = item.value!;
-                                        var uid = fsProject.id;
-                                        var existing = projectMap[uid];
-                                        var userProjectAccess =
-                                            fsProjectAccessMap[uid];
-                                        if (userProjectAccess == null) {
-                                          // ? this might delete id
-                                          continue;
-                                        }
-                                        if (existing != null) {
-                                          if (fsProject.deleted.v != true) {
-                                            toDelete.remove(existing.id);
-                                            var newDbProject = SdbUserProject()
-                                              ..fromFirestore(
-                                                fsProject: fsProject,
-                                                projectAccess:
-                                                    userProjectAccess,
-                                                userId: identityId,
-                                              );
-                                            if (existing.needUpdate(
-                                              newDbProject,
-                                            )) {
-                                              existing.copyFrom(newDbProject);
-                                              toSet.add(existing);
-                                            }
-                                          }
-                                        } else {
-                                          var newDbProject = SdbUserProject()
-                                            ..fromFirestore(
-                                              fsProject: fsProject,
-                                              projectAccess: userProjectAccess,
-                                              userId: identityId,
-                                            );
-                                          toSet.add(newDbProject);
-                                        }
+                            _projectDetailsSubscription =
+                                audiAddStreamSubscription(
+                                  streamJoinAllOrError(
+                                    fsProjectUids
+                                        .map(
+                                          (id) => (fsDb.fsEntityCollectionRef
+                                              .doc(id)
+                                              .onSnapshotSupport(
+                                                fsDb.firestore,
+                                              )),
+                                        )
+                                        .toList(),
+                                  ).listen(
+                                    (items) {
+                                      _fsLock.synchronized(() async {
+                                        var fsProjectList = items
+                                            .where((item) => item.error == null)
+                                            .map((item) => item.value!)
+                                            .toList();
+                                        await _synchronizer.applyUserProjects(
+                                          userId: userId,
+                                          identityId: identityId,
+                                          userAccessList: list,
+                                          fsProjectList: fsProjectList,
+                                        );
+                                      });
+                                    },
+                                    onError: (error) {
+                                      if (kDebugMode) {
+                                        print('error getting Project details');
                                       }
-                                    }
-
-                                    await projectsDb.db.inScvStoresTransaction(
-                                      [dbProjectUserStore, dbProjectStore],
-                                      SdbTransactionMode.readWrite,
-                                      (txn) async {
-                                        for (var id in toDelete) {
-                                          await dbProjectStore
-                                              .record(id)
-                                              .delete(txn);
-                                        }
-                                        for (var project in toSet) {
-                                          if (project.idOrNull == null) {
-                                            project = await dbProjectStore.add(
-                                              txn,
-                                              project,
-                                            );
-                                          } else {
-                                            await dbProjectStore
-                                                .record(project.id)
-                                                .put(txn, project);
-                                          }
-                                          await dbProjectStore
-                                              .record(project.id)
-                                              .put(txn, project);
-                                        }
-                                        await projectsDb
-                                            .clientSetCurrentIdentityId(
-                                              txn,
-                                              userId,
-                                            );
-                                      },
-                                    );
-                                  });
-                                },
-                                onError: (error) {
-                                  if (kDebugMode) {
-                                    print('error getting Project details');
-                                  }
-                                },
-                              ),
-                            );
+                                    },
+                                  ),
+                                );
                           },
                           onError: (error) {
                             if (kDebugMode) {

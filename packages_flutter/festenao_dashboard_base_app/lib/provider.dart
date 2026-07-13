@@ -10,3 +10,4 @@ export 'src/provider/firebase_app_rpd.dart';
 export 'src/provider/sdb_db_blog_demo_providers.dart';
 export 'src/provider/sdb_db_providers.dart';
 export 'src/provider/sdb_providers.dart';
+export 'src/provider/user_projects_sdb_setup.dart';

@@ -34,6 +34,115 @@ class UserProjectsSdbSynchronizer with AutoDisposeMixin {
     audiDisposeAll();
   }
 
+  /// Builds the local projects database content for [userId] from the
+  /// firestore user access list (one shot, easy to trigger from the UI).
+  ///
+  /// [identityId] is the local database key (defaults to [userId]).
+  Future<void> syncUserProjects({
+    required String userId,
+    String? identityId,
+  }) async {
+    identityId ??= userId;
+    if (debugProjectsDbSynchronizer) {
+      _log('syncUserProjects $userId');
+    }
+    var userAccessList = await fsProjects
+        .fsUserEntityAccessCollectionRef(userId)
+        .query()
+        .get(firestore);
+    var fsProjectList = <FsProject>[];
+    for (var userAccess in userAccessList) {
+      try {
+        fsProjectList.add(
+          await fsProjects.fsEntityRef(userAccess.id).get(firestore),
+        );
+      } catch (e) {
+        // Some error might happen (access denied) so skip the project.
+        if (debugProjectsDbSynchronizer) {
+          _log('error getting project ${userAccess.id}: $e');
+        }
+      }
+    }
+    await applyUserProjects(
+      userId: userId,
+      identityId: identityId,
+      userAccessList: userAccessList,
+      fsProjectList: fsProjectList,
+    );
+  }
+
+  /// Applies the firestore [fsProjectList] and matching [userAccessList] to
+  /// the local database: deletes the projects no longer accessible, adds or
+  /// updates the others and marks the user as ready.
+  ///
+  /// [identityId] is the local database key (defaults to [userId]).
+  Future<void> applyUserProjects({
+    required String userId,
+    String? identityId,
+    required List<TkCmsFsUserAccess> userAccessList,
+    required List<FsProject> fsProjectList,
+  }) async {
+    var dbIdentityId = identityId ?? userId;
+    var projectsDb = projectsSdb;
+    await projectsDb.ready;
+    var accessMap = <String, TkCmsFsUserAccess>{
+      for (var userAccess in userAccessList) userAccess.id: userAccess,
+    };
+    var dbProjects = await projectsDb.getProjects(userId: dbIdentityId);
+    var projectMap = {
+      for (var project in dbProjects)
+        if (project.uid.isNotNull) project.fsId: project,
+    };
+    var toDelete = dbProjects.map((e) => e.id).toSet();
+    var toSet = <SdbUserProject>[];
+    for (var fsProject in fsProjectList) {
+      var uid = fsProject.id;
+      var userProjectAccess = accessMap[uid];
+      if (userProjectAccess == null) {
+        continue;
+      }
+      if (!fsProject.exists || fsProject.deleted.v == true) {
+        continue;
+      }
+      var newDbProject = SdbUserProject()
+        ..fromFirestore(
+          fsProject: fsProject,
+          projectAccess: userProjectAccess,
+          userId: dbIdentityId,
+        );
+      var existing = projectMap[uid];
+      if (existing != null) {
+        toDelete.remove(existing.id);
+        if (existing.needUpdate(newDbProject)) {
+          existing.copyFrom(newDbProject);
+          toSet.add(existing);
+        }
+      } else {
+        toSet.add(newDbProject);
+      }
+    }
+    if (debugProjectsDbSynchronizer) {
+      _log('applyUserProjects toDelete $toDelete toSet $toSet');
+    }
+    await projectsDb.db.inScvStoresTransaction(
+      [dbProjectUserStore, dbProjectStore],
+      SdbTransactionMode.readWrite,
+      (txn) async {
+        for (var id in toDelete) {
+          await dbProjectStore.record(id).delete(txn);
+        }
+        for (var project in toSet) {
+          if (project.idOrNull == null) {
+            await dbProjectStore.add(txn, project);
+          } else {
+            await dbProjectStore.record(project.id).put(txn, project);
+          }
+        }
+        await projectsDb.clientSetCurrentIdentityId(txn, dbIdentityId);
+      },
+    );
+  }
+
   /// Syncs a single project for the given [userId] and [projectId].
   Future<void> syncOne({
     required String userId,
