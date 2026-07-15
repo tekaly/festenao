@@ -31,5 +31,6 @@ dev_dependencies:
       path: packages/lints_flutter
 
 flutter:
+  uses-material-design: true
 
 resolution: workspace

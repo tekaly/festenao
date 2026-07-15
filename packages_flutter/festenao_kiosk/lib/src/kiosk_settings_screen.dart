@@ -35,22 +35,11 @@ class _FestenaoKioskSettingsScreenState
   }
 
   Future<void> _load() async {
-    // ignore: avoid_print
-    print('DEBUG _load start');
     var controller = FestenaoKioskApp.of(context);
-    // ignore: avoid_print
-    print('DEBUG got controller, awaiting ready');
     await controller.ready;
-    // ignore: avoid_print
-    print('DEBUG ready awaited');
     _passcodeController.text = controller.passcodeOrNull ?? '';
     if (mounted) {
-      // ignore: avoid_print
-      print('DEBUG mounted, calling setState');
       setState(() => _loaded = true);
-    } else {
-      // ignore: avoid_print
-      print('DEBUG NOT mounted');
     }
   }
 
