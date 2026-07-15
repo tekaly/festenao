@@ -1,0 +1,35 @@
+name: festenao_kiosk
+description: "Reusable kiosk-mode shell: settings persisted via tekartik_prefs (sdb-backed), a passcode-protected escape hatch, and router-agnostic screens/routes."
+version: 0.0.1
+homepage:
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_screen_lock: ">=9.2.2+2"
+  tekartik_prefs_sdb:
+    git:
+      url: https://github.com/tekartik/prefs.dart
+      path: prefs_sdb
+  tekartik_app_flutter_idb:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_idb
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ">=6.0.0"
+  tekartik_lints_flutter:
+    git:
+      url: https://github.com/tekartik/common_flutter.dart
+      path: packages/lints_flutter
+
+flutter:
+
+resolution: workspace
