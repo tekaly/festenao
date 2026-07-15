@@ -11,7 +11,10 @@ const _passcodeKey = 'passcode';
 /// characters are dropped; missing digits are padded with the tail of
 /// `'0000000000'`.
 String kioskSanitizePasscode(String raw, {int length = 4}) {
-  var digits = raw.split('').where((c) => RegExp(r'^[0-9]$').hasMatch(c)).join();
+  var digits = raw
+      .split('')
+      .where((c) => RegExp(r'^[0-9]$').hasMatch(c))
+      .join();
   if (digits.length >= length) {
     return digits.substring(0, length);
   }

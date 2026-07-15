@@ -26,9 +26,15 @@ class FestenaoKioskEscapeButton extends StatelessWidget {
     return IconButton(
       icon:
           child ??
-          Icon(Icons.circle, size: 12, color: Colors.white.withValues(alpha: 0.08)),
+          Icon(
+            Icons.circle,
+            size: 12,
+            color: Colors.white.withValues(alpha: 0.08),
+          ),
       onPressed: () async {
-        var unlocked = await FestenaoKioskApp.of(context).checkPasscode(context);
+        var unlocked = await FestenaoKioskApp.of(
+          context,
+        ).checkPasscode(context);
         if (unlocked) {
           onUnlocked();
         }

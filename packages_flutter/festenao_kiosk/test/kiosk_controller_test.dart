@@ -28,7 +28,8 @@ void main() {
   test('a custom default passcode is sanitized too', () async {
     var controller = FestenaoKioskController(
       prefsFactory: getPrefsFactorySdb(sdbFactoryMemory),
-      prefsName: 'festenao_kiosk_test_default_${DateTime.now().microsecondsSinceEpoch}',
+      prefsName:
+          'festenao_kiosk_test_default_${DateTime.now().microsecondsSinceEpoch}',
       defaultPasscode: '99',
     );
     await controller.ready;
