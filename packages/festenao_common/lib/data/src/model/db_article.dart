@@ -38,56 +38,90 @@ const articleIdIndex = 'index';
 const articleIdDefault = 'default';
 
 /// Mixin providing common article fields used by multiple article types.
+///
+/// This mixin defines the core schema for content management entities such as
+/// artists, events, and info pages. It inherits from [DbStringRecord], meaning
+/// each record has a unique `String` identifier (e.g. `id`).
+///
+/// ### Fields Overview
+/// - [name]: The main display title (e.g., artist name, event name).
+/// - [author]: Creator/author of the content.
+/// - [type]: Sub-classification of the entity (e.g., category).
+/// - [subtitle]: A short tagline or descriptive subtitle.
+/// - [content]: The primary body content, formatted in Markdown.
+/// - [tags]: List of categorization or status tags (e.g. `hidden`).
+/// - [sort]: Custom alphanumeric key used for ordering items.
+/// - [attributes]: List of linked [CvAttribute]s (e.g. links to Facebook, maps).
+/// - [image]: Primary image ID, referencing a [DbImage].
+/// - [thumbnail]: Micro preview image ID, referencing a [DbImage].
+/// - [squareImage]: Square-cropped image ID, referencing a [DbImage].
+///
+/// ### Example Usage
+///
+/// ```dart
+/// var artist = DbArtist()
+///   ..id = 'john-doe'
+///   ..name.v = 'John Doe'
+///   ..subtitle.v = 'Indie Singer-songwriter'
+///   ..content.v = '# Biography\nJohn Doe has been performing since 2018...'
+///   ..tags.v = [articleTagInProgress]
+///   ..image.v = 'img_john_doe_hero';
+/// ```
 mixin DbArticleMixin on DbStringRecord implements DbArticle {
-  /// Artist/Article/Song/Playlist name
+  /// Artist, Event, Info page, or Playlist title/name.
   @override
   final name = CvField<String>('name');
 
-  /// Artist/Article/Song/Playlist author
+  /// The creator, artist, or author of the content.
   @override
   final author = CvField<String>('author');
 
-  /// The name or the identifier if the name is empty.
+  /// Returns the value of [name] if it is not empty, otherwise falls back to
+  /// a bracketed representation of the record [id] (e.g. `[artist-123]`).
   String get nameOrId => (name.v?.isNotEmpty ?? false) ? name.v! : '[$id]';
 
-  /// Type (optional)
+  /// Optional classification type (e.g., event type like 'concert' or 'bal').
   @override
   final type = CvField<String>('type');
 
-  /// Subtitle
+  /// A short tagline or subtitle displayed below the name in lists or details.
   @override
   final subtitle = CvField<String>('subtitle');
 
-  /// Markdown content
+  /// The markdown content block containing formatted description, schedule details, or bios.
   @override
   final content = CvField<String>('content');
 
+  /// List of categorization tags. Common statuses include `hidden`, `cancelled`, and `in_progress`.
   @override
   final tags = CvListField<String>('tags');
 
+  /// String sorting key. Used to customize ordering in display lists.
   @override
   final sort = CvField<String>('sort');
 
-  /// Attributes/Links
+  /// Structured links, contacts, or actions associated with this article (e.g., URLs, emails, locations).
+  ///
+  /// Maps to a list of [CvAttribute] instances.
   @override
   final attributes = CvModelListField<CvAttribute>(
     'attributes',
     (_) => CvAttribute(),
   );
 
-  /// DbImage id
+  /// Main media image identifier, references [DbImage.id].
   @override
   final image = CvField<String>('image');
 
-  /// DbImage id
+  /// Thumbnail image identifier, references [DbImage.id] (optimized for lists).
   @override
   final thumbnail = CvField<String>('thumbnail');
 
-  /// DbImage id
+  /// Square-cut image identifier, references [DbImage.id] (optimized for grid views).
   @override
   final squareImage = CvField<String>('squareImage');
 
-  /// List of fields for an article.
+  /// Convenient getter for all standard article fields defined by this mixin.
   List<CvField> get articleFields => [
     name,
     author,
@@ -103,15 +137,17 @@ mixin DbArticleMixin on DbStringRecord implements DbArticle {
 }
 
 // Helpers
-/// Helper extension on [DbArticle].
+/// Helper extension on [DbArticle] to simplify common operations.
 extension DbArticleHelpers on DbArticle {
-  /// Returns true if the article has the given [tag].
+  /// Checks whether this article contains the specific [tag] in its [tags] field.
   bool hasTag(String tag) => tags.v?.contains(tag) ?? false;
 
-  /// Non empty non blank content
+  /// Checks if the markdown [content] is non-null and contains non-whitespace text.
   bool hasContent() => content.valueOrNull?.trim().isNotEmpty ?? false;
 
-  /// Check hidden flag
+  /// Whether the article is marked as hidden (i.e. has the `hidden` tag).
+  ///
+  /// Hidden articles should not be visible to standard end-users.
   bool get hidden => hasTag(articleTagHidden);
 }
 
@@ -119,6 +155,9 @@ extension DbArticleHelpers on DbArticle {
 typedef DbArticleCommon = DbArticle;
 
 /// Base class implementing common article fields.
+///
+/// Inherit from this class if you want to implement a custom record type
+/// that includes all default CMS fields.
 abstract class DbArticleCommonBase extends DbStringRecordBase
     with DbArticleMixin {
   @override
@@ -126,42 +165,44 @@ abstract class DbArticleCommonBase extends DbStringRecordBase
 }
 
 /// Interface describing an article record's public API.
+///
+/// Standardizes access to CMS field values and descriptors across various
+/// content models like [DbArtist], [DbEvent], and [DbInfo].
 abstract class DbArticle extends DbStringRecord {
-  /// The kind of article (artist/event/info/location).
-  /// The kind of article (artist/event/info/location).
+  /// The logical grouping kind of the article (e.g. `artist`, `event`, `info`, `location`).
   String get articleKind;
 
-  /// The thumbnail image id.
+  /// Descriptor/Field for the thumbnail image ID.
   CvField<String> get thumbnail;
 
-  /// The square image id.
+  /// Descriptor/Field for the square image ID.
   CvField<String> get squareImage;
 
-  /// The markdown content.
+  /// Descriptor/Field for the markdown body content.
   CvField<String> get content;
 
-  /// The main image id.
+  /// Descriptor/Field for the main visual image ID.
   CvField<String> get image;
 
-  /// The article type.
+  /// Descriptor/Field for the classification type string.
   CvField<String> get type;
 
-  /// The subtitle.
+  /// Descriptor/Field for the subtitle string.
   CvField<String> get subtitle;
 
-  /// The article name.
+  /// Descriptor/Field for the primary name string.
   CvField<String> get name;
 
-  /// The article author.
+  /// Descriptor/Field for the author string.
   CvField<String> get author;
 
-  /// The sort key.
+  /// Descriptor/Field for the sort key string.
   CvField<String> get sort;
 
-  /// List of tags.
+  /// Descriptor/Field for the list of tags.
   CvListField<String> get tags;
 
-  /// List of attributes.
+  /// Descriptor/Field for the list of custom attributes/links.
   CvModelListField<CvAttribute> get attributes;
 }
 

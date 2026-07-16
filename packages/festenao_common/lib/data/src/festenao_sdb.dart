@@ -16,19 +16,46 @@ var festenaoSyncedSdbOptions = SyncedSdbOptions(
   ),
 );
 
-/// Main Festenao synchronized database wrapper.
+/// Main Festenao synchronized database wrapper using SDB (Structured Database).
+///
+/// Modern structured local database layer that handles schema definition, open operations,
+/// and synchronizes records offline-first with firestore.
+///
+/// ### Example Usage
+///
+/// #### Instantiating SDB:
+/// ```dart
+/// import 'package:tekaly_sdb_synced/sdb_scv.dart';
+/// import 'package:fs_shim/fs_shim.dart';
+///
+/// var festenaoSdb = FestenaoSdb(
+///   sdbFactory: mySdbFactory,
+///   dbName: 'festenao_sdb.db',
+///   fs: myFileSystem,
+/// );
+///
+/// // Wait until SDB initialization is complete:
+/// await festenaoSdb.ready;
+/// ```
+///
+/// #### Interacting with Media DB:
+/// ```dart
+/// var mediaDb = festenaoSdb.mediaDb;
+/// // Add media files to SDB-backed local storage
+/// String mediaId = await mediaDb.addMediaFile(file: file, bytes: bytes);
+/// ```
 class FestenaoSdb {
-  /// Database factory.
+  /// The structured database factory used to open the database.
   final SdbFactory sdbFactory;
 
-  /// The name of the database.
+  /// The name of the SDB database.
   final String dbName;
 
-  /// Synced db options
+  /// Options for SDB database open, validation, and schema version management.
   final SyncedSdbOptions syncedSdbOptions;
   late final SyncedSdb _db;
 
-  /// When ready
+  /// A future that completes when SDB and [FestenaoMediaSdb] are fully initialized and ready.
   Future<void> get ready => _ready;
   late final _ready = () async {
     await _db.ready;
@@ -36,13 +63,15 @@ class FestenaoSdb {
   }();
   late FestenaoMediaSdb _mediaDb;
 
-  /// Must be ready
+  /// Returns the initialized [FestenaoMediaSdb] instance.
+  ///
+  /// You must wait for [ready] before accessing this getter.
   FestenaoMediaSdb get mediaDb => _mediaDb;
 
-  /// File system
+  /// File system reference used for storing media file blobs.
   final FileSystem fs;
 
-  /// Constructor
+  /// Constructor for creating a [FestenaoSdb] instance.
   FestenaoSdb({
     required this.sdbFactory,
     required this.dbName,
@@ -61,7 +90,7 @@ class FestenaoSdb {
     });
   }
 
-  /// Must be ready
+  /// Returns the underlying [SyncedSdb] client wrapper.
   SyncedSdb get syncedSdb => _db;
 
   /*

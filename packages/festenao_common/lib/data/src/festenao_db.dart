@@ -52,14 +52,42 @@ class FestenaoExportMeta extends CvModelBase {
   List<CvField> get fields => [lastChangeId, lastTimestamp, sourceVersion];
 }
 
-/// Main Festenao synchronized database wrapper.
+/// Main Festenao synchronized Sembast database wrapper.
+///
+/// Extends [SyncedDbBase] to provide offline-first data access synchronized
+/// with Firestore. It manages database lifecycle (open, version upgrades),
+/// import/export utilities, and handles the registration of model builders.
+///
+/// ### Example Usage
+///
+/// #### In-Memory Instantiation (Tests):
+/// ```dart
+/// var db = FestenaoDb.newInMemory();
+/// ```
+///
+/// #### Disk-based Instantiation (Production / Development):
+/// ```dart
+/// import 'package:sembast/sembast_io.dart';
+///
+/// var db = FestenaoDb(databaseFactoryIo, name: 'my_festenao_db.db');
+/// ```
+///
+/// #### Reading/Writing:
+/// ```dart
+/// // Fetching underlying Sembast database instance
+/// Database sdb = await db.database;
+///
+/// // Standard CRUD via store references defined in db_paths.dart
+/// var artist = DbArtist()..name.v = 'Daft Punk';
+/// await dbArtistStoreRef.record('daft-punk').put(sdb, artist);
+/// ```
 class FestenaoDb extends SyncedDbBase {
   bool _test = false;
 
-  /// The name of the database.
+  /// The name of the database file.
   var name = nameDefault;
 
-  /// Default database file name.
+  /// Default database file name: `'festenao.db'`.
   static String nameDefault = 'festenao.db';
 
   /// In-memory database factory used for tests.
@@ -92,14 +120,14 @@ class FestenaoDb extends SyncedDbBase {
   FestenaoDb(DatabaseFactory databaseFactory, {String? name})
     : this._(databaseFactory, false, name: name);
 
-  /// Clear the database content.
+  /// Clear the database content. Dropping all non-system stores inside a transaction.
   Future<void> dbClear(Database db) async {
     await db.transaction((txn) async {
       await (txnDbClear(db, txn));
     });
   }
 
-  /// Transactional database clear helper.
+  /// Transactional database clear helper. Drops all user data stores.
   Future<void> txnDbClear(Database db, Transaction txn) async {
     for (var name in getNonEmptyStoreNames(db)) {
       await StoreRef(name).drop(txn);
