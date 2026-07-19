@@ -322,4 +322,4 @@ final class PublicUserProjectsProvider
 }
 
 String _$publicUserProjectsHash() =>
-    r'05d48976d4eff8b0e03fac776daaa563f63d8958';
+    r'b4d277f1fe970e114da46e9c5a00cc83989fe7d0';

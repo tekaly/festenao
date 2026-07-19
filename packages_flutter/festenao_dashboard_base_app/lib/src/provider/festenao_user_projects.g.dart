@@ -8,18 +8,18 @@ part of 'festenao_user_projects.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
-/// Users projects
+/// Users projects, the current (possibly per user) database.
 
 @ProviderFor(rpdUserProjectsDb)
 final rpdUserProjectsDbProvider = RpdUserProjectsDbProvider._();
 
-/// Users projects
+/// Users projects, the current (possibly per user) database.
 
 final class RpdUserProjectsDbProvider
     extends
         $FunctionalProvider<UserProjectsSdb, UserProjectsSdb, UserProjectsSdb>
     with $Provider<UserProjectsSdb> {
-  /// Users projects
+  /// Users projects, the current (possibly per user) database.
   RpdUserProjectsDbProvider._()
     : super(
         from: null,
@@ -53,7 +53,7 @@ final class RpdUserProjectsDbProvider
   }
 }
 
-String _$rpdUserProjectsDbHash() => r'5bf21f7fe0823b5a5d2190e4a583965f4ac06d28';
+String _$rpdUserProjectsDbHash() => r'c67658d60ecb632c09a16bbc9ce6e156522a34ce';
 
 /// User projects
 

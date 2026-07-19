@@ -48,4 +48,4 @@ final class SdbFactoryProvider
   }
 }
 
-String _$sdbFactoryHash() => r'f736b600eeded1c7e4d4ca9c6d31dd66fb643004';
+String _$sdbFactoryHash() => r'36ada0b5205e90df078780c27921f5bb87cbc7b2';

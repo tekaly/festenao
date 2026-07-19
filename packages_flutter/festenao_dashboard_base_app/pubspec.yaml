@@ -22,6 +22,8 @@ dependencies:
 
   cupertino_icons: ">=1.0.9"
   idb_shim:
+  idb_sqflite: ">=1.4.3"
+  fs_shim:
   meta:
   barcode_widget: ">=2.0.4"
 
@@ -80,6 +82,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
       path: app_widget
+  tekartik_app_flutter_fs:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_fs
   tekartik_app_rx_bloc:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
