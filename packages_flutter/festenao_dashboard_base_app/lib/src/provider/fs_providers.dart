@@ -14,5 +14,7 @@ Future<FileSystem> fs(Ref ref) async {
     packageName: appFlavorContext.packageName,
   )).sandbox();
 
-  return fileSystem.sandbox(path: appFlavorContext.appFlavorContext.uniqueAppName);
+  return fileSystem.sandbox(
+    path: appFlavorContext.appFlavorContext.uniqueAppName,
+  );
 }
