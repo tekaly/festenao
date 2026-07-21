@@ -1,4 +1,5 @@
 import 'package:festenao_base_app/import/ui.dart';
+import 'package:festenao_common/data/festenao_fs.dart';
 import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:festenao_common/data/festenao_media_source_firebase.dart';
@@ -6,11 +7,13 @@ import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_media_edit_screen.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:tekartik_app_url_launcher_flutter/web_launch_uri.dart';
+import 'package:tekartik_browser_utils/blob_utils.dart';
 
 class ContentMediaScreen extends HookConsumerWidget {
   static const routeName = 'content_media';
@@ -170,39 +173,71 @@ class ContentMediaScreen extends HookConsumerWidget {
                                 title: Text('Media file stat not found'),
                               );
                             }
-                            return ListTile(
-                              title: const Text('Media file stat'),
-                              subtitle: Text(
-                                'Size: ${_formatBytes(stat.size)}, Type: ${stat.type}',
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    tooltip: 'Mark to upload',
-                                    icon: const Icon(Icons.upload),
-                                    onPressed: () async {
-                                      await mediaDb.markToUpload(mediaId);
-                                    },
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ListTile(
+                                  title: const Text('Media file stat'),
+                                  subtitle: Text(
+                                    'Size: ${_formatBytes(stat.size)}, Type: ${stat.type}',
                                   ),
-                                  IconButton(
-                                    tooltip: 'Delete local file',
-                                    icon: const Icon(Icons.delete_outline),
+                                  trailing: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        tooltip: 'Mark to upload',
+                                        icon: const Icon(Icons.upload),
+                                        onPressed: () async {
+                                          await mediaDb.markToUpload(mediaId);
+                                        },
+                                      ),
+                                      IconButton(
+                                        tooltip: 'Delete local file',
+                                        icon: const Icon(Icons.delete_outline),
+                                        onPressed: () async {
+                                          var file = await mediaDb.getMediaFile(
+                                            mediaId,
+                                          );
+                                          await file.delete();
+                                          if (context.mounted) {
+                                            muiSnackSync(
+                                              context,
+                                              'Trigger sync to re-download the file',
+                                            );
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                ListTile(
+                                  title: const Text('View Local Data'),
+                                  subtitle: Text(mediaFile.path),
+                                  trailing: IconButton(
+                                    tooltip: 'View local data',
+                                    icon: const Icon(Icons.open_in_new),
                                     onPressed: () async {
-                                      var file = await mediaDb.getMediaFile(
-                                        mediaId,
-                                      );
-                                      await file.delete();
-                                      if (context.mounted) {
-                                        muiSnackSync(
-                                          context,
-                                          'Trigger sync to re-download the file',
+                                      if (kIsWeb) {
+                                        var bytes = await mediaFile
+                                            .readAsBytes();
+                                        var mimeType =
+                                            media.type.v ??
+                                            'application/octet-stream';
+                                        var blobUrl = webBlobUrl(
+                                          bytes: bytes,
+                                          mimeType: mimeType,
                                         );
+                                        webLaunchUri(Uri.parse(blobUrl));
+                                      } else {
+                                        var fullPath = mediaFile
+                                            .unsandbox()
+                                            .path;
+                                        webLaunchUri(Uri.file(fullPath));
                                       }
                                     },
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             );
                           },
                         );
