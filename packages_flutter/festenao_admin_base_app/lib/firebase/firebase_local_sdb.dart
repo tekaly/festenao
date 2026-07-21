@@ -1,5 +1,7 @@
+import 'package:festenao_admin_base_app/auth/auth.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:flutter/foundation.dart';
+import 'package:tekartik_firebase_ui_auth/ui_auth.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
 /// Local project id
@@ -16,6 +18,6 @@ Future<FirebaseContext> initFestenaoAdminFirebaseContextLocalSdb({
     projectId: projectId,
     isWeb: kIsWeb,
   );
-
+  globalAuthFlutterUiService = const FirebaseUiAuthServiceBasic();
   return await servicesContext.init();
 }

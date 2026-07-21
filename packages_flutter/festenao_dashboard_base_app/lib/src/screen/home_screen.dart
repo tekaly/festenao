@@ -40,8 +40,8 @@ class DashboardHomePage extends ConsumerWidget {
                         leading: const Icon(Icons.list),
                         title: const Text('Projects'),
                         onTap: () {
-                          context.go(
-                            DashboardProjectsAccessScreen.routeLocation,
+                          context.pushNamed(
+                            DashboardProjectsAccessScreen.routeName,
                           );
                         },
                       ),
@@ -51,7 +51,7 @@ class DashboardHomePage extends ConsumerWidget {
                         leading: const Icon(Icons.bug_report),
                         title: const Text('Debug'),
                         onTap: () {
-                          context.go('/debug');
+                          context.pushNamed('debug');
                         },
                       ),
                     if (identity != null) ...[
