@@ -1,9 +1,11 @@
 import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
-/// Initializes Firebase with a service account map for internal use.
+/// Initializes Firebase using a service account credentials map [serviceAccountMap].
 ///
-/// Returns a [FirebaseContext] containing the initialized Firebase services.
+/// [serviceAccountMap] map containing service account credentials JSON.
+///
+/// Returns an initialized [FirebaseContext] instance.
 Future<FirebaseContext> festenaoInitFirebaseWithServiceAccount({
   required Map serviceAccountMap,
 }) async {

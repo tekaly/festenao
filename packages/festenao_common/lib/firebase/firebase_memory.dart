@@ -13,11 +13,12 @@ export 'package:tekartik_firebase_functions_call_sim/functions_call_sim.dart';
 export 'package:tekartik_firebase_local/firebase_local.dart';
 export 'package:tekartik_firebase_storage_fs/storage_fs.dart';
 
-/// Initializes Firebase IO with a service account map.
+/// Initializes an in-memory mock Firebase environment for testing.
 ///
-/// Returns a [FirebaseContext] containing the initialized Firebase services.
+/// [options] optional custom [FirebaseAppOptions].
+///
+/// Returns an in-memory initialized [FirebaseContext].
 Future<FirebaseContext> festenaoInitFirebaseMemory({
-  /// Optional Firebase app options.
   FirebaseAppOptions? options,
 }) async {
   var firebase = newFirebaseMemory();
