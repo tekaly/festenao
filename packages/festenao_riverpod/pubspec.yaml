@@ -10,7 +10,7 @@ environment:
 dependencies:
   fs_shim: ">=2.5.5"
   idb_shim: ">=2.9.6"
-  idb_sqflite: ">=1.4.3"
+  idb_sqflite: ">=1.4.4-1"
   riverpod: ">=3.0.0"
   riverpod_annotation: ">=4.0.0"
   tekartik_common_utils:
