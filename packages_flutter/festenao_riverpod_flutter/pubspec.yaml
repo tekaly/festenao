@@ -1,0 +1,43 @@
+name: festenao_riverpod_flutter
+description: "Flutter overrides for festenao_riverpod: application-support-directory FileSystem and a real-disk-sandboxed SdbFactory."
+publish_to: 'none'
+
+version: 1.0.0
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ">=3.0.0"
+  fs_shim: ">=2.5.5"
+  idb_shim: ">=2.9.6"
+  idb_sqflite: ">=1.4.3"
+  riverpod: ">=3.0.0"
+  sqflite_ffi: ">=0.1.0"
+  festenao_riverpod:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages/festenao_riverpod
+  tekartik_app_flutter_fs:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_fs
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  tekartik_lints_flutter:
+    git:
+      url: https://github.com/tekartik/common_flutter.dart
+      path: packages/lints_flutter
+  tkcms_common:
+    git:
+      url: https://github.com/tekartikprj/tkcms.git
+      path: packages/tkcms_common
+
+flutter:
+
+resolution: workspace

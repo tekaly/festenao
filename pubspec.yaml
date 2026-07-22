@@ -7,6 +7,7 @@ workspace:
   - packages/festenao_common
   - packages/festenao_dartff
   - packages/festenao_dartff/functions
+  - packages/festenao_riverpod
   - packages/festenao_support
   - packages_flutter/festenao_admin_base_app
   - packages_flutter/festenao_audio_player
@@ -24,6 +25,7 @@ workspace:
   - packages_flutter/festenao_media_base_app
   - packages_flutter/festenao_google_auth
   - packages_flutter/festenao_object_storage_picker
+  - packages_flutter/festenao_riverpod_flutter
   - packages_flutter/festenao_dashboard_base_app
   - packages_flutter/festenao_kiosk
   - packages/festenao_dartff/festenao_firebase_api_context.dart
