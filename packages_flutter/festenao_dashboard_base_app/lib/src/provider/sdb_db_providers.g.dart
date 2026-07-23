@@ -54,7 +54,7 @@ final class ContentCacheProvider
   }
 }
 
-String _$contentCacheHash() => r'd4ea4b4e7c41fb7e4dfcd48b79e63a661106709c';
+String _$contentCacheHash() => r'0e7daf52ec916721d1055d06860db595784c6028';
 
 @ProviderFor(projectContent)
 final projectContentProvider = ProjectContentFamily._();

@@ -7,8 +7,11 @@ import 'package:festenao_common/data/src/festenao/sync/sync_source_options.dart'
 import 'package:festenao_common/data/src/festenao_sdb.dart';
 import 'package:festenao_common/data/src/festenao_synced_sdb.dart';
 import 'package:festenao_common/festenao_firebase_rest.dart';
+import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 import 'package:festenao_dashboard_base_app/src/provider/firebase_app_rpd.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_providers.dart';
+import 'package:festenao_dashboard_base_app/src/screen/project_home_screen_bloc.dart';
+import 'package:festenao_riverpod/festenao_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tekaly_sdb_synced/synced_sdb_firestore.dart';
 import 'package:tekartik_common_utils/map/lru_map.dart';
@@ -28,7 +31,8 @@ part 'sdb_db_providers.g.dart';
 Future<FestenaoSyncedSdb> openProjectFestenaoSyncedSdb({
   FileSystem? fs,
   FileSystem? rootFs,
-  required FestenaoUserProjectsSdbBloc projectsSdbBloc,
+  required String app,
+  required SdbFactory sdbFactory,
 
   required SdbUserProject project,
   required String dataId,
@@ -36,9 +40,7 @@ Future<FestenaoSyncedSdb> openProjectFestenaoSyncedSdb({
   required FirebaseStorage firebaseStorage,
   required SdbOpenDatabaseOptions openOptions,
 }) async {
-  var app = projectsSdbBloc.appFlavorContext.app;
   var projectUid = project.uid.v!;
-  var sdbFactory = projectsSdbBloc.projectsSdb.factory;
   var dbName = '${dataId}_${app}_${projectUid}_synced.db';
   var fileSystem = fs;
   var rootDocPath = 'app/$app/project/$projectUid/data/$dataId';
@@ -67,12 +69,20 @@ Future<FestenaoSyncedSdb> openProjectFestenaoSyncedSdb({
 
 /// LRU cache of per-project [SdbProjectContent] instances.
 class SdbProjectsContentCache {
-  final projectsSdbBloc = globalFestenaoUserProjectsSdbBloc;
+  /// The (possibly per user) local projects database.
+  final UserProjectsSdb projectsSdb;
+
+  /// The app id, used to namespace the per-project synced sdb.
+  final String app;
+
   final projectsFsBloc = globalFestenaoUserProjectsFsBloc;
   final Firestore firestore;
 
-  SdbProjectsContentCache(Firestore? firestore)
-    : firestore = firestore ?? Firestore.instance;
+  SdbProjectsContentCache({
+    required this.projectsSdb,
+    required this.app,
+    Firestore? firestore,
+  }) : firestore = firestore ?? Firestore.instance;
 
   final _lru = LruMap<(String, String), SdbProjectContent>(
     maximumSize: 4,
@@ -83,11 +93,12 @@ class SdbProjectsContentCache {
     var key = (projectId, dataId);
     var cached = _lru[key];
     if (cached != null) return cached;
-    var projectSdbBloc = FestenaoUserProjectSdbBloc(
-      projectsSdbBloc: projectsSdbBloc,
+    var projectSdbBloc = ProjectHomeScreenBloc(
+      projectsSdb: projectsSdb,
       projectId: projectId,
     );
-    var sdbProject = await projectSdbBloc.projectStream.whereNotNull().first;
+    var sdbProject = await projectSdbBloc.state.whereNotNull().first;
+    projectSdbBloc.dispose();
     var fs = projectsFsBloc.fs;
     fs = fs.sandbox(path: fs.path.join(projectId, dataId));
     var content = SdbProjectContent(
@@ -152,7 +163,8 @@ class SdbProjectContent {
             _map[dataId]?.openDatabaseOptions ?? sdfContentOpenOptions;
         var festenaoSyncedSdb = await openProjectFestenaoSyncedSdb(
           fs: fs,
-          projectsSdbBloc: cache.projectsSdbBloc,
+          app: cache.app,
+          sdbFactory: cache.projectsSdb.factory,
 
           project: project,
           dataId: dataId,
@@ -161,14 +173,6 @@ class SdbProjectContent {
           openOptions: openOptions,
         );
         _festenaoSyncedSdb = festenaoSyncedSdb;
-        /*
-      _autoSyncedSdb = await openProjectSyncedSdb(
-        projectsSdbBloc: cache.projectsSdbBloc,
-        firestore: cache.firestore,
-        project: project,
-        dataId: dataId,
-        openOptions: sdfContentOpenOptions,
-      );*/
         contentSdb = SdfContentSdb(
           fs: fs,
           db: await _festenaoSyncedSdb.db.syncedSdb.database,
@@ -200,7 +204,13 @@ class SdbProjectContent {
 @Riverpod(keepAlive: true)
 SdbProjectsContentCache contentCache(Ref ref) {
   var firestore = ref.watch(rpdFirestoreProvider);
-  return SdbProjectsContentCache(firestore);
+  var projectsSdb = ref.watch(rpdUserProjectsDbProvider);
+  var app = ref.watch(festenaoAppFlavorContextProvider).appId;
+  return SdbProjectsContentCache(
+    projectsSdb: projectsSdb,
+    app: app,
+    firestore: firestore,
+  );
 }
 
 @riverpod
