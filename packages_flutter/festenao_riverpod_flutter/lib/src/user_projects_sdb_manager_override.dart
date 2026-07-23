@@ -1,7 +1,6 @@
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_riverpod/festenao_riverpod.dart';
-import 'package:idb_shim/sdb.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
@@ -42,7 +41,7 @@ Override festenaoUserProjectsSdbManagerOverride({
       firebaseApp: firebaseApp,
     );
     var fsDatabase = FestenaoFirestoreDatabase(
-      firebaseContext: TkCmsFirebaseContext.fromApp(firebaseApp: firebaseApp),
+      firebaseContext: firebaseContext,
       flavorContext: appFlavorContext,
     );
     // Compat needed

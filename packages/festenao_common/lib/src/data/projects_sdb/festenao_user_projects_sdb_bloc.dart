@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_common/festenao_audi.dart';
@@ -10,6 +8,7 @@ import 'package:festenao_common/firebase/firestore_database.dart';
 import '../../../auth/festenao_auth.dart';
 
 /// Global user projects sdb
+// @Deprecated('Since 2026-07-23')
 late final FestenaoUserProjectsSdbBloc globalFestenaoUserProjectsSdbBloc;
 
 /// Festenao project sdb helper

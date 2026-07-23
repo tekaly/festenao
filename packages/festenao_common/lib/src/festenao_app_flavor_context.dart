@@ -23,4 +23,7 @@ class FestenaoAppFlavorContext {
 
   /// App id (`app/<appId>`) in firestore
   String get appId => appFlavorContext.appId;
+
+  @override
+  String toString() => '$packageName $appFlavorContext';
 }

@@ -1,6 +1,7 @@
 import 'package:fs_shim/fs.dart';
 
 /// Global projects file system bloc.
+// @Deprecated('since 2023-07-23')
 late FestenaoUserProjectsFsBloc globalFestenaoUserProjectsFsBloc;
 
 /// Festenao user projects file system bloc.
