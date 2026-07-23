@@ -1,3 +1,5 @@
+import 'package:festenao_common/data/festenao_projects_sdb.dart';
+import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_riverpod/festenao_riverpod.dart';
 import 'package:idb_shim/sdb.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -33,10 +35,30 @@ Override festenaoUserProjectsSdbManagerOverride({
       app: app,
       name: name,
     );
+    var appFlavorContext = ref
+        .watch(festenaoAppFlavorContextProvider)
+        .appFlavorContext;
+    var firebaseContext = TkCmsFirebaseContext.fromApp(
+      firebaseApp: firebaseApp,
+    );
+    var fsDatabase = FestenaoFirestoreDatabase(
+      firebaseContext: TkCmsFirebaseContext.fromApp(firebaseApp: firebaseApp),
+      flavorContext: appFlavorContext,
+    );
+    // Compat needed
+    globalFestenaoFirestoreDatabaseOrNull = fsDatabase;
     var bloc = identityBloc ?? globalTkCmsFbIdentityBloc;
     bloc.state.listen((state) {
       manager.setCurrentUser(state.identity?.userId);
     });
+    var fsProjectDb = globalFestenaoFirestoreDatabase.projectDb;
+    // Compat needed
+    globalFestenaoUserProjectsSdbBloc = FestenaoUserProjectsSdbBloc(
+      appFlavorContext: appFlavorContext,
+      firebaseUserStream: firebaseContext.auth.onCurrentUser,
+      fsProjectDb: fsProjectDb,
+      projectsSdb: globalProjectsSdb,
+    );
     return manager;
   });
 }

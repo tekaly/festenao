@@ -4,6 +4,7 @@ import 'package:fs_shim/fs_memory.dart';
 import 'package:idb_shim/sdb.dart';
 import 'package:riverpod/misc.dart';
 import 'package:riverpod/riverpod.dart';
+import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart';
 import 'package:tekartik_firebase_local/firebase_local.dart';
 import 'package:test/test.dart';
 
@@ -108,6 +109,76 @@ void main() {
       addTearDown(container.dispose);
 
       expect(container.read(festenaoFirebaseAppProvider), same(firebaseApp));
+    });
+  });
+
+  group('festenaoUserProjectsSdbManagerProvider', () {
+    test('throws when not overridden', () {
+      var container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      expect(
+        () => container.read(festenaoUserProjectsSdbManagerProvider),
+        throwsA(
+          isA<ProviderException>().having(
+            (e) => e.exception,
+            'exception',
+            isUnimplementedError,
+          ),
+        ),
+      );
+    });
+
+    test('overridden with a manager', () async {
+      var manager = UserProjectsSdbManager(
+        factory: newSdbFactoryMemory(),
+        firestore: newFirestoreMemory(),
+        app: 'test',
+      );
+      addTearDown(manager.close);
+      var container = ProviderContainer(
+        overrides: [
+          festenaoUserProjectsSdbManagerProvider.overrideWithValue(manager),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      expect(
+        container.read(festenaoUserProjectsSdbManagerProvider),
+        same(manager),
+      );
+    });
+  });
+
+  group('festenaoUserProjectsSdbProvider', () {
+    test('follows the manager\'s current db', () async {
+      var manager = UserProjectsSdbManager(
+        factory: newSdbFactoryMemory(),
+        firestore: newFirestoreMemory(),
+        app: 'test',
+      );
+      addTearDown(manager.close);
+      var container = ProviderContainer(
+        overrides: [
+          festenaoUserProjectsSdbManagerProvider.overrideWithValue(manager),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      var values = <UserProjectsSdb?>[];
+      container.listen(festenaoUserProjectsSdbProvider, (_, next) {
+        if (next.hasValue) {
+          values.add(next.value);
+        }
+      });
+
+      var localDb = await manager.setCurrentUser(null);
+      await pumpEventQueue();
+      expect(values, [localDb]);
+
+      var user1Db = await manager.setCurrentUser('user1');
+      await pumpEventQueue();
+      expect(values, [localDb, user1Db]);
     });
   });
 }

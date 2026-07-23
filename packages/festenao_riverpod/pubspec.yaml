@@ -31,6 +31,10 @@ dependencies:
 dev_dependencies:
   build_runner: ">=2.4.13"
   riverpod_generator:
+  tekartik_firebase_firestore_sembast:
+    git:
+      url: https://github.com/tekartik/firebase_firestore.dart
+      path: firestore_sembast
   tekartik_firebase_local:
     git:
       url: https://github.com/tekartik/firebase.dart

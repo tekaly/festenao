@@ -1,4 +1,3 @@
-import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_riverpod/festenao_riverpod.dart';
 import 'package:fs_shim/fs_shim.dart';
 import 'package:idb_shim/sdb.dart';
@@ -45,19 +44,7 @@ Future<List<Override>> festenaoFlutterProviderOverrides({
     festenaoAppFlavorContextProvider.overrideWithValue(appFlavorContext),
     festenaoFileSystemProvider.overrideWithValue(fileSystem),
     festenaoSdbFactoryProvider.overrideWithValue(sdbFactory),
-    festenaoUserProjectsSdbManagerProvider.overrideWith((ref) {
-      var firebaseApp = ref.watch(festenaoFirebaseAppProvider);
-      var manager = UserProjectsSdbManager(
-        factory: sdbFactory,
-        firestore: firebaseApp.firestore(),
-        app: appId,
-      );
-      var bloc = identityBloc ?? globalTkCmsFbIdentityBloc;
-      bloc.state.listen((state) {
-        manager.setCurrentUser(state.identity?.userId);
-      });
-      return manager;
-    }),
+    festenaoUserProjectsSdbManagerOverride(factory: sdbFactory, app: appId),
     /*
     festenaoUserProjectsSdbManagerOverride(
       factory: sdbFactory,
