@@ -8,23 +8,8 @@ part 'festenao_user_projects.g.dart';
 /// Users projects, the current (possibly per user) database.
 @Riverpod(keepAlive: true)
 UserProjectsSdb rpdUserProjectsDb(Ref ref) {
-  // Dependency
-  ref.watch(festenaoUserProjectsSdbManagerProvider);
-  var manager = globalFestenaoUserProjectsSdbManagerOrNull;
-  if (manager != null) {
-    var db = manager.currentDb;
-    // Rebuild when the per user database changes.
-    var subscription = manager.onCurrentDb.listen((newDb) {
-      if (!identical(newDb, db)) {
-        ref.invalidateSelf();
-      }
-    });
-    ref.onDispose(subscription.cancel);
-    if (db != null) {
-      return db;
-    }
-  }
-  return globalProjectsSdbOrNull ?? UserProjectsSdb.inMemory();
+  var db = ref.watch(festenaoUserProjectsSdbProvider).value;
+  return db ?? globalProjectsSdbOrNull ?? UserProjectsSdb.inMemory();
 }
 
 /// User projects

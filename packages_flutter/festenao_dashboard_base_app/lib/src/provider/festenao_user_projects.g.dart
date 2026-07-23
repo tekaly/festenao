@@ -53,7 +53,7 @@ final class RpdUserProjectsDbProvider
   }
 }
 
-String _$rpdUserProjectsDbHash() => r'c67658d60ecb632c09a16bbc9ce6e156522a34ce';
+String _$rpdUserProjectsDbHash() => r'42b0d0c7fcc07897b5790e5769471fa34665bc7b';
 
 /// User projects
 

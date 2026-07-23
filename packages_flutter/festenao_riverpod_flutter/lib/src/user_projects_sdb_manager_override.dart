@@ -51,14 +51,14 @@ Override festenaoUserProjectsSdbManagerOverride({
     bloc.state.listen((state) {
       manager.setCurrentUser(state.identity?.userId);
     });
-    var fsProjectDb = globalFestenaoFirestoreDatabase.projectDb;
+    /*var fsProjectDb = globalFestenaoFirestoreDatabase.projectDb;
     // Compat needed
     globalFestenaoUserProjectsSdbBloc = FestenaoUserProjectsSdbBloc(
       appFlavorContext: appFlavorContext,
       firebaseUserStream: firebaseContext.auth.onCurrentUser,
       fsProjectDb: fsProjectDb,
       projectsSdb: globalProjectsSdb,
-    );
+    );*/
     return manager;
   });
 }
