@@ -1,4 +1,5 @@
 import 'package:festenao_common/festenao_firebase.dart';
+import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_firebase_functions_call_rest/functions_call_rest.dart';
 
 import '../festenao_firebase_rest.dart';
@@ -40,7 +41,7 @@ Future<FirebaseServicesContext> festenaoInitFirebaseServicesContextRest({
     providers: () => <AuthProviderRest>[
       // When adding google, must also provider built-in one...but why?
       BuiltInAuthProviderRest(),
-      if (googleAuthOptions != null)
+      if (!kDartIsWeb && (googleAuthOptions != null))
         GoogleAuthProviderRestIo(
           options: googleAuthOptions,
           credentialPath:
