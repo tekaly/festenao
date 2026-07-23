@@ -1,3 +1,4 @@
+import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_riverpod/festenao_riverpod.dart';
 import 'package:fs_shim/fs_memory.dart';
 import 'package:idb_shim/sdb.dart';
@@ -5,7 +6,6 @@ import 'package:riverpod/misc.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:tekartik_firebase_local/firebase_local.dart';
 import 'package:test/test.dart';
-import 'package:tkcms_common/tkcms_flavor.dart';
 
 void main() {
   group('festenaoFileSystemProvider', () {

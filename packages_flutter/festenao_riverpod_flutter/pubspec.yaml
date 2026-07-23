@@ -15,7 +15,6 @@ dependencies:
   fs_shim: ">=2.5.5"
   idb_shim: ">=2.9.6"
   idb_sqflite: ">=1.4.3"
-  riverpod: ">=3.0.0"
   sqflite_ffi: ">=0.1.0"
   festenao_riverpod:
     git:
@@ -25,7 +24,16 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
       path: app_fs
-
+  tkcms_common:
+    git:
+      url: https://github.com/tekartikprj/tkcms.git
+      path: packages/tkcms_common
+  festenao_common:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages/festenao_common
+  riverpod: ">=3.0.0"
+  riverpod_annotation: ">=4.0.0"
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -33,11 +41,8 @@ dev_dependencies:
     git:
       url: https://github.com/tekartik/common_flutter.dart
       path: packages/lints_flutter
-  tkcms_common:
-    git:
-      url: https://github.com/tekartikprj/tkcms.git
-      path: packages/tkcms_common
-
+  build_runner: ">=2.4.13"
+  riverpod_generator:
 flutter:
 
 resolution: workspace

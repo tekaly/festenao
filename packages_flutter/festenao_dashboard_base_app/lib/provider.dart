@@ -1,7 +1,7 @@
 /// Reusable riverpod providers for the festenao dashboard base app.
 library;
 
-export 'src/provider/app_provider.dart';
+export 'package:festenao_riverpod/festenao_riverpod.dart';
 export 'src/provider/auth.dart';
 export 'src/provider/auth_rpd.dart';
 export 'src/provider/auth_screen.dart';

@@ -98,6 +98,7 @@ var appOptionsDefault = FestenaoAppOptions()
     ..square.v = (FestenaoAppImageOptions()..width.v = 320)
     ..thumb.v = (FestenaoAppImageOptions()..width.v = 48));
 */
+@Deprecated('Use a different package name')
 const packageNameDefault = 'com.tekartik.festenao.adminapp';
 String? packageName;
 
@@ -131,6 +132,7 @@ Future<void> initAndRunFestenaoAdminAppCompat({
   VoidCallback? parentAction,
 }) async {
   /// Set the global package name
+  // ignore: deprecated_member_use_from_same_package
   packageName = packageName ?? packageNameDefault;
 
   if (fbContext != null) {

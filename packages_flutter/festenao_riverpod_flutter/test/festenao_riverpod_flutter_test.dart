@@ -1,10 +1,10 @@
+import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_riverpod/festenao_riverpod.dart';
 import 'package:festenao_riverpod_flutter/festenao_riverpod_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:idb_shim/sdb.dart';
 import 'package:tekartik_app_flutter_fs/fs.dart';
-import 'package:tkcms_common/tkcms_flavor.dart';
 
 void main() {
   var appFlavorContext = FestenaoAppFlavorContext(

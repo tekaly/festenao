@@ -1,4 +1,4 @@
-import 'package:festenao_riverpod/festenao_riverpod.dart';
+import 'package:festenao_common/festenao_flavor.dart';
 import 'package:fs_shim/fs_shim.dart';
 import 'package:tekartik_app_flutter_fs/fs.dart' as app_fs;
 
