@@ -1,13 +1,15 @@
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
+import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_images_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_medias_screen.dart';
+import 'package:festenao_dashboard_base_app/src/screen/project_home_screen_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 
-class DashboardProjectContentHomeScreen extends ConsumerStatefulWidget {
+class DashboardProjectContentHomeScreen extends ConsumerWidget {
   static const routeName = 'project';
   static const routeLocation = '/project/:project_id';
   static const projectIdPathParameter = 'project_id';
@@ -21,38 +23,39 @@ class DashboardProjectContentHomeScreen extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<DashboardProjectContentHomeScreen> createState() =>
-      _DashboardProjectContentHomeScreenState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    var projectsSdb = ref.watch(rpdUserProjectsDbProvider);
+    return BlocProvider(
+      blocBuilder: () =>
+          ProjectHomeScreenBloc(projectsSdb: projectsSdb, projectId: projectId),
+      child: _DashboardProjectContentHomeScreenBody(
+        projectId: projectId,
+        dataId: dataId,
+      ),
+    );
+  }
 }
 
-class _DashboardProjectContentHomeScreenState
-    extends ConsumerState<DashboardProjectContentHomeScreen> {
-  late final projectSdbBloc = FestenaoUserProjectSdbBloc(
-    projectsSdbBloc: globalFestenaoUserProjectsSdbBloc,
-    projectId: widget.projectId,
-  );
-
-  String get projectId => widget.projectId;
-  String get dataId => widget.dataId;
-  @override
-  void dispose() {
-    projectSdbBloc.dispose();
-    super.dispose();
-  }
+class _DashboardProjectContentHomeScreenBody extends ConsumerWidget {
+  final String projectId;
+  final String dataId;
+  const _DashboardProjectContentHomeScreenBody({
+    required this.projectId,
+    required this.dataId,
+  });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    var bloc = BlocProvider.of<ProjectHomeScreenBloc>(context);
     final sdbContent = ref
         .watch(sdbProjectContentProvider(projectId, dataId))
         .value;
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Project ${widget.projectId} data ${widget.dataId}'),
-      ),
+      appBar: AppBar(title: Text('Project $projectId data $dataId')),
       body: ListView(
         children: [
           ValueStreamBuilder(
-            stream: projectSdbBloc.projectStream,
+            stream: bloc.state,
             builder: (_, snapshot) {
               if (snapshot.hasData) {
                 var project = snapshot.data!;

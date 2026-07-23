@@ -8,7 +8,7 @@ import 'package:festenao_common/firebase/firestore_database.dart';
 import '../../../auth/festenao_auth.dart';
 
 /// Global user projects sdb
-// @Deprecated('Since 2026-07-23')
+@Deprecated('Since 2026-07-23')
 late final FestenaoUserProjectsSdbBloc globalFestenaoUserProjectsSdbBloc;
 
 /// Festenao project sdb helper
