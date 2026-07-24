@@ -111,6 +111,13 @@ class SdbProjectsContentCache {
     _lru[key] = content;
     return content;
   }
+
+  Future<void> deleteData() async {
+    var sdbFactory = projectsSdb.factory;
+    var name = projectsSdb.db.name;
+    await projectsSdb.close();
+    await sdbFactory.deleteDatabase(name);
+  }
 }
 
 class SdbProjectContentOptions {
