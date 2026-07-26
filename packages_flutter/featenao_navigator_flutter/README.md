@@ -124,22 +124,3 @@ the scoped providers readable.
 
 Route assembly and path definitions are plain Dart: they are unit tested
 without pumping a widget tree (see `test/`).
-
-## Example
-
-`festenaoprv_demo_student_app` (in the `festenaoprv` repository, under
-`example/`) is a full app built on this package: sdb + cv data, riverpod
-providers, feature route modules, route overrides and nested scoped shells,
-over `/school/124/student/456/clas/789`.
-
-It also shows how to **mount the same feature twice** — read only at the root
-and editable under `/admin` — which is the same mechanism as white labeling:
-
-- build the `RoutePathDef`s from a `parent` root and a name prefix, one set
-  per mount point (route names must stay unique);
-- instantiate the `FeatureRouteModule` once per set, with a distinct
-  `moduleId`;
-- have each module wrap its subtree in a `providerScopeShellRoute` that puts
-  its own paths (and what its screens are allowed to do) in scope, so the
-  screens can be shared by both trees. A scope does not have to come from a
-  path parameter.

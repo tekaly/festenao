@@ -31,7 +31,7 @@ workspace:
   - packages_flutter/festenao_kiosk
   - packages/festenao_dartff/festenao_firebase_api_context.dart
   - packages/festenao_dartff/festenao_firebase_full_api_context.dart
-  - packages/festenao_noff
+  # - packages/festenao_noff
   - packages/festenao_noff/festenao_firebase_api_context.dart
   - packages/festenao_noff/festenao_firebase_full_api_context.dart
 
