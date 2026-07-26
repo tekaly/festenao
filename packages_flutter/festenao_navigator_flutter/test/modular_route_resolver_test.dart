@@ -1,4 +1,4 @@
-import 'package:featenao_navigator_flutter/featenao_navigator_flutter.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 

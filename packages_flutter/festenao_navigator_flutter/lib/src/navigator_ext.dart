@@ -8,7 +8,7 @@ import 'route_path.dart';
 ///
 /// Everything here is expressed in terms of the **active** location, so no
 /// screen ever has to parse or rebuild its parent path by hand.
-extension FeatenaoNavigatorContextExt on BuildContext {
+extension FestenaoNavigatorContextExt on BuildContext {
   /// The active location, path parameters included
   /// (`/school/124/student/456`).
   Uri get routeUri => GoRouterState.of(this).uri;

@@ -1,4 +1,4 @@
-name: featenao_navigator_flutter
+name: festenao_navigator_flutter
 description: "Modular, scoped go_router + riverpod navigation for Festenao apps: feature route modules, route overrides, typed route paths and provider-scoped shell routes."
 publish_to: 'none'
 

@@ -1,4 +1,4 @@
-# featenao_navigator_flutter
+# festenao_navigator_flutter
 
 Modular, type safe and scoped navigation for Festenao apps, on top of
 [go_router](https://pub.dev/packages/go_router) and
@@ -7,7 +7,7 @@ Modular, type safe and scoped navigation for Festenao apps, on top of
 Implements `packages_flutter/specs_festenao_navigator.md`.
 
 ```dart
-import 'package:featenao_navigator_flutter/featenao_navigator_flutter.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 ```
 
 The facade re-exports go_router, so an app importing it does not need to
