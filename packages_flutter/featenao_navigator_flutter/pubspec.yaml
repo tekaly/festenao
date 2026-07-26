@@ -1,0 +1,41 @@
+name: featenao_navigator_flutter
+description: "Modular, scoped go_router + riverpod navigation for Festenao apps: feature route modules, route overrides, typed route paths and provider-scoped shell routes."
+publish_to: 'none'
+
+version: 1.0.0
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ">=3.0.0"
+  riverpod: ">=3.0.0"
+
+  # Routing
+  go_router: ">=17.1.0"
+
+  festenao_riverpod:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages/festenao_riverpod
+  festenao_riverpod_flutter:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_riverpod_flutter
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  tekartik_lints_flutter:
+    git:
+      url: https://github.com/tekartik/common_flutter.dart
+      path: packages/lints_flutter
+
+flutter:
+
+resolution: workspace
