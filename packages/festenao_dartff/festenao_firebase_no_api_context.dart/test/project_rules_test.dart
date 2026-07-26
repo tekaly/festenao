@@ -18,6 +18,15 @@ var emulatorService = FirebaseEmulatorService(path: '.');
 var firestoreEmulatorHost = 'localhost';
 var firestoreEmulatorPort = 8080;
 
+Future<void> expectPermissionError(Future<void> Function() action) async {
+  try {
+    await action();
+    fail('should fail before');
+  } catch (e) {
+    expect(isExceptionPermissionError(e), isTrue, reason: '$e');
+  }
+}
+
 Future<void> main() async {
   debugWebServices = true;
   debugFirestoreRest = true;
@@ -63,7 +72,7 @@ Future<void> main() async {
   group('project access', () {
     test('standalone project access', () async {
       var appId = 'test_app';
-      var projectId2 = 'test_festenao_access_common';
+      var projectId2 = 'test_festenao_access_standalone';
 
       final projectCollectionInfo = fsProjectCollectionInfo;
       var entityAccess =
@@ -81,32 +90,43 @@ Future<void> main() async {
 
       var accessRef = entityAccess.fsEntityUserAccessRef(projectId2, userId);
 
-      // User can create the project.
+      // User cannot create the project without createUserId
       var entityRef = entityAccess.fsEntityRef(projectId2);
-      await firestore.cvSet(entityRef.cv()..name.v = 'test');
-      await entityRef.get(firestore);
-      // User can write access too.
-      await firestore.cvSet(accessRef.cv()..grantAdminAccess());
 
-      Future<void> expectPermissionError(Future<void> Function() action) async {
-        try {
-          await action();
-          fail('should fail before');
-        } catch (e) {
-          expect(isExceptionPermissionError(e), isTrue, reason: '$e');
-        }
-      }
+      // But cannot write it.
+      await expectPermissionError(() async {
+        await firestore.cvSet(entityRef.cv()..name.v = 'test');
+      });
+
+      print('$entityRef $userId');
+      // It can create it with a userId
+      await firestore.cvSet(
+        entityRef.cv()
+          ..name.v = 'test'
+          ..creatorUserId.v = userId,
+      );
+
+      // But cannot write it yet.
+      await expectPermissionError(() async {
+        await firestore.cvSet(entityRef.cv()..name.v = 'test');
+      });
+      // Not read it
+      await expectPermissionError(() async {
+        await entityRef.get(firestore);
+      });
+      // User can write access.
+      print('accessRef: $accessRef');
+      await firestore.cvSet(accessRef.cv()..grantAdminAccess());
 
       // Remove admin access.
       await firestore.cvSet((accessRef.cv()..write.v = true)..fixAccess());
       // Can still write.
-      await firestore.cvSet(entityRef.cv()..name.v = 'test2');
+      await firestore.cvSet(
+        entityRef.cv()
+          ..name.v = 'test2'
+          ..creatorUserId.v = userId,
+      );
       await entityRef.get(firestore);
-
-      // User cannot write access anymore.
-      await expectPermissionError(() async {
-        await firestore.cvSet(accessRef.cv()..grantAdminAccess());
-      });
 
       // Remove write access.
       await firestore.cvSet((accessRef.cv()..read.v = true)..fixAccess());
@@ -144,19 +164,9 @@ Future<void> main() async {
           password: 'test1234',
         );
         var creatorUserId = creatorCredential.user.uid;
-        await auth.signOut();
-        /*
-        await adminSetDoc(
-          projectId: projectId,
-          path: 'app/$appId/project/$projectId2',
-          fields: {'name': 'test project', 'creatorUserId': creatorUserId},
-         );*/
-
-        await auth.signInOrUpWithEmailAndPassword(
-          email: 'creator@festenao-noff-test.local',
-          password: 'test1234',
-        );
-        expect(auth.currentUser!.uid, creatorUserId);
+        await firestore
+            .doc('app/$appId/project/$projectId2')
+            .set({'name': 'test project', 'creatorUserId': creatorUserId});
 
         var itemRef = firestore.doc(
           'app/$appId/project/$projectId2/item/$itemId',

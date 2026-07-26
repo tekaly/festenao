@@ -3,6 +3,12 @@ import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/form/src/fs_form_model.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
+/// User doc per app:
+///   `app/<appId>/user_prv/<userId>/data/projects`.
+/// Entity doc:
+///   `app/<appId>/entity/<entityId>/.
+/// Entity public get doc:
+///   `app/<appId>/public/get/entity/<entityId>/.
 /// Initializes Festenao Firestore builders.
 void initFestenaoFsBuilders() {
   initTkCmsFsBuilders();
