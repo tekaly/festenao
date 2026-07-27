@@ -96,10 +96,13 @@ void projectStandaloneAccessTestRunner(
         userId: userId,
         entityId: projectId,
       );
+      fail('should fail');
     } catch (e) {
-      print('error $e');
+      // ignore: avoid_print
+      print('expected error recreating $e');
+      expect(e, isNot(isA<TestFailure>()));
     }
-  }, solo: true);
+  });
 
   group('standalone project access runner', () {
     test('standalone project access', () async {

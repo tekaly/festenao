@@ -402,7 +402,6 @@ void testFestenaoServerGroup(
     var name = 'Test $now';
     var createEntityId = 'test';
 
-    print('#1');
     try {
       await client.deleteEntity(entityId: createEntityId);
     } catch (_) {}
@@ -410,14 +409,12 @@ void testFestenaoServerGroup(
       await client.purgeEntity(entityId: createEntityId);
     } catch (_) {}
 
-    print('#3');
     try {
       await projectDb.adminDeleteEntity(createEntityId);
     } catch (_) {}
     try {
       await projectDb.adminPurgeEntity(createEntityId);
     } catch (_) {}
-    print('#5');
     Future<FsProject> createEntity() async {
       var entity = await client.createEntity(
         entity: FsProject()..name.v = name,
@@ -602,7 +599,7 @@ void testFestenaoServerGroup(
           .get(fsDatabase.firestore);
       expect(entity.exists, isFalse);
     }
-  }, solo: true);
+  });
 
   test('object storage', () async {
     var objectStorageApiClient = ObjectStorageApiClient(

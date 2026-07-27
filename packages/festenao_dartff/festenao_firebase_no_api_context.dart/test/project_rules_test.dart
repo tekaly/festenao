@@ -60,10 +60,7 @@ Future<void> main() async {
   });
 
   projectStandaloneAccessTestRunner(
-    () => ProjectStandaloneAccessTestContext(
-      auth: auth,
-      firestore: firestore,
-    ),
+    () => ProjectStandaloneAccessTestContext(auth: auth, firestore: firestore),
     rulesSupported: true,
   );
 }
