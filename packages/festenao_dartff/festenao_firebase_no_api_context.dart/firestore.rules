@@ -14,57 +14,29 @@ service cloud.firestore {
       allow get: if true;
     }
 
-    /// Create an empty record with the same path as the public doc, so that the public doc can be read by the app.
-    match /{top}/{topId}/{entity}/{entityId}/public/get/{document=**} {
-      allow get
-      allow read, write: if subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
-    }
-
-
     // Common (Standalone & Cloud functions supported)
 
+    function subEntityAccessPath(top, topId, entity, entityId, userId) {
+      let path = /databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId);
+      return path;
+    }
+
     function subHasEntityAdminAccess(top, topId, entity, entityId, userId) {
-      return exists(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)) &&
-             get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.admin == true;
+      let path = subEntityAccessPath(top, topId, entity, entityId, userId);
+      return exists(path) && get(path).data.admin == true;
     }
     function subHasEntityWriteAccess(top, topId, entity, entityId, userId) {
-      return exists(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)) &&
-             get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.write == true;
+    	let path = subEntityAccessPath(top, topId, entity, entityId, userId);
+      return exists(path) && get(path).data.write == true;
     }
-    //
-    // Project Creator (standalone)
-    //
-    // No backend (no cloud functions): the creator of a project (a
-    // TkCmsFsProject, identified here generically as top/topId/entity/entityId)
-    // can create sub entities directly, without needing a separate access
-    // grant document, as long as the project's own `creatorUserId` (or `createUserId`)
-    // field matches the requester.
-    function subEntityCreatorUserIdMatches(top, topId, entity, entityId, userId) {
-      return exists(/databases/$(database)/documents/$(top)/$(topId)/$(entity)/$(entityId)) &&
-             (('creatorUserId' in get(/databases/$(database)/documents/$(top)/$(topId)/$(entity)/$(entityId)).data &&
-               get(/databases/$(database)/documents/$(top)/$(topId)/$(entity)/$(entityId)).data.creatorUserId == userId) ||
-              ('createUserId' in get(/databases/$(database)/documents/$(top)/$(topId)/$(entity)/$(entityId)).data &&
-               get(/databases/$(database)/documents/$(top)/$(topId)/$(entity)/$(entityId)).data.createUserId == userId));
+    function subHasEntityReadAccess(top, topId, entity, entityId, userId) {
+    	let path = subEntityAccessPath(top, topId, entity, entityId, userId);
+      return exists(path) && get(path).data.read == true;
     }
 
-    function subHasEntityWriteAccessOrCreator(top, topId, entity, entityId, userId) {
-      return subHasEntityWriteAccess(top, topId, entity, entityId, userId) ||
-             subEntityCreatorUserIdMatches(top, topId, entity, entityId, userId);
-    }
-
-    // Top level entity rules
-    match /{top}/{topId}/{entity}/{entityId} {
-      allow create: if request.auth != null && request.resource.data.creatorUserId == request.auth.uid);
-    }
     match /{top}/{topId}/{entity}/{entityId}/{document=**} {
-      allow read, write: if subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
-    }
-    match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
-      allow read, write: if subEntityCreatorUserIdMatches(top, topId, entity, entityId, request.auth.uid);
-    }
-
-    match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
-      allow read, write: if subEntityCreatorUserIdMatches(top, topId, entity, entityId, request.auth.uid);
+      allow read: if request.auth != null && subHasEntityReadAccess(top, topId, entity, entityId, request.auth.uid);
+      allow write: if request.auth != null && subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
     }
 
     // Invite
@@ -72,33 +44,54 @@ service cloud.firestore {
       allow read: if request.auth.uid != null;
     }
 
-    // Sub entities under a top-level entity (e.g. item/itemId or item/itemId/nested/nestedId)
-    match /{top}/{topId}/{entity}/{entityId}/{subEntity}/{subEntityId} {
-      allow read, write: if subHasEntityWriteAccessOrCreator(top, topId, entity, entityId, request.auth.uid);
-    }
-    match /{top}/{topId}/{entity}/{entityId}/{subEntity}/{subEntityId}/{document=**} {
-      allow read, write: if subHasEntityWriteAccessOrCreator(top, topId, entity, entityId, request.auth.uid);
-    }
-
     // Should not be necessary
     match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
-      allow read: if request.auth.uid == userId;
+      allow read: if request.auth != null && request.auth.uid == userId;
     }
 
     match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
-      allow read: if request.auth.uid == userId;
+      allow read: if request.auth != null &&  request.auth.uid == userId;
     }
 
     match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
-      allow read, write: if subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
+      allow read, write: if request.auth != null && subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
     }
 
     match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
-      allow read, write: if subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
+      allow read, write: if request.auth != null && subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
     }
 
     match /{top}/{topId}/access/{entity}/user_id/{userId} {
       allow read: if request.auth.uid == userId;
+    }
+
+    //
+    // Project Creator (standalone) - 2026-07-27
+    //
+    // No backend (no cloud functions): the creator of a project (a
+    // TkCmsFsProject, identified here generically as top/topId/entity/entityId)
+    // can create sub entities directly, without needing a separate access
+    // grant document, as long as the project's own `creatorUserId`
+    // field matches the requester.
+    function subEntityCreatorUserIdMatches(top, topId, entity, entityId, userId) {
+    	let doc = get(/databases/$(database)/documents/$(top)/$(topId)/$(entity)/$(entityId));
+      return doc.data != null && doc.data.creatorUserId == userId;
+    }
+
+    // Top level entity rules, allow creating and getting (if logged in)
+    match /{top}/{topId}/{entity}/{entityId} {
+      allow create: if request.auth != null
+      			&& request.resource.data.keys().hasAll(['creatorUserId'])
+            && request.resource.data.creatorUserId == request.auth.uid;
+      allow get: if request.auth != null;
+    }
+
+    match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
+      allow create: if request.auth != null && subEntityCreatorUserIdMatches(top, topId, entity, entityId, request.auth.uid);
+    }
+
+    match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
+      allow create: if request.auth != null &&  subEntityCreatorUserIdMatches(top, topId, entity, entityId, request.auth.uid);
     }
   }
 }
