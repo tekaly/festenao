@@ -8,9 +8,6 @@ import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 class DashboardProjectAccessScreen extends ConsumerWidget {
   static const routeName = 'project_access';
   static const routeLocation = '/project_access/:project_id';
-  static const projectIdPathParameter = 'project_id';
-
-  static String location(String projectId) => '/project_access/$projectId';
 
   final String projectId;
 

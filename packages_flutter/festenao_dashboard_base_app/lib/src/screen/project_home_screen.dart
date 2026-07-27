@@ -1,20 +1,17 @@
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
-import 'package:festenao_dashboard_base_app/src/screen/blog_demo_screen.dart';
-import 'package:festenao_dashboard_base_app/src/screen/content_demo_screen.dart';
+import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_images_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_medias_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_home_screen_bloc.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 
 class DashboardProjectHomeScreen extends ConsumerWidget {
   static const routeName = 'project';
-  static const routeLocation = '/project/:project_id';
-  static const projectIdPathParameter = 'project_id';
-  static String location(String projectId) => '/project/$projectId';
   final String projectId;
   const DashboardProjectHomeScreen({super.key, required this.projectId});
 
@@ -60,7 +57,12 @@ class _DashboardProjectHomeScreenBody extends StatelessWidget {
                     ListTile(
                       title: const Text('Blog demo'),
                       onTap: () {
-                        context.push(BlogDemoScreen.location(projectId));
+                        context.pushPath(
+                          blogDemoPath,
+                          parameters: {
+                            DashboardRouteParams.projectId: projectId,
+                          },
+                        );
                       },
                     ),
                     ListTile(
@@ -68,20 +70,33 @@ class _DashboardProjectHomeScreenBody extends StatelessWidget {
                         'Content (artist / location / event / image)',
                       ),
                       onTap: () {
-                        context.push(ContentDemoScreen.location(projectId));
+                        context.pushPath(
+                          contentDemoPath,
+                          parameters: {
+                            DashboardRouteParams.projectId: projectId,
+                          },
+                        );
                       },
                     ),
 
                     ListTile(
                       title: const Text('Content Images'),
                       onTap: () {
-                        context.push(ContentImagesScreen.location(projectId));
+                        goToContentImagesScreen(
+                          context,
+                          projectId: projectId,
+                          dataId: SdbProjectContent.defaultDataId,
+                        );
                       },
                     ),
                     ListTile(
                       title: const Text('Content Medias'),
                       onTap: () {
-                        context.push(ContentMediasScreen.location(projectId));
+                        goToContentMediasScreen(
+                          context,
+                          projectId: projectId,
+                          dataId: SdbProjectContent.defaultDataId,
+                        );
                       },
                     ),
                   ],

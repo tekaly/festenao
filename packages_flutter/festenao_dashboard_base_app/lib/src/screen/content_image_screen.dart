@@ -4,21 +4,19 @@ import 'package:festenao_base_app/blurhash/flutter_blurhash.dart';
 import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_image_edit_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_media_screen.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class ContentImageScreen extends ConsumerWidget {
   static const routeName = 'content_image';
-  static const routeLocationPart = 'view';
-  static const projectIdPathParameter = 'project_id';
-  static const dataIdPathParameter = 'data_id';
-  static const imageIdPathParameter = 'image_id';
 
-  static String location(String projectId, String dataId, String imageId) =>
-      '/project/$projectId/data/$dataId/image/$imageId/view';
+  /// The part below `/project/:project_id/data/:data_id/image/:image_id`, see
+  /// `contentImagePath`.
+  static const routeLocationPart = 'view';
 
   final String projectId;
   final String dataId;
@@ -246,7 +244,12 @@ Future<void> goToContentImageScreen(
   required String dataId,
   required String imageId,
 }) async {
-  await context.push<void>(
-    ContentImageScreen.location(projectId, dataId, imageId),
+  await context.pushPath<void>(
+    contentImagePath,
+    parameters: {
+      DashboardRouteParams.projectId: projectId,
+      DashboardRouteParams.dataId: dataId,
+      DashboardRouteParams.imageId: imageId,
+    },
   );
 }

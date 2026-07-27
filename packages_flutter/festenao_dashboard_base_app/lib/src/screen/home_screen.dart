@@ -2,12 +2,11 @@ import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_dashboard_base_app/src/provider/auth_rpd.dart';
 import 'package:festenao_dashboard_base_app/src/provider/auth_screen.dart';
 import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
-import 'package:festenao_dashboard_base_app/src/screen/project_home_screen.dart';
-import 'package:festenao_dashboard_base_app/src/screen/projects_access_screen.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class DashboardHomePage extends ConsumerWidget {
   static String get routeName => 'home';
@@ -40,9 +39,7 @@ class DashboardHomePage extends ConsumerWidget {
                         leading: const Icon(Icons.list),
                         title: const Text('Projects'),
                         onTap: () {
-                          context.pushNamed(
-                            DashboardProjectsAccessScreen.routeName,
-                          );
+                          context.pushPath(projectsAccessPath);
                         },
                       ),
                     ],
@@ -68,10 +65,11 @@ class DashboardHomePage extends ConsumerWidget {
                               onTap: () {
                                 var projectId = userProject.uid.v;
                                 if (projectId != null) {
-                                  context.push(
-                                    DashboardProjectHomeScreen.location(
-                                      projectId,
-                                    ),
+                                  context.pushPath(
+                                    dashboardProjectPath,
+                                    parameters: {
+                                      DashboardRouteParams.projectId: projectId,
+                                    },
                                   );
                                 }
                               },

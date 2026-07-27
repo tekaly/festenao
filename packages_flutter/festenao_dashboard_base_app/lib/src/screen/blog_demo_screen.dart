@@ -10,9 +10,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// with Firestore at `app/<app>/project/<projectId>/data/blog`.
 class BlogDemoScreen extends ConsumerStatefulWidget {
   static const routeName = 'blog_demo';
-  static const routeLocation = '/project/:project_id/blog_demo';
-  static const projectIdPathParameter = 'project_id';
-  static String location(String projectId) => '/project/$projectId/blog_demo';
+
+  /// The part below `/project/:project_id`, see `blogDemoPath`.
+  static const routeLocationPart = 'blog_demo';
 
   /// Project id whose blog data is shown.
   final String projectId;

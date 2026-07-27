@@ -6,14 +6,10 @@ import 'package:festenao_dashboard_base_app/src/screen/content_images_screen.dar
 import 'package:festenao_dashboard_base_app/src/screen/content_medias_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_home_screen_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 
 class DashboardProjectContentHomeScreen extends ConsumerWidget {
   static const routeName = 'project';
-  static const routeLocation = '/project/:project_id';
-  static const projectIdPathParameter = 'project_id';
-  static String location(String projectId) => '/project/$projectId';
   final String projectId;
   final String dataId;
   const DashboardProjectContentHomeScreen({
@@ -80,13 +76,21 @@ class _DashboardProjectContentHomeScreenBody extends ConsumerWidget {
                     ListTile(
                       title: const Text('Content Images'),
                       onTap: () {
-                        context.push(ContentImagesScreen.location(projectId));
+                        goToContentImagesScreen(
+                          context,
+                          projectId: projectId,
+                          dataId: dataId,
+                        );
                       },
                     ),
                     ListTile(
                       title: const Text('Content Medias'),
                       onTap: () {
-                        context.push(ContentMediasScreen.location(projectId));
+                        goToContentMediasScreen(
+                          context,
+                          projectId: projectId,
+                          dataId: dataId,
+                        );
                       },
                     ),
                   ],

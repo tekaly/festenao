@@ -1,6 +1,7 @@
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_providers.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -9,10 +10,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// `app/<app>/project/<projectId>/data/<dataId>`.
 class ContentDemoScreen extends ConsumerStatefulWidget {
   static const routeName = 'content_demo';
-  static const routeLocation = '/project/:project_id/content_demo';
-  static const projectIdPathParameter = 'project_id';
+
+  /// The part below `/project/:project_id`, see `contentDemoPath`.
+  static const routeLocationPart = 'content_demo';
+
+  @Deprecated('Use contentDemoPath.location() instead')
   static String location(String projectId) =>
-      '/project/$projectId/content_demo';
+      contentDemoPath.location({DashboardRouteParams.projectId: projectId});
 
   final String projectId;
 

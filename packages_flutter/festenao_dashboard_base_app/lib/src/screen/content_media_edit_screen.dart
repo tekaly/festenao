@@ -6,27 +6,14 @@ import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 class ContentMediaEditScreen extends ConsumerStatefulWidget {
   static const editRouteName = 'content_media_edit';
   static const createRouteName = 'content_media_create';
-  static const editRouteLocation =
-      '/project/:project_id/data/:data_id/media_edit/:media_id';
-  static const createRouteLocation =
-      '/project/:project_id/data/:data_id/media_create';
-  static const projectIdPathParameter = 'project_id';
-  static const dataIdPathParameter = 'data_id';
-  static const mediaIdPathParameter = 'media_id';
-
-  static String location(String projectId, String dataId, {String? mediaId}) {
-    var baseLoc = '/project/$projectId/data/$dataId';
-    return mediaId == null
-        ? '$baseLoc/media_create'
-        : '$baseLoc/media_edit/$mediaId';
-  }
 
   final String projectId;
   final String dataId;
@@ -310,7 +297,12 @@ Future<void> goToContentMediaEditScreen(
   required String dataId,
   required String? mediaId,
 }) async {
-  await context.push<void>(
-    ContentMediaEditScreen.location(projectId, dataId, mediaId: mediaId),
+  await context.pushPath<void>(
+    mediaId == null ? contentMediaCreatePath : contentMediaEditPath,
+    parameters: {
+      DashboardRouteParams.projectId: projectId,
+      DashboardRouteParams.dataId: dataId,
+      DashboardRouteParams.mediaId: ?mediaId,
+    },
   );
 }

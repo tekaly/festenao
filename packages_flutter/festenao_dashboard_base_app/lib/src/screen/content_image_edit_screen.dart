@@ -7,34 +7,23 @@ import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_providers.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
-import 'package:festenao_dashboard_base_app/src/router/dashboard_router.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/material.dart';
 
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class ContentImageEditScreen extends StatefulHookConsumerWidget {
   static const editRouteName = 'content_image_edit';
   static const createRouteName = 'content_image_create';
-  static const editRouteLocationPart = 'edit';
-  static const createRouteLocationPart = 'image_create';
-  static const editRouteLocation =
-      '/project/:${DashboardRouter.projectIdParam}'
-      '/data/:${DashboardRouter.dataIdParam}'
-      '/image/:${DashboardRouter.imageIdParam}'
-      'edit';
-  static const createRouteLocation =
-      '/project/:${DashboardRouter.projectIdParam}'
-      '/data/:${DashboardRouter.dataIdParam}'
-      'image_create';
 
-  static String location(String projectId, String dataId, {String? imageId}) {
-    var baseLoc = '/project/$projectId/data/$dataId';
-    var loc = imageId == null
-        ? '$baseLoc/image_create'
-        : '$baseLoc/image/$imageId/edit';
-    return loc;
-  }
+  /// The part below `/project/:project_id/data/:data_id/image/:image_id`, see
+  /// `contentImageEditPath`.
+  static const editRouteLocationPart = 'edit';
+
+  /// The part below `/project/:project_id/data/:data_id`, see
+  /// `contentImageCreatePath`.
+  static const createRouteLocationPart = 'image_create';
 
   final String projectId;
   final String dataId;
@@ -393,7 +382,12 @@ Future<void> goToContentImageEditScreen(
   required String dataId,
   required String? imageId,
 }) async {
-  await context.push<void>(
-    ContentImageEditScreen.location(projectId, dataId, imageId: imageId),
+  await context.pushPath<void>(
+    imageId == null ? contentImageCreatePath : contentImageEditPath,
+    parameters: {
+      DashboardRouteParams.projectId: projectId,
+      DashboardRouteParams.dataId: dataId,
+      DashboardRouteParams.imageId: ?imageId,
+    },
   );
 }

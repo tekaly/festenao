@@ -6,25 +6,21 @@ import 'package:festenao_common/data/festenao_media_source_firebase.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_media_edit_screen.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:tekartik_app_url_launcher_flutter/web_launch_uri.dart';
 import 'package:tekartik_browser_utils/blob_utils.dart';
 
 class ContentMediaScreen extends HookConsumerWidget {
   static const routeName = 'content_media';
-  static const routeLocation =
-      '/project/:project_id/data/:data_id/media/:media_id';
-  static const projectIdPathParameter = 'project_id';
-  static const dataIdPathParameter = 'data_id';
-  static const mediaIdPathParameter = 'media_id';
 
-  static String location(String projectId, String dataId, String mediaId) =>
-      '/project/$projectId/data/$dataId/media/$mediaId';
+  /// Media id path parameter name, see `contentMediaPath`.
+  static const mediaIdPathParameter = 'media_id';
 
   final String projectId;
   final String dataId;
@@ -342,7 +338,12 @@ Future<void> goToContentMediaScreen(
   required String dataId,
   required String mediaId,
 }) async {
-  await context.push<void>(
-    ContentMediaScreen.location(projectId, dataId, mediaId),
+  await context.pushPath<void>(
+    contentMediaPath,
+    parameters: {
+      DashboardRouteParams.projectId: projectId,
+      DashboardRouteParams.dataId: dataId,
+      DashboardRouteParams.mediaId: mediaId,
+    },
   );
 }

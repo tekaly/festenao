@@ -1,11 +1,12 @@
 import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_router.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_media_edit_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_media_screen.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 extension DashboardGoRouterStateExt on GoRouterState {
@@ -16,13 +17,19 @@ extension DashboardGoRouterStateExt on GoRouterState {
 
 class ContentMediasScreen extends HookConsumerWidget {
   static const routeName = 'content_medias';
-  static const routeLocation = '/project/:project_id/data/:data_id/medias';
+
+  /// The part below `/project/:project_id/data/:data_id`, see
+  /// `contentMediasPath`.
   static const routeLocationPart = 'medias';
 
+  @Deprecated('Use contentMediasPath.location() or goToContentMediasScreen()')
   static String location(
     String projectId, [
     String? dataId = SdbProjectContent.defaultDataId,
-  ]) => '/project/$projectId/data/$dataId/medias';
+  ]) => contentMediasPath.location({
+    DashboardRouteParams.projectId: projectId,
+    DashboardRouteParams.dataId: dataId ?? SdbProjectContent.defaultDataId,
+  });
 
   final String projectId;
   final String dataId;
@@ -127,5 +134,11 @@ Future<void> goToContentMediasScreen(
   required String projectId,
   required String dataId,
 }) async {
-  await context.push<void>(ContentMediasScreen.location(projectId, dataId));
+  await context.pushPath<void>(
+    contentMediasPath,
+    parameters: {
+      DashboardRouteParams.projectId: projectId,
+      DashboardRouteParams.dataId: dataId,
+    },
+  );
 }
