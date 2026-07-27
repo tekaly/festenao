@@ -129,7 +129,7 @@ service cloud.firestore {
       allow write: if subHasEntityAdminAccess(top, topId, entity, request.resource.data.entityId, request.auth.uid);
     }
 
-    // Common (Standalone & Cloud functions supported)
+    // Sub - Common (Standalone & Cloud functions supported) - updated 2026-07-27
 
     function subEntityAccessPath(top, topId, entity, entityId, userId) {
       let path = /databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId);
@@ -140,10 +140,12 @@ service cloud.firestore {
       let path = subEntityAccessPath(top, topId, entity, entityId, userId);
       return exists(path) && get(path).data.admin == true;
     }
+
     function subHasEntityWriteAccess(top, topId, entity, entityId, userId) {
-    	let path = subEntityAccessPath(top, topId, entity, entityId, userId);
+      let path = subEntityAccessPath(top, topId, entity, entityId, userId);
       return exists(path) && get(path).data.write == true;
     }
+
     function subHasEntityReadAccess(top, topId, entity, entityId, userId) {
     	let path = subEntityAccessPath(top, topId, entity, entityId, userId);
       return exists(path) && get(path).data.read == true;
