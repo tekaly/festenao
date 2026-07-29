@@ -6,6 +6,8 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // festenao_no_api
+
     //
     // Public projects (standalone & cloud functions supported)
     //
@@ -44,7 +46,7 @@ service cloud.firestore {
       allow read: if request.auth.uid != null;
     }
 
-    // Should not be necessary
+    // Should not be necessary - to try once
     match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
     }

@@ -126,8 +126,11 @@ class FsCmsEntityCreateApiResult<T extends TkCmsFsEntity>
   /// The created entity as a map.
   final entity = CvField<Map>('entity');
 
+  /// The firestore path
+  final path = CvField<String>('path');
+
   @override
-  CvFields get fields => [...super.fields, entity];
+  CvFields get fields => [...super.fields, entity, path];
 }
 
 /// API query for deleting a CMS entity.

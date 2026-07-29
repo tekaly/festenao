@@ -1,6 +1,9 @@
 rules_version = '2';
 
 service cloud.firestore {
+
+  // festenao_dartff
+
   match /databases/{database}/documents {
   	
     // Check public access for some document

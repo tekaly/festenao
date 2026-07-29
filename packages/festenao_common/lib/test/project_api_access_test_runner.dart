@@ -39,21 +39,29 @@ void appProjectAccessApiTestRunner(
     initTkCmsFsBuilders();
 
     var appId = testContext.apiService.app;
+    // ignore: unused_local_variable
+    var userId = auth.currentUser!.uid;
 
     /// Project collection info.
     final projectCollectionInfo = fsProjectCollectionInfo;
+    var entityAccess =
+        TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsProject>(
+          entityCollectionInfo: projectCollectionInfo,
+          firestore: firestore, // Not used for access
+          rootDocument: fsAppRoot(appId),
+        );
     var appApiClient = FestenaoApiFsEntityClient<TkCmsFsProject>(
       apiService: testContext.apiService,
-      entityAccess: TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsProject>(
-        entityCollectionInfo: projectCollectionInfo,
-        firestore: firestore, // Not used for access
-        rootDocument: fsAppRoot(appId),
-      ),
+      entityAccess: entityAccess,
     );
 
     var entity = await appApiClient.createEntity(entity: TkCmsFsProject());
+    expect(entity.path, 'app/$appId/project/${entity.id}');
     var projectId = entity.id;
 
+    // print('$appId: $appId');
+    // print('projectId: $projectId');
+    // print('userId: $userId');
     var docRef = firestore.doc('app/$appId/project/$projectId/sub/data');
     await docRef.set({'probe': 'admin-write-ok'});
 

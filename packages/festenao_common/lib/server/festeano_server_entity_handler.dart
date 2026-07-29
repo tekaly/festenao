@@ -123,9 +123,11 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
         entityId: entityId,
         customIdGenerator: options.customIdGenerator,
       );
+      var path = entityAccess.fsEntityRef(entityId).path;
       var result = FsCmsEntityCreateApiResult()
         ..entityId.setValue(entityId)
-        ..entity.v = entity.fsDataToJsonMap();
+        ..entity.v = entity.fsDataToJsonMap()
+        ..path.v = path;
       return result;
     }
   }
