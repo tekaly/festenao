@@ -1,41 +1,52 @@
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_dashboard_base_app/src/provider/blog_providers.dart';
-import 'package:festenao_dashboard_base_app/src/provider/route_scope_providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// Blog demo screen.
+/// Blog demo screen, taking its ids as constructor arguments.
 ///
-/// Displays blog entries stored in a local [BlogSdb] that is synchronized
-/// with Firestore at `app/<app>/project/<projectId>/data/blog`.
-///
-/// Takes no argument: the project and data ids come from
-/// [currentProjectIdProvider] and [currentDataIdProvider], which the route tree
-/// scopes from the location (`dashboardProjectScopeRoute` /
-/// `dashboardFixedDataScopeRoute`). `LegacyBlogDemoScreen` is the same screen
-/// with the ids passed down explicitly.
-class BlogDemoScreen extends ConsumerWidget {
-  static const routeName = 'blog_demo';
+/// The pre-scope version of [BlogDemoScreen], kept for the apps (and the route
+/// trees) that pass the project and data ids down explicitly rather than
+/// through [currentProjectIdProvider] / [currentDataIdProvider]. Both are
+/// reachable from `DashboardProjectHomeScreen`, side by side, so the two ways
+/// of getting the same screen its ids can be compared.
+class LegacyBlogDemoScreen extends ConsumerStatefulWidget {
+  static const routeName = 'legacy_blog_demo';
 
-  /// The part below `/project/:project_id`, see `blogDemoPath`.
-  static const routeLocationPart = 'blog_demo';
+  /// The part below `/project/:project_id`, see `legacyBlogDemoPath`.
+  static const routeLocationPart = 'legacy_blog_demo';
 
-  /// The data id this screen works on, whatever the location says.
-  static const blogDataId = 'blog';
+  /// Project id whose blog data is shown.
+  final String projectId;
 
-  const BlogDemoScreen({super.key});
+  /// Data id used as the Firestore sub-path and local db name segment.
+  final String dataId;
+
+  const LegacyBlogDemoScreen({
+    super.key,
+    required this.projectId,
+    this.dataId = 'blog',
+  });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    var projectId = ref.watch(currentProjectIdProvider);
-    var dataId = ref.watch(currentDataIdProvider);
-    var entries = ref.watch(blogEntriesProvider(projectId, dataId));
-    var contentAsync = ref.watch(blogContentProvider(projectId, dataId));
+  ConsumerState<LegacyBlogDemoScreen> createState() =>
+      _LegacyBlogDemoScreenState();
+}
+
+class _LegacyBlogDemoScreenState extends ConsumerState<LegacyBlogDemoScreen> {
+  @override
+  Widget build(BuildContext context) {
+    var entries = ref.watch(
+      blogEntriesProvider(widget.projectId, widget.dataId),
+    );
+    var contentAsync = ref.watch(
+      blogContentProvider(widget.projectId, widget.dataId),
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Blog – $projectId'),
+        title: Text('Blog (legacy) – ${widget.projectId}'),
         actions: [
           IconButton(
             icon: const Icon(Icons.sync),
@@ -64,7 +75,7 @@ class BlogDemoScreen extends ConsumerWidget {
                   icon: const Icon(Icons.delete_outline),
                   onPressed: () async {
                     var sdb = ref
-                        .read(blogSdbProvider(projectId, dataId))
+                        .read(blogSdbProvider(widget.projectId, widget.dataId))
                         .value;
                     await sdb?.deleteBlog(blog.id);
                   },
@@ -77,18 +88,13 @@ class BlogDemoScreen extends ConsumerWidget {
         error: (e, st) => Center(child: Text('Error: $e')),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _showAddDialog(context, ref, projectId, dataId),
+        onPressed: () => _showAddDialog(context),
         child: const Icon(Icons.add),
       ),
     );
   }
 
-  Future<void> _showAddDialog(
-    BuildContext context,
-    WidgetRef ref,
-    String projectId,
-    String dataId,
-  ) async {
+  Future<void> _showAddDialog(BuildContext context) async {
     final titleCtrl = TextEditingController();
     final contentCtrl = TextEditingController();
 
@@ -121,7 +127,9 @@ class BlogDemoScreen extends ConsumerWidget {
                 ..title.v = titleCtrl.text
                 ..content.v = contentCtrl.text
                 ..timestamp.v = SdbTimestamp.now();
-              var sdb = ref.read(blogSdbProvider(projectId, dataId)).value;
+              var sdb = ref
+                  .read(blogSdbProvider(widget.projectId, widget.dataId))
+                  .value;
               await sdb?.addBlog(blog);
               if (ctx.mounted) Navigator.of(ctx).pop();
             },

@@ -10,6 +10,7 @@ export 'src/screen/content_media_edit_screen.dart';
 export 'src/screen/content_media_screen.dart';
 export 'src/screen/content_medias_screen.dart';
 export 'src/screen/home_screen.dart';
+export 'src/screen/legacy_blog_demo_screen.dart';
 export 'src/screen/project_access_screen.dart';
 export 'src/screen/project_content_home_screen.dart';
 export 'src/screen/project_home_screen.dart';

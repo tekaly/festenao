@@ -1,4 +1,5 @@
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_route_scope.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_image_edit_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_image_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_images_screen.dart';
@@ -24,15 +25,19 @@ class DashboardContentRouteModule implements FeatureRouteModule {
     dashboardHomePath.goRoute(
       builder: (context, state) => const DashboardHomePage(),
       routes: [
+        // The project screens read their ids from riverpod; each route builds
+        // the scope that holds them (a plain ProviderScope, so every page stays
+        // on the same navigator — see `dashboard_route_scope.dart`).
         dashboardProjectPath.goRoute(
-          builder: (context, state) => DashboardProjectHomeScreen(
-            projectId: state.pathParameter(DashboardRouteParams.projectId),
+          builder: (context, state) => dashboardProjectScope(
+            state,
+            child: const DashboardProjectHomeScreen(),
           ),
           routes: [
             dashboardProjectDataPath.goRoute(
-              builder: (context, state) => DashboardProjectContentHomeScreen(
-                projectId: state.pathParameter(DashboardRouteParams.projectId),
-                dataId: state.pathParameter(DashboardRouteParams.dataId),
+              builder: (context, state) => dashboardProjectScope(
+                state,
+                child: const DashboardProjectContentHomeScreen(),
               ),
               routes: [
                 contentImagesPath.goRoute(

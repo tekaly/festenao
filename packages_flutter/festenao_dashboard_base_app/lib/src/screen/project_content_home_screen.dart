@@ -1,6 +1,7 @@
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
+import 'package:festenao_dashboard_base_app/src/provider/route_scope_providers.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_images_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_medias_screen.dart';
@@ -8,25 +9,39 @@ import 'package:festenao_dashboard_base_app/src/screen/project_home_screen_bloc.
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 
+/// The home screen of one data database of a project.
+///
+/// [projectId] and [dataId] are optional: below a `dashboardProjectScopeRoute`
+/// and a `dashboardDataScopeRoute` they come from [currentProjectIdProvider]
+/// and [currentDataIdProvider], so the route does not have to read the path
+/// parameters and pass them down. Passing them explicitly still works, for the
+/// apps that mount this screen outside of a scoped branch.
 class DashboardProjectContentHomeScreen extends ConsumerWidget {
   static const routeName = 'project';
-  final String projectId;
-  final String dataId;
+  final String? projectId;
+  final String? dataId;
   const DashboardProjectContentHomeScreen({
     super.key,
-    required this.projectId,
-    required this.dataId,
+    this.projectId,
+    this.dataId,
   });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // `watch<String>`: without the explicit type argument the `??` infers
+    // its right hand side against the nullable left one, giving a `String?`.
+    var currentProjectId =
+        projectId ?? ref.watch<String>(currentProjectIdProvider);
+    var currentDataId = dataId ?? ref.watch<String>(currentDataIdProvider);
     var projectsSdb = ref.watch(rpdUserProjectsDbProvider);
     return BlocProvider(
-      blocBuilder: () =>
-          ProjectHomeScreenBloc(projectsSdb: projectsSdb, projectId: projectId),
+      blocBuilder: () => ProjectHomeScreenBloc(
+        projectsSdb: projectsSdb,
+        projectId: currentProjectId,
+      ),
       child: _DashboardProjectContentHomeScreenBody(
-        projectId: projectId,
-        dataId: dataId,
+        projectId: currentProjectId,
+        dataId: currentDataId,
       ),
     );
   }

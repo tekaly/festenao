@@ -8,6 +8,7 @@ import 'package:festenao_dashboard_base_app/src/screen/content_media_edit_screen
 import 'package:festenao_dashboard_base_app/src/screen/content_media_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_medias_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/home_screen.dart';
+import 'package:festenao_dashboard_base_app/src/screen/legacy_blog_demo_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_access_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_home_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/projects_access_screen.dart';
@@ -107,6 +108,12 @@ final contentMediaCreatePath = dashboardProjectDataPath.child(
 final blogDemoPath = dashboardProjectPath.child(
   BlogDemoScreen.routeLocationPart,
   name: BlogDemoScreen.routeName,
+);
+
+/// `/project/:project_id/legacy_blog_demo`
+final legacyBlogDemoPath = dashboardProjectPath.child(
+  LegacyBlogDemoScreen.routeLocationPart,
+  name: LegacyBlogDemoScreen.routeName,
 );
 
 /// `/project/:project_id/content_demo`

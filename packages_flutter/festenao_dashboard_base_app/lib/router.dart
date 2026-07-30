@@ -16,4 +16,5 @@ export 'src/router/dashboard_content_route_module.dart';
 export 'src/router/dashboard_demo_route_module.dart';
 export 'src/router/dashboard_media_route_module.dart';
 export 'src/router/dashboard_route_paths.dart';
+export 'src/router/dashboard_route_scope.dart';
 export 'src/router/dashboard_router.dart';
