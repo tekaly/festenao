@@ -8,18 +8,24 @@ import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 /// The demo screens of a project, an independent feature standing for what
 /// another package would contribute.
 ///
+/// Mounted under [dashboardProjectPath] rather than at the top level, so
+/// `/project/x/blog_demo` opened directly builds its whole ancestor stack and
+/// the project screen is one back away — the resolver does the mounting, this
+/// module still knows nothing of the one declaring the project route.
+///
 /// [BlogDemoScreen] reads its ids from the scope its route builds,
 /// [LegacyBlogDemoScreen] and [ContentDemoScreen] still take them as
-/// arguments; the three sit on the same navigator, so a push from the project
-/// home pops back to it.
-class DashboardDemoRouteModule implements FeatureRouteModule {
+/// arguments.
+class DashboardDemoRouteModule implements NestedFeatureRouteModule {
   @override
   String get moduleId => 'dashboard_demo';
 
   @override
+  String get parentRouteName => dashboardProjectPath.name!;
+
+  @override
   List<RouteBase> get routes => [
     blogDemoPath.goRoute(
-      absolute: true,
       builder: (context, state) => dashboardProjectScope(
         state,
         dataId: BlogDemoScreen.blogDataId,
@@ -27,13 +33,11 @@ class DashboardDemoRouteModule implements FeatureRouteModule {
       ),
     ),
     legacyBlogDemoPath.goRoute(
-      absolute: true,
       builder: (context, state) => LegacyBlogDemoScreen(
         projectId: state.pathParameter(DashboardRouteParams.projectId),
       ),
     ),
     contentDemoPath.goRoute(
-      absolute: true,
       builder: (context, state) => ContentDemoScreen(
         projectId: state.pathParameter(DashboardRouteParams.projectId),
       ),

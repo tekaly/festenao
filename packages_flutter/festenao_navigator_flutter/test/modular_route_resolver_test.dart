@@ -19,6 +19,52 @@ extension on List<RouteBase> {
   List<String> get paths => map((route) => (route as GoRoute).path).toList();
 }
 
+/// A module contributing [routes] under the route named [parentRouteName].
+class _NestedModule implements NestedFeatureRouteModule {
+  _NestedModule(this.moduleId, this.parentRouteName, this.routes);
+
+  @override
+  final String moduleId;
+
+  @override
+  final String parentRouteName;
+
+  @override
+  final List<RouteBase> routes;
+}
+
+/// The full paths of [routes], parent path included, in tree order.
+List<String> _paths(List<RouteBase> routes, [String parent = '']) {
+  var paths = <String>[];
+  for (var route in routes) {
+    if (route is! GoRoute) {
+      paths.addAll(_paths(route.routes, parent));
+      continue;
+    }
+    var path = route.path.startsWith('/')
+        ? route.path
+        : '${parent == '/' ? '' : parent}/${route.path}';
+    paths.add(path);
+    paths.addAll(_paths(route.routes, path));
+  }
+  return paths;
+}
+
+/// A tree a nested module can hang from.
+List<RouteBase> _projectTree() => [
+  _route(
+    '/',
+    name: 'home',
+    routes: [
+      _route(
+        'project/:project_id',
+        name: 'project',
+        routes: [_route('data/:data_id', name: 'project_data')],
+      ),
+    ],
+  ),
+];
+
 void main() {
   group('routeMatchesOverride', () {
     test('matches on the name when both are named', () {
@@ -141,6 +187,79 @@ void main() {
 
     test('no module, no override', () {
       expect(ModularRouteResolver.assembleRoutes(baseModules: []), isEmpty);
+    });
+
+    test('mounts a nested module under its parent route', () {
+      var routes = ModularRouteResolver.assembleRoutes(
+        baseModules: [
+          _module('top', _projectTree()),
+          _NestedModule('demo', 'project', [
+            _route('blog_demo', name: 'blog_demo'),
+          ]),
+          _NestedModule('media', 'project_data', [
+            _route('media/:media_id', name: 'media'),
+          ]),
+        ],
+      );
+      expect(_paths(routes), [
+        '/',
+        '/project/:project_id',
+        '/project/:project_id/data/:data_id',
+        '/project/:project_id/data/:data_id/media/:media_id',
+        '/project/:project_id/blog_demo',
+      ]);
+    });
+
+    test('mounts whatever the module order is', () {
+      var routes = ModularRouteResolver.assembleRoutes(
+        baseModules: [
+          _NestedModule('demo', 'project', [
+            _route('blog_demo', name: 'blog_demo'),
+          ]),
+          _module('top', _projectTree()),
+        ],
+      );
+      expect(_paths(routes), contains('/project/:project_id/blog_demo'));
+    });
+
+    test('throws when a nested module names an unknown parent', () {
+      expect(
+        () => ModularRouteResolver.assembleRoutes(
+          baseModules: [
+            _module('top', _projectTree()),
+            _NestedModule('orphan', 'nowhere', [_route('lost')]),
+          ],
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('replaces a route nested deep in the tree', () {
+      var replacement = _route('blog_demo', name: 'blog_demo');
+      var routes = ModularRouteResolver.assembleRoutes(
+        baseModules: [
+          _module('top', _projectTree()),
+          _NestedModule('demo', 'project', [
+            _route('blog_demo', name: 'blog_demo'),
+          ]),
+        ],
+        customOverrides: [replacement],
+      );
+      // Same tree…
+      expect(_paths(routes), [
+        '/',
+        '/project/:project_id',
+        '/project/:project_id/data/:data_id',
+        '/project/:project_id/blog_demo',
+      ]);
+      // …and the override is the route that ended up in it.
+      var project = (routes.single as GoRoute).routes.single as GoRoute;
+      expect(
+        project.routes.firstWhere(
+          (route) => (route as GoRoute).name == 'blog_demo',
+        ),
+        same(replacement),
+      );
     });
 
     test('throws on a duplicated module id', () {

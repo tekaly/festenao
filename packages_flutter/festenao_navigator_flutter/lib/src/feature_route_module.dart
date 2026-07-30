@@ -17,6 +17,28 @@ abstract class FeatureRouteModule {
   List<RouteBase> get routes;
 }
 
+/// A [FeatureRouteModule] whose routes are mounted **under** an existing route
+/// of the assembled tree rather than at the top level.
+///
+/// This is how a feature package contributes a screen that belongs inside
+/// another module's branch — the blog demo of a project living at
+/// `/project/:project_id/blog_demo` — without either module importing the
+/// other: it names the parent route, and [ModularRouteResolver] does the
+/// mounting.
+///
+/// It matters beyond tidiness: a route mounted at the top level has no parent
+/// page, so opening it directly (a fresh page load on the web) gives a single
+/// page with nothing to go back to. Nested, the same location builds its whole
+/// ancestor stack.
+abstract class NestedFeatureRouteModule implements FeatureRouteModule {
+  /// The [GoRoute.name] of the route this module's [routes] hang from.
+  ///
+  /// Resolution fails loudly when no route of the assembled tree carries that
+  /// name: a module contributing to a branch that does not exist is a wiring
+  /// mistake, not something to silently drop.
+  String get parentRouteName;
+}
+
 /// A [FeatureRouteModule] built from a plain list of routes, for modules with
 /// no state of their own.
 class FeatureRouteModuleBase implements FeatureRouteModule {
