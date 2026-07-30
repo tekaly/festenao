@@ -2,6 +2,7 @@ import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_providers.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
+import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,6 +59,9 @@ class _ContentDemoScreenState extends ConsumerState<ContentDemoScreen>
 
     return Scaffold(
       appBar: AppBar(
+        // Mounted at the top level, so a deep link has no parent page to
+        // pop to: this button goes up instead.
+        leading: RouteUpBackButton(upPath: dashboardProjectPath),
         title: Text('Content – $_pid'),
         actions: [
           IconButton(

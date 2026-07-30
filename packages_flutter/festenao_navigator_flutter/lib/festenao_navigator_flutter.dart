@@ -20,4 +20,5 @@ export 'src/modular_route_resolver.dart';
 export 'src/navigator_ext.dart';
 export 'src/route_location.dart';
 export 'src/route_path.dart';
+export 'src/route_up_button.dart';
 export 'src/scoped_shell_route.dart';

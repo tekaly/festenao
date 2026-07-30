@@ -88,6 +88,9 @@ class _ContentMediaEditScreenState
 
     return Scaffold(
       appBar: AppBar(
+        // Mounted at the top level, so a deep link has no parent page to
+        // pop to: this button goes up instead.
+        leading: RouteUpBackButton(upPath: dashboardProjectDataPath),
         title: Text(isNew ? 'New Media' : 'Edit Media'),
         actions: [
           if (!isNew)

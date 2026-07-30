@@ -83,4 +83,39 @@ extension FestenaoNavigatorContextExt on BuildContext {
   /// nothing to pop).
   void goUp([int count = 1]) =>
       GoRouter.of(this).go(routeLocationParent(routeLocation, count));
+
+  /// Pops the current route, or goes to [def] when there is nothing to pop.
+  ///
+  /// This is what a screen reached by a deep link needs. Pushed from its
+  /// parent, it has a stack to pop; opened directly — a fresh page load on the
+  /// web, or a route mounted at the top level rather than under its parent —
+  /// it has none, and popping would leave the user stuck. Path parameters
+  /// missing from [parameters] are inherited from the active location, so
+  /// going up from `/project/x/blog_demo` to [def] `/project/:project_id`
+  /// needs no argument.
+  void popOrGoPath(
+    RoutePathDef def, {
+    Map<String, String> parameters = const {},
+  }) {
+    var router = GoRouter.of(this);
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      goPath(def, parameters: parameters);
+    }
+  }
+
+  /// Pops the current route, or goes up [count] segments of the active
+  /// location when there is nothing to pop.
+  ///
+  /// The untyped counterpart of [popOrGoPath], for the screens that have no
+  /// [RoutePathDef] for their parent.
+  void popOrGoUp([int count = 1]) {
+    var router = GoRouter.of(this);
+    if (router.canPop()) {
+      router.pop();
+    } else {
+      goUp(count);
+    }
+  }
 }
