@@ -9,11 +9,8 @@ class HttpLogTransport implements LogTransport {
   final Client client;
   final Map<String, String>? headers;
 
-  HttpLogTransport({
-    required this.endpoint,
-    Client? client,
-    this.headers,
-  }) : client = client ?? Client();
+  HttpLogTransport({required this.endpoint, Client? client, this.headers})
+    : client = client ?? Client();
 
   @override
   Future<bool> sendBatch(List<LogRecord> records) async {

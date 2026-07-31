@@ -30,7 +30,8 @@ class FestenaoLogPlaygroundScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute<void>(
-                  builder: (_) => FestenaoLogViewerScreen(storage: logger.storage),
+                  builder: (_) =>
+                      FestenaoLogViewerScreen(storage: logger.storage),
                 ),
               );
             },
@@ -49,10 +50,7 @@ class FestenaoLogPlayground extends StatefulWidget {
   final FestenaoLogger logger;
 
   /// Creates a new [FestenaoLogPlayground] widget.
-  const FestenaoLogPlayground({
-    super.key,
-    required this.logger,
-  });
+  const FestenaoLogPlayground({super.key, required this.logger});
 
   @override
   State<FestenaoLogPlayground> createState() => _FestenaoLogPlaygroundState();
@@ -60,10 +58,12 @@ class FestenaoLogPlayground extends StatefulWidget {
 
 class _FestenaoLogPlaygroundState extends State<FestenaoLogPlayground> {
   LogLevel _selectedLevel = LogLevel.info;
-  final TextEditingController _loggerNameController =
-      TextEditingController(text: 'kiosk.terminal');
+  final TextEditingController _loggerNameController = TextEditingController(
+    text: 'kiosk.terminal',
+  );
   final TextEditingController _messageController = TextEditingController(
-      text: 'User completed checkout successfully at kiosk borne-42');
+    text: 'User completed checkout successfully at kiosk borne-42',
+  );
   bool _includeExtraJson = true;
 
   bool _isStressTesting = false;
@@ -132,15 +132,15 @@ class _FestenaoLogPlaygroundState extends State<FestenaoLogPlayground> {
       widget.logger.log(
         level: lvl,
         loggerName: 'stress.test.worker_${random.nextInt(5)}',
-        message: 'Stress test log entry #${i + 1} of $count - payload data string',
-        error: isErr ? 'SimulatedException: Error code ${random.nextInt(500)}' : null,
+        message:
+            'Stress test log entry #${i + 1} of $count - payload data string',
+        error: isErr
+            ? 'SimulatedException: Error code ${random.nextInt(500)}'
+            : null,
         stackTrace: isErr
             ? 'StackTrace #0 main.dart:42\nStackTrace #1 logger.dart:105\nStackTrace #2 stress_runner.dart:${random.nextInt(200)}'
             : null,
-        extra: {
-          'index': i + 1,
-          'randomSeed': random.nextInt(100000),
-        },
+        extra: {'index': i + 1, 'randomSeed': random.nextInt(100000)},
       );
 
       if (i % 25 == 0 || i == count - 1) {
@@ -187,15 +187,25 @@ class _FestenaoLogPlaygroundState extends State<FestenaoLogPlayground> {
                         value: _selectedLevel,
                         items: const [
                           DropdownMenuItem(
-                              value: LogLevel.debug, child: Text('DEBUG')),
+                            value: LogLevel.debug,
+                            child: Text('DEBUG'),
+                          ),
                           DropdownMenuItem(
-                              value: LogLevel.info, child: Text('INFO')),
+                            value: LogLevel.info,
+                            child: Text('INFO'),
+                          ),
                           DropdownMenuItem(
-                              value: LogLevel.warning, child: Text('WARNING')),
+                            value: LogLevel.warning,
+                            child: Text('WARNING'),
+                          ),
                           DropdownMenuItem(
-                              value: LogLevel.error, child: Text('ERROR')),
+                            value: LogLevel.error,
+                            child: Text('ERROR'),
+                          ),
                           DropdownMenuItem(
-                              value: LogLevel.fatal, child: Text('FATAL')),
+                            value: LogLevel.fatal,
+                            child: Text('FATAL'),
+                          ),
                         ],
                         onChanged: (lvl) {
                           if (lvl != null) {
@@ -294,7 +304,8 @@ class _FestenaoLogPlaygroundState extends State<FestenaoLogPlayground> {
                     LinearProgressIndicator(value: _stressProgress),
                     const SizedBox(height: 8),
                     Text(
-                        'Emitting logs... ${(_stressProgress * 100).toStringAsFixed(0)}%'),
+                      'Emitting logs... ${(_stressProgress * 100).toStringAsFixed(0)}%',
+                    ),
                   ] else ...[
                     Wrap(
                       spacing: 8,
@@ -348,7 +359,9 @@ class _FestenaoLogPlaygroundState extends State<FestenaoLogPlayground> {
                           await widget.logger.flush();
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Flushed logger transport')),
+                              const SnackBar(
+                                content: Text('Flushed logger transport'),
+                              ),
                             );
                           }
                         },
@@ -384,7 +397,8 @@ class _FestenaoLogPlaygroundState extends State<FestenaoLogPlayground> {
                           Navigator.of(context).push(
                             MaterialPageRoute<void>(
                               builder: (_) => FestenaoLogViewerScreen(
-                                  storage: widget.logger.storage),
+                                storage: widget.logger.storage,
+                              ),
                             ),
                           );
                         },

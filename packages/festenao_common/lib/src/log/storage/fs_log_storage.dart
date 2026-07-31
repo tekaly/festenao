@@ -30,7 +30,8 @@ class FsLogStorage implements LogStorage {
   });
 
   Directory get _dir => fileSystem.directory(directoryPath);
-  File get _masterIndexFile => fileSystem.file('${_dir.path}/master_index.json');
+  File get _masterIndexFile =>
+      fileSystem.file('${_dir.path}/master_index.json');
 
   File _segmentFile(String segmentId) =>
       fileSystem.file('${_dir.path}/log_seg_$segmentId.jsonl');
@@ -105,11 +106,13 @@ class FsLogStorage implements LogStorage {
 
     _streamController.add(record);
 
-    final oldest = active.oldestTimestamp == null ||
+    final oldest =
+        active.oldestTimestamp == null ||
             record.timestamp.isBefore(active.oldestTimestamp!)
         ? record.timestamp
         : active.oldestTimestamp;
-    final newest = active.newestTimestamp == null ||
+    final newest =
+        active.newestTimestamp == null ||
             record.timestamp.isAfter(active.newestTimestamp!)
         ? record.timestamp
         : active.newestTimestamp;
@@ -126,8 +129,9 @@ class FsLogStorage implements LogStorage {
       status: active.status,
     );
 
-    final idx =
-        _segmentSummaries.indexWhere((s) => s.segmentId == active.segmentId);
+    final idx = _segmentSummaries.indexWhere(
+      (s) => s.segmentId == active.segmentId,
+    );
     if (idx != -1) {
       _segmentSummaries[idx] = _activeSegmentSummary!;
     }
@@ -286,8 +290,9 @@ class FsLogStorage implements LogStorage {
         recordCount: _activeSegmentSummary!.recordCount,
         status: 'sealed',
       );
-      final idx = _segmentSummaries
-          .indexWhere((s) => s.segmentId == sealed.segmentId);
+      final idx = _segmentSummaries.indexWhere(
+        (s) => s.segmentId == sealed.segmentId,
+      );
       if (idx != -1) {
         _segmentSummaries[idx] = sealed;
       }
@@ -298,10 +303,7 @@ class FsLogStorage implements LogStorage {
   }
 
   @override
-  Future<void> purgeOldLogs({
-    Duration? maxAge,
-    int? maxTotalSizeBytes,
-  }) async {
+  Future<void> purgeOldLogs({Duration? maxAge, int? maxTotalSizeBytes}) async {
     await init();
     final ageCutoff = maxAge ?? this.maxAge;
     final sizeLimit = maxTotalSizeBytes ?? this.maxTotalSizeBytes;
@@ -331,7 +333,8 @@ class FsLogStorage implements LogStorage {
     while (totalBytes() > sizeLimit && _segmentSummaries.length > 1) {
       var targetIdx = -1;
       for (var i = 0; i < _segmentSummaries.length; i++) {
-        if (_segmentSummaries[i].segmentId == _activeSegmentSummary?.segmentId) {
+        if (_segmentSummaries[i].segmentId ==
+            _activeSegmentSummary?.segmentId) {
           continue;
         }
         if (_segmentSummaries[i].status == 'fullySent') {

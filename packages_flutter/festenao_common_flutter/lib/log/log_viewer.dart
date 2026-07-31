@@ -11,18 +11,12 @@ class FestenaoLogViewerScreen extends StatelessWidget {
   final String? title;
 
   /// Creates a new [FestenaoLogViewerScreen].
-  const FestenaoLogViewerScreen({
-    super.key,
-    required this.storage,
-    this.title,
-  });
+  const FestenaoLogViewerScreen({super.key, required this.storage, this.title});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title ?? 'Log Explorer'),
-      ),
+      appBar: AppBar(title: Text(title ?? 'Log Explorer')),
       body: FestenaoLogViewer(storage: storage),
     );
   }
@@ -35,10 +29,7 @@ class FestenaoLogViewer extends StatefulWidget {
   final LogStorage storage;
 
   /// Creates a new [FestenaoLogViewer] widget.
-  const FestenaoLogViewer({
-    super.key,
-    required this.storage,
-  });
+  const FestenaoLogViewer({super.key, required this.storage});
 
   @override
   State<FestenaoLogViewer> createState() => _FestenaoLogViewerState();
@@ -124,9 +115,10 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                 child: Text(
                   record.level.name,
                   style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12),
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -147,34 +139,48 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   _detailRow('ID', record.id),
-                  _detailRow('Timestamp (UTC)', record.timestamp.toIso8601String()),
+                  _detailRow(
+                    'Timestamp (UTC)',
+                    record.timestamp.toIso8601String(),
+                  ),
                   if (record.deviceId != null)
                     _detailRow('Device ID', record.deviceId!),
                   if (record.sessionId != null)
                     _detailRow('Session ID', record.sessionId!),
                   _detailRow(
-                      'Sent Status',
-                      record.sent
-                          ? 'Sent (${record.sentAt?.toIso8601String() ?? "yes"})'
-                          : 'Unsent'),
+                    'Sent Status',
+                    record.sent
+                        ? 'Sent (${record.sentAt?.toIso8601String() ?? "yes"})'
+                        : 'Unsent',
+                  ),
                   const Divider(),
-                  const Text('Message:',
-                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const Text(
+                    'Message:',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 4),
                   SelectableText(record.message),
                   if (record.error != null) ...[
                     const SizedBox(height: 12),
-                    const Text('Error:',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, color: Colors.red)),
+                    const Text(
+                      'Error:',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
+                      ),
+                    ),
                     const SizedBox(height: 4),
-                    SelectableText(record.error!,
-                        style: const TextStyle(color: Colors.red)),
+                    SelectableText(
+                      record.error!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
                   ],
                   if (record.stackTrace != null) ...[
                     const SizedBox(height: 12),
-                    const Text('Stack Trace:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Stack Trace:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 4),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxHeight: 200),
@@ -199,8 +205,10 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                   ],
                   if (record.extra != null && record.extra!.isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    const Text('Extra Metadata:',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text(
+                      'Extra Metadata:',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 4),
                     SelectableText(record.extra.toString()),
                   ],
@@ -211,7 +219,9 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
           actions: [
             TextButton(
               onPressed: () {
-                Clipboard.setData(ClipboardData(text: record.toMap().toString()));
+                Clipboard.setData(
+                  ClipboardData(text: record.toMap().toString()),
+                );
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Copied record to clipboard')),
                 );
@@ -242,10 +252,7 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
             ),
           ),
           Expanded(
-            child: SelectableText(
-              value,
-              style: const TextStyle(fontSize: 12),
-            ),
+            child: SelectableText(value, style: const TextStyle(fontSize: 12)),
           ),
         ],
       ),
@@ -271,7 +278,9 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                       const Text(
                         'Master DB Segments & Files',
                         style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       IconButton(
                         icon: const Icon(Icons.close),
@@ -309,8 +318,8 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                       itemCount: _segmentSummaries.length,
                       itemBuilder: (context, index) {
                         final seg = _segmentSummaries[index];
-                        final sizeMb =
-                            (seg.sizeBytes / (1024 * 1024)).toStringAsFixed(2);
+                        final sizeMb = (seg.sizeBytes / (1024 * 1024))
+                            .toStringAsFixed(2);
                         return ListTile(
                           leading: Icon(
                             seg.status == 'active'
@@ -343,8 +352,9 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
 
   void _showExportDialog() {
     var chosenFormat = ExportFormat.json;
-    final urlController =
-        TextEditingController(text: 'https://diagnostics.example.com/api/v1/logs');
+    final urlController = TextEditingController(
+      text: 'https://diagnostics.example.com/api/v1/logs',
+    );
 
     showDialog<void>(
       context: context,
@@ -363,12 +373,17 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                     isExpanded: true,
                     items: const [
                       DropdownMenuItem(
-                          value: ExportFormat.json, child: Text('JSON Array')),
+                        value: ExportFormat.json,
+                        child: Text('JSON Array'),
+                      ),
                       DropdownMenuItem(
-                          value: ExportFormat.jsonl,
-                          child: Text('JSONL (Line-delimited)')),
+                        value: ExportFormat.jsonl,
+                        child: Text('JSONL (Line-delimited)'),
+                      ),
                       DropdownMenuItem(
-                          value: ExportFormat.csv, child: Text('CSV Spreadsheet')),
+                        value: ExportFormat.csv,
+                        child: Text('CSV Spreadsheet'),
+                      ),
                     ],
                     onChanged: (fmt) {
                       if (fmt != null) {
@@ -405,8 +420,10 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                       Navigator.of(dialogContext).pop();
                       ScaffoldMessenger.of(dialogContext).showSnackBar(
                         SnackBar(
-                            content: Text(
-                                'Exported ${chosenFormat.name.toUpperCase()} copied to clipboard')),
+                          content: Text(
+                            'Exported ${chosenFormat.name.toUpperCase()} copied to clipboard',
+                          ),
+                        ),
                       );
                     }
                   },
@@ -487,7 +504,9 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                             : null,
                         isDense: true,
                         contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 8),
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -497,9 +516,11 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                   ),
                   const SizedBox(width: 8),
                   IconButton(
-                    icon: Icon(_viewMode == _ViewMode.compact
-                        ? Icons.view_headline
-                        : Icons.view_agenda),
+                    icon: Icon(
+                      _viewMode == _ViewMode.compact
+                          ? Icons.view_headline
+                          : Icons.view_agenda,
+                    ),
                     tooltip: 'Toggle View Mode',
                     onPressed: () {
                       setState(() {
@@ -547,7 +568,9 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                         child: FilterChip(
                           label: Text(level.name),
                           selected: _selectedLevel == level,
-                          selectedColor: _levelColor(level).withValues(alpha: 0.3),
+                          selectedColor: _levelColor(
+                            level,
+                          ).withValues(alpha: 0.3),
                           onSelected: (val) {
                             setState(() => _selectedLevel = val ? level : null);
                             _reload();
@@ -614,21 +637,21 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
           child: _isLoading
               ? const Center(child: CircularProgressIndicator())
               : _records.isEmpty
-                  ? const Center(
-                      child: Text('No log records match current filters'),
-                    )
-                  : ListView.separated(
-                      itemCount: _records.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final record = _records[index];
-                        if (_viewMode == _ViewMode.compact) {
-                          return _buildCompactItem(record);
-                        } else {
-                          return _buildExpandedItem(record);
-                        }
-                      },
-                    ),
+              ? const Center(
+                  child: Text('No log records match current filters'),
+                )
+              : ListView.separated(
+                  itemCount: _records.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final record = _records[index];
+                    if (_viewMode == _ViewMode.compact) {
+                      return _buildCompactItem(record);
+                    } else {
+                      return _buildExpandedItem(record);
+                    }
+                  },
+                ),
         ),
       ],
     );
@@ -648,7 +671,10 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
         child: Text(
           record.level.name,
           style: const TextStyle(
-              color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 10,
+          ),
         ),
       ),
       title: Text(
@@ -661,7 +687,10 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(tsStr, style: TextStyle(color: Colors.grey.shade600, fontSize: 11)),
+          Text(
+            tsStr,
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+          ),
           const SizedBox(width: 6),
           Icon(
             record.sent ? Icons.check_circle : Icons.schedule,
@@ -684,8 +713,10 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: _levelColor(record.level),
                     borderRadius: BorderRadius.circular(4),
@@ -693,9 +724,10 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                   child: Text(
                     record.level.name,
                     style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 10),
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 10,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -703,9 +735,10 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                   Text(
                     record.loggerName!,
                     style: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12),
+                      color: Colors.grey.shade700,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -734,13 +767,17 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
             Row(
               children: [
                 if (record.deviceId != null)
-                  Text('Device: ${record.deviceId} | ',
-                      style:
-                          TextStyle(color: Colors.grey.shade600, fontSize: 11)),
-                Text(record.sent ? 'Status: Sent' : 'Status: Unsent',
-                    style: TextStyle(
-                        color: record.sent ? Colors.green : Colors.orange,
-                        fontSize: 11)),
+                  Text(
+                    'Device: ${record.deviceId} | ',
+                    style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                  ),
+                Text(
+                  record.sent ? 'Status: Sent' : 'Status: Unsent',
+                  style: TextStyle(
+                    color: record.sent ? Colors.green : Colors.orange,
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ),
           ],

@@ -64,7 +64,8 @@ class FestenaoLogExporter {
           final msgEscaped = r.message.replaceAll('"', '""');
           final loggerEscaped = (r.loggerName ?? '').replaceAll('"', '""');
           buffer.writeln(
-              '"${r.id}","${r.timestamp.toIso8601String()}","${r.level.name}","$loggerEscaped","$msgEscaped","${r.deviceId ?? ""}","${r.sent}"');
+            '"${r.id}","${r.timestamp.toIso8601String()}","${r.level.name}","$loggerEscaped","$msgEscaped","${r.deviceId ?? ""}","${r.sent}"',
+          );
         }
         return buffer.toString();
     }

@@ -25,11 +25,7 @@ class FestenaoLogScreen extends StatelessWidget {
   final String? title;
 
   /// Creates a new [FestenaoLogScreen].
-  const FestenaoLogScreen({
-    super.key,
-    this.logger,
-    this.title,
-  });
+  const FestenaoLogScreen({super.key, this.logger, this.title});
 
   @override
   Widget build(BuildContext context) {

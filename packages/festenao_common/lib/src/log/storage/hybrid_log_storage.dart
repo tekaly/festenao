@@ -14,10 +14,7 @@ class HybridLogStorage implements LogStorage {
 
   bool _initialized = false;
 
-  HybridLogStorage({
-    required this.sdbStorage,
-    required this.fsStorage,
-  });
+  HybridLogStorage({required this.sdbStorage, required this.fsStorage});
 
   @override
   Future<void> init() async {
@@ -116,10 +113,7 @@ class HybridLogStorage implements LogStorage {
   }
 
   @override
-  Future<void> purgeOldLogs({
-    Duration? maxAge,
-    int? maxTotalSizeBytes,
-  }) async {
+  Future<void> purgeOldLogs({Duration? maxAge, int? maxTotalSizeBytes}) async {
     await init();
     await sdbStorage.purgeOldLogs(
       maxAge: maxAge,

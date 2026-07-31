@@ -135,7 +135,4 @@ final projectAccessPath = RoutePathDef.parse(
 );
 
 /// `/logs`
-final dashboardLogsPath = RoutePathDef.parse(
-  '/logs',
-  name: 'dashboard_logs',
-);
+final dashboardLogsPath = RoutePathDef.parse('/logs', name: 'dashboard_logs');

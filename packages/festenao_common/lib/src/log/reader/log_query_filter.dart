@@ -69,7 +69,9 @@ class LogQueryFilter {
     if (minLevel != null && record.level < minLevel!) {
       return false;
     }
-    if (levels != null && levels!.isNotEmpty && !levels!.contains(record.level)) {
+    if (levels != null &&
+        levels!.isNotEmpty &&
+        !levels!.contains(record.level)) {
       return false;
     }
     if (deviceId != null && record.deviceId != deviceId) {
@@ -89,9 +91,10 @@ class LogQueryFilter {
       final msgMatch = record.message.toLowerCase().contains(q);
       final loggerMatch = record.loggerName?.toLowerCase().contains(q) ?? false;
       final errorMatch = record.error?.toLowerCase().contains(q) ?? false;
-      final extraMatch = record.extra?.values
-              .whereType<String>()
-              .any((val) => val.toLowerCase().contains(q)) ??
+      final extraMatch =
+          record.extra?.values.whereType<String>().any(
+            (val) => val.toLowerCase().contains(q),
+          ) ??
           false;
       if (!msgMatch && !loggerMatch && !errorMatch && !extraMatch) {
         return false;

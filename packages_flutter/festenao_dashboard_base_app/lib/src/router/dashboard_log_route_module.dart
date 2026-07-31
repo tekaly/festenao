@@ -9,8 +9,8 @@ class DashboardLogRouteModule implements FeatureRouteModule {
 
   @override
   List<RouteBase> get routes => [
-        dashboardLogsPath.goRoute(
-          builder: (context, state) => const FestenaoLogScreen(),
-        ),
-      ];
+    dashboardLogsPath.goRoute(
+      builder: (context, state) => const FestenaoLogScreen(),
+    ),
+  ];
 }

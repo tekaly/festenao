@@ -23,7 +23,10 @@ void main() {
       // Wait brief moment for async appendRecord calls
       await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      final allInStorage = await storage.queryRecords(const LogQueryFilter(), descending: false);
+      final allInStorage = await storage.queryRecords(
+        const LogQueryFilter(),
+        descending: false,
+      );
       expect(allInStorage.length, 3);
       expect(allInStorage[0].message, 'App started');
       expect(allInStorage[1].message, 'Low battery warning');

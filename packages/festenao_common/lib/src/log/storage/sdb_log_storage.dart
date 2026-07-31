@@ -22,18 +22,18 @@ class SdbLogRecordCv extends ScvStringRecordBase {
 
   @override
   CvFields get fields => [
-        timestamp,
-        level,
-        message,
-        loggerName,
-        error,
-        stackTrace,
-        deviceId,
-        sessionId,
-        sent,
-        sentAt,
-        extraJson,
-      ];
+    timestamp,
+    level,
+    message,
+    loggerName,
+    error,
+    stackTrace,
+    deviceId,
+    sessionId,
+    sent,
+    sentAt,
+    extraJson,
+  ];
 
   LogRecord toLogRecord() {
     Map<String, Object?>? extra;
@@ -87,15 +87,15 @@ class SdbLogSegmentCv extends ScvStringRecordBase {
 
   @override
   CvFields get fields => [
-        name,
-        createdAt,
-        sealedAt,
-        oldestTimestamp,
-        newestTimestamp,
-        sizeBytes,
-        recordCount,
-        status,
-      ];
+    name,
+    createdAt,
+    sealedAt,
+    oldestTimestamp,
+    newestTimestamp,
+    sizeBytes,
+    recordCount,
+    status,
+  ];
 
   LogSegmentSummary toSummary() {
     return LogSegmentSummary(
@@ -128,7 +128,9 @@ class SdbLogSegmentCv extends ScvStringRecordBase {
   }
 }
 
-final sdbLogMasterStore = scvStringStoreFactory.store<SdbLogSegmentCv>('master');
+final sdbLogMasterStore = scvStringStoreFactory.store<SdbLogSegmentCv>(
+  'master',
+);
 final sdbLogRecordStore = scvStringStoreFactory.store<SdbLogRecordCv>('logs');
 
 bool _logCvBuildersInitialized = false;
@@ -258,11 +260,13 @@ class SdbLogStorage implements LogStorage {
     _streamController.add(record);
 
     final current = _activeSegmentSummary!;
-    final oldest = current.oldestTimestamp == null ||
+    final oldest =
+        current.oldestTimestamp == null ||
             record.timestamp.isBefore(current.oldestTimestamp!)
         ? record.timestamp
         : current.oldestTimestamp;
-    final newest = current.newestTimestamp == null ||
+    final newest =
+        current.newestTimestamp == null ||
             record.timestamp.isAfter(current.newestTimestamp!)
         ? record.timestamp
         : current.newestTimestamp;
@@ -279,8 +283,9 @@ class SdbLogStorage implements LogStorage {
       status: current.status,
     );
 
-    final idx = _segmentSummaries
-        .indexWhere((s) => s.segmentId == current.segmentId);
+    final idx = _segmentSummaries.indexWhere(
+      (s) => s.segmentId == current.segmentId,
+    );
     if (idx != -1) {
       _segmentSummaries[idx] = _activeSegmentSummary!;
     }
@@ -430,8 +435,9 @@ class SdbLogStorage implements LogStorage {
         recordCount: _activeSegmentSummary!.recordCount,
         status: 'sealed',
       );
-      final idx = _segmentSummaries
-          .indexWhere((s) => s.segmentId == sealed.segmentId);
+      final idx = _segmentSummaries.indexWhere(
+        (s) => s.segmentId == sealed.segmentId,
+      );
       if (idx != -1) {
         _segmentSummaries[idx] = sealed;
       }
@@ -443,10 +449,7 @@ class SdbLogStorage implements LogStorage {
   }
 
   @override
-  Future<void> purgeOldLogs({
-    Duration? maxAge,
-    int? maxTotalSizeBytes,
-  }) async {
+  Future<void> purgeOldLogs({Duration? maxAge, int? maxTotalSizeBytes}) async {
     await init();
     final ageCutoff = maxAge ?? this.maxAge;
     final sizeLimit = maxTotalSizeBytes ?? this.maxTotalSizeBytes;

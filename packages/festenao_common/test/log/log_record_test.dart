@@ -42,10 +42,7 @@ void main() {
 
     test('truncates large payloads exceeding 256KB', () {
       final hugeMessage = 'A' * (300 * 1024); // 300 KB string
-      final record = LogRecord(
-        level: LogLevel.error,
-        message: hugeMessage,
-      );
+      final record = LogRecord(level: LogLevel.error, message: hugeMessage);
 
       final map = record.toMap();
       final msg = map['message'] as String;

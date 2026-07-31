@@ -56,9 +56,9 @@ class LogRecord {
     this.sessionId,
     this.sent = false,
     this.sentAt,
-  })  : id = id ?? const Uuid().v4(),
-        timestamp = (timestamp ?? DateTime.now()).toUtc(),
-        message = _truncateIfNeeded(message, maxLogRecordSizeBytes);
+  }) : id = id ?? const Uuid().v4(),
+       timestamp = (timestamp ?? DateTime.now()).toUtc(),
+       message = _truncateIfNeeded(message, maxLogRecordSizeBytes);
 
   /// Truncate large string payloads if total record size exceeds 256KB.
   static String _truncateIfNeeded(String input, int maxLen) {
@@ -122,14 +122,16 @@ class LogRecord {
       if (map['stackTrace'] is String) {
         final st = map['stackTrace'] as String;
         if (st.length > excess + 100) {
-          map['stackTrace'] = st.substring(0, st.length - excess - 100) + '...[truncated]';
+          map['stackTrace'] =
+              st.substring(0, st.length - excess - 100) + '...[truncated]';
         } else {
           map.remove('stackTrace');
         }
       } else if (map['message'] is String) {
         final msg = map['message'] as String;
         if (msg.length > excess + 100) {
-          map['message'] = msg.substring(0, msg.length - excess - 100) + '...[truncated]';
+          map['message'] =
+              msg.substring(0, msg.length - excess - 100) + '...[truncated]';
         }
       }
     }

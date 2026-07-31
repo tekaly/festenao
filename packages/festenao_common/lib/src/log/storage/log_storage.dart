@@ -26,18 +26,18 @@ class LogSegmentSummary {
   });
 
   Map<String, Object?> toMap() => {
-        'segmentId': segmentId,
-        'name': name,
-        'createdAt': createdAt.toIso8601String(),
-        if (sealedAt != null) 'sealedAt': sealedAt!.toIso8601String(),
-        if (oldestTimestamp != null)
-          'oldestTimestamp': oldestTimestamp!.toIso8601String(),
-        if (newestTimestamp != null)
-          'newestTimestamp': newestTimestamp!.toIso8601String(),
-        'sizeBytes': sizeBytes,
-        'recordCount': recordCount,
-        'status': status,
-      };
+    'segmentId': segmentId,
+    'name': name,
+    'createdAt': createdAt.toIso8601String(),
+    if (sealedAt != null) 'sealedAt': sealedAt!.toIso8601String(),
+    if (oldestTimestamp != null)
+      'oldestTimestamp': oldestTimestamp!.toIso8601String(),
+    if (newestTimestamp != null)
+      'newestTimestamp': newestTimestamp!.toIso8601String(),
+    'sizeBytes': sizeBytes,
+    'recordCount': recordCount,
+    'status': status,
+  };
 
   factory LogSegmentSummary.fromMap(Map<String, Object?> map) {
     return LogSegmentSummary(
@@ -95,10 +95,7 @@ abstract class LogStorage {
   Future<void> rotateSegment();
 
   /// Manually trigger log cleanup / purging based on duration and size limits.
-  Future<void> purgeOldLogs({
-    Duration? maxAge,
-    int? maxTotalSizeBytes,
-  });
+  Future<void> purgeOldLogs({Duration? maxAge, int? maxTotalSizeBytes});
 
   /// Flush pending writes to storage.
   Future<void> flush();

@@ -10,8 +10,14 @@ void main() {
       await storage.init();
       final handler = FestenaoLogServerHandler(storage: storage);
 
-      final rec1 = LogRecord(level: LogLevel.info, message: 'Server test log 1');
-      final rec2 = LogRecord(level: LogLevel.error, message: 'Server test log 2');
+      final rec1 = LogRecord(
+        level: LogLevel.info,
+        message: 'Server test log 1',
+      );
+      final rec2 = LogRecord(
+        level: LogLevel.error,
+        message: 'Server test log 2',
+      );
 
       final payload = jsonEncode([rec1.toMap(), rec2.toMap()]);
 

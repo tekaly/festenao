@@ -39,16 +39,18 @@ class MemoryLogStorage implements LogStorage {
   void _createNewSegment() {
     _segmentSequence++;
     final segmentId = 'seg_$_segmentSequence';
-    _segments.add(_MemorySegment(
-      summary: LogSegmentSummary(
-        segmentId: segmentId,
-        name: 'memory_log_$segmentId',
-        createdAt: DateTime.now().toUtc(),
-        sizeBytes: 0,
-        recordCount: 0,
-        status: 'active',
+    _segments.add(
+      _MemorySegment(
+        summary: LogSegmentSummary(
+          segmentId: segmentId,
+          name: 'memory_log_$segmentId',
+          createdAt: DateTime.now().toUtc(),
+          sizeBytes: 0,
+          recordCount: 0,
+          status: 'active',
+        ),
       ),
-    ));
+    );
   }
 
   @override
@@ -181,10 +183,7 @@ class MemoryLogStorage implements LogStorage {
   }
 
   @override
-  Future<void> purgeOldLogs({
-    Duration? maxAge,
-    int? maxTotalSizeBytes,
-  }) async {
+  Future<void> purgeOldLogs({Duration? maxAge, int? maxTotalSizeBytes}) async {
     final ageCutoff = maxAge ?? this.maxAge;
     final sizeLimit = maxTotalSizeBytes ?? this.maxTotalSizeBytes;
     final now = DateTime.now().toUtc();
@@ -240,12 +239,14 @@ class _MemorySegment {
     final recordMap = record.toMap();
     final recSize = recordMap.toString().length;
 
-    final oldest = summary.oldestTimestamp == null ||
+    final oldest =
+        summary.oldestTimestamp == null ||
             record.timestamp.isBefore(summary.oldestTimestamp!)
         ? record.timestamp
         : summary.oldestTimestamp;
 
-    final newest = summary.newestTimestamp == null ||
+    final newest =
+        summary.newestTimestamp == null ||
             record.timestamp.isAfter(summary.newestTimestamp!)
         ? record.timestamp
         : summary.newestTimestamp;

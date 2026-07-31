@@ -15,24 +15,30 @@ void main() {
       storage = MemoryLogStorage();
       await storage.init();
 
-      await storage.appendRecord(LogRecord(
-        level: LogLevel.info,
-        message: 'System boot success',
-        loggerName: 'sys.boot',
-        deviceId: 'kiosk-1',
-      ));
-      await storage.appendRecord(LogRecord(
-        level: LogLevel.warning,
-        message: 'Network lag detected',
-        loggerName: 'sys.net',
-        deviceId: 'kiosk-1',
-      ));
-      await storage.appendRecord(LogRecord(
-        level: LogLevel.error,
-        message: 'Payment gateway timeout',
-        loggerName: 'pay.gateway',
-        deviceId: 'kiosk-2',
-      ));
+      await storage.appendRecord(
+        LogRecord(
+          level: LogLevel.info,
+          message: 'System boot success',
+          loggerName: 'sys.boot',
+          deviceId: 'kiosk-1',
+        ),
+      );
+      await storage.appendRecord(
+        LogRecord(
+          level: LogLevel.warning,
+          message: 'Network lag detected',
+          loggerName: 'sys.net',
+          deviceId: 'kiosk-1',
+        ),
+      );
+      await storage.appendRecord(
+        LogRecord(
+          level: LogLevel.error,
+          message: 'Payment gateway timeout',
+          loggerName: 'pay.gateway',
+          deviceId: 'kiosk-2',
+        ),
+      );
 
       reader = FestenaoLogReader(storage: storage);
       exporter = FestenaoLogExporter(reader: reader);
@@ -79,7 +85,10 @@ void main() {
         const LogQueryFilter(),
         format: ExportFormat.csv,
       );
-      expect(csvStr, contains('id,timestamp,level,loggerName,message,deviceId,sent'));
+      expect(
+        csvStr,
+        contains('id,timestamp,level,loggerName,message,deviceId,sent'),
+      );
       expect(csvStr, contains('Payment gateway timeout'));
     });
 
@@ -101,38 +110,42 @@ void main() {
       expect(content, contains('System boot success'));
     });
 
-    test('exporter sendLogsToEndpoint using memory HTTP server/client', () async {
-      final httpFactory = httpServerFactoryMemory;
-      final clientFactory = httpClientFactoryMemory;
+    test(
+      'exporter sendLogsToEndpoint using memory HTTP server/client',
+      () async {
+        final httpFactory = httpServerFactoryMemory;
+        final clientFactory = httpClientFactoryMemory;
 
-      // Spin up in-memory HTTP server receiver
-      final server = await httpFactory.bind('localhost', 0);
-      server.listen((request) async {
-        final body = await utf8.decoder.bind(request).join();
-        final handler = FestenaoLogServerHandler(storage: MemoryLogStorage());
-        final res = await handler.handleJsonPayload(body);
-        request.response.statusCode = 200;
-        request.response.headers.contentType =
-            ContentType.parse('application/json');
-        request.response.write(jsonEncode(res));
-        await request.response.close();
-      });
+        // Spin up in-memory HTTP server receiver
+        final server = await httpFactory.bind('localhost', 0);
+        server.listen((request) async {
+          final body = await utf8.decoder.bind(request).join();
+          final handler = FestenaoLogServerHandler(storage: MemoryLogStorage());
+          final res = await handler.handleJsonPayload(body);
+          request.response.statusCode = 200;
+          request.response.headers.contentType = ContentType.parse(
+            'application/json',
+          );
+          request.response.write(jsonEncode(res));
+          await request.response.close();
+        });
 
-      final url = Uri.parse('http://localhost:${server.port}/logs');
-      final client = clientFactory.newClient();
+        final url = Uri.parse('http://localhost:${server.port}/logs');
+        final client = clientFactory.newClient();
 
-      final sendResult = await exporter.sendLogsToEndpoint(
-        const LogQueryFilter(),
-        url,
-        format: ExportFormat.json,
-        client: client,
-      );
+        final sendResult = await exporter.sendLogsToEndpoint(
+          const LogQueryFilter(),
+          url,
+          format: ExportFormat.json,
+          client: client,
+        );
 
-      expect(sendResult.success, isTrue);
-      expect(sendResult.statusCode, 200);
-      expect(sendResult.recordCount, 3);
+        expect(sendResult.success, isTrue);
+        expect(sendResult.statusCode, 200);
+        expect(sendResult.recordCount, 3);
 
-      await server.close();
-    });
+        await server.close();
+      },
+    );
   });
 }

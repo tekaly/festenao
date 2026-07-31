@@ -5,50 +5,52 @@ import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 
 void main() {
   group('LogStorage', () {
-    test('MemoryLogStorage append, query, markAsSent, rotation, and purge',
-        () async {
-      final storage = MemoryLogStorage(
-        maxSegmentSizeBytes: 500, // force small segment for rotation test
-        maxAge: const Duration(days: 1),
-        maxTotalSizeBytes: 2000,
-      );
-      await storage.init();
+    test(
+      'MemoryLogStorage append, query, markAsSent, rotation, and purge',
+      () async {
+        final storage = MemoryLogStorage(
+          maxSegmentSizeBytes: 500, // force small segment for rotation test
+          maxAge: const Duration(days: 1),
+          maxTotalSizeBytes: 2000,
+        );
+        await storage.init();
 
-      final rec1 = LogRecord(
-        level: LogLevel.info,
-        message: 'First log entry for testing memory storage',
-      );
-      final rec2 = LogRecord(
-        level: LogLevel.error,
-        message: 'Second log entry with error details',
-      );
+        final rec1 = LogRecord(
+          level: LogLevel.info,
+          message: 'First log entry for testing memory storage',
+        );
+        final rec2 = LogRecord(
+          level: LogLevel.error,
+          message: 'Second log entry with error details',
+        );
 
-      await storage.appendRecord(rec1);
-      await storage.appendRecord(rec2);
+        await storage.appendRecord(rec1);
+        await storage.appendRecord(rec2);
 
-      // Unsent query
-      final unsent = await storage.getUnsentRecords();
-      expect(unsent.length, 2);
+        // Unsent query
+        final unsent = await storage.getUnsentRecords();
+        expect(unsent.length, 2);
 
-      // Query filter
-      final errorOnly = await storage.queryRecords(
-        const LogQueryFilter(minLevel: LogLevel.error),
-      );
-      expect(errorOnly.length, 1);
-      expect(errorOnly.first.id, rec2.id);
+        // Query filter
+        final errorOnly = await storage.queryRecords(
+          const LogQueryFilter(minLevel: LogLevel.error),
+        );
+        expect(errorOnly.length, 1);
+        expect(errorOnly.first.id, rec2.id);
 
-      // Mark as sent
-      await storage.markAsSent([rec1.id]);
-      final unsentAfter = await storage.getUnsentRecords();
-      expect(unsentAfter.length, 1);
-      expect(unsentAfter.first.id, rec2.id);
+        // Mark as sent
+        await storage.markAsSent([rec1.id]);
+        final unsentAfter = await storage.getUnsentRecords();
+        expect(unsentAfter.length, 1);
+        expect(unsentAfter.first.id, rec2.id);
 
-      // Verify segment summaries
-      final summaries = await storage.getSegmentSummaries();
-      expect(summaries.isNotEmpty, isTrue);
+        // Verify segment summaries
+        final summaries = await storage.getSegmentSummaries();
+        expect(summaries.isNotEmpty, isTrue);
 
-      await storage.close();
-    });
+        await storage.close();
+      },
+    );
 
     test('SdbLogStorage (in-memory SDB factory)', () async {
       final storage = SdbLogStorage(

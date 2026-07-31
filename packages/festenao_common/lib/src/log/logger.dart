@@ -60,24 +60,79 @@ class FestenaoLogger {
     unawaited(storage.appendRecord(record));
   }
 
-  void debug(String message, {Object? error, Object? stackTrace, Map<String, Object?>? extra}) {
-    log(level: LogLevel.debug, message: message, error: error, stackTrace: stackTrace, extra: extra);
+  void debug(
+    String message, {
+    Object? error,
+    Object? stackTrace,
+    Map<String, Object?>? extra,
+  }) {
+    log(
+      level: LogLevel.debug,
+      message: message,
+      error: error,
+      stackTrace: stackTrace,
+      extra: extra,
+    );
   }
 
-  void info(String message, {Object? error, Object? stackTrace, Map<String, Object?>? extra}) {
-    log(level: LogLevel.info, message: message, error: error, stackTrace: stackTrace, extra: extra);
+  void info(
+    String message, {
+    Object? error,
+    Object? stackTrace,
+    Map<String, Object?>? extra,
+  }) {
+    log(
+      level: LogLevel.info,
+      message: message,
+      error: error,
+      stackTrace: stackTrace,
+      extra: extra,
+    );
   }
 
-  void warning(String message, {Object? error, Object? stackTrace, Map<String, Object?>? extra}) {
-    log(level: LogLevel.warning, message: message, error: error, stackTrace: stackTrace, extra: extra);
+  void warning(
+    String message, {
+    Object? error,
+    Object? stackTrace,
+    Map<String, Object?>? extra,
+  }) {
+    log(
+      level: LogLevel.warning,
+      message: message,
+      error: error,
+      stackTrace: stackTrace,
+      extra: extra,
+    );
   }
 
-  void error(String message, {Object? error, Object? stackTrace, Map<String, Object?>? extra}) {
-    log(level: LogLevel.error, message: message, error: error, stackTrace: stackTrace, extra: extra);
+  void error(
+    String message, {
+    Object? error,
+    Object? stackTrace,
+    Map<String, Object?>? extra,
+  }) {
+    log(
+      level: LogLevel.error,
+      message: message,
+      error: error,
+      stackTrace: stackTrace,
+      extra: extra,
+    );
   }
 
-  void fatal(String message, {Object? error, Object? stackTrace, Map<String, Object?>? extra}) {
-    log(level: LogLevel.fatal, message: message, error: error, stackTrace: stackTrace, extra: extra);
+  void fatal(
+    String message, {
+    Object? error,
+    Object? stackTrace,
+    Map<String, Object?>? extra,
+  }) {
+    log(
+      level: LogLevel.fatal,
+      message: message,
+      error: error,
+      stackTrace: stackTrace,
+      extra: extra,
+    );
   }
 
   /// Flushes unsent logs to transport and marks them as sent upon success.

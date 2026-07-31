@@ -18,7 +18,10 @@ class FestenaoLogServerHandler {
       } else if (decoded is Map && decoded['records'] is List) {
         rawList = decoded['records'] as List;
       } else {
-        return {'success': false, 'error': 'Invalid JSON format, expected array of records'};
+        return {
+          'success': false,
+          'error': 'Invalid JSON format, expected array of records',
+        };
       }
 
       final records = <LogRecord>[];
@@ -32,15 +35,9 @@ class FestenaoLogServerHandler {
         await storage.appendRecords(records);
       }
 
-      return {
-        'success': true,
-        'count': records.length,
-      };
+      return {'success': true, 'count': records.length};
     } catch (e) {
-      return {
-        'success': false,
-        'error': e.toString(),
-      };
+      return {'success': false, 'error': e.toString()};
     }
   }
 }
