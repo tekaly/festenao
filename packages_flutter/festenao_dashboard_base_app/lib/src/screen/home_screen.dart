@@ -42,6 +42,13 @@ class DashboardHomePage extends ConsumerWidget {
                           context.pushPath(projectsAccessPath);
                         },
                       ),
+                      ListTile(
+                        leading: const Icon(Icons.analytics_outlined),
+                        title: const Text('Logs (Explorer & Playground)'),
+                        onTap: () {
+                          context.pushPath(dashboardLogsPath);
+                        },
+                      ),
                     ],
                     if (kDebugMode)
                       ListTile(

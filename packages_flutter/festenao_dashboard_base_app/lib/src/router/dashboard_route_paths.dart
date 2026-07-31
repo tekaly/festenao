@@ -133,3 +133,9 @@ final projectAccessPath = RoutePathDef.parse(
   DashboardProjectAccessScreen.routeLocation,
   name: DashboardProjectAccessScreen.routeName,
 );
+
+/// `/logs`
+final dashboardLogsPath = RoutePathDef.parse(
+  '/logs',
+  name: 'dashboard_logs',
+);

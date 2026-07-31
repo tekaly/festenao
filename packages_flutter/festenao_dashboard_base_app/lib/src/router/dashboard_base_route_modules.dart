@@ -1,6 +1,7 @@
 import 'package:festenao_dashboard_base_app/src/router/dashboard_access_route_module.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_content_route_module.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_demo_route_module.dart';
+import 'package:festenao_dashboard_base_app/src/router/dashboard_log_route_module.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_media_route_module.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 
@@ -15,4 +16,5 @@ List<FeatureRouteModule> dashboardBaseRouteModules() => [
   DashboardAccessRouteModule(),
   DashboardMediaRouteModule(),
   DashboardDemoRouteModule(),
+  DashboardLogRouteModule(),
 ];
