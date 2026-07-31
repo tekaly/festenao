@@ -8,10 +8,19 @@ import 'log_storage.dart';
 /// File-system based implementation of [LogStorage] using `fs_shim`.
 /// Supports line-delimited JSON log files (JSONL), rotation at 10MB, and master index tracking.
 class FsLogStorage implements LogStorage {
+  /// File system abstraction used for reading and writing files.
   final FileSystem fileSystem;
+
+  /// Directory path where log files are stored.
   final String directoryPath;
+
+  /// Maximum size of a segment file before rotating.
   final int maxSegmentSizeBytes;
+
+  /// Maximum age of log entries before purge.
   final Duration maxAge;
+
+  /// Maximum combined size of all log files before purge.
   final int maxTotalSizeBytes;
 
   final StreamController<LogRecord> _streamController =
@@ -21,6 +30,7 @@ class FsLogStorage implements LogStorage {
   LogSegmentSummary? _activeSegmentSummary;
   bool _initialized = false;
 
+  /// Creates an [FsLogStorage] instance.
   FsLogStorage({
     required this.fileSystem,
     this.directoryPath = 'festenao_log_files',

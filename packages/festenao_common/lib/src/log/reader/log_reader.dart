@@ -5,8 +5,10 @@ import 'log_query_filter.dart';
 
 /// Log reader utility for UI applications and diagnostic inspection.
 class FestenaoLogReader {
+  /// Storage backend read by this reader.
   final LogStorage storage;
 
+  /// Creates a log reader with the specified [storage].
   FestenaoLogReader({required this.storage});
 
   /// Queries logs matching the specified [LogQueryFilter].

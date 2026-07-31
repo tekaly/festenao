@@ -6,7 +6,10 @@ import 'log_storage.dart';
 /// Hybrid log storage implementation combining structured storage ([sdbStorage])
 /// for active/unsent logs and file storage ([fsStorage]) for archived/sent logs.
 class HybridLogStorage implements LogStorage {
+  /// Active structured log storage.
   final LogStorage sdbStorage;
+
+  /// Archived file log storage.
   final LogStorage fsStorage;
 
   final StreamController<LogRecord> _streamController =
@@ -14,6 +17,7 @@ class HybridLogStorage implements LogStorage {
 
   bool _initialized = false;
 
+  /// Creates a hybrid log storage instance.
   HybridLogStorage({required this.sdbStorage, required this.fsStorage});
 
   @override

@@ -3,16 +3,34 @@ import '../reader/log_query_filter.dart';
 
 /// Summary metadata for a log segment managed by Master DB.
 class LogSegmentSummary {
+  /// Unique segment identifier.
   final String segmentId;
-  final String name;
-  final DateTime createdAt;
-  final DateTime? sealedAt;
-  final DateTime? oldestTimestamp;
-  final DateTime? newestTimestamp;
-  final int sizeBytes;
-  final int recordCount;
-  final String status; // 'active', 'sealed', 'fullySent', 'archived'
 
+  /// Display name or path of segment.
+  final String name;
+
+  /// Creation timestamp (UTC).
+  final DateTime createdAt;
+
+  /// Sealing timestamp (UTC), if sealed.
+  final DateTime? sealedAt;
+
+  /// Timestamp of oldest record.
+  final DateTime? oldestTimestamp;
+
+  /// Timestamp of newest record.
+  final DateTime? newestTimestamp;
+
+  /// Total size of segment in bytes.
+  final int sizeBytes;
+
+  /// Number of records in segment.
+  final int recordCount;
+
+  /// Status of segment ('active', 'sealed', 'fullySent', 'archived').
+  final String status;
+
+  /// Creates segment summary metadata.
   LogSegmentSummary({
     required this.segmentId,
     required this.name,
@@ -25,6 +43,7 @@ class LogSegmentSummary {
     required this.status,
   });
 
+  /// Converts summary to JSON-encodable map.
   Map<String, Object?> toMap() => {
     'segmentId': segmentId,
     'name': name,
@@ -39,6 +58,7 @@ class LogSegmentSummary {
     'status': status,
   };
 
+  /// Creates segment summary from a map.
   factory LogSegmentSummary.fromMap(Map<String, Object?> map) {
     return LogSegmentSummary(
       segmentId: map['segmentId']?.toString() ?? '',

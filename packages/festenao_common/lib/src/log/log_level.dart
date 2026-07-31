@@ -6,16 +6,31 @@ class LogLevel implements Comparable<LogLevel> {
   /// Name of the level.
   final String name;
 
+  /// Creates a log level with numeric [value] and [name].
   const LogLevel(this.value, this.name);
 
+  /// All log messages level.
   static const LogLevel all = LogLevel(0, 'ALL');
+
+  /// Debug log level.
   static const LogLevel debug = LogLevel(300, 'DEBUG');
+
+  /// Info log level.
   static const LogLevel info = LogLevel(500, 'INFO');
+
+  /// Warning log level.
   static const LogLevel warning = LogLevel(800, 'WARNING');
+
+  /// Error log level.
   static const LogLevel error = LogLevel(900, 'ERROR');
+
+  /// Fatal log level.
   static const LogLevel fatal = LogLevel(1000, 'FATAL');
+
+  /// Off level (disables logging).
   static const LogLevel off = LogLevel(2000, 'OFF');
 
+  /// List of standard log levels.
   static const List<LogLevel> values = [
     all,
     debug,
@@ -29,9 +44,16 @@ class LogLevel implements Comparable<LogLevel> {
   @override
   int compareTo(LogLevel other) => value.compareTo(other.value);
 
+  /// Returns true if this level is greater than or equal to [other].
   bool operator >=(LogLevel other) => value >= other.value;
+
+  /// Returns true if this level is less than or equal to [other].
   bool operator <=(LogLevel other) => value <= other.value;
+
+  /// Returns true if this level is strictly greater than [other].
   bool operator >(LogLevel other) => value > other.value;
+
+  /// Returns true if this level is strictly less than [other].
   bool operator <(LogLevel other) => value < other.value;
 
   @override

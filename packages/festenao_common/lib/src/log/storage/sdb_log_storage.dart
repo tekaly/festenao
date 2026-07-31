@@ -8,16 +8,37 @@ import 'log_storage.dart';
 
 /// CV / SDB Record for log records.
 class SdbLogRecordCv extends ScvStringRecordBase {
+  /// Timestamp field.
   final timestamp = CvField<String>('ts');
+
+  /// Log level field.
   final level = CvField<int>('level');
+
+  /// Message field.
   final message = CvField<String>('msg');
+
+  /// Logger name field.
   final loggerName = CvField<String>('logger');
+
+  /// Error field.
   final error = CvField<String>('err');
+
+  /// Stack trace field.
   final stackTrace = CvField<String>('st');
+
+  /// Device ID field.
   final deviceId = CvField<String>('devId');
+
+  /// Session ID field.
   final sessionId = CvField<String>('sessId');
+
+  /// Sent flag field.
   final sent = CvField<bool>('sent');
+
+  /// Sent timestamp field.
   final sentAt = CvField<String>('sentAt');
+
+  /// Extra metadata JSON field.
   final extraJson = CvField<String>('extra');
 
   @override
@@ -35,6 +56,7 @@ class SdbLogRecordCv extends ScvStringRecordBase {
     extraJson,
   ];
 
+  /// Converts this CV record to a [LogRecord].
   LogRecord toLogRecord() {
     Map<String, Object?>? extra;
     if (extraJson.v != null && extraJson.v!.isNotEmpty) {
@@ -58,6 +80,7 @@ class SdbLogRecordCv extends ScvStringRecordBase {
     );
   }
 
+  /// Creates an [SdbLogRecordCv] from a [LogRecord].
   static SdbLogRecordCv fromLogRecord(LogRecord record) {
     return sdbLogRecordStore.record(record.id).cv()
       ..timestamp.v = record.timestamp.toIso8601String()
@@ -76,13 +99,28 @@ class SdbLogRecordCv extends ScvStringRecordBase {
 
 /// CV / SDB Record for log segment summaries in Master DB.
 class SdbLogSegmentCv extends ScvStringRecordBase {
+  /// Name field.
   final name = CvField<String>('name');
+
+  /// Created at field.
   final createdAt = CvField<String>('createdAt');
+
+  /// Sealed at field.
   final sealedAt = CvField<String>('sealedAt');
+
+  /// Oldest timestamp field.
   final oldestTimestamp = CvField<String>('oldestTs');
+
+  /// Newest timestamp field.
   final newestTimestamp = CvField<String>('newestTs');
+
+  /// Size in bytes field.
   final sizeBytes = CvField<int>('size');
+
+  /// Record count field.
   final recordCount = CvField<int>('count');
+
+  /// Status field.
   final status = CvField<String>('status');
 
   @override
@@ -97,6 +135,7 @@ class SdbLogSegmentCv extends ScvStringRecordBase {
     status,
   ];
 
+  /// Converts to a [LogSegmentSummary].
   LogSegmentSummary toSummary() {
     return LogSegmentSummary(
       segmentId: id,
@@ -115,6 +154,7 @@ class SdbLogSegmentCv extends ScvStringRecordBase {
     );
   }
 
+  /// Creates an [SdbLogSegmentCv] from a [LogSegmentSummary].
   static SdbLogSegmentCv fromSummary(LogSegmentSummary summary) {
     return sdbLogMasterStore.record(summary.segmentId).cv()
       ..name.v = summary.name
@@ -128,9 +168,12 @@ class SdbLogSegmentCv extends ScvStringRecordBase {
   }
 }
 
+/// Store for log segment summaries.
 final sdbLogMasterStore = scvStringStoreFactory.store<SdbLogSegmentCv>(
   'master',
 );
+
+/// Store for log records.
 final sdbLogRecordStore = scvStringStoreFactory.store<SdbLogRecordCv>('logs');
 
 bool _logCvBuildersInitialized = false;
@@ -143,10 +186,19 @@ void _initSdbLogBuilders() {
 /// SDB-backed implementation of [LogStorage] supporting multi-segment databases,
 /// master DB indexing, 10MB segment limits, 256KB record bounds, and purging.
 class SdbLogStorage implements LogStorage {
+  /// SDB factory for opening databases.
   final SdbFactory sdbFactory;
+
+  /// Database path prefix.
   final String dbPathPrefix;
+
+  /// Maximum segment size in bytes.
   final int maxSegmentSizeBytes;
+
+  /// Maximum age of log records before purge.
   final Duration maxAge;
+
+  /// Maximum total size in bytes across all segments.
   final int maxTotalSizeBytes;
 
   final StreamController<LogRecord> _streamController =
@@ -161,6 +213,7 @@ class SdbLogStorage implements LogStorage {
 
   static const String _masterDbName = 'festenao_log_master.db';
 
+  /// Creates an [SdbLogStorage] instance.
   SdbLogStorage({
     required this.sdbFactory,
     this.dbPathPrefix = 'festenao_logs',
@@ -206,9 +259,7 @@ class SdbLogStorage implements LogStorage {
       }
     }
 
-    if (activeSummary == null) {
-      activeSummary = await _createNewSegmentSummary();
-    }
+    activeSummary ??= await _createNewSegmentSummary();
 
     _activeSegmentSummary = activeSummary;
     _activeSegmentDb = await _openSegmentDb(activeSummary.segmentId);
@@ -477,8 +528,10 @@ class SdbLogStorage implements LogStorage {
     while (totalBytes() > sizeLimit && _segmentSummaries.length > 1) {
       var targetIdx = -1;
       for (var i = 0; i < _segmentSummaries.length; i++) {
-        if (_segmentSummaries[i].segmentId == _activeSegmentSummary?.segmentId)
+        if (_segmentSummaries[i].segmentId ==
+            _activeSegmentSummary?.segmentId) {
           continue;
+        }
         if (_segmentSummaries[i].status == 'fullySent') {
           targetIdx = i;
           break;

@@ -6,20 +6,35 @@ import 'transport/log_transport.dart';
 
 /// Main logging client interface for festenao_common.
 class FestenaoLogger {
+  /// Storage backend for log records.
   final LogStorage storage;
+
+  /// Optional transport for remote log submission.
   final LogTransport? transport;
+
+  /// Device identifier.
   final String? deviceId;
+
+  /// Session identifier.
   final String? sessionId;
+
+  /// Name of this logger instance.
   final String? loggerName;
+
+  /// Minimum log level to record.
   final LogLevel minLevel;
 
+  /// Maximum batch size when flushing.
   final int batchSize;
+
+  /// Frequency of automatic flushing.
   final Duration flushInterval;
 
   Timer? _flushTimer;
   bool _isFlushing = false;
   bool _closed = false;
 
+  /// Creates a new [FestenaoLogger] instance.
   FestenaoLogger({
     required this.storage,
     this.transport,
@@ -60,6 +75,7 @@ class FestenaoLogger {
     unawaited(storage.appendRecord(record));
   }
 
+  /// Logs a message at [LogLevel.debug].
   void debug(
     String message, {
     Object? error,
@@ -75,6 +91,7 @@ class FestenaoLogger {
     );
   }
 
+  /// Logs a message at [LogLevel.info].
   void info(
     String message, {
     Object? error,
@@ -90,6 +107,7 @@ class FestenaoLogger {
     );
   }
 
+  /// Logs a message at [LogLevel.warning].
   void warning(
     String message, {
     Object? error,
@@ -105,6 +123,7 @@ class FestenaoLogger {
     );
   }
 
+  /// Logs a message at [LogLevel.error].
   void error(
     String message, {
     Object? error,
@@ -120,6 +139,7 @@ class FestenaoLogger {
     );
   }
 
+  /// Logs a message at [LogLevel.fatal].
   void fatal(
     String message, {
     Object? error,

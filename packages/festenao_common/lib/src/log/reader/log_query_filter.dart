@@ -30,6 +30,7 @@ class LogQueryFilter {
   /// Text search query matching message, logger name, error, or extra fields (case-insensitive).
   final String? searchQuery;
 
+  /// Creates a log query filter.
   const LogQueryFilter({
     this.fromDateTime,
     this.toDateTime,

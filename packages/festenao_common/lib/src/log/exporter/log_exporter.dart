@@ -8,10 +8,16 @@ import 'export_format.dart';
 
 /// Result of an export operation.
 class ExportResult {
+  /// Total number of records exported.
   final int recordCount;
+
+  /// Total size of exported data in bytes.
   final int sizeBytes;
+
+  /// Path or content of exported logs.
   final String pathOrContent;
 
+  /// Creates an export result.
   ExportResult({
     required this.recordCount,
     required this.sizeBytes,
@@ -21,11 +27,19 @@ class ExportResult {
 
 /// Result of an export-and-send operation.
 class SendLogsResult {
+  /// Whether the send operation succeeded.
   final bool success;
+
+  /// HTTP status code returned by the server.
   final int statusCode;
+
+  /// Number of records sent.
   final int recordCount;
+
+  /// HTTP response body returned by the server.
   final String? responseBody;
 
+  /// Creates a send logs result.
   SendLogsResult({
     required this.success,
     required this.statusCode,
@@ -36,8 +50,10 @@ class SendLogsResult {
 
 /// Log exporter utility for formatting and transmitting log batches.
 class FestenaoLogExporter {
+  /// The log reader used for querying.
   final FestenaoLogReader reader;
 
+  /// Creates a log exporter.
   FestenaoLogExporter({required this.reader});
 
   /// Serializes logs matching [filter] into a string formatted as [format].
@@ -134,7 +150,7 @@ class FestenaoLogExporter {
 
     final reqHeaders = <String, String>{
       'Content-Type': contentType,
-      if (headers != null) ...headers,
+      ...?headers,
     };
 
     try {

@@ -3,7 +3,10 @@ import 'log_transport.dart';
 
 /// Mock transport implementation for unit testing and offline simulation.
 class MockLogTransport implements LogTransport {
+  /// List of batches recorded by mock transport.
   final List<List<LogRecord>> sentBatches = [];
+
+  /// Controls whether batch sends succeed.
   bool shouldSucceed = true;
 
   @override

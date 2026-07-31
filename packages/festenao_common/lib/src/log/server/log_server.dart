@@ -4,8 +4,10 @@ import '../storage/log_storage.dart';
 
 /// Lightweight HTTP receiver handler for receiving log batches from remote client loggers.
 class FestenaoLogServerHandler {
+  /// Storage backend where incoming records are saved.
   final LogStorage storage;
 
+  /// Creates a log server handler with the specified [storage].
   FestenaoLogServerHandler({required this.storage});
 
   /// Processes a raw JSON payload string containing a list of log record maps.

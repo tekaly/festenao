@@ -43,6 +43,7 @@ class LogRecord {
   /// Timestamp when this record was acknowledged by the remote receiver.
   final DateTime? sentAt;
 
+  /// Creates a new log record.
   LogRecord({
     String? id,
     DateTime? timestamp,
@@ -66,6 +67,7 @@ class LogRecord {
     return '${input.substring(0, maxLen - 64)}...[truncated]';
   }
 
+  /// Creates a copy of this record with updated fields.
   LogRecord copyWith({
     String? id,
     DateTime? timestamp,
@@ -123,7 +125,7 @@ class LogRecord {
         final st = map['stackTrace'] as String;
         if (st.length > excess + 100) {
           map['stackTrace'] =
-              st.substring(0, st.length - excess - 100) + '...[truncated]';
+              '${st.substring(0, st.length - excess - 100)}...[truncated]';
         } else {
           map.remove('stackTrace');
         }
@@ -131,7 +133,7 @@ class LogRecord {
         final msg = map['message'] as String;
         if (msg.length > excess + 100) {
           map['message'] =
-              msg.substring(0, msg.length - excess - 100) + '...[truncated]';
+              '${msg.substring(0, msg.length - excess - 100)}...[truncated]';
         }
       }
     }

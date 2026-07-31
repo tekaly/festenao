@@ -6,8 +6,13 @@ import 'log_storage.dart';
 /// In-memory implementation of [LogStorage] supporting multi-segment indexing,
 /// size limits (256KB per record, 10MB per segment, 100MB total), rotation, and purging.
 class MemoryLogStorage implements LogStorage {
+  /// Maximum segment size in bytes.
   final int maxSegmentSizeBytes;
+
+  /// Maximum age of log entries.
   final Duration maxAge;
+
+  /// Maximum total size in bytes across all segments.
   final int maxTotalSizeBytes;
 
   final List<_MemorySegment> _segments = [];
@@ -16,6 +21,7 @@ class MemoryLogStorage implements LogStorage {
   bool _initialized = false;
   int _segmentSequence = 0;
 
+  /// Creates an in-memory log storage instance.
   MemoryLogStorage({
     this.maxSegmentSizeBytes = 10 * 1024 * 1024, // 10 MB per segment
     this.maxAge = const Duration(days: 14), // 2 weeks duration limit
@@ -204,7 +210,7 @@ class MemoryLogStorage implements LogStorage {
 
     while (totalBytes() > sizeLimit && _segments.length > 1) {
       // Prioritize fullySent sealed segments, otherwise oldest sealed segment
-      int targetIndex = -1;
+      var targetIndex = -1;
       for (var i = 0; i < _segments.length - 1; i++) {
         if (_segments[i].summary.status == 'fullySent') {
           targetIndex = i;
