@@ -49,6 +49,17 @@ Future<void> main() async {
     group('project access', () {
       appProjectAccessTestRunner(() async => testContext.clientContext);
     });
+    group('project creator access', () {
+      // These rules have no "Project Creator (standalone)" block, unlike
+      // festenao_firebase_no_api_context: a client cannot create a project by
+      // naming itself its creatorUserId, it has to go through the entity
+      // create cloud function. Everything projectStandaloneAccessTestRunner
+      // does is therefore refused here.
+      appProjectCreatorUserIdApiTestRunner(
+        () async => testContext.clientContext,
+        creatorUserIdCreateSupported: false,
+      );
+    });
     tearDownAll(() async {
       await testContext.close();
       await firestore.app.delete();
