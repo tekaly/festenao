@@ -148,6 +148,67 @@ The same logging module inside `festenao_common` (exposed via `package:festenao_
 
 This allows a “local API” running on the same machine, on a LAN server, or in the cloud.
 
+#### 2.6 Log Reader & Exporter Utilities (UI & Diagnostic Tools)
+
+To allow local Flutter apps, admin UI screens, and diagnostic tools to navigate, inspect, search, export, and send logs, `festenao_common` provides dedicated reader and exporter abstractions:
+
+##### 2.6.1 Log Reader API (`FestenaoLogReader`)
+A unified reader interface that queries across active and historical segment databases/files (indexed by the Master Database):
+
+- **Querying & Filtering (`LogQueryFilter`):**
+  - Time range (`fromDateTime`, `toDateTime`)
+  - Log levels (`minLevel`, specific `levels` set)
+  - Scope (`deviceId`, `sessionId`, `loggerName`)
+  - Delivery status (`sentOnly`, `unsentOnly`, `all`)
+  - Text search / keyword (`searchQuery` matching message, loggerName, error, extra)
+- **Pagination & Navigation for UI:**
+  - `Future<List<LogRecord>> queryLogs(LogQueryFilter filter, {int limit, int offset, bool descending})`
+  - `Stream<LogRecord> streamLogs(LogQueryFilter filter)` for real-time log list updates in Flutter widgets.
+  - `Future<List<LogSegmentSummary>> getSegmentSummaries()` to list all segments managed by the master DB (creation dates, size, record counts, sent status).
+
+##### 2.6.2 Log Exporter API (`FestenaoLogExporter`)
+Utilities to package, download, and transmit log records to external web services:
+
+- **Supported Export Formats:**
+  - `Json` (Structured JSON array)
+  - `JsonL` (Line-delimited JSON for log ingestion tools)
+  - `Csv` (Tabular format for spreadsheet review)
+- **Export & Send Operations:**
+  - `Future<ExportResult> exportLogsToFile(LogQueryFilter filter, String targetPath, ExportFormat format)`
+  - `Future<String> exportLogsToString(LogQueryFilter filter, ExportFormat format)`
+  - `Future<SendLogsResult> sendLogsToEndpoint(LogQueryFilter filter, Uri destinationUrl, {Map<String, String>? headers, ExportFormat format})`
+    - Queries records matching the filter, serializes them in the requested format, and POSTs them to any custom or third-party web service endpoint.
+    - Ideal for an "Export & Send Diagnostics" action triggered from a local Flutter UI.
+
+##### 2.6.3 Usage Example (Flutter UI / Local App Integration)
+
+```dart
+import 'package:festenao_common/log/log.dart';
+
+// Create reader linked to storage & master DB
+final reader = FestenaoLogReader(storage: logger.storage);
+
+// Query recent warnings and errors for display in a Flutter ListView
+final records = await reader.queryLogs(
+  LogQueryFilter(
+    minLevel: LogLevel.warning,
+    fromDateTime: DateTime.now().subtract(const Duration(days: 1)),
+    searchQuery: 'network',
+  ),
+  limit: 50,
+  offset: 0,
+);
+
+// On-demand export & send triggered by user from a diagnostic UI button
+final exporter = FestenaoLogExporter(reader: reader);
+final sendResult = await exporter.sendLogsToEndpoint(
+  LogQueryFilter(fromDateTime: DateTime.now().subtract(const Duration(hours: 12))),
+  Uri.parse('https://diagnostics.example.com/api/v1/logs'),
+  headers: {'Authorization': 'Bearer <token>', 'X-Device-Id': 'borne-42'},
+  format: ExportFormat.jsonl,
+);
+```
+
 ---
 
 ### 3. Module & file structure inside `festenao_common`
@@ -157,13 +218,21 @@ festenao_common/
 ├── lib/
 │   ├── log/
 │   │   ├── log.dart                  # main export (package:festenao_common/log/log.dart)
-│   │   ├── log_server.dart           # optional server export (package:festenao_common/log/log_server.dart)
+│   │   ├── log_reader.dart           # log reader & query export
+│   │   ├── log_exporter.dart         # export & send utilities export
+│   │   ├── log_server.dart           # optional server export
 │   │   └── festenao_log.dart         # shortcut / alias export if needed
 │   └── src/
 │       └── log/
 │           ├── log_record.dart
 │           ├── log_level.dart
 │           ├── logger.dart           # FestenaoLogger
+│           ├── reader/
+│           │   ├── log_reader.dart   # FestenaoLogReader implementation
+│           │   └── log_query_filter.dart
+│           ├── exporter/
+│           │   ├── log_exporter.dart # FestenaoLogExporter (JSON, JsonL, CSV, sendToEndpoint)
+│           │   └── export_format.dart
 │           ├── storage/
 │           │   ├── log_storage.dart  # abstract
 │           │   ├── master_log_db.dart# Master DB index for segment tracking & cleanup
