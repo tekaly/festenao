@@ -98,7 +98,15 @@ void projectStandaloneAccessTestRunner(
     var existingEntity = await entityRef.get(firestore);
     if (existingEntity.exists) {
       // ignore: avoid_print
-      print('$entityRef exists. TODO delete project and access if possible');
+      print('$entityRef exists, deleting it');
+      // Deleting needs admin access, a leftover project could have lost its
+      // access document. The creator is always allowed to (re)create its own
+      // access document.
+      await entityAccess.standaloneSetUserAccess(
+        entityId: projectId,
+        userId: userId,
+        access: TkCmsFsUserAccess()..grantAdminAccess(),
+      );
       await entityAccess.standaloneDeleteAndPurge(
         entityId: projectId,
         userId: userId,
@@ -188,9 +196,9 @@ void projectStandaloneAccessTestRunner(
       // access document. The creator is always allowed to (re)create its own
       // access document.
       await entityAccess.standaloneSetUserAccess(
-        projectId,
-        userId,
-        TkCmsFsUserAccess()..grantAdminAccess(),
+        entityId: projectId,
+        userId: userId,
+        access: TkCmsFsUserAccess()..grantAdminAccess(),
       );
       await entityAccess.standaloneDeleteAndPurge(
         entityId: projectId,
@@ -206,13 +214,13 @@ void projectStandaloneAccessTestRunner(
 
     /// Set the invited user access as the creator, then sign the invited
     /// user back in. Only the creator/admin can change the access rights.
-    Future<void> setInvitedUserAccess(TkCmsFsUserAccess access) async {
+    Future<void> setInvitedUserAccess(TkCmsFsUserAccess? access) async {
       await auth.signOut();
       await signIn();
       await entityAccess.standaloneSetUserAccess(
-        projectId,
-        invitedUserId,
-        access,
+        entityId: projectId,
+        userId: invitedUserId,
+        access: access,
       );
       await auth.signOut();
       await signInInvited();
@@ -273,7 +281,133 @@ void projectStandaloneAccessTestRunner(
       await dataRef.get();
     });
 
+    // A null access deletes both access documents.
+    await setInvitedUserAccess(null);
+
+    invitedAccess = await entityAccess
+        .fsUserEntityAccessRef(invitedUserId, projectId)
+        .get(firestore);
+    expect(invitedAccess.exists, isFalse);
+    invitedAccess = await entityAccess
+        .fsEntityUserAccessRef(projectId, invitedUserId)
+        .get(firestore);
+    expect(invitedAccess.exists, isFalse);
+
+    await expectPermissionError(() async {
+      await dataRef.get();
+    });
+
     await auth.signOut();
+    await signIn();
+    await entityAccess.standaloneDeleteAndPurge(
+      entityId: projectId,
+      userId: userId,
+    );
+  });
+
+  test('standalone public access', () async {
+    var appId = 'test_app';
+    var projectId = 'test_festenao_access_standalone_public';
+
+    final projectCollectionInfo = fsProjectCollectionInfo;
+    var entityAccess =
+        TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsProject>(
+          entityCollectionInfo: projectCollectionInfo,
+          firestore: firestore,
+          rootDocument: fsAppRoot(appId),
+        );
+    var entityRef = entityAccess.fsEntityRef(projectId);
+    var dataRef = firestore.doc('${entityRef.path}/data/test_data');
+    var publicAccessRef = entityAccess.fsEntityPublicAccessRef(projectId);
+
+    var userId = await signIn();
+
+    var existingEntity = await entityRef.get(firestore);
+    if (existingEntity.exists) {
+      // ignore: avoid_print
+      print('$entityRef exists, deleting it');
+      await entityAccess.standaloneSetUserAccess(
+        entityId: projectId,
+        userId: userId,
+        access: TkCmsFsUserAccess()..grantAdminAccess(),
+      );
+      await entityAccess.standaloneSetPublicAccess(
+        entityId: projectId,
+        access: null,
+      );
+      await entityAccess.standaloneDeleteAndPurge(
+        entityId: projectId,
+        userId: userId,
+      );
+    }
+
+    await entityAccess.standaloneCreateEntity(
+      entity: entityRef.cv()..name.v = 'test',
+      userId: userId,
+      entityId: projectId,
+    );
+    await dataRef.set({'name': 'test_data'});
+
+    await auth.signOut();
+
+    // The public access document is readable by anyone, it is not set yet.
+    var publicAccess = await publicAccessRef.get(firestore);
+    expect(publicAccess.exists, isFalse);
+
+    // Without public access, data cannot be read without signing in.
+    await expectPermissionError(() async {
+      await dataRef.get();
+    });
+
+    // Setting public access requires admin access.
+    await expectPermissionError(() async {
+      await entityAccess.standaloneSetPublicAccess(
+        entityId: projectId,
+        access: TkCmsFsPublicAccess()..read.v = true,
+      );
+    });
+
+    await signIn();
+    await entityAccess.standaloneSetPublicAccess(
+      entityId: projectId,
+      access: TkCmsFsPublicAccess()..read.v = true,
+    );
+    await auth.signOut();
+
+    publicAccess = await publicAccessRef.get(firestore);
+    expect(publicAccess.exists, isTrue);
+    expect(publicAccess.read.v, isTrue);
+
+    // Data can now be read without signing in.
+    var dataSnapshot = await dataRef.get();
+    expect(dataSnapshot.exists, isTrue);
+    expect(dataSnapshot.data['name'], 'test_data');
+
+    // But the root entity document is still not readable.
+    await expectPermissionError(() async {
+      await entityRef.get(firestore);
+    });
+    // And data is not writable.
+    await expectPermissionError(() async {
+      await dataRef.set({'name': 'public_write'});
+    });
+
+    // Delete the public access.
+    await signIn();
+    await entityAccess.standaloneSetPublicAccess(
+      entityId: projectId,
+      access: null,
+    );
+    await auth.signOut();
+
+    publicAccess = await publicAccessRef.get(firestore);
+    expect(publicAccess.exists, isFalse);
+
+    // Data cannot be read anymore without signing in.
+    await expectPermissionError(() async {
+      await dataRef.get();
+    });
+
     await signIn();
     await entityAccess.standaloneDeleteAndPurge(
       entityId: projectId,
@@ -331,7 +465,11 @@ void projectStandaloneAccessTestRunner(
       await entityRef.get(firestore);
 
       // User can write access (allowed as the project creator)
-      await firestore.cvSet(accessRef.cv()..grantAdminAccess());
+      await entityAccess.standaloneSetUserAccess(
+        entityId: projectId2,
+        userId: userId,
+        access: TkCmsFsUserAccess()..grantAdminAccess(),
+      );
 
       // Admin access allows writing the root entity document
       await firestore.cvSet(
@@ -343,7 +481,11 @@ void projectStandaloneAccessTestRunner(
 
       // Remove admin access, keep write access (last access change, doing
       // this requires admin access).
-      await firestore.cvSet((accessRef.cv()..write.v = true)..fixAccess());
+      await entityAccess.standaloneSetUserAccess(
+        entityId: projectId2,
+        userId: userId,
+        access: (TkCmsFsUserAccess()..write.v = true)..fixAccess(),
+      );
 
       // Write access is not enough to write the root entity document, the
       // rules require admin access on

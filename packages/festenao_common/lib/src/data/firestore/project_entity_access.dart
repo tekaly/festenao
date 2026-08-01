@@ -82,25 +82,59 @@ extension FestenaoFirestoreDatabaseServiceProjectAccessStandaloneExt<
     return newEntityId;
   }
 
-  /// Set the access rights of another (invited) user on an entity.
+  /// Set (or delete when [access] is null) the access rights of another
+  /// (invited) user on an entity.
   ///
   /// Must be called while signed in as the entity creator (or an existing
   /// admin), the only ones the rules allow to write the entity access
   /// documents.
   ///
   /// Both access documents (`entity_id/.../user_access/[userId]` and
-  /// `user_id/[userId]/entity_access/...`) are written.
-  Future<void> standaloneSetUserAccess(
+  /// `user_id/[userId]/entity_access/...`) are written (or deleted) in a
+  /// single transaction so they never get out of sync.
+  Future<void> standaloneSetUserAccess({
+    required String entityId,
+    required String userId,
+    TkCmsFsUserAccess? access,
+  }) async {
+    await firestore.cvRunTransaction((txn) async {
+      if (access == null) {
+        txn.refDelete(fsEntityUserAccessRef(entityId, userId));
+        txn.refDelete(fsUserEntityAccessRef(userId, entityId));
+      } else {
+        var userAccess = TkCmsFsUserAccess()..copyAccessFrom(access);
+        txnSetEntityUserAccess(txn, entityId, userId, userAccess);
+      }
+    });
+  }
+
+  /// The public access document of an entity:
+  /// `access/{entity}/entity_id/[entityId]/public_access/public`.
+  ///
+  /// Readable by anyone, only writable by an admin.
+  CvDocumentReference<TkCmsFsPublicAccess> fsEntityPublicAccessRef(
     String entityId,
-    String userId,
-    TkCmsFsUserAccess access,
-  ) async {
-    var userAccess = TkCmsFsUserAccess()..copyAccessFrom(access);
-    await noTxnSetEntityUserAccess(
-      entityId: entityId,
-      userId: userId,
-      userAccess: userAccess,
-    );
+  ) => fsEntityUserAccessCollectionRef(entityId).parent!
+      .collection<TkCmsFsPublicAccess>(tkCmsPublicAccessFirestorePathPart)
+      .doc(tkCmsPublicAccessPublicDocumentId);
+
+  /// Set (or delete when [access] is null) the public access of an entity.
+  ///
+  /// Must be called while signed in as an admin of the entity, the only ones
+  /// the rules allow to write the public access document.
+  ///
+  /// Granting `read` makes the entity `data` sub collection readable by
+  /// anyone, even without signing in.
+  Future<void> standaloneSetPublicAccess({
+    required String entityId,
+    TkCmsFsPublicAccess? access,
+  }) async {
+    var ref = fsEntityPublicAccessRef(entityId);
+    if (access == null) {
+      await firestore.refDelete(ref);
+    } else {
+      await firestore.refSet(ref, access);
+    }
   }
 
   /// Mark the entity as deleted then purge it (admin access needed).
