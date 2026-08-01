@@ -103,5 +103,22 @@ service cloud.firestore {
     match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
       allow create: if signedIn() &&  subEntityCreatorUserIdMatches(top, topId, entity, entityId, request.auth.uid);
     }
+
+    //
+    // Public access (project) - 2026-08-01
+    //
+    function subHasEntityPublicReadAccess(top, topId, entity, entityId) {
+      let doc = get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/public_access/public);
+      return doc != null && doc.data.get('read', false) == true;
+    }
+
+    match /{top}/{topId}/{entity}/{entityId}/data/{dataId}/{document=**} {
+      allow read: if subHasEntityPublicReadAccess(top, topId, entity, entityId);
+    }
+
+    match /{top}/{topId}/access/{entity}/entity_id/{entityId}/public_access/{document} {
+      allow read: if true;
+      allow write: if signedIn() && subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
+    }
   }
 }
