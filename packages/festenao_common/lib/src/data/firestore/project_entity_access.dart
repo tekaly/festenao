@@ -20,33 +20,12 @@ extension FestenaoFirestoreDatabaseServiceProjectAccessStandaloneExt<
     entity.active.v ??= true;
     // Set the creator!
     entity.creatorUserId.v ??= userId;
-    late String newEntityId;
-    if (firestore.supportsTransaction) {
-      newEntityId = await firestore.cvRunTransaction((txn) async {
-        if (entityId != null) {
-          newEntityId = entityId;
-          var entityRef = fsEntityRef(newEntityId);
-          var entitySnapshot = await txn.refGet(entityRef);
-          if (entitySnapshot.exists) {
-            throw StateError('Entity $newEntityId already exists');
-          }
-        } else {
-          // Find a unique id
-          newEntityId = await fsEntityCollectionRef
-              .raw(firestore)
-              .txnGenerateUniqueId(txn, customGenerator: customIdGenerator);
-        }
-
-        var entityRef = fsEntityRef(newEntityId);
-
-        txn.refSet(entityRef, entity);
-        return newEntityId;
-      });
-    } else {
+    var newEntityId = await firestore.cvRunTransaction((txn) async {
+      late String newEntityId;
       if (entityId != null) {
         newEntityId = entityId;
         var entityRef = fsEntityRef(newEntityId);
-        var entitySnapshot = await firestore.refGet(entityRef);
+        var entitySnapshot = await txn.refGet(entityRef);
         if (entitySnapshot.exists) {
           throw StateError('Entity $newEntityId already exists');
         }
@@ -54,30 +33,23 @@ extension FestenaoFirestoreDatabaseServiceProjectAccessStandaloneExt<
         // Find a unique id
         newEntityId = await fsEntityCollectionRef
             .raw(firestore)
-            .noTxnGenerateUniqueId(customGenerator: customIdGenerator);
+            .txnGenerateUniqueId(txn, customGenerator: customIdGenerator);
       }
 
       var entityRef = fsEntityRef(newEntityId);
-      // Create the entity
-      await firestore.refSet(entityRef, entity);
-    }
+
+      txn.refSet(entityRef, entity);
+      return newEntityId;
+    });
 
     // Set access
     var entityUserAccess = TkCmsFsUserAccess()
       ..admin.v = true
       ..fixAccess();
 
-    if (firestore.supportsTransaction) {
-      await noTxnSetEntityUserAccess(
-        entityId: newEntityId,
-        userId: userId,
-        userAccess: entityUserAccess,
-      );
-    } else {
-      await firestore.cvRunTransaction((txn) async {
-        txnSetEntityUserAccess(txn, newEntityId, userId, entityUserAccess);
-      });
-    }
+    await firestore.cvRunTransaction((txn) async {
+      txnSetEntityUserAccess(txn, newEntityId, userId, entityUserAccess);
+    });
 
     return newEntityId;
   }
@@ -99,8 +71,7 @@ extension FestenaoFirestoreDatabaseServiceProjectAccessStandaloneExt<
   }) async {
     await firestore.cvRunTransaction((txn) async {
       if (access == null) {
-        txn.refDelete(fsEntityUserAccessRef(entityId, userId));
-        txn.refDelete(fsUserEntityAccessRef(userId, entityId));
+        txnSetEntityUserAccess(txn, entityId, userId, null);
       } else {
         var userAccess = TkCmsFsUserAccess()..copyAccessFrom(access);
         txnSetEntityUserAccess(txn, entityId, userId, userAccess);
