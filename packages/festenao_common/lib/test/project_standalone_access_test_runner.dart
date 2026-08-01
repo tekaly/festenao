@@ -159,7 +159,7 @@ void projectStandaloneAccessTestRunner(
     expect(existingEntity.exists, isFalse);
     userEntityAccess = await userEntityAccessRef.get(firestore);
     expect(userEntityAccess.exists, isFalse);
-  }, solo: true);
+  });
 
   test('standalone invited user access', () async {
     var appId = 'test_app';
