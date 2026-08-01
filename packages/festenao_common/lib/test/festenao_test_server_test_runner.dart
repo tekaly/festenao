@@ -585,12 +585,20 @@ void testFestenaoServerGroup(
     }
 
     await client.deleteEntity(entityId: entityId);
+    var userEntityAccessRef = fsDatabase.projectDb.fsUserEntityAccessRef(
+      userId,
+      entityId,
+    );
     if (!noFirestoreCheck) {
       entity = await fsDatabase.projectDb
           .fsEntityRef(entityId)
           .get(fsDatabase.firestore);
       expect(entity.exists, isTrue);
       expect(entity.deleted.v, isTrue);
+      var userEntityAccess = await userEntityAccessRef.get(
+        fsDatabase.firestore,
+      );
+      expect(userEntityAccess.exists, isTrue);
     }
     await client.purgeEntity(entityId: entityId);
     if (!noFirestoreCheck) {
@@ -598,6 +606,11 @@ void testFestenaoServerGroup(
           .fsEntityRef(entityId)
           .get(fsDatabase.firestore);
       expect(entity.exists, isFalse);
+
+      var userEntityAccess = await userEntityAccessRef.get(
+        fsDatabase.firestore,
+      );
+      expect(userEntityAccess.exists, isFalse);
     }
   });
 

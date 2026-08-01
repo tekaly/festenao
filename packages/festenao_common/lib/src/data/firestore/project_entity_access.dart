@@ -81,6 +81,37 @@ extension FestenaoFirestoreDatabaseServiceProjectAccessStandaloneExt<
 
     return newEntityId;
   }
+
+  /// Set the access rights of another (invited) user on an entity.
+  ///
+  /// Must be called while signed in as the entity creator (or an existing
+  /// admin), the only ones the rules allow to write the entity access
+  /// documents.
+  ///
+  /// Both access documents (`entity_id/.../user_access/[userId]` and
+  /// `user_id/[userId]/entity_access/...`) are written.
+  Future<void> standaloneSetUserAccess(
+    String entityId,
+    String userId,
+    TkCmsFsUserAccess access,
+  ) async {
+    var userAccess = TkCmsFsUserAccess()..copyAccessFrom(access);
+    await noTxnSetEntityUserAccess(
+      entityId: entityId,
+      userId: userId,
+      userAccess: userAccess,
+    );
+  }
+
+  /// Mark the entity as deleted then purge it (admin access needed).
+  Future<void> standaloneDeleteAndPurge({
+    required String userId,
+    required String entityId,
+  }) async {
+    await deleteEntity(entityId, userId: userId);
+
+    await purgeEntity(entityId, userId: userId);
+  }
 }
 
 /// Collection reference extension to generate unique id

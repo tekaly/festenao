@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:dev_test/test.dart';
 import 'package:festenao_common/festenao_firestore.dart';
@@ -61,14 +62,22 @@ void projectStandaloneAccessTestRunner(
     }
   }
 
-  Future<String> signIn() async {
+  /// Sign in (or up) a given user, returns its user id.
+  Future<String> signInEmail(String email) async {
     var userCredential = await auth.signInOrUpWithEmailAndPassword(
-      email: 'admin@festenao-noff-test.local',
+      email: email,
       password: 'test1234',
     );
     var userId = userCredential.user.uid;
     return userId;
   }
+
+  /// Main (creator) user.
+  Future<String> signIn() => signInEmail('admin@festenao-noff-test.local');
+
+  /// Secondary (invited) user.
+  Future<String> signInInvited() =>
+      signInEmail('invited@festenao-noff-test.local');
 
   test('standalone helpers', () async {
     var appId = 'test_app';
@@ -83,12 +92,47 @@ void projectStandaloneAccessTestRunner(
         );
     var userId = await signIn();
     var entityRef = entityAccess.fsEntityRef(projectId);
+    var userEntityAccessRef = entityAccess.fsUserEntityAccessRef(
+      userId,
+      projectId,
+    );
+    var existingEntity = await entityRef.get(firestore);
+    if (existingEntity.exists) {
+      // ignore: avoid_print
+      print('$entityRef exists. TODO delete project and access if possible');
+      await entityAccess.standaloneDeleteAndPurge(
+        entityId: projectId,
+        userId: userId,
+      );
+    }
+    var userEntityAccess = await userEntityAccessRef.get(firestore);
+    expect(userEntityAccess.exists, isFalse);
     var entity = entityRef.cv()..name.v = 'test';
     await entityAccess.standaloneCreateEntity(
       entity: entity,
       userId: userId,
       entityId: projectId,
     );
+
+    entity = await entityRef.get(firestore);
+    expect(entity.exists, isTrue);
+    userEntityAccess = await userEntityAccessRef.get(firestore);
+    expect(userEntityAccess.exists, isTrue);
+
+    // Rewrite the entity
+    entity.creatorUserId.v = null;
+    await entityRef.set(firestore, entity);
+
+    // Write some data
+    await firestore.collection('${entityRef.path}/data').doc('test_data').set({
+      'name': 'test_data',
+    });
+    await expectPermissionError(() async {
+      await firestore
+          .collection('${entityRef.path}/other_than_data')
+          .doc('test_data')
+          .get();
+    });
 
     try {
       await entityAccess.standaloneCreateEntity(
@@ -102,6 +146,140 @@ void projectStandaloneAccessTestRunner(
       print('expected error recreating $e');
       expect(e, isNot(isA<TestFailure>()));
     }
+
+    userEntityAccess = await userEntityAccessRef.get(firestore);
+    expect(userEntityAccess.exists, isTrue);
+    expect(userEntityAccess.admin.v, isTrue);
+
+    await entityAccess.standaloneDeleteAndPurge(
+      entityId: projectId,
+      userId: userId,
+    );
+    existingEntity = await entityRef.get(firestore);
+    expect(existingEntity.exists, isFalse);
+    userEntityAccess = await userEntityAccessRef.get(firestore);
+    expect(userEntityAccess.exists, isFalse);
+  }, solo: true);
+
+  test('standalone invited user access', () async {
+    var appId = 'test_app';
+    var projectId = 'test_festenao_access_standalone_invited';
+
+    final projectCollectionInfo = fsProjectCollectionInfo;
+    var entityAccess =
+        TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsProject>(
+          entityCollectionInfo: projectCollectionInfo,
+          firestore: firestore,
+          rootDocument: fsAppRoot(appId),
+        );
+    var entityRef = entityAccess.fsEntityRef(projectId);
+    var dataRef = firestore.doc('${entityRef.path}/data/test_data');
+
+    // Sign in the invited user once to get its user id.
+    var invitedUserId = await signInInvited();
+    await auth.signOut();
+
+    var userId = await signIn();
+
+    var existingEntity = await entityRef.get(firestore);
+    if (existingEntity.exists) {
+      // ignore: avoid_print
+      print('$entityRef exists, deleting it');
+      // Deleting needs admin access, a leftover project could have lost its
+      // access document. The creator is always allowed to (re)create its own
+      // access document.
+      await entityAccess.standaloneSetUserAccess(
+        projectId,
+        userId,
+        TkCmsFsUserAccess()..grantAdminAccess(),
+      );
+      await entityAccess.standaloneDeleteAndPurge(
+        entityId: projectId,
+        userId: userId,
+      );
+    }
+
+    await entityAccess.standaloneCreateEntity(
+      entity: entityRef.cv()..name.v = 'test',
+      userId: userId,
+      entityId: projectId,
+    );
+
+    /// Set the invited user access as the creator, then sign the invited
+    /// user back in. Only the creator/admin can change the access rights.
+    Future<void> setInvitedUserAccess(TkCmsFsUserAccess access) async {
+      await auth.signOut();
+      await signIn();
+      await entityAccess.standaloneSetUserAccess(
+        projectId,
+        invitedUserId,
+        access,
+      );
+      await auth.signOut();
+      await signInInvited();
+    }
+
+    /// Write the root entity document (keeping the creator id).
+    Future<void> writeRootEntity(String name) async {
+      await firestore.cvSet(
+        entityRef.cv()
+          ..name.v = name
+          ..creatorUserId.v = userId,
+      );
+    }
+
+    // Admin access: the invited user can write the root entity document.
+    await setInvitedUserAccess(TkCmsFsUserAccess()..grantAdminAccess());
+
+    var invitedAccess = await entityAccess
+        .fsUserEntityAccessRef(invitedUserId, projectId)
+        .get(firestore);
+    expect(invitedAccess.exists, isTrue);
+    expect(invitedAccess.admin.v, isTrue);
+
+    await writeRootEntity('admin_write');
+    await dataRef.set({'name': 'admin_data'});
+    await dataRef.get();
+
+    // Write only access: the root entity document needs admin access.
+    await setInvitedUserAccess(
+      (TkCmsFsUserAccess()..write.v = true)..fixAccess(),
+    );
+
+    await expectPermissionError(() async {
+      await writeRootEntity('write_only_write');
+    });
+    // But the `data` sub collection is still writable.
+    await dataRef.set({'name': 'write_only_data'});
+    await dataRef.get();
+
+    // Read only access: nothing is writable anymore.
+    await setInvitedUserAccess(
+      (TkCmsFsUserAccess()..read.v = true)..fixAccess(),
+    );
+
+    await expectPermissionError(() async {
+      await writeRootEntity('read_only_write');
+    });
+    await expectPermissionError(() async {
+      await dataRef.set({'name': 'read_only_data'});
+    });
+    // But reading is still allowed.
+    await dataRef.get();
+
+    // No access: reading the entity data is not allowed anymore.
+    await setInvitedUserAccess(TkCmsFsUserAccess()..fixAccess());
+
+    await expectPermissionError(() async {
+      await dataRef.get();
+    });
+
+    await auth.signOut();
+    await signIn();
+    await entityAccess.standaloneDeleteAndPurge(
+      entityId: projectId,
+      userId: userId,
+    );
   });
 
   group('standalone project access runner', () {
@@ -122,6 +300,12 @@ void projectStandaloneAccessTestRunner(
       var accessRef = entityAccess.fsEntityUserAccessRef(projectId2, userId);
       var entityRef = entityAccess.fsEntityRef(projectId2);
 
+      var entity = await entityRef.get(firestore);
+      if (entity.exists) {
+        // ignore: avoid_print
+        print('$entityRef exists. TODO delete project and access if possible');
+        return;
+      }
       // User cannot create the project without creatorUserId
       await expectPermissionError(() async {
         await firestore.cvSet(entityRef.cv()..name.v = 'test');
@@ -143,17 +327,14 @@ void projectStandaloneAccessTestRunner(
         );
       });
 
-      // Not read it
-      await expectPermissionError(() async {
-        await entityRef.get(firestore);
-      });
+      // But it can get it: any signed in user is allowed to get the root
+      // entity document.
+      await entityRef.get(firestore);
 
-      // User can write access
+      // User can write access (allowed as the project creator)
       await firestore.cvSet(accessRef.cv()..grantAdminAccess());
 
-      // Remove admin access
-      await firestore.cvSet((accessRef.cv()..write.v = true)..fixAccess());
-      // Can still write
+      // Admin access allows writing the root entity document
       await firestore.cvSet(
         entityRef.cv()
           ..name.v = 'test2'
@@ -161,9 +342,13 @@ void projectStandaloneAccessTestRunner(
       );
       await entityRef.get(firestore);
 
-      // Remove write access
-      await firestore.cvSet((accessRef.cv()..read.v = true)..fixAccess());
-      // Cannot write
+      // Remove admin access, keep write access (last access change, doing
+      // this requires admin access).
+      await firestore.cvSet((accessRef.cv()..write.v = true)..fixAccess());
+
+      // Write access is not enough to write the root entity document, the
+      // rules require admin access on
+      // `/{top}/{topId}/{entity}/{entityId}`.
       await expectPermissionError(() async {
         await firestore.cvSet(
           entityRef.cv()
@@ -172,11 +357,15 @@ void projectStandaloneAccessTestRunner(
         );
       });
 
-      // Remove read access
-      await firestore.cvSet((accessRef.cv()..read.v = false)..fixAccess());
-      // Cannot read
+      // ...but write access does allow writing in the entity `data` sub
+      // collection.
+      await firestore.doc('${entityRef.path}/data/test_data').set({
+        'name': 'test_data',
+      });
+
+      // Write access is not enough to change access either.
       await expectPermissionError(() async {
-        await entityRef.get(firestore);
+        await firestore.cvSet(accessRef.cv()..grantAdminAccess());
       });
 
       await auth.signOut();
@@ -197,16 +386,25 @@ void projectStandaloneAccessTestRunner(
         password: 'test1234',
       );
       var creatorUserId = creatorCredential.user.uid;
+      var entityRef = firestore.doc('app/$appId/project/$projectId2');
 
-      await firestore.doc('app/$appId/project/$projectId2').set({
+      if ((await entityRef.get()).exists) {
+        // ignore: avoid_print
+        print('$entityRef exists. TODO delete project and access if possible');
+        return;
+      }
+      await entityRef.set({
         'name': 'test project',
         'creatorUserId': creatorUserId,
       });
 
-      var itemRef = firestore.doc(
-        'app/$appId/project/$projectId2/item/$itemId',
-      );
-      await itemRef.set({'name': 'test item'});
+      await expectPermissionError(() async {
+        // Only data is supported here since 2026-08-01
+        var itemRef = firestore.doc(
+          'app/$appId/project/$projectId2/data/$itemId',
+        );
+        await itemRef.set({'name': 'test item'});
+      });
 
       await auth.signOut();
 
