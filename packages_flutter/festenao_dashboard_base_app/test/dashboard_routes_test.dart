@@ -47,6 +47,7 @@ void main() {
         '/project/:project_id/content_demo',
         '/projects_access',
         '/project_access/:project_id',
+        '/logs',
       ]);
     });
 
