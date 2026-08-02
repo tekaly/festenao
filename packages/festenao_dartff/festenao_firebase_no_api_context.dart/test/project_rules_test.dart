@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:festenao_common/test/project_standalone_access_test_runner.dart';
+import 'package:festenao_common/test/user_prv_access_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:test/test.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
@@ -61,6 +62,11 @@ Future<void> main() async {
 
   projectStandaloneAccessTestRunner(
     () => ProjectStandaloneAccessTestContext(auth: auth, firestore: firestore),
+    rulesSupported: true,
+  );
+
+  userPrvAccessTestRunner(
+    () => UserPrvAccessTestContext(auth: auth, firestore: firestore),
     rulesSupported: true,
   );
 }

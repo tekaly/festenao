@@ -7,8 +7,12 @@ service cloud.firestore {
     }
     
     
+    function signedIn() {
+      return request.auth != null && request.auth.uid != null;
+    }
+
     // Common (Standalone & Cloud functions supported)
-    
+
     function subHasEntityAdminAccess(top, topId, entity, entityId, userId) {
       return get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.admin == true;
     }
@@ -38,6 +42,13 @@ service cloud.firestore {
     
     match /{top}/{topId}/access/{entity}/user_id/{userId} {
       allow read: if request.auth.uid == userId;
+    }
+
+    //
+    // Per user private data - 2026-08-02 created
+    //
+    match /{top}/{topId}/user_prv/{userId}/{document=**} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
     }
   }
 }
