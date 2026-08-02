@@ -11,37 +11,60 @@ service cloud.firestore {
       return request.auth != null && request.auth.uid != null;
     }
 
-    // Common (Standalone & Cloud functions supported)
+
+
+    //
+    // Sub Common (Standalone & Cloud functions supported) - update 2026-08-02
+    //
+
+    function subHasEntityAccess(top, topId, entity, entityId, userId, access) {
+      let doc = get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId));
+      return doc != null && doc.data.get(access, false) == true;
+    }
 
     function subHasEntityAdminAccess(top, topId, entity, entityId, userId) {
-      return get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.admin == true;
+      return subHasEntityAccess(top, topId, entity, entityId, userId, 'admin');
     }
     function subHasEntityWriteAccess(top, topId, entity, entityId, userId) {
-      return get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId)).data.write == true;
+      return subHasEntityAccess(top, topId, entity, entityId, userId, 'write');
     }
-    
-    match /{top}/{topId}/invite/{entity}/invite_id/{inviteId}/invite_entity/{entityId} {
-      allow read: if request.auth.uid != null;
-    }
-    
-    match /{top}/{topId}/{entity}/{entityId} {
-      allow read, write: if subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
-    }
-    match /{top}/{topId}/{entity}/{entityId}/{document=**} {
-      allow read, write: if subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
+    function subHasEntityReadAccess(top, topId, entity, entityId, userId) {
+      return subHasEntityAccess(top, topId, entity, entityId, userId, 'read');
     }
 
-    // Should not be necessary
+    // Update 2026-08-01 disallow writing the root doc if not admin
+
+    match /{top}/{topId}/{entity}/{entityId} {
+      allow read: if signedIn() && subHasEntityReadAccess(top, topId, entity, entityId, request.auth.uid);
+      allow write: if signedIn() && subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
+
+
+      match /data/{dataId}/{document=**} {
+        allow read: if signedIn() && subHasEntityReadAccess(top, topId, entity, entityId, request.auth.uid);
+        allow write: if signedIn() && subHasEntityWriteAccess(top, topId, entity, entityId, request.auth.uid);
+      }
+    }
+
+    // Invite
+
+    match /{top}/{topId}/invite/{entity}/invite_id/{inviteId}/invite_entity/{entityId} {
+      allow read: if signedIn();
+    }
+
+    // Access manage
+
     match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
-      allow read: if request.auth.uid == userId;
+      allow read, write: if signedIn() && subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
     }
 
     match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
-      allow read: if request.auth.uid == userId;
+      allow read, write: if signedIn() && subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
     }
-    
-    match /{top}/{topId}/access/{entity}/user_id/{userId} {
-      allow read: if request.auth.uid == userId;
+
+    // Access user read
+
+    match /{top}/{topId}/access/{entity}/user_id/{userId}/{document=**} {
+      allow read: if signedIn() && request.auth.uid == userId;
     }
 
     //

@@ -64,7 +64,7 @@ void appProjectAccessApiTestRunner(
     // print('$appId: $appId');
     // print('projectId: $projectId');
     // print('userId: $userId');
-    var docRef = firestore.doc('app/$appId/project/$projectId/sub/data');
+    var docRef = firestore.doc('app/$appId/project/$projectId/data/sub');
     await docRef.set({'probe': 'admin-write-ok'});
 
     var snapshot = await docRef.get();

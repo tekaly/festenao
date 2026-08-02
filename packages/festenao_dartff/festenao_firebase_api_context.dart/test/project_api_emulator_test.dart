@@ -62,7 +62,7 @@ Future<void> main() async {
       );
     });
     group('user private data', () {
-      userPrvAccessTestRunner(
+      appUserPrvAccessTestRunner(
         () => UserPrvAccessTestContext(
           auth: testContext.clientContext.firebaseAuth!,
           firestore: firestore,

@@ -39,7 +39,7 @@ const userPrvTestPassword = 'test1234';
 ///
 /// Dedicated users ([userPrvTestEmail]/[userPrvTestEmail2]) are used so that
 /// signing in/out here does not interfere with the other runners.
-void userPrvAccessTestRunner(
+void appUserPrvAccessTestRunner(
   FutureOr<UserPrvAccessTestContext> Function() contextBuilder, {
   bool rulesSupported = true,
   String appId = 'test_app',

@@ -288,10 +288,12 @@ void projectStandaloneAccessTestRunner(
         .fsUserEntityAccessRef(invitedUserId, projectId)
         .get(firestore);
     expect(invitedAccess.exists, isFalse);
-    invitedAccess = await entityAccess
-        .fsEntityUserAccessRef(projectId, invitedUserId)
-        .get(firestore);
-    expect(invitedAccess.exists, isFalse);
+    // Update 2026-08-01 we can no longer read here...
+    await expectPermissionError(() async {
+      await entityAccess
+          .fsEntityUserAccessRef(projectId, invitedUserId)
+          .get(firestore);
+    });
 
     await expectPermissionError(() async {
       await dataRef.get();

@@ -20,7 +20,9 @@ service cloud.firestore {
       allow get: if true;
     }
 
-    // Common (Standalone & Cloud functions supported) - update 2026-08-01
+    //
+    // Sub Common (Standalone & Cloud functions supported) - update 2026-08-01
+    //
 
     function subHasEntityAccess(top, topId, entity, entityId, userId, access) {
       let doc = get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/entity_id/$(entityId)/user_access/$(userId));
@@ -51,18 +53,12 @@ service cloud.firestore {
     }
 
     // Invite
+
     match /{top}/{topId}/invite/{entity}/invite_id/{inviteId}/invite_entity/{entityId} {
       allow read: if signedIn();
     }
 
-    // Should not be necessary - to try once
-    match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
-      allow read: if signedIn() && request.auth.uid == userId;
-    }
-
-    match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
-      allow read: if signedIn() && request.auth.uid == userId;
-    }
+    // Access manage
 
     match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
       allow read, write: if signedIn() && subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
@@ -72,7 +68,9 @@ service cloud.firestore {
       allow read, write: if signedIn() && subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
     }
 
-    match /{top}/{topId}/access/{entity}/user_id/{userId} {
+    // Access user read
+
+    match /{top}/{topId}/access/{entity}/user_id/{userId}/{document=**} {
       allow read: if signedIn() && request.auth.uid == userId;
     }
 

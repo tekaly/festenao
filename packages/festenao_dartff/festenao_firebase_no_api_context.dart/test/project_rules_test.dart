@@ -65,7 +65,7 @@ Future<void> main() async {
     rulesSupported: true,
   );
 
-  userPrvAccessTestRunner(
+  appUserPrvAccessTestRunner(
     () => UserPrvAccessTestContext(auth: auth, firestore: firestore),
     rulesSupported: true,
   );

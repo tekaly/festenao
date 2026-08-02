@@ -10,6 +10,7 @@ import 'package:festenao_common/test/app_api_access_test_runner.dart';
 import 'package:festenao_common/test/festenao_test_server_emulator_helper.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
 import 'package:festenao_common/test/project_access_test_runner.dart';
+import 'package:festenao_common/test/user_prv_access_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:test/test.dart';
 import 'package:tkcms_common/tkcms_common.dart';
@@ -49,8 +50,13 @@ Future<void> main() async {
         () async => testContext.clientContext,
       );
       appProjectAccessTestRunner(() async => testContext.clientContext);
-      appUserPrvAccessTestRunner(() async => testContext.clientContext);
-      appProjectUserPrvAccessTestRunner(() async => testContext.clientContext);
+      appUserPrvAccessTestRunner(
+        () => UserPrvAccessTestContext(
+          auth: testContext.clientContext.firebaseAuth!,
+          firestore: firestore,
+        ),
+      );
+
       appPublicAccessTestRunner(() async => testContext.clientContext);
       appProjectPublicAccessTestRunner(() async => testContext.clientContext);
     });
