@@ -7,16 +7,58 @@ import 'package:festenao_common/festenao_firestore.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
+/// Minimal entity summary the share screen needs: a display name and what the
+/// current user is allowed to grant.
+///
+/// Built from the local projects sdb for festenao projects, or read from
+/// firestore for any other [TkCmsFsEntity] (a songbook...).
+class SdbSharedEntity {
+  /// Display name.
+  final String? name;
+
+  /// True when the current user is an admin of the entity.
+  final bool isAdmin;
+
+  /// True when the current user can write the entity.
+  final bool isWrite;
+
+  /// True when the current user can read the entity.
+  final bool isRead;
+
+  /// Constructor.
+  SdbSharedEntity({
+    this.name,
+    this.isAdmin = false,
+    this.isWrite = false,
+    this.isRead = false,
+  });
+
+  /// From a local projects sdb record.
+  SdbSharedEntity.fromUserProject(SdbUserProject project)
+    : name = project.name.v,
+      isAdmin = project.isAdmin,
+      isWrite = project.isWrite,
+      isRead = project.isRead;
+
+  /// From the firestore entity and the current user access on it.
+  SdbSharedEntity.fromFsAccess({
+    required this.name,
+    required TkCmsFsUserAccess? access,
+  }) : isAdmin = access?.isAdmin ?? false,
+       isWrite = access?.isWrite ?? false,
+       isRead = access?.isRead ?? false;
+}
+
 /// State for the project share/invite screen.
 class ProjectSdbShareScreenBlocState {
   /// The project being shared (for its name and access capabilities).
-  final SdbUserProject? project;
+  final SdbSharedEntity? project;
 
   /// Created invite id, if any.
   final String? inviteId;
 
   /// The invite entity once created (and streamed).
-  final TkCmsFsInviteEntity<FsProject>? invite;
+  final TkCmsFsInviteEntity<TkCmsFsEntity>? invite;
 
   /// True when sharing settings can still be edited (no invite created yet).
   bool get canEditSharing => inviteId == null && project != null;
@@ -27,9 +69,9 @@ class ProjectSdbShareScreenBlocState {
   ProjectSdbShareScreenBlocState({this.project, this.inviteId, this.invite});
 
   ProjectSdbShareScreenBlocState copyWith({
-    SdbUserProject? project,
+    SdbSharedEntity? project,
     String? inviteId,
-    TkCmsFsInviteEntity<FsProject>? invite,
+    TkCmsFsInviteEntity<TkCmsFsEntity>? invite,
   }) {
     return ProjectSdbShareScreenBlocState(
       project: project ?? this.project,
@@ -38,7 +80,7 @@ class ProjectSdbShareScreenBlocState {
     );
   }
 
-  ProjectSdbShareScreenBlocState withProject(SdbUserProject? project) {
+  ProjectSdbShareScreenBlocState withProject(SdbSharedEntity? project) {
     return ProjectSdbShareScreenBlocState(
       project: project,
       inviteId: inviteId,
@@ -48,7 +90,7 @@ class ProjectSdbShareScreenBlocState {
 
   ProjectSdbShareScreenBlocState withInvite({
     String? inviteId,
-    TkCmsFsInviteEntity<FsProject>? invite,
+    TkCmsFsInviteEntity<TkCmsFsEntity>? invite,
   }) {
     return ProjectSdbShareScreenBlocState(
       project: project,
@@ -62,7 +104,12 @@ class ProjectSdbShareScreenBlocState {
 class ProjectSdbShareScreenBloc
     extends AutoDisposeStateBaseBloc<ProjectSdbShareScreenBlocState> {
   final String projectId;
-  final UserProjectsSdb projectsDb;
+
+  /// Local projects db, when sharing a festenao project.
+  final UserProjectsSdb? projectsDb;
+
+  /// Entity the access is managed on, defaults to the festenao project entity.
+  final TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess;
 
   TkCmsFbIdentity? _identity;
   FirebaseUser? get _user => _identity?.user;
@@ -73,7 +120,8 @@ class ProjectSdbShareScreenBloc
 
   ProjectSdbShareScreenBloc({
     required this.projectId,
-    required this.projectsDb,
+    this.projectsDb,
+    this.entityAccess,
   }) {
     add(ProjectSdbShareScreenBlocState());
     () async {
@@ -82,19 +130,47 @@ class ProjectSdbShareScreenBloc
       if (userOrLocalId == null) {
         return;
       }
-      audiAddStreamSubscription(
-        projectsDb.onProject(projectId, userId: userOrLocalId).listen((
-          project,
-        ) {
-          add(state.value.withProject(project));
-        }),
+      var projectsDb = this.projectsDb;
+      if (projectsDb != null) {
+        audiAddStreamSubscription(
+          projectsDb.onProject(projectId, userId: userOrLocalId).listen((
+            project,
+          ) {
+            add(
+              state.value.withProject(
+                project == null
+                    ? null
+                    : SdbSharedEntity.fromUserProject(project),
+              ),
+            );
+          }),
+        );
+        return;
+      }
+      // No local projects db (any other entity): read the name and the
+      // current user access from firestore.
+      var fsDb = _projectDb;
+      var entity = await fsDb.fsEntityRef(projectId).get(fsDb.firestore);
+      var access = await fsDb
+          .fsEntityUserAccessRef(projectId, userOrLocalId)
+          .get(fsDb.firestore);
+      if (disposed) {
+        return;
+      }
+      add(
+        state.value.withProject(
+          SdbSharedEntity.fromFsAccess(
+            name: entity.name.v,
+            access: access.exists ? access : null,
+          ),
+        ),
       );
     }();
   }
 
-  /// Firestore project entity database.
-  TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> get _projectDb =>
-      globalFestenaoFirestoreDatabase.projectDb;
+  /// Firestore entity database the invites are created on.
+  TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity> get _projectDb =>
+      entityAccess ?? globalFestenaoFirestoreDatabase.projectDb;
 
   /// Create an invite with the given access and start tracking it.
   Future<String> createInvite({

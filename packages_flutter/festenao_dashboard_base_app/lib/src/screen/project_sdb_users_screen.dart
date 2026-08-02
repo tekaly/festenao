@@ -6,6 +6,7 @@ import 'package:festenao_dashboard_base_app/src/screen/project_sdb_user_edit_scr
 import 'package:flutter/material.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
+import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// Dashboard screen listing a project's users and their access.
 ///
@@ -60,6 +61,7 @@ class _ProjectSdbUsersScreenState
                       projectId: bloc.param.id,
                       userId: userAccess.id,
                     ),
+                    entityAccess: bloc.entityAccess,
                   );
                   bloc.refresh();
                 },
@@ -77,6 +79,7 @@ class _ProjectSdbUsersScreenState
               projectId: bloc.param.id,
               userId: null,
             ),
+            entityAccess: bloc.entityAccess,
           );
           bloc.refresh();
         },
@@ -87,9 +90,13 @@ class _ProjectSdbUsersScreenState
 }
 
 /// Navigate to the project users management screen.
+///
+/// [entityAccess] manages the access of another [TkCmsFsEntity] than the
+/// festenao project (a songbook...).
 Future<void> goToProjectSdbUsersScreen(
   BuildContext context, {
   required String projectId,
+  TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess,
 }) async {
   await Navigator.of(context).push(
     MaterialPageRoute<void>(
@@ -97,6 +104,7 @@ Future<void> goToProjectSdbUsersScreen(
         return BlocProvider<AdminProjectUsersScreenBloc>(
           blocBuilder: () => AdminProjectUsersScreenBloc(
             param: AdminProjectUsersScreenParam(id: projectId),
+            entityAccess: entityAccess,
           ),
           child: const ProjectSdbUsersScreen(),
         );

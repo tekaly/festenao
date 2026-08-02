@@ -33,6 +33,12 @@ class AdminProjectUsersScreenBloc
     extends AutoDisposeStateBaseBloc<AdminProjectUsersScreenBlocState> {
   final AdminProjectUsersScreenParam param;
 
+  /// Entity the access is managed on.
+  ///
+  /// Defaults to the festenao project entity; pass another one (a songbook...)
+  /// to manage the access of any [TkCmsFsEntity].
+  final TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess;
+
   List<TkCmsEditedFsUserAccess>? users;
 
   late StreamSubscription _usersSubscription;
@@ -44,11 +50,14 @@ class AdminProjectUsersScreenBloc
     }
   }
 
-  late final projectId = adminProjectFixProjectId(param.id);
+  /// The compat id fix only makes sense for the festenao project entity.
+  late final projectId = entityAccess == null
+      ? adminProjectFixProjectId(param.id)
+      : param.id;
 
   late final CvCollectionReference<TkCmsEditedFsUserAccess> usersRef;
-  AdminProjectUsersScreenBloc({required this.param}) {
-    var fsDb = globalFestenaoFirestoreDatabase.projectDb;
+  AdminProjectUsersScreenBloc({required this.param, this.entityAccess}) {
+    var fsDb = entityAccess ?? globalFestenaoFirestoreDatabase.projectDb;
 
     var collectionRef = usersRef = fsDb
         .fsEntityUserAccessCollectionRef(projectId)

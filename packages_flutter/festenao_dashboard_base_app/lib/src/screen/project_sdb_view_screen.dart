@@ -1,7 +1,6 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
-import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_share_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_users_screen.dart';
@@ -32,10 +31,7 @@ class ProjectViewScreen extends StatefulWidget {
 
 class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
     with AutoDisposedBusyScreenStateMixin<ProjectViewScreen> {
-  Future<void> _confirmAndDelete(
-    BuildContext context,
-    SdbUserProject project,
-  ) async {
+  Future<void> _confirmAndDelete(BuildContext context, String entityId) async {
     var intl = festenaoAdminAppIntl(context);
     var bloc = BlocProvider.of<ProjectSdbViewScreenBloc>(context);
     var result = await busyAction(() async {
@@ -63,7 +59,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
             },
           ) ==
           true) {
-        await bloc.deleteProject(project);
+        await bloc.deleteEntityId(entityId);
         return true;
       } else {
         return false;
@@ -82,10 +78,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
     }
   }
 
-  Future<void> _confirmAndLeave(
-    BuildContext context,
-    SdbUserProject project,
-  ) async {
+  Future<void> _confirmAndLeave(BuildContext context, String entityId) async {
     var intl = festenaoAdminAppIntl(context);
     var bloc = BlocProvider.of<ProjectSdbViewScreenBloc>(context);
     var result = await busyAction(() async {
@@ -113,7 +106,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
             },
           ) ==
           true) {
-        await bloc.leaveProject(project);
+        await bloc.leaveEntityId(entityId);
         return true;
       } else {
         return false;
@@ -145,10 +138,12 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
         var fsProject = state?.fsProject;
         var fsProjectAccess = state?.fsUserAccess;
         var dbProjectReady = state?.dbProjectReady ?? false;
-        var canEdit = project?.isWrite ?? false;
-        var canDelete = project?.isAdmin ?? false;
+        // The entity is known either from the local mirror or from firestore.
+        var hasEntity = project != null || fsProject != null;
+        var canEdit = project?.isWrite ?? fsProjectAccess?.isWrite ?? false;
+        var canDelete = project?.isAdmin ?? fsProjectAccess?.isAdmin ?? false;
         //var canLeave = project != null;
-        var projectName = project?.name.v;
+        var projectName = project?.name.v ?? fsProject?.name.v;
         // var identity = state?.identity;
         /*
           var noteDescription = note?.description.v;
@@ -185,7 +180,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
             // was created by the App.build method, and use it to set
             // our appbar title.
             title: Text(projectName ?? ''),
-            actions: project == null
+            actions: !hasEntity
                 ? null
                 : <Widget>[
                     /*
@@ -200,7 +195,7 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                       IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () async {
-                          await _confirmAndDelete(context, project);
+                          await _confirmAndDelete(context, bloc.projectId);
                         },
                       ),
                   ],
@@ -234,11 +229,12 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                         ],*/
                                     const SizedBox(height: 24),
                                     ElevatedButton.icon(
-                                      onPressed: project != null
+                                      onPressed: hasEntity
                                           ? () {
                                               goToProjectSdbUsersScreen(
                                                 context,
                                                 projectId: bloc.projectId,
+                                                entityAccess: bloc.entityAccess,
                                               );
                                             }
                                           : null,
@@ -247,12 +243,13 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                     ),
                                     const SizedBox(height: 24),
                                     ElevatedButton.icon(
-                                      onPressed: project != null
+                                      onPressed: hasEntity
                                           ? () {
                                               goToProjectSdbShareScreen(
                                                 context,
                                                 projectId: bloc.projectId,
                                                 projectsDb: bloc.projectsDb,
+                                                entityAccess: bloc.entityAccess,
                                               );
                                             }
                                           : null,
@@ -261,11 +258,11 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                     ),
                                     const SizedBox(height: 24),
                                     ElevatedButton(
-                                      onPressed: project != null
+                                      onPressed: hasEntity
                                           ? () {
                                               _confirmAndLeave(
                                                 context,
-                                                project,
+                                                bloc.projectId,
                                               );
                                             }
                                           : null,
@@ -277,11 +274,11 @@ class ProjectViewScreenState extends AutoDisposeBaseState<ProjectViewScreen>
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: colorError,
                                         ),
-                                        onPressed: project != null
+                                        onPressed: hasEntity
                                             ? () {
                                                 _confirmAndDelete(
                                                   context,
-                                                  project,
+                                                  bloc.projectId,
                                                 );
                                               }
                                             : null,

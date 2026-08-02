@@ -1,9 +1,11 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
+import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_invite_view_screen_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
+import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// Result of viewing an invite.
 class ProjectSdbInviteViewResult {
@@ -21,10 +23,39 @@ class ProjectSdbInviteViewScreen extends StatefulWidget {
   static String? baseUrl;
   const ProjectSdbInviteViewScreen({super.key});
 
-  /// Relative deep-link path for an invite. The consuming app maps this to a
-  /// route that opens this screen.
-  static String inviteLink(String projectId, String inviteId) =>
-      '${baseUrl ?? Uri.base.toString()}project/$projectId/invite/$inviteId';
+  /// Builds the invite deep link, for apps whose invite route does not have
+  /// the default `project/<id>/invite/<id>` shape (a songbook invite...).
+  ///
+  /// Set it once at startup, next to the other app wiring.
+  static String Function(String entityId, String inviteId)? inviteLinkBuilder;
+
+  /// Deep link of an invite, the app maps it to the route opening this screen.
+  ///
+  /// The default is `<origin>/project/<projectId>/invite/<inviteId>`; set
+  /// [baseUrl] to serve the app from a sub path, or [inviteLinkBuilder] to
+  /// change the shape entirely.
+  static String inviteLink(String projectId, String inviteId) {
+    var builder = inviteLinkBuilder;
+    if (builder != null) {
+      return builder(projectId, inviteId);
+    }
+    return '${baseUrl ?? defaultInviteBaseUrl}'
+        'project/$projectId/invite/$inviteId';
+  }
+
+  /// The origin of the app, with a trailing `/`.
+  ///
+  /// The origin, not `Uri.base`: the latter is the *current* location, so
+  /// sharing from a nested screen used to yield a mangled link. Off the web
+  /// there is no origin (`Uri.base` is a `file:` uri), the link is then
+  /// relative.
+  static String get defaultInviteBaseUrl {
+    var base = Uri.base;
+    if (base.isScheme('http') || base.isScheme('https')) {
+      return '${base.origin}/';
+    }
+    return '/';
+  }
 
   @override
   State<ProjectSdbInviteViewScreen> createState() =>
@@ -289,6 +320,12 @@ Future<ProjectSdbInviteViewResult?> goToProjectSdbInviteViewScreen(
   BuildContext context, {
   required String projectId,
   required String inviteId,
+  TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess,
+  UserProjectsSdb? projectsDb,
+  Future<void> Function({required String entityId, required String inviteId})?
+  onAcceptInvite,
+  Future<void> Function({required String entityId, required String inviteId})?
+  onDeleteInvite,
 }) async {
   return await Navigator.of(context).push(
     MaterialPageRoute<ProjectSdbInviteViewResult>(
@@ -297,6 +334,10 @@ Future<ProjectSdbInviteViewResult?> goToProjectSdbInviteViewScreen(
           blocBuilder: () => ProjectSdbInviteViewScreenBloc(
             projectId: projectId,
             inviteId: inviteId,
+            entityAccess: entityAccess,
+            projectsDb: projectsDb,
+            onAcceptInvite: onAcceptInvite,
+            onDeleteInvite: onDeleteInvite,
           ),
           child: const ProjectSdbInviteViewScreen(),
         );

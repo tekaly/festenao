@@ -14,7 +14,7 @@ class ProjectSdbInviteViewScreenBlocState {
   final FirebaseUser? user;
 
   /// The invite entity (check `exists`; gone once accepted/deleted).
-  final TkCmsFsInviteEntity<FsProject>? invite;
+  final TkCmsFsInviteEntity<TkCmsFsEntity>? invite;
 
   /// True once the invite has been accepted.
   final bool accepted;
@@ -36,6 +36,28 @@ class ProjectSdbInviteViewScreenBloc
   final String projectId;
   final String inviteId;
 
+  /// Entity the invite belongs to, defaults to the festenao project entity.
+  final TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess;
+
+  /// Local projects db, when the entity is a festenao project. Null for any
+  /// other entity: the "already part of it" info is then simply not shown.
+  final UserProjectsSdb? projectsDb;
+
+  /// Accept action override, for apps with their own secured api (a songbook
+  /// invite goes through the playelio api, not the festenao one).
+  final Future<void> Function({
+    required String entityId,
+    required String inviteId,
+  })?
+  onAcceptInvite;
+
+  /// Delete action override, see [onAcceptInvite].
+  final Future<void> Function({
+    required String entityId,
+    required String inviteId,
+  })?
+  onDeleteInvite;
+
   TkCmsFbIdentity? _identity;
   FirebaseUser? get _user => _identity?.user;
   String get userId => _user!.uid;
@@ -48,7 +70,11 @@ class ProjectSdbInviteViewScreenBloc
   ProjectSdbInviteViewScreenBloc({
     required this.projectId,
     required this.inviteId,
-  }) {
+    this.entityAccess,
+    UserProjectsSdb? projectsDb,
+    this.onAcceptInvite,
+    this.onDeleteInvite,
+  }) : projectsDb = projectsDb ?? globalProjectsSdbOrNull {
     () async {
       audiAddStreamSubscription(
         globalTkCmsFbIdentityBloc.state.listen((identityState) {
@@ -73,8 +99,12 @@ class ProjectSdbInviteViewScreenBloc
               );
             }),
           );
+          var projectsDb = this.projectsDb;
+          if (projectsDb == null) {
+            return;
+          }
           _userProjectSubscription = audiAddStreamSubscription(
-            globalProjectsSdb.onProject(projectId, userId: user.uid).listen((
+            projectsDb.onProject(projectId, userId: user.uid).listen((
               userProject,
             ) {
               var currentState = state.valueOrNull;
@@ -93,15 +123,28 @@ class ProjectSdbInviteViewScreenBloc
     }();
   }
 
-  /// Firestore project entity database.
-  TkCmsFirestoreDatabaseServiceEntityAccess<FsProject> get _projectDb =>
-      globalFestenaoFirestoreDatabase.projectDb;
+  /// Firestore entity database the invite lives in.
+  TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity> get _projectDb =>
+      entityAccess ?? globalFestenaoFirestoreDatabase.projectDb;
 
   /// Accept the invite, granting access to the current user.
   Future<void> acceptInvite() async {
+    var onAcceptInvite = this.onAcceptInvite;
+    if (onAcceptInvite != null) {
+      await onAcceptInvite(entityId: projectId, inviteId: inviteId);
+      add(
+        ProjectSdbInviteViewScreenBlocState(
+          user: _user,
+          invite: state.valueOrNull?.invite,
+          accepted: true,
+          userProject: state.valueOrNull?.userProject,
+        ),
+      );
+      return;
+    }
     var apiService = globalFestenaoApiServiceOrNull;
     if (apiService != null) {
-      var client = FestenaoApiFsEntityClient<FsProject>(
+      var client = FestenaoApiFsEntityClient<TkCmsFsEntity>(
         apiService: apiService,
         entityAccess: _projectDb,
       );
@@ -125,9 +168,14 @@ class ProjectSdbInviteViewScreenBloc
 
   /// Delete the invite.
   Future<void> deleteInvite() async {
+    var onDeleteInvite = this.onDeleteInvite;
+    if (onDeleteInvite != null) {
+      await onDeleteInvite(entityId: projectId, inviteId: inviteId);
+      return;
+    }
     var apiService = globalFestenaoApiServiceOrNull;
     if (apiService != null) {
-      var client = FestenaoApiFsEntityClient<FsProject>(
+      var client = FestenaoApiFsEntityClient<TkCmsFsEntity>(
         apiService: apiService,
         entityAccess: _projectDb,
       );

@@ -45,17 +45,30 @@ class AdminProjectUserEditScreenBloc
 
   final AdminProjectUserEditScreenParam param;
 
-  late final projectId = adminProjectFixProjectId(param.projectId);
+  /// Entity the access is managed on.
+  ///
+  /// Defaults to the festenao project entity; pass another one (a songbook...)
+  /// to manage the access of any [TkCmsFsEntity].
+  final TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess;
+
+  /// The entity access in use.
+  TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity> get _fsDb =>
+      entityAccess ?? globalFestenaoFirestoreDatabase.projectDb;
+
+  /// The compat id fix only makes sense for the festenao project entity.
+  late final projectId = entityAccess == null
+      ? adminProjectFixProjectId(param.projectId)
+      : param.projectId;
   //late StreamSubscription _studiesSubscription;
 
-  AdminProjectUserEditScreenBloc({required this.param}) {
+  AdminProjectUserEditScreenBloc({required this.param, this.entityAccess}) {
     () async {
       if (!disposed) {
         var userId = param.userId;
         if (userId == null) {
           add(AdminProjectUserEditScreenBlocState(null));
         } else {
-          var fsDb = globalFestenaoFirestoreDatabase.projectDb;
+          var fsDb = _fsDb;
           var userAccessRef = fsDb
               .fsEntityUserAccessRef(projectId, userId)
               .cast<TkCmsEditedFsUserAccess>();
@@ -69,14 +82,14 @@ class AdminProjectUserEditScreenBloc
   }
 
   Future<void> delete(String userId) async {
-    var fsDb = globalFestenaoFirestoreDatabase.projectDb;
+    var fsDb = _fsDb;
     await fsDb.leaveEntity(projectId, userId: userId);
   }
 
   Future<void> save(AdminProjectUserEditData data) async {
     var userId = data.userId ?? param.userId!;
 
-    var fsDb = globalFestenaoFirestoreDatabase.projectDb;
+    var fsDb = _fsDb;
     var userAccess = data.user;
     userAccess.fixAccess();
 

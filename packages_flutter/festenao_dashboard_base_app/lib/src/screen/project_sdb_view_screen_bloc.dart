@@ -15,7 +15,7 @@ class ProjectSdbViewScreenBlocState {
   final bool dbProjectReady; // can be null be ready
 
   /// Optional, if the project is not found in the local database
-  final FsProject? fsProject;
+  final TkCmsFsEntity? fsProject;
 
   /// Project view screen bloc state
   final TkCmsFsUserAccess? fsUserAccess;
@@ -32,7 +32,17 @@ class ProjectSdbViewScreenBlocState {
 class ProjectSdbViewScreenBloc
     extends AutoDisposeStateBaseBloc<ProjectSdbViewScreenBlocState> {
   final String projectId;
-  final UserProjectsSdb projectsDb;
+
+  /// Local projects db, null for any entity that has no local mirror (a
+  /// songbook...): the firestore entity and access are then used directly.
+  final UserProjectsSdb? projectsDb;
+
+  /// Entity shown, defaults to the festenao project entity.
+  final TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess;
+
+  /// The entity access in use.
+  TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity> get fsDb =>
+      entityAccess ?? globalFestenaoFirestoreDatabase.projectDb;
   // ignore: cancel_subscriptions
   StreamSubscription? fsSubscription;
   String get userId => firebaseUser!.uid;
@@ -40,7 +50,8 @@ class ProjectSdbViewScreenBloc
   FirebaseUser? get firebaseUser => identity?.user;
   ProjectSdbViewScreenBloc({
     required this.projectId,
-    required this.projectsDb,
+    this.projectsDb,
+    this.entityAccess,
   }) {
     () async {
       var fbIdentity = identity =
@@ -50,56 +61,21 @@ class ProjectSdbViewScreenBloc
         add(ProjectSdbViewScreenBlocState());
       } else {
         var userOrLocalId = fbIdentity.userLocalId!;
-        var fsDb = globalFestenaoFirestoreDatabase.projectDb;
-        var firestore = globalFestenaoFirestoreDatabase.firestore;
+        var fsDb = this.fsDb;
+        var firestore = fsDb.firestore;
+        var projectsDb = this.projectsDb;
+        if (projectsDb == null) {
+          // No local mirror: read the entity and the access from firestore.
+          _listenFirestore(fsDb, firestore, user, null);
+          return;
+        }
         audiAddStreamSubscription(
           projectsDb.onProject(projectId, userId: userOrLocalId).listen((
             event,
           ) {
             var dbProject = event;
             if (dbProject == null) {
-              if (user != null) {
-                fsSubscription = audiAddStreamSubscription(
-                  streamJoin2OrError(
-                    fsDb.fsEntityRef(projectId).onSnapshotSupport(firestore),
-                    fsDb
-                        .fsUserEntityAccessRef(userId, projectId)
-                        .onSnapshotSupport(firestore),
-                  ).listen((event) {
-                    var values = event.values;
-                    var fsProject = values.$1;
-                    var fsUserAccess = values.$2;
-                    add(
-                      ProjectSdbViewScreenBlocState(
-                        project: dbProject,
-                        identity: identity,
-                        fsProject: fsProject,
-                        fsUserAccess: fsUserAccess,
-                        dbProjectReady: true,
-                      ),
-                    );
-                  }),
-                );
-              } else {
-                fsSubscription = audiAddStreamSubscription(
-                  fsDb
-                      .fsEntityRef(projectId)
-                      .onSnapshotSupport(firestore)
-                      .listen((event) {
-                        var fsProject = event;
-                        var fsUserAccess = TkCmsFsUserAccess.admin();
-                        add(
-                          ProjectSdbViewScreenBlocState(
-                            project: dbProject,
-                            identity: identity,
-                            fsProject: fsProject,
-                            fsUserAccess: fsUserAccess,
-                            dbProjectReady: true,
-                          ),
-                        );
-                      }),
-                );
-              }
+              _listenFirestore(fsDb, firestore, user, dbProject);
             } else {
               add(
                 ProjectSdbViewScreenBlocState(
@@ -115,17 +91,65 @@ class ProjectSdbViewScreenBloc
     }();
   }
 
-  Future<void> deleteProject(SdbUserProject project) async {
-    await globalFestenaoFirestoreDatabase.projectDb.deleteEntity(
-      project.fsId,
-      userId: userId,
-    );
+  /// Listen to the firestore entity (and the user access when signed in).
+  void _listenFirestore(
+    TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity> fsDb,
+    Firestore firestore,
+    FirebaseUser? user,
+    SdbUserProject? dbProject,
+  ) {
+    if (user != null) {
+      fsSubscription = audiAddStreamSubscription(
+        streamJoin2OrError(
+          fsDb.fsEntityRef(projectId).onSnapshotSupport(firestore),
+          fsDb
+              .fsUserEntityAccessRef(userId, projectId)
+              .onSnapshotSupport(firestore),
+        ).listen((event) {
+          var values = event.values;
+          add(
+            ProjectSdbViewScreenBlocState(
+              project: dbProject,
+              identity: identity,
+              fsProject: values.$1,
+              fsUserAccess: values.$2,
+              dbProjectReady: true,
+            ),
+          );
+        }),
+      );
+    } else {
+      fsSubscription = audiAddStreamSubscription(
+        fsDb.fsEntityRef(projectId).onSnapshotSupport(firestore).listen((
+          event,
+        ) {
+          add(
+            ProjectSdbViewScreenBlocState(
+              project: dbProject,
+              identity: identity,
+              fsProject: event,
+              fsUserAccess: TkCmsFsUserAccess.admin(),
+              dbProjectReady: true,
+            ),
+          );
+        }),
+      );
+    }
   }
 
-  Future<void> leaveProject(SdbUserProject project) async {
-    await globalFestenaoFirestoreDatabase.projectDb.leaveEntity(
-      project.fsId,
-      userId: userId,
-    );
+  Future<void> deleteProject(SdbUserProject project) async =>
+      await deleteEntityId(project.fsId);
+
+  Future<void> leaveProject(SdbUserProject project) async =>
+      await leaveEntityId(project.fsId);
+
+  /// Delete the entity (admin access needed).
+  Future<void> deleteEntityId(String entityId) async {
+    await fsDb.deleteEntity(entityId, userId: userId);
+  }
+
+  /// Leave the entity (drop our own access).
+  Future<void> leaveEntityId(String entityId) async {
+    await fsDb.leaveEntity(entityId, userId: userId);
   }
 }

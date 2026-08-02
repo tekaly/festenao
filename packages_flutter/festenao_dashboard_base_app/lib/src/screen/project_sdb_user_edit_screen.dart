@@ -229,12 +229,16 @@ class _ProjectSdbUserEditScreenState
 Future<AdminProjectUserEditScreenResult?> goToProjectSdbUserEditScreen(
   BuildContext context, {
   required AdminProjectUserEditScreenParam param,
+  TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess,
 }) async {
   return await Navigator.of(context).push(
     MaterialPageRoute<AdminProjectUserEditScreenResult>(
       builder: (_) {
         return BlocProvider<AdminProjectUserEditScreenBloc>(
-          blocBuilder: () => AdminProjectUserEditScreenBloc(param: param),
+          blocBuilder: () => AdminProjectUserEditScreenBloc(
+            param: param,
+            entityAccess: entityAccess,
+          ),
           child: const ProjectSdbUserEditScreen(),
         );
       },

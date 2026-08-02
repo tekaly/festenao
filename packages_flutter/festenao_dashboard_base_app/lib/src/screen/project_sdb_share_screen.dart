@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
+import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// Project share screen: generate an invite with a given access level.
 ///
@@ -27,7 +28,7 @@ class _ProjectSdbShareScreenState
   bool _busy = false;
   bool _accessInitialized = false;
 
-  void _initAccess(SdbUserProject project) {
+  void _initAccess(SdbSharedEntity project) {
     _accessInitialized = true;
     _admin = project.isAdmin;
     _write = project.isWrite || project.isAdmin;
@@ -120,7 +121,7 @@ class _ProjectSdbShareScreenState
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                project.name.v ?? '',
+                project.name ?? '',
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 16),
@@ -253,6 +254,8 @@ class _ProjectSdbShareScreenState
                       context,
                       projectId: bloc.projectId,
                       inviteId: state.inviteId!,
+                      entityAccess: bloc.entityAccess,
+                      projectsDb: bloc.projectsDb,
                     ),
                   ),
                 ListTile(
@@ -276,7 +279,8 @@ class _ProjectSdbShareScreenState
 Future<void> goToProjectSdbShareScreen(
   BuildContext context, {
   required String projectId,
-  required UserProjectsSdb projectsDb,
+  UserProjectsSdb? projectsDb,
+  TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess,
 }) async {
   await Navigator.of(context).push(
     MaterialPageRoute<void>(
@@ -285,6 +289,7 @@ Future<void> goToProjectSdbShareScreen(
           blocBuilder: () => ProjectSdbShareScreenBloc(
             projectId: projectId,
             projectsDb: projectsDb,
+            entityAccess: entityAccess,
           ),
           child: const ProjectSdbShareScreen(),
         );
