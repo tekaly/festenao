@@ -120,5 +120,12 @@ service cloud.firestore {
       allow read: if true;
       allow write: if signedIn() && subHasEntityAdminAccess(top, topId, entity, entityId, request.auth.uid);
     }
+
+    //
+    // Per user private data - 2026-08-02 created
+    //
+    match /{top}/{topId}/user_prv/{userId}/{document=**} {
+      allow read, write: if signedIn() && request.auth.uid == userId;
+    }
   }
 }
