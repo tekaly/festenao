@@ -5,4 +5,4 @@ export 'package:festenao_common/festenao_flavor.dart';
 /// Default flavor context, either base or uri for the web or dev by default
 final festenaoFlavorContextDefault = kIsWeb
     ? tkCmsFlavorContextFromUri(Uri.base)
-    : FlavorContext.dev;
+    : (kDebugMode ? FlavorContext.dev : FlavorContext.prod);
