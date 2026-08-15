@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:festenao_admin_base_app/file_picker/file_picker.dart';
@@ -147,21 +146,15 @@ class _ContentMediaEditScreenState
   }
 
   Future<void> _pickFile() async {
-    final result = await pickAnyFile(context);
-    if (result == null) return;
-    //print('result: $result');
-    final file = result.files.firstOrNull;
+    final file = await pickAnyFile(context);
     if (file == null) return;
+    //print('file: $file');
 
     var fileName = file.name;
     if (fileName.trim().isEmpty) {
       return;
     }
-    var bytes = file.bytes;
-    if (bytes == null && file.path != null) {
-      bytes = await File(file.path!).readAsBytes();
-    }
-    if (bytes == null) return;
+    var bytes = await file.readAsBytes();
 
     if (mounted) {
       setState(() {

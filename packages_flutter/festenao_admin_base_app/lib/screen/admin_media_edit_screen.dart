@@ -255,20 +255,16 @@ class _AdminMediaEditScreenState
         return ElevatedButton(
           onPressed: () async {
             {
-              var ffpResult = await FilePicker.pickFiles(
-                allowMultiple: false,
-                withReadStream: true,
-
+              var file = await FilePicker.pickFile(
                 //allowedExtensions: ['.jpg', '.JPG', '.png', '.PNG']
               );
 
-              if (ffpResult == null) {
+              if (file == null) {
                 return;
               }
-              var file = ffpResult.files.firstOrNull!;
               await busyAction(() async {
                 /// Convert to bytes
-                var bytes = await listStreamGetBytes(file.readStream!);
+                var bytes = await listStreamGetBytes(file.readAsByteStream());
 
                 var mediaFile = FestenaoMediaFile.from(filename: file.name);
                 await bloc.addMediaFile(mediaFile, bytes);

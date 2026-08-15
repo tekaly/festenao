@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -214,16 +213,10 @@ class _ContentImageEditScreenState
   );
 
   Future<void> _pickImage() async {
-    final result = await pickImageFile(context);
-    if (result == null) return;
-    final file = result.files.firstOrNull;
+    final file = await pickImageFile(context);
     if (file == null) return;
 
-    var bytes = file.bytes;
-    if (bytes == null && file.path != null) {
-      bytes = await File(file.path!).readAsBytes();
-    }
-    if (bytes == null) return;
+    var bytes = await file.readAsBytes();
 
     final dims = await _decodeImageDimensions(bytes);
 

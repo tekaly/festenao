@@ -532,20 +532,18 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
       builder: (context) {
         return ElevatedButton(
           onPressed: () async {
-            var result = await pickImageFile(context);
-            var file = result?.files.firstOrNull;
+            var file = await pickImageFile(context);
+            var bytes = await file?.readAsBytes();
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('${file?.name} (${file?.bytes?.length})'),
-                ),
+                SnackBar(content: Text('${file?.name} (${bytes?.length})')),
               );
-              if (file != null) {
-                var image = img.decodeImage(file.bytes!)!;
+              if (bytes != null) {
+                var image = img.decodeImage(bytes)!;
 
                 var result = await goToAdminImageDataEditScreen(
                   context,
-                  param: AdminImageDataEditScreenParam(bytes: file.bytes!),
+                  param: AdminImageDataEditScreenParam(bytes: bytes),
                 );
                 if (result != null) {
                   if (result.cropRect != null) {

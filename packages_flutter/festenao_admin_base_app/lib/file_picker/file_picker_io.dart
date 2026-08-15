@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 
 import 'file_picker_linux.dart';
 
-Future<FilePickerResult?> ioPickImageFile(BuildContext context) async {
+Future<PlatformFile?> ioPickImageFile(BuildContext context) async {
   if (Platform.isLinux) {
     return ioPickImageFileLinux(context);
   }

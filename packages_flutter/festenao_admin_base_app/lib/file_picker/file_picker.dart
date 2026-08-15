@@ -8,49 +8,28 @@ import 'file_picker_io.dart'
 
 String? lastDir;
 
-Future<FilePickerResult?> pickImageFile(BuildContext context) async {
+Future<PlatformFile?> pickImageFile(BuildContext context) =>
+    _pickFile(context, type: FileType.image);
+
+Future<PlatformFile?> pickAnyFile(BuildContext context) =>
+    _pickFile(context, type: FileType.any);
+
+Future<PlatformFile?> _pickFile(
+  BuildContext context, {
+  required FileType type,
+}) async {
   // Tested on linux only
   if (platformContext.io?.isLinux ?? false) {
     return await ioPickImageFile(context);
   } else {
-    var ffpResult = await FilePicker.pickFiles(
-      type: FileType.image,
-      allowMultiple: false,
-      withData: true,
-
+    var file = await FilePicker.pickFile(
+      type: type,
       //allowedExtensions: ['.jpg', '.JPG', '.png', '.PNG']
     );
 
-    if (ffpResult != null) {
-      var lastName = ffpResult.files.firstOrNull?.name;
-      if (lastName != null) {
-        lastDir = dirname(lastName);
-      }
-      return ffpResult;
+    if (file != null) {
+      lastDir = dirname(file.path ?? file.name);
     }
+    return file;
   }
-  return null;
-}
-
-Future<FilePickerResult?> pickAnyFile(BuildContext context) async {
-  // Tested on linux only
-  if (platformContext.io?.isLinux ?? false) {
-    return await ioPickImageFile(context);
-  } else {
-    var ffpResult = await FilePicker.pickFiles(
-      allowMultiple: false,
-      withData: true,
-
-      //allowedExtensions: ['.jpg', '.JPG', '.png', '.PNG']
-    );
-
-    if (ffpResult != null) {
-      var lastName = ffpResult.files.firstOrNull?.name;
-      if (lastName != null) {
-        lastDir = dirname(lastName);
-      }
-      return ffpResult;
-    }
-  }
-  return null;
 }
