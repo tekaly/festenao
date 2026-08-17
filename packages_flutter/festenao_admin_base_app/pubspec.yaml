@@ -39,8 +39,6 @@ dependencies:
       url: https://github.com/tekaly/festenao
       path: packages/festenao_blur_hash
   flutter_markdown:
-  file_picker: ">=12.0.0"
-  file_selector:
   flutter_blurhash:
   path: ">=1.9.1"
   extended_image:
@@ -124,6 +122,10 @@ dependencies:
     git:
       url: https://github.com/tekartikprj/tekaly
       path: flutter_packages/file_download
+  tekaly_file_picker_flutter:
+    git:
+      url: https://github.com/tekartikprj/tekaly
+      path: flutter_packages/file_picker_flutter
   tekartik_app_http:
     git:
       url: https://github.com/tekartik/app_common_utils.dart

@@ -1,35 +1,29 @@
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'package:path/path.dart';
-import 'package:tekartik_app_platform/app_platform.dart';
+/// App file picker, on top of `tekaly_file_picker_flutter`.
+///
+/// The linux (`file_selector`/gtk) fallback and the last directory are handled
+/// there, `file_picker` is never used directly.
+library;
 
-import 'file_picker_io.dart'
-    if (dart.library.js_interop) 'file_picker_web.dart';
+import 'package:tekaly_file_picker_flutter/file_picker_flutter.dart';
 
-String? lastDir;
+export 'package:tekaly_file_picker_flutter/file_picker_flutter.dart'
+    show
+        TekalyFilePicker,
+        TekalyFilePickerExtension,
+        TekalyPickFileType,
+        TekalyPickedFile,
+        TekalyPickedFileExtension;
 
-Future<PlatformFile?> pickImageFile(BuildContext context) =>
-    _pickFile(context, type: FileType.image);
+/// The picker used by the app.
+///
+/// The global one when it has been initialized
+/// (`initTekalyFilePickerFlutter()`, or a `TekalyFilePickerMemory` in tests),
+/// the default flutter implementation otherwise.
+TekalyFilePicker get appFilePicker =>
+    tekalyFilePickerOrNull ?? tekalyFilePickerFlutter;
 
-Future<PlatformFile?> pickAnyFile(BuildContext context) =>
-    _pickFile(context, type: FileType.any);
+/// Pick an image file, `null` when the user cancelled.
+Future<TekalyPickedFile?> pickImageFile() => appFilePicker.pickImageFile();
 
-Future<PlatformFile?> _pickFile(
-  BuildContext context, {
-  required FileType type,
-}) async {
-  // Tested on linux only
-  if (platformContext.io?.isLinux ?? false) {
-    return await ioPickImageFile(context);
-  } else {
-    var file = await FilePicker.pickFile(
-      type: type,
-      //allowedExtensions: ['.jpg', '.JPG', '.png', '.PNG']
-    );
-
-    if (file != null) {
-      lastDir = dirname(file.path ?? file.name);
-    }
-    return file;
-  }
-}
+/// Pick any file, `null` when the user cancelled.
+Future<TekalyPickedFile?> pickAnyFile() => appFilePicker.pickAnyFile();

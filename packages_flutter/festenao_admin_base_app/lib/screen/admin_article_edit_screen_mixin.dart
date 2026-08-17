@@ -532,7 +532,7 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
       builder: (context) {
         return ElevatedButton(
           onPressed: () async {
-            var file = await pickImageFile(context);
+            var file = await pickImageFile();
             var bytes = await file?.readAsBytes();
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(

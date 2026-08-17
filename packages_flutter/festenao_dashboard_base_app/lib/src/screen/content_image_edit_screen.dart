@@ -213,7 +213,7 @@ class _ContentImageEditScreenState
   );
 
   Future<void> _pickImage() async {
-    final file = await pickImageFile(context);
+    final file = await pickImageFile();
     if (file == null) return;
 
     var bytes = await file.readAsBytes();

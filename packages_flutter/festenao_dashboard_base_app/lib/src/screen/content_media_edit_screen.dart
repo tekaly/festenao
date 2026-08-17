@@ -146,7 +146,7 @@ class _ContentMediaEditScreenState
   }
 
   Future<void> _pickFile() async {
-    final file = await pickAnyFile(context);
+    final file = await pickAnyFile();
     if (file == null) return;
     //print('file: $file');
 

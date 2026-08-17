@@ -1,4 +1,5 @@
 import 'package:festenao_admin_base_app/admin_app/festenao_admin_app.dart';
+import 'package:festenao_admin_base_app/file_picker/file_picker.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
@@ -7,7 +8,6 @@ import 'package:festenao_admin_base_app/view/linear_wait.dart';
 import 'package:festenao_admin_base_app/view/tile_padding.dart';
 
 import 'package:festenao_common/data/festenao_media.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
 import 'package:tekartik_app_http/app_http.dart';
@@ -255,9 +255,7 @@ class _AdminMediaEditScreenState
         return ElevatedButton(
           onPressed: () async {
             {
-              var file = await FilePicker.pickFile(
-                //allowedExtensions: ['.jpg', '.JPG', '.png', '.PNG']
-              );
+              var file = await pickAnyFile();
 
               if (file == null) {
                 return;
