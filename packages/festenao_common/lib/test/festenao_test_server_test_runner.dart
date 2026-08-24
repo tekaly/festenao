@@ -486,9 +486,10 @@ void testFestenaoServerGroup(
             .exists,
         isTrue,
       );
-    } else {
-      userId = apiService.userIdOrNull!;
     }
+    // userId is the signed in user, set above. It used to be overwritten here
+    // with `apiService.userIdOrNull`, an unauthenticated client side value the
+    // server no longer honours.
     await client.leaveEntity(entityId: entityId);
     if (!noFirestoreCheck) {
       expect(
