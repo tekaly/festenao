@@ -135,43 +135,40 @@ void adminAccessTestRunner(
 ) {
   late FestenaoTestClientContext testContext;
   late FirebaseAuth auth;
-  late Uri httpsApiUri;
   late final firestore = testContext.firestore!;
 
   setUp(() async {
     testContext = await contextBuilder();
     auth = testContext.firebaseAuth!;
-    httpsApiUri = testContext.apiService.httpsApiUri!;
   });
 
   test('admin can write, unrelated user cannot', () async {
     // Sign in the future app admin.
-    var adminCredential = await auth.signInOrUpWithEmailAndPassword(
+    await auth.signInOrUpWithEmailAndPassword(
       email: 'admin@festenao-dartff-test.local',
       password: 'test1234',
     );
     expect(auth.currentUser, isNotNull);
-    var adminUid = adminCredential.user.uid;
 
     // Bootstrap the "app" (top) entity and grant this user admin access to
     // it, using the cloud function's entity create command: this runs
     // through the admin SDK server side, which bypasses security rules --
     // the only way to create the very first admin for an entity.
+    //
+    // The context api service is used as is: it goes through the callable
+    // api, the only transport where the server gets the userId from a
+    // verified auth context (an https request is not authenticated and its
+    // userId is ignored).
     initTkCmsFsBuilders();
     initFestenaoFsEntityApiBuilders<TkCmsFsApp>();
-    var bootstrapApiService = FestenaoApiService(httpsApiUri: httpsApiUri)
-      ..userIdOrNull = adminUid;
 
     var appApiClient = FestenaoApiFsEntityClient<TkCmsFsApp>(
-      apiService: bootstrapApiService,
+      apiService: testContext.apiService,
       entityAccess: TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp>(
         entityCollectionInfo: tkCmsFsAppCollectionInfo,
         firestore: firestore, // Not used for access
       ),
     );
-
-    // Delete if it exists...
-    await firestore.doc('app/$testAppId').delete();
 
     await appApiClient.createEntity(entity: TkCmsFsApp(), entityId: testAppId);
 

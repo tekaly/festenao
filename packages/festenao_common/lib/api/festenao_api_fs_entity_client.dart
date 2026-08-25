@@ -71,15 +71,20 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
   }
 
   /// Creates a new invite for the entity. Returns the invite ID.
+  ///
+  /// When [email] is set, the invite is reserved to this email: only a user
+  /// with this email can accept it (see [acceptEntityInvite]).
   Future<String> createEntityInvite({
     required String entityId,
     required TkCmsFsUserAccess fsUserAccess,
+    String? email,
   }) async {
     var result = await apiService
         .getApiResult<FsCmsEntityCreateInviteApiResult<T>>(
           ApiRequest(command: entityAccess.info.createInviteCommand)..setQuery(
             FsCmsEntityCreateInviteApiQuery<T>()
               ..entityId.setValue(entityId)
+              ..email.setValue(email)
               ..write.v = fsUserAccess.write.v
               ..admin.v = fsUserAccess.admin.v
               ..read.v = fsUserAccess.read.v,
@@ -88,16 +93,34 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     return result.inviteId.v!;
   }
 
+  /// Creates a new invite for the entity, reserved to [email].
+  ///
+  /// Returns the invite ID.
+  Future<String> createEntityEmailInvite({
+    required String entityId,
+    required String email,
+    required TkCmsFsUserAccess fsUserAccess,
+  }) async => await createEntityInvite(
+    entityId: entityId,
+    fsUserAccess: fsUserAccess,
+    email: email,
+  );
+
   /// Accepts an invite for the entity.
+  ///
+  /// [email] is the current user email, it is required for an invite created
+  /// with an email, it must match (case insensitive) or the call fails.
   Future<void> acceptEntityInvite({
     required String entityId,
     required String inviteId,
+    String? email,
   }) async {
     await apiService.getApiResult<FsCmsEntityAcceptInviteApiResult<T>>(
       ApiRequest(command: entityAccess.info.acceptInviteCommand)..setQuery(
         FsCmsEntityAcceptInviteApiQuery<T>()
           ..entityId.setValue(entityId)
-          ..inviteId.setValue(inviteId),
+          ..inviteId.setValue(inviteId)
+          ..email.setValue(email),
       ),
     );
   }

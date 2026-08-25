@@ -221,8 +221,20 @@ class FestenaoTestServerContext
     initFestenaoFsEntityApiBuilders<FsProject>();
   }
 
+  var _closed = false;
+
+  /// True once [close] has been called.
+  ///
+  /// A context can be shared by several test groups, each closing it when it
+  /// is done: closing is a no-op after the first time.
+  bool get closed => _closed;
+
   @override
   Future<void> close() async {
+    if (_closed) {
+      return;
+    }
+    _closed = true;
     //await ffServer.close();
     await clientContext.apiService.close();
     await ffServer?.close();

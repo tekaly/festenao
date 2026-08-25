@@ -7,13 +7,45 @@ import 'package:festenao_common/festenao_support.dart';
 import 'festenao_test_server_test_runner.dart';
 import 'project_access_test_runner.dart' show isExceptionPermissionError;
 
+/// Options for the project api access test runners.
+class ProjectApiAccessTestOptions {
+  /// Whether firestore security rules are enforced by the deployment under
+  /// test.
+  ///
+  /// `false` for an in memory (or otherwise ruleless) firestore: every direct
+  /// firestore access the runners expect to be refused is then expected to go
+  /// through instead, only the api (cloud function) part is really tested.
+  final bool rulesSupported;
+
+  /// Options for the project api access test runners.
+  const ProjectApiAccessTestOptions({this.rulesSupported = true});
+}
+
 /// Check access unsing standard entity api
 void appProjectAccessApiTestRunner(
-  Future<FestenaoTestClientContext> Function() contextBuilder,
-) {
+  Future<FestenaoTestClientContext> Function() contextBuilder, {
+  ProjectApiAccessTestOptions? options,
+}) {
+  var rulesSupported =
+      (options ?? const ProjectApiAccessTestOptions()).rulesSupported;
   late FestenaoTestClientContext testContext;
   late FirebaseAuth auth;
   late final firestore = testContext.firestore!;
+
+  /// Runs [action], expecting the rules to refuse it, unless the deployment
+  /// under test has no rules at all (see [ProjectApiAccessTestOptions]).
+  Future<void> expectPermissionError(Future<void> Function() action) async {
+    if (!rulesSupported) {
+      await action();
+      return;
+    }
+    try {
+      await action();
+      fail('should fail');
+    } catch (e) {
+      expect(isExceptionPermissionError(e), isTrue, reason: '$e');
+    }
+  }
 
   setUp(() async {
     initFestenaoFsEntityApiBuilders<TkCmsFsProject>();
@@ -80,18 +112,12 @@ void appProjectAccessApiTestRunner(
       password: 'test1234',
     );
     expect(auth.currentUser, isNotNull);
-    try {
+    await expectPermissionError(() async {
       await docRef.set({'probe': 'stranger-write'});
-      fail('should fail');
-    } on FirestoreException catch (e) {
-      expect(e.code, FirestoreErrorCode.permissionDenied);
-    }
-    try {
+    });
+    await expectPermissionError(() async {
       await docRef.get();
-      fail('should fail');
-    } on FirestoreException catch (e) {
-      expect(e.code, FirestoreErrorCode.permissionDenied);
-    }
+    });
 
     // Sign in the future app admin.
     await auth.signInOrUpWithEmailAndPassword(
@@ -125,10 +151,20 @@ void appProjectAccessApiTestRunner(
 /// deployment under test carries: `false` (the default, an api deployment)
 /// expects every creation below to be refused, `true` (a no api deployment)
 /// expects them to go through.
+///
+/// A deployment with no rules at all (an in memory firestore, see
+/// [ProjectApiAccessTestOptions.rulesSupported]) refuses nothing, so it always
+/// behaves as if [creatorUserIdCreateSupported] was `true`.
 void appProjectCreatorUserIdApiTestRunner(
   Future<FestenaoTestClientContext> Function() contextBuilder, {
   bool creatorUserIdCreateSupported = false,
+  ProjectApiAccessTestOptions? options,
 }) {
+  var rulesSupported =
+      (options ?? const ProjectApiAccessTestOptions()).rulesSupported;
+  // With no rules, nothing is ever refused.
+  var effectiveCreatorUserIdCreateSupported =
+      creatorUserIdCreateSupported || !rulesSupported;
   late FestenaoTestClientContext testContext;
   late FirebaseAuth auth;
   late final firestore = testContext.firestore!;
@@ -145,6 +181,10 @@ void appProjectCreatorUserIdApiTestRunner(
   /// no rule set lets a client create a project it does not name itself the
   /// creator of.
   Future<void> expectPermissionError(Future<void> Function() action) async {
+    if (!rulesSupported) {
+      await action();
+      return;
+    }
     try {
       await action();
       fail('should fail');
@@ -159,7 +199,7 @@ void appProjectCreatorUserIdApiTestRunner(
   Future<void> expectCreatorPermissionError(
     Future<void> Function() action,
   ) async {
-    if (creatorUserIdCreateSupported) {
+    if (effectiveCreatorUserIdCreateSupported) {
       await action();
       return;
     }
@@ -214,7 +254,7 @@ void appProjectCreatorUserIdApiTestRunner(
         );
       });
 
-      if (creatorUserIdCreateSupported) {
+      if (effectiveCreatorUserIdCreateSupported) {
         var project = await entityRef.get(firestore);
         expect(project.creatorUserId.v, userId);
       } else {
@@ -244,7 +284,7 @@ void appProjectCreatorUserIdApiTestRunner(
         );
       });
 
-      if (!creatorUserIdCreateSupported) {
+      if (!effectiveCreatorUserIdCreateSupported) {
         // The access document the helper would have granted itself is not
         // there, so the user still has no way into the entity.
         await expectPermissionError(() async {

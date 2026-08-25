@@ -232,6 +232,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
           .exception();
     }
     var entityId = query.entityId.v!;
+    var email = tkCmsNormalizeInviteEmail(query.email.v);
     var userAccess = TkCmsCvUserAccess()..copyAccessFrom(query);
     var fsEntity = await entityAccess.fsEntityCollectionRef
         .doc(entityId)
@@ -242,8 +243,11 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       entityId: entityId,
       userAccess: userAccess,
       entity: fsEntity,
+      email: email,
     );
-    return FsCmsEntityCreateInviteApiResult<T>()..inviteId.v = id;
+    return FsCmsEntityCreateInviteApiResult<T>()
+      ..inviteId.v = id
+      ..email.setValue(email);
   }
 
   /// Handles the accept invite command.
@@ -262,12 +266,18 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     }
     var entityId = query.entityId.v!;
     var inviteId = query.inviteId.v!;
+    // The email comes from the client (the api request only carries a
+    // verified userId), it is checked against the invite email, if any.
+    var email = tkCmsNormalizeInviteEmail(query.email.v);
     await entityAccess.acceptInviteEntity(
       userId: userId,
       inviteId: inviteId,
       entityId: entityId,
+      email: email,
     );
-    return FsCmsEntityAcceptInviteApiResult<T>()..inviteId.v = inviteId;
+    return FsCmsEntityAcceptInviteApiResult<T>()
+      ..inviteId.v = inviteId
+      ..email.setValue(email);
   }
 
   /// Handles the delete invite command.

@@ -190,8 +190,13 @@ class FsCmsEntityCreateInviteApiQuery<T extends TkCmsFsEntity> extends ApiQuery
   /// The entity ID.
   final entityId = CvField<String>('entityId');
 
+  /// The invited email, when the invite targets a given user email.
+  ///
+  /// When set, only a user with this email can accept the invite.
+  final email = CvField<String>('email');
+
   @override
-  late final CvFields fields = [entityId, ...userAccessFields];
+  late final CvFields fields = [entityId, email, ...userAccessFields];
 }
 
 /// API result for creating a CMS entity invite.
@@ -200,8 +205,11 @@ class FsCmsEntityCreateInviteApiResult<T extends TkCmsFsEntity>
   /// The invite ID.
   final inviteId = CvField<String>('inviteId');
 
+  /// The invited email if any (normalized).
+  final email = CvField<String>('email');
+
   @override
-  CvFields get fields => [inviteId];
+  CvFields get fields => [inviteId, email];
 }
 
 /// API query for accepting a CMS entity invite.
@@ -213,8 +221,15 @@ class FsCmsEntityAcceptInviteApiQuery<T extends TkCmsFsEntity>
   /// The entity ID.
   final entityId = CvField<String>('entityId');
 
+  /// The accepting user email, needed for an email invite.
+  ///
+  /// Beware: the api request only carries a verified user id, the email is
+  /// supplied by the client, it is a convenience check, not a strong
+  /// authentication of the email.
+  final email = CvField<String>('email');
+
   @override
-  late final CvFields fields = [inviteId, entityId];
+  late final CvFields fields = [inviteId, entityId, email];
 }
 
 /// API result for accepting a CMS entity invite.
