@@ -1,18 +1,14 @@
 import 'package:festenao_youtube_player/player.dart';
-import 'package:festenao_youtube_player/src/impl_y_player.dart';
-import 'package:festenao_youtube_player/src/impl_youtube_player_iframe.dart';
-import 'package:flutter/foundation.dart';
+import 'package:festenao_youtube_player/src/impl_backend.dart';
 import 'package:flutter/widgets.dart';
 
-/// Using youtube_player_iframe for web and y_player for non-web
-/// youtube_web_player controls don't work
+/// The service that builds the controller and the widget of
+/// [FestenaoYoutubePlayer]. Replace it to plug in another implementation.
 var festenaoYoutubePlayerService = festenaoYoutubePlayerServiceDefault;
 
-/// Using youtube_player_iframe for web and y_player for non-web
-/// youtube_web_player controls don't work
-final festenaoYoutubePlayerServiceDefault = kIsWeb
-    ? festenaoYoutubePlayerIframeService
-    : festenaoYoutubeYPlayerService;
+/// One implementation for every platform, on top of `yt_player.dart`: youtube's
+/// iframe player on the web, media_kit (mpv) everywhere else.
+final festenaoYoutubePlayerServiceDefault = festenaoYoutubeBackendPlayerService;
 
 /// Festenao Youtube Player Service
 abstract class FestenaoYoutubePlayerService {

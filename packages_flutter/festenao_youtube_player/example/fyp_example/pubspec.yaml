@@ -28,7 +28,6 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
-  y_player: ">=2.0.6"
   youtube_web_player: ">=1.2.3"
   youtube_player_iframe:
   flutter:

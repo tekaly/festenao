@@ -1,0 +1,9 @@
+# Tests tagged `live` talk to youtube for real: they are the ones that catch
+# youtube changing something under us, and they need a network. Skipped by
+# default, run them with:
+#
+#     flutter test --run-skipped --tags live
+tags:
+  live:
+    timeout: 2x
+    skip: "live: run with `flutter test --run-skipped --tags live`"
