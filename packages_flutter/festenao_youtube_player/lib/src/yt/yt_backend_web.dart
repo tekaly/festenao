@@ -396,6 +396,13 @@ class YtIframeBackend implements YtPlayerBackend {
     if (wasPlaying) _armSoundWatchdog();
   }
 
+  @override
+  Future<void> setPlaybackRate(double rate) async {
+    await _controller.setPlaybackRate(rate);
+    // The iframe only reports the new rate when it accepted it, so leave
+    // [playback] alone and let [_onValue] have the last word.
+  }
+
   /// Recovers from an unmute the browser will not allow.
   ///
   /// A video that only got to play because it was muted stops dead the moment

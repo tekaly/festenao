@@ -151,6 +151,13 @@ abstract class YtPlayerBackend {
   /// Turns the sound off or back on.
   Future<void> setMuted(bool muted);
 
+  /// Plays [rate] times faster, `1.0` being normal speed.
+  ///
+  /// What a backend can actually do is up to the player: youtube's own iframe
+  /// only honours the rates it offers (0.25 to 2), and quietly keeps the
+  /// current one otherwise. [playback] reports what took effect.
+  Future<void> setPlaybackRate(double rate);
+
   /// The video surface. It fills whatever box the caller gives it, which is
   /// already sized to the wanted aspect ratio.
   Widget buildVideoView(BuildContext context);

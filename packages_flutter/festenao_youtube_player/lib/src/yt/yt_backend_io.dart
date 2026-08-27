@@ -189,6 +189,9 @@ class YtMediaKitBackend implements YtPlayerBackend {
   @override
   Future<void> setMuted(bool muted) => _player.setVolume(muted ? 0 : 100);
 
+  @override
+  Future<void> setPlaybackRate(double rate) => _player.setRate(rate);
+
   void _updateAspectRatio() {
     final width = _player.state.width;
     final height = _player.state.height;
