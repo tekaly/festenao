@@ -37,7 +37,7 @@ class SdbUserProject extends ScvStringRecordBase with TkCmsCvUserAccessMixin {
   bool get isWrite => TkCmsCvUserAccessCommonExt(this).isWrite;
 
   /// True if the user has admin access.
-  bool get isAdmin => TkCmsCvUserAccessCommonExt(this).isRead;
+  bool get isAdmin => TkCmsCvUserAccessCommonExt(this).isAdmin;
 
   /// True if the user has read access.
   bool get isRead => TkCmsCvUserAccessCommonExt(this).isRead;
@@ -341,24 +341,34 @@ class UserProjectsSdb {
   }
 
   /// Deletes a project for the given [projectId] and [userId].
+  ///
+  /// Deleted by primary key rather than through the index: an index delete
+  /// goes through a raw cursor, which the store change listeners — and hence
+  /// [onProjects] — do not see.
   Future<void> deleteProject(String projectId, {required String userId}) async {
     await ready;
 
     await dbProjectStore.inTransaction(db, SdbTransactionMode.readWrite, (
       txn,
     ) async {
-      await userProjectIndex.record(userId, projectId).delete(txn);
+      var snapshot = await userProjectIndex.record(userId, projectId).get(txn);
+      if (snapshot != null) {
+        await dbProjectStore.record(snapshot.key).delete(txn);
+      }
     });
   }
 
-  /// Deletes a project for the given [projectId] and [userId].
+  /// Deletes the projects of the given [userId].
   Future<void> deleteProjects({required String userId}) async {
     await ready;
 
     await dbProjectStore.inTransaction(db, SdbTransactionMode.readWrite, (
       txn,
     ) async {
-      await userProjectsIndex.record(userId).delete(txn);
+      for (var snapshot
+          in await userProjectsIndex.record(userId).findRecords(txn)) {
+        await dbProjectStore.record(snapshot.key).delete(txn);
+      }
     });
   }
 

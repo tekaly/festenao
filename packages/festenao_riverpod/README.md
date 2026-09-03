@@ -10,6 +10,20 @@ Generic, dart-only riverpod providers shared across Festenao apps:
   overridden by the app.
 - `festenaoFirebaseAppProvider` — current `FirebaseApp`, defaults to
   `FirebaseApp.instance`.
+- `festenaoFirebaseContextProvider` — the `FirebaseContext` (auth, firestore)
+  the app runs against, must be overridden (`festenaoFirebaseContextOverrides`
+  binds it together with `festenaoFirebaseAppProvider`). Derived:
+  `festenaoFirebaseAuthProvider`, `festenaoFirestoreProvider`,
+  `festenaoFirebaseUserProvider`, `festenaoFirebaseUserIdProvider`.
+- `festenaoUserProjectsSdbManagerOverride` — the override installing the per
+  user `UserProjectsSdbManager` behind `festenaoUserProjectsSdbProvider`.
+- The projects of an app with **no backend** (firestore rules only, see
+  `festenao_dartff/festenao_firebase_no_api_context.dart`):
+  `festenaoProjectsFsProvider`, `festenaoProjectsBootstrapProvider`,
+  `festenaoUserProjectsProvider`, `festenaoUserProjectProvider(id)`,
+  `festenaoProjectPublicAccessProvider(id)`, and the commands behind
+  `festenaoNoApiProjectsProvider` (`createProject`, `renameProject`,
+  `setUserAccess`, `setPublicAccess`, `deleteProject`, `refresh`).
 
 Setup `pubspec.yaml`:
 
