@@ -128,12 +128,19 @@ final festenaoUserProjectProvider =
 /// Readable by anyone, signed out included, so a viewer opening a shared link
 /// can tell a project that is not (or no longer) public from one that failed
 /// to load. `exists` is false (and `read` null) while the project is private.
+///
+/// A firestore without change tracking (the rest services, on desktop) has no
+/// `onSnapshot`: the document is then read once, and read again by
+/// [FestenaoNoApiProjects.setPublicAccess] and [FestenaoNoApiProjects.refresh].
 final festenaoProjectPublicAccessProvider =
     StreamProvider.family<TkCmsFsPublicAccess, String>((ref, projectId) {
       var fsProjects = ref.watch(festenaoProjectsFsProvider);
-      return fsProjects
-          .fsEntityPublicAccessRef(projectId)
-          .onSnapshot(fsProjects.firestore);
+      var firestore = fsProjects.firestore;
+      var docRef = fsProjects.fsEntityPublicAccessRef(projectId);
+      if (!firestore.service.supportsTrackChanges) {
+        return Stream.fromFuture(docRef.get(firestore));
+      }
+      return docRef.onSnapshot(firestore);
     }, name: 'festenaoProjectPublicAccess');
 
 /// What the signed in user may do with a project.
@@ -198,6 +205,8 @@ class FestenaoNoApiProjects {
   /// Refreshes the local project list of the signed in user from firestore.
   Future<void> refresh() async {
     _ref.invalidate(festenaoProjectsBootstrapProvider);
+    // The public access flags too, for a firestore without change tracking.
+    _ref.invalidate(festenaoProjectPublicAccessProvider);
     await _ref.read(festenaoProjectsBootstrapProvider.future);
   }
 
@@ -276,6 +285,8 @@ class FestenaoNoApiProjects {
       entityId: projectId,
       access: read ? (TkCmsFsPublicAccess()..read.v = true) : null,
     );
+    // Read back, for a firestore without change tracking.
+    _ref.invalidate(festenaoProjectPublicAccessProvider(projectId));
   }
 
   /// Deletes a project and everything below it (admin access needed).
@@ -291,6 +302,7 @@ class FestenaoNoApiProjects {
       entityId: projectId,
       access: null,
     );
+    _ref.invalidate(festenaoProjectPublicAccessProvider(projectId));
     await fsProjects.standaloneDeleteAndPurge(
       entityId: projectId,
       userId: userId,
