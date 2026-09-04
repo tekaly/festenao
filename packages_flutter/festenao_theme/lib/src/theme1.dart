@@ -23,15 +23,43 @@ const colorError = Colors.red;
 /// Festenao theme
 const colorGrey = Colors.grey;
 
-/// Dart theme
+/// The Poppins font family, loaded by google_fonts: the font of the poppins
+/// themes, for an app building its own theme with it.
+String? get festenaoPoppinsFontFamily => GoogleFonts.poppins().fontFamily;
+
+/// Dark theme with the Poppins font.
 ThemeData poppinsThemeData1({Color? seedColor}) {
   return themeData1(
-    fontFamily: GoogleFonts.poppins().fontFamily,
+    fontFamily: festenaoPoppinsFontFamily,
     seedColor: seedColor,
   );
 }
 
-/// Dark theme
+/// Light theme with the Poppins font.
+ThemeData poppinsThemeDataLight1({Color? seedColor}) {
+  return themeDataLight1(
+    fontFamily: festenaoPoppinsFontFamily,
+    seedColor: seedColor,
+  );
+}
+
+/// Light theme: the rules of [themeData1] in light brightness.
+ThemeData themeDataLight1({
+  TextTheme? textTheme,
+  String? fontFamily,
+  Color? seedColor,
+}) {
+  return themeData1(
+    textTheme: textTheme,
+    fontFamily: fontFamily,
+    brightness: Brightness.light,
+    seedColor: seedColor,
+  );
+}
+
+/// Dark theme (light with [brightness]): a color scheme seeded with
+/// [seedColor] (the festenao blue by default), floating snack bars on the
+/// seed color, outlined inputs, seed colored buttons.
 ThemeData themeData1({
   TextTheme? textTheme,
   String? fontFamily,

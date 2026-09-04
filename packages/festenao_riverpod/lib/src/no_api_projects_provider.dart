@@ -129,18 +129,16 @@ final festenaoUserProjectProvider =
 /// can tell a project that is not (or no longer) public from one that failed
 /// to load. `exists` is false (and `read` null) while the project is private.
 ///
-/// A firestore without change tracking (the rest services, on desktop) has no
-/// `onSnapshot`: the document is then read once, and read again by
+/// `onSnapshotSupport`: a firestore without change tracking (the rest
+/// services, on desktop) has no `onSnapshot`, the document is then read and
+/// refreshed on a slow schedule — and read again by
 /// [FestenaoNoApiProjects.setPublicAccess] and [FestenaoNoApiProjects.refresh].
 final festenaoProjectPublicAccessProvider =
     StreamProvider.family<TkCmsFsPublicAccess, String>((ref, projectId) {
       var fsProjects = ref.watch(festenaoProjectsFsProvider);
-      var firestore = fsProjects.firestore;
-      var docRef = fsProjects.fsEntityPublicAccessRef(projectId);
-      if (!firestore.service.supportsTrackChanges) {
-        return Stream.fromFuture(docRef.get(firestore));
-      }
-      return docRef.onSnapshot(firestore);
+      return fsProjects
+          .fsEntityPublicAccessRef(projectId)
+          .onSnapshotSupport(fsProjects.firestore);
     }, name: 'festenaoProjectPublicAccess');
 
 /// What the signed in user may do with a project.
