@@ -97,7 +97,9 @@ class YtPlayerBackendOptions {
   ///
   /// Off by default, which is what a playlist app wants: it draws its own.
   /// Turning it off also takes the pointer and the keyboard away from the web
-  /// player, so flutter keeps the focus and the arrow keys reach the app.
+  /// player (a transparent layer of ours covers the iframe), so taps on the
+  /// video reach the caller's gestures, flutter keeps the focus and the keys
+  /// reach the app.
   final bool showControls;
 
   /// Constructor for [YtPlayerBackendOptions].

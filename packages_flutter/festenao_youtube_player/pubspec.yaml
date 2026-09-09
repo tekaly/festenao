@@ -13,6 +13,9 @@ dependencies:
   # Youtube's own player, the only thing a browser can use: it cannot reach
   # youtube's pages or media urls across origins.
   youtube_player_iframe: ">=6.0.2"
+  # On the web the iframe would swallow every click: a transparent layer of
+  # ours over it keeps the pointer (and the focus) with flutter.
+  pointer_interceptor: ">=0.10.1"
   # Everywhere else the media urls are resolved and played directly.
   #
   # media_kit_video 2.0 is required: it moved the linux h/w renderer from

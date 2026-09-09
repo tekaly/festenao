@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import 'yt_player_backend.dart';
@@ -432,13 +433,26 @@ class YtIframeBackend implements YtPlayerBackend {
           constraints.maxWidth.isFinite &&
           constraints.maxHeight.isFinite &&
           constraints.maxHeight > 0;
-      return YoutubePlayer(
+      final player = YoutubePlayer(
         controller: _controller,
         aspectRatio: sized
             ? constraints.maxWidth / constraints.maxHeight
             : 16 / 9,
         autoFullScreen: false,
         enableFullScreenOnVerticalDrag: false,
+      );
+      if (options.showControls) return player;
+      // `pointerEvents: none` only reaches the document inside the webview:
+      // the iframe element itself still takes every click, and the keyboard
+      // focus with it. A transparent element of ours on top hands them back
+      // to flutter, so the caller's gestures and shortcuts work over the
+      // video.
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          player,
+          PointerInterceptor(child: const SizedBox.expand()),
+        ],
       );
     },
   );
