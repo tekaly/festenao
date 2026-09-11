@@ -71,6 +71,14 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
       path: app_sembast
+  tekartik_firebase_admin_sdk:
+    git:
+      url: https://github.com/tekartik/firebase_admin_sdk.dart
+      path: firebase_admin_sdk
+  tekartik_firebase_auth:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth
 
 dev_dependencies:
   lints: ">=6.1.0"
