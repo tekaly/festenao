@@ -81,6 +81,11 @@ dependencies:
   tekartik_html:
     git:
       url: https://github.com/tekartik/html.dart
+  markdown: ">=7.3.0"
+  tekartik_mustache:
+    git:
+      url: https://github.com/tekartik/mustache.dart
+      path: mustache
   tekartik_mustache_fs:
     git:
       url: https://github.com/tekartik/mustache.dart
