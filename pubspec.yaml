@@ -6,6 +6,7 @@ workspace:
   - packages/festenao_blur_hash
   - packages/festenao_common
   - packages/festenao_dartff
+  - packages/festenao_firebase
   - packages/festenao_dartff/functions
   - packages/festenao_riverpod
   - packages/festenao_support
