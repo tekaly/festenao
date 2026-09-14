@@ -129,6 +129,24 @@ class GdriveApiDownloadResult extends ApiResult {
   late final CvFields fields = [content];
 }
 
+/// GDrive get download url query.
+class GdriveApiGetDownloadUrlQuery extends ApiQuery {
+  /// Path.
+  late final path = CvField<String>('path');
+
+  @override
+  late final CvFields fields = [path];
+}
+
+/// GDrive get download url result.
+class GdriveApiGetDownloadUrlResult extends ApiResult {
+  /// The download url, null when the storage has none.
+  late final url = CvField<String>('url');
+
+  @override
+  late final CvFields fields = [url];
+}
+
 bool _gdriveApiBuildersInitialized = false;
 
 /// Init GDrive API builders.
@@ -148,6 +166,8 @@ void initGdriveApiBuilders() {
       GdriveApiUploadResult.new,
       GdriveApiDownloadQuery.new,
       GdriveApiDownloadResult.new,
+      GdriveApiGetDownloadUrlQuery.new,
+      GdriveApiGetDownloadUrlResult.new,
     ]);
   }
 }
@@ -168,6 +188,9 @@ class GdriveApiService extends FestenaoApiService {
 
   /// Delete command.
   static const deleteCommand = 'gdrive/delete';
+
+  /// Get download url command.
+  static const getDownloadUrlCommand = 'gdrive/getDownloadUrl';
 
   /// Constructor.
   GdriveApiService({super.httpClientFactory, required super.httpsApiUri}) {
@@ -193,4 +216,11 @@ class GdriveApiService extends FestenaoApiService {
   /// Delete file.
   Future<GdriveApiDeleteResult> delete(GdriveApiDeleteQuery query) =>
       getApiResult<GdriveApiDeleteResult>(query.request(deleteCommand));
+
+  /// Get the download url of a file.
+  Future<GdriveApiGetDownloadUrlResult> getDownloadUrl(
+    GdriveApiGetDownloadUrlQuery query,
+  ) => getApiResult<GdriveApiGetDownloadUrlResult>(
+    query.request(getDownloadUrlCommand),
+  );
 }

@@ -134,6 +134,15 @@ class ObjectStorageGdrive extends ObjectStorage {
   }
 
   @override
+  Future<String?> getDownloadUrl(String path) async {
+    await gdrive.ready;
+    var file =
+        await gdrive.driveApi.files.get(path, $fields: 'webContentLink')
+            as gd.File;
+    return file.webContentLink;
+  }
+
+  @override
   Future<ObjectStorageMeta> getItem(String path) async {
     await gdrive.ready;
     var object = await _getFile(path);

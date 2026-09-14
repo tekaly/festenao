@@ -96,6 +96,14 @@ class ObjectStorageApiClient implements ObjectStorage {
   }
 
   @override
+  Future<String?> getDownloadUrl(String path) async {
+    var result = await _api.getDownloadUrl(
+      GdriveApiGetDownloadUrlQuery()..path.v = path,
+    );
+    return result.url.v;
+  }
+
+  @override
   Future<ObjectStorageMeta> getItem(String path) async {
     var result = await _api.getItem(GdriveApiGetItemQuery()..path.v = path);
     return _ObjectStorageApiMeta(result.item.v!);

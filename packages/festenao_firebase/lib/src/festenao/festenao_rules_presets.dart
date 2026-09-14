@@ -11,6 +11,13 @@ class FestenaoRulesOptions {
   /// document).
   final bool accessSelf;
 
+  /// Add the public read flag
+  /// (`<parent>/access/{entity}/entity_id/{entityId}/public_access/public`):
+  /// when it says `read: true` anyone, signed out included, reads the entity
+  /// and its subtree. The flag itself is readable by anyone and only ever
+  /// written by the api function.
+  final bool publicAccess;
+
   /// Deepest entity level generated (1: projects under an app, 2: entities
   /// under a project...). Every level from 1 to [maxDepth] gets the same rule
   /// sets.
@@ -23,6 +30,7 @@ class FestenaoRulesOptions {
   const FestenaoRulesOptions({
     this.userAccess = false,
     this.accessSelf = false,
+    this.publicAccess = false,
     this.maxDepth = 1,
     this.header,
   });
@@ -41,7 +49,12 @@ FirestoreRules _newRules(FestenaoRulesOptions options, String defaultHeader) {
 /// Sub entity (`/{top}/{topId}/{entity}/{entityId}`) rules only: the entity
 /// document (members read, admins write) and its `data/**` (members read,
 /// writers write), invites readable, access managed by admins, own access
-/// rows readable, per user private data.
+/// rows readable, per user private data — and, with
+/// [FestenaoRulesOptions.publicAccess], the api written public read flag.
+///
+/// The entity itself is never created by a client: the api does, which is
+/// what makes this the preset of an app whose entities are created through
+/// its api (a playelio playlist, a notelio booklet).
 FirestoreRules festenaoApiContextRules({
   FestenaoRulesOptions options = const FestenaoRulesOptions(),
 }) {
@@ -60,6 +73,9 @@ FirestoreRules festenaoApiContextRules({
     level.addAccessUserReadRules();
     if (options.accessSelf) {
       level.addAccessSelfRules();
+    }
+    if (options.publicAccess) {
+      level.addPublicAccessRules(adminWrite: false);
     }
     level.addUserPrvRules();
     if (options.userAccess) {

@@ -39,6 +39,8 @@ class FestenaoObjectStorageHandler implements FestenaoApiHandler {
         return await onDownloadCommand(apiRequest);
       case GdriveApiService.deleteCommand:
         return await onDeleteCommand(apiRequest);
+      case GdriveApiService.getDownloadUrlCommand:
+        return await onGetDownloadUrlCommand(apiRequest);
     }
 
     return null;
@@ -99,6 +101,13 @@ class FestenaoObjectStorageHandler implements FestenaoApiHandler {
       data = await _objectStorage.download(query.path.v!);
     }
     return GdriveApiDownloadResult()..content.v = base64Encode(data);
+  }
+
+  /// Handles the get download url command.
+  Future<ApiResult> onGetDownloadUrlCommand(ApiRequest apiRequest) async {
+    var query = apiRequest.query<GdriveApiGetDownloadUrlQuery>();
+    var url = await _objectStorage.getDownloadUrl(query.path.v!);
+    return GdriveApiGetDownloadUrlResult()..url.v = url;
   }
 
   /// Handles the delete command.

@@ -79,6 +79,13 @@ abstract class ObjectStorage {
 
   /// Delete an object.
   Future<void> delete(String path);
+
+  /// A url to download the object directly, null when the storage has none.
+  ///
+  /// Whether the url works for a given client is the storage's business: for
+  /// google drive it is the file `webContentLink`, which only serves whoever
+  /// may read the file (anyone, for a public file).
+  Future<String?> getDownloadUrl(String path) async => null;
 }
 
 /// Helper to implement downloadStream using downloadPart.
