@@ -60,6 +60,13 @@ const festenaoDeleteInviteCommand = 'delete-invite';
 String festenaoEntityDeleteInviteCommand(String entityType) =>
     '${festenaoEntityCommandPrefix(entityType)}delete-invite';
 
+/// Command name for making an entity public (or private again).
+const festenaoSetEntityPublicCommand = 'set-entity-public';
+
+/// Command name for making an entity public (or private again).
+String festenaoEntitySetPublicCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}set-public';
+
 /// Initializes API builders for Festenao file system entities.
 void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
   cvAddConstructors([
@@ -71,6 +78,8 @@ void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
     FsCmsEntityCreateInviteApiQuery<T>.new,
     FsCmsEntityCreateInviteApiResult<T>.new,
     FsCmsEntityAcceptInviteApiQuery<T>.new,
+    FsCmsEntitySetPublicApiQuery<T>.new,
+    FsCmsEntitySetPublicApiResult<T>.new,
   ]);
 }
 
@@ -105,6 +114,9 @@ extension FestenaoFirestoreDatabaseEntityCollectionInfoApiExt<
   /// Command for deleting an entity invite.
   String get deleteInviteCommand =>
       festenaoEntityDeleteInviteCommand(entityType);
+
+  /// Command for making an entity public (or private again).
+  String get setPublicCommand => festenaoEntitySetPublicCommand(entityType);
 }
 
 /// API query for creating a CMS entity.
@@ -243,3 +255,30 @@ typedef FsCmsEntityDeleteInviteApiQuery<T extends TkCmsFsEntity> =
 /// API result for deleting a CMS entity invite.
 typedef FsCmsEntityDeleteInviteApiResult<T extends TkCmsFsEntity> =
     FsCmsEntityAcceptInviteApiResult<T>;
+
+/// API query for making a CMS entity public — readable by anyone, signed in
+/// or not, through its `public_access/public` flag (`TkCmsFsPublicAccess`) —
+/// or private again.
+///
+/// Server side, only an admin of the entity may do it, and the app may add a
+/// condition of its own (`FestenaoEntityHandlerOptions.setPublicCheck`).
+class FsCmsEntitySetPublicApiQuery<T extends TkCmsFsEntity>
+    extends FsCmsEntityEntityIdBaseApiCommon<T>
+    implements ApiQuery {
+  /// True to make the entity public, false to make it private again.
+  final public = CvField<bool>('public');
+
+  @override
+  CvFields get fields => [...super.fields, public];
+}
+
+/// API result for making a CMS entity public: the state it ended up in.
+class FsCmsEntitySetPublicApiResult<T extends TkCmsFsEntity>
+    extends FsCmsEntityEntityIdBaseApiCommon<T>
+    implements ApiResult {
+  /// Whether the entity is public now.
+  final public = CvField<bool>('public');
+
+  @override
+  CvFields get fields => [...super.fields, public];
+}

@@ -38,10 +38,22 @@ class FestenaoServerAppTest extends FestenaoServerApp {
     flavorContext: appFlavorContext,
   );
 
+  /// The condition added to making a project public, none by default: a test
+  /// sets it to exercise [FestenaoEntityHandlerOptions.setPublicCheck].
+  FestenaoEntitySetPublicCheck? projectSetPublicCheck;
+
   /// Project handler.
   late final projectHandler = FestenaoEntityHandler(
     app: this,
     entityAccess: fsDatabase.projectDb,
+    options: FestenaoEntityHandlerOptions(
+      setPublicCheck: ({required userId, required entityId}) async =>
+          await projectSetPublicCheck?.call(
+            userId: userId,
+            entityId: entityId,
+          ) ??
+          true,
+    ),
   );
 
   /// Object storage handler

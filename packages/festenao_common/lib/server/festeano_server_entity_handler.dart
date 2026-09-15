@@ -4,13 +4,27 @@ import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_firestore/utils/json_utils.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
+/// The condition an app may add to making an entity public, on top of being
+/// an admin of the entity: an app level privilege of [userId], for instance.
+/// Returning false refuses the command with `permission-denied`.
+typedef FestenaoEntitySetPublicCheck =
+    Future<bool> Function({required String userId, required String entityId});
+
 /// Options for entity handler.
 class FestenaoEntityHandlerOptions {
-  /// Creates a new [FestenaoEntityHandlerOptions] with optional [customIdGenerator].
-  const FestenaoEntityHandlerOptions({this.customIdGenerator});
+  /// Creates a new [FestenaoEntityHandlerOptions] with optional
+  /// [customIdGenerator] and [setPublicCheck].
+  const FestenaoEntityHandlerOptions({
+    this.customIdGenerator,
+    this.setPublicCheck,
+  });
 
   /// Custom ID generator function.
   final String Function()? customIdGenerator;
+
+  /// The condition added to making an entity public (or private again), on
+  /// top of being an admin of the entity; none by default.
+  final FestenaoEntitySetPublicCheck? setPublicCheck;
 }
 
 /// Entity handler for Festenao entities.
@@ -67,6 +81,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       return await onAcceptInviteCommand(apiRequest);
     } else if (command == festenaoEntityDeleteInviteCommand(_entityType)) {
       return await onDeleteInviteCommand(apiRequest);
+    } else if (command == festenaoEntitySetPublicCommand(_entityType)) {
+      return await onSetPublicCommand(apiRequest);
     }
 
     // compat
@@ -92,6 +108,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
         case festenaoDeleteInviteCommand:
         case 'deleteEntityInvite':
           return await onDeleteInviteCommand(apiRequest);
+        case festenaoSetEntityPublicCommand:
+          return await onSetPublicCommand(apiRequest);
         default:
       }
     }
@@ -301,5 +319,61 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       entityId: entityId,
     );
     return FsCmsEntityDeleteInviteApiResult<T>()..inviteId.v = inviteId;
+  }
+
+  /// Handles the set public command: makes the entity readable by anyone
+  /// (its `public_access/public` flag, see
+  /// [TkCmsFirestoreDatabaseServiceEntityAccess.setEntityPublic]) or private
+  /// again.
+  ///
+  /// Only an admin of the entity may do it, and the app may add a condition
+  /// of its own ([FestenaoEntityHandlerOptions.setPublicCheck]); both refuse
+  /// with `permission-denied`. Opening an entity to signed out visitors is
+  /// never something a client can do on its own: no rule lets it write the
+  /// flag.
+  Future<FsCmsEntitySetPublicApiResult<T>> onSetPublicCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntitySetPublicApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = apiRequest.userId.v;
+    if (userId == null) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.unauthenticated
+            ..message.v = 'User not authenticated'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var entityId = query.entityId.v;
+    if (entityId == null) {
+      throw (ApiError()
+            ..code.v = apiErrorCodeInternal
+            ..message.v = 'Missing entityId'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var public = query.public.v ?? false;
+    var userAccess = await entityAccess
+        .fsEntityUserAccessRef(entityId, userId)
+        .get(firestore);
+    if (!userAccess.exists || userAccess.admin.v != true) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.permissionDenied
+            ..message.v = 'Not an admin of this entity'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var check = options.setPublicCheck;
+    if (check != null && !await check(userId: userId, entityId: entityId)) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.permissionDenied
+            ..message.v = 'Not allowed to make this entity public'
+            ..noRetry.v = true)
+          .exception();
+    }
+    await entityAccess.setEntityPublic(entityId, public: public);
+    return FsCmsEntitySetPublicApiResult<T>()
+      ..entityId.setValue(entityId)
+      ..public.v = public;
   }
 }

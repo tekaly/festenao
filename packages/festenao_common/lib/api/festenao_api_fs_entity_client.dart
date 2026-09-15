@@ -125,6 +125,27 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     );
   }
 
+  /// Makes the entity public — readable by anyone, signed in or not — or
+  /// private again. Returns whether it is public afterwards.
+  ///
+  /// The server only lets an admin of the entity do it, and the app may add
+  /// a condition of its own (see `FestenaoEntityHandlerOptions.setPublicCheck`):
+  /// the call fails with `permission-denied` otherwise.
+  Future<bool> setEntityPublic({
+    required String entityId,
+    required bool public,
+  }) async {
+    var result = await apiService
+        .getApiResult<FsCmsEntitySetPublicApiResult<T>>(
+          ApiRequest(command: entityAccess.info.setPublicCommand)..setQuery(
+            FsCmsEntitySetPublicApiQuery<T>()
+              ..entityId.setValue(entityId)
+              ..public.v = public,
+          ),
+        );
+    return result.public.v ?? public;
+  }
+
   /// Deletes an invite for the entity.
   Future<void> deleteEntityInvite({
     required String entityId,
