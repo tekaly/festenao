@@ -15,7 +15,7 @@ dependencies:
   sembast: ">=3.8.5+1"
   meta: ">=1.18.0"
   cv: ">=1.1.10"
-  # http: '>=1.0.0'
+  http: '>=1.0.0'
   fs_shim: ">=2.5.5"
   tekartik_app_bloc:
     git:

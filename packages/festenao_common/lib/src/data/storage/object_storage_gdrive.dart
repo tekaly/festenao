@@ -47,6 +47,13 @@ class ObjectStorageGdrive extends ObjectStorage {
 
   /// Constructor
   ObjectStorageGdrive({required this.gdrive});
+
+  /// The `webContentLink` of a file serves its content: a download stream
+  /// fetches it in one request rather than through [downloadPart] (which
+  /// downloads the whole file for each part). It only works for whoever may
+  /// read the file, anyone for a public one.
+  @override
+  bool get supportDownloadUrl => true;
   /*
   Future<String> _getOrCreateFolderId(
     List<String> parts,
