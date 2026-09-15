@@ -5,7 +5,10 @@ export '../src/data/storage/object_storage.dart'
         ObjectStorage,
         ObjectStorageMeta,
         ObjectStorageLocation,
-        ObjectStorageListResponse;
+        ObjectStorageListResponse,
+        objectStorageDownloadStreamHelper,
+        objectStorageDownloadUrlStream,
+        objectStorageDefaultChunkSize;
 export '../src/data/storage/object_storage_api.dart'
     show ObjectStorageApiClient;
 export '../src/data/storage/object_storage_firebase.dart'
