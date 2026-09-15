@@ -42,7 +42,8 @@ entity type: the client `FestenaoApiFsEntityClient<T>` and the server handler
   friends (`FestenaoFirestoreDatabaseEntityCollectionInfoApiExt`), or
   `festenaoEntityCreateCommand(type)`. The handler also accepts the legacy
   `<type>-create-entity` spelling.
-* `FestenaoApiFsEntityClient(apiService:, entityAccess:)`:
+* `FestenaoApiFsEntityClient(apiService:, entityAccess:)` (any
+  `TkCmsApiServiceBaseV2`: `FestenaoApiService` or an app's own service):
   `createEntity(entity:, entityId:)` returns the `T` read back with its id,
   the caller being its admin. `deleteEntity` marks it deleted (the daily cron
   purges), `purgeEntity` removes it for good, `leaveEntity` drops the
@@ -80,6 +81,12 @@ entity type: the client `FestenaoApiFsEntityClient<T>` and the server handler
   and `clientContext.firebaseAuth` (sign in with
   `signInOrUpWithEmailAndPassword` from `package:tkcms_common/tkcms_auth.dart`).
   The memory firestore has no rules: only the api checks are exercised.
+  `entitySetPublicApiTestRunner` (import
+  `package:festenao_common/test/entity_set_public_api_test_runner.dart`)
+  is the shared suite of `set-public` for any entity type and deployment:
+  give it an `EntitySetPublicApiTestContext` (two sign in callbacks, create
+  and purge, the client, `privilegeRequired` and, when writable from a test,
+  `setPublishPrivilege`) inside a group of the app's server suite.
 
 ## Examples
 
@@ -201,11 +208,10 @@ class BookletServerApp extends FestenaoServerApp {
     initFestenaoFsEntityApiBuilders<FsBooklet>();
   }
 
-  // `this.`: tkcms exports same-named globals, see the server app skill.
   late final bookletDb = TkCmsFirestoreDatabaseServiceEntityAccess<FsBooklet>(
     entityCollectionInfo: bookletCollectionInfo,
-    firestore: this.firestore,
-    rootDocument: fsAppRoot(this.app),
+    firestore: firestore,
+    rootDocument: fsAppRoot(app),
   );
 
   late final bookletHandler = FestenaoEntityHandler<FsBooklet>(
@@ -214,9 +220,7 @@ class BookletServerApp extends FestenaoServerApp {
     options: FestenaoEntityHandlerOptions(
       // Publishing takes an app level privilege on top of being an admin.
       setPublicCheck: ({required userId, required entityId}) async {
-        var rights = await this.firestore
-            .doc('app/${this.app}/user_access/$userId')
-            .get();
+        var rights = await firestore.doc('app/$app/user_access/$userId').get();
         return rights.exists && rights.data['publish'] == true;
       },
     ),

@@ -36,8 +36,9 @@ runtime), on a local http server, and in memory for the tests.
   `firestore`, `auth`, `storage`, `functions`; `flavorContext` is one of
   `FlavorContext.dev`, `devx`, `prod`, `prodx`, `test`.
 * `initFunctions()` fills `functions[name]`: the api command function
-  (`command`, `commandv2dev` in dev, `commandv2` in prod), the callable
-  (`callCommand`), and `amp` (`ampdev` in dev, `amp` in prod). A subclass
+  (`command`, `commandv2dev` in dev, `commandv2prod` in prod), the callable
+  (`callCommand`, `callcommandv2dev` / `callcommandv2prod`), and `amp`
+  (`ampdev` in dev, `amp` in prod). A subclass
   adds its own after `super.initFunctions()`, suffixing the name with
   `flavorContext.ifNotProdFlavor` like the others. Call it once, before
   serving or exporting the functions.
@@ -58,13 +59,16 @@ runtime), on a local http server, and in memory for the tests.
   ..message.v = '...'..noRetry.v = true).exception()`: the client gets an
   `ApiException` with that code (`permission-denied`, `unauthenticated`,
   `internal_error`...). `noRetry` stops the client's retry loop.
-* In a subclass, qualify the inherited `firestore`, `firebaseContext`,
-  `app` and `appFlavorContext` with `this.` (in field initializers and
-  closures above all): tkcms exports library level names of the same
-  spelling, a deprecated global `firebaseContext` among them, and Dart
-  resolves an unqualified identifier to the library scope before an
-  inherited member, so `firestore.doc(...)` may silently hit another
-  instance.
+* In a subclass write `this.firebaseContext`: `festenao_firebase.dart`
+  (through tkcms) exports a deprecated library level `firebaseContext`
+  getter, and Dart resolves an unqualified name to the library scope before
+  an inherited member, so the bare name reads (and throws on) that global.
+  `firestore`, `app` and `appFlavorContext` have no such double.
+* One memory firebase per process: the memory http port (4999) and the
+  local apps are process wide registries, so a second local context in the
+  same process shares them and a client may end up authenticated on the
+  first one. Tests keep one context per file (`dart test` runs each file in
+  its own process).
 * `onCronCommand(apiRequest)` answers `cron` (called daily by the
   scheduler): the base purges deleted projects and expired invites through
   `FestenaoFirestoreDatabase.projectDb`; an app with its own entities
@@ -124,12 +128,11 @@ class MyServerApp extends FestenaoServerApp {
     cvAddConstructors([ApiShoutQuery.new, ApiShoutResult.new]);
   }
 
-  // `this.`: tkcms exports same-named globals (a deprecated
-  // `firebaseContext` among them) and an unqualified name resolves to the
-  // library level one before an inherited member.
+  // `this.firebaseContext`: an unqualified `firebaseContext` is the
+  // deprecated tkcms global, not the inherited getter.
   late final fsDatabase = FestenaoFirestoreDatabase(
     firebaseContext: this.firebaseContext,
-    flavorContext: this.appFlavorContext,
+    flavorContext: appFlavorContext,
   );
 
   late final projectHandler = FestenaoEntityHandler(
@@ -138,7 +141,7 @@ class MyServerApp extends FestenaoServerApp {
   );
 
   late final firestoreHandler = FestenaoFirestoreHandler(
-    options: FestenaoFirestoreHandlerOptions(firestore: this.firestore),
+    options: FestenaoFirestoreHandlerOptions(firestore: firestore),
   );
 
   @override

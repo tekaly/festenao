@@ -121,7 +121,7 @@ Future<FirebaseContext> initToolFirebase() async {
     ),
   );
   var ffContext = await services.init();
-  // Persisted on disk by the rest auth: prompts once.
+  // The rest auth persists the session on disk: sign in once per machine.
   await ffContext.auth.signInWithEmailAndPassword(
     email: 'me@example.com',
     password: 'secret',
