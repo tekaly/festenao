@@ -8,7 +8,6 @@
 /// emulator.
 library;
 
-import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_riverpod/festenao_riverpod.dart';
 import 'package:idb_shim/sdb.dart';
