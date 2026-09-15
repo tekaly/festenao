@@ -44,17 +44,27 @@ class _ObjectStorageApiListResponse implements ObjectStorageListResponse {
 /// [ObjectStorage] implementation that communicates with a remote API.
 class ObjectStorageApiClient extends ObjectStorage {
   late final GdriveApiService _api;
+  final HttpClientFactory? _httpClientFactory;
 
   /// Constructor.
+  ///
+  /// [httpClientFactory] is what the api is called with, and what a download
+  /// url is fetched with as well: the api hands out urls of its own (a
+  /// server reachable through the memory client only, in a test, hands out
+  /// urls only that client reaches). The platform one when null.
   ObjectStorageApiClient({
     HttpClientFactory? httpClientFactory,
     required Uri httpsUri,
-  }) {
+  }) : _httpClientFactory = httpClientFactory {
     _api = GdriveApiService(
       httpsApiUri: httpsUri,
       httpClientFactory: httpClientFactory,
     );
   }
+
+  @override
+  HttpClientFactory get downloadHttpClientFactory =>
+      _httpClientFactory ?? super.downloadHttpClientFactory;
 
   @override
   Future<void> delete(String path) async {
