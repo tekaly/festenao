@@ -2,9 +2,13 @@ import 'package:festenao_common/festenao_api.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 
 /// Client for managing Festenao CMS entities via API and Firestore.
+///
+/// [apiService] is any secured api client ([FestenaoApiService], or the
+/// api service of an app built on festenao): only its `getApiResult` is
+/// used.
 class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
   /// The API service used for CMS operations.
-  final FestenaoApiService apiService;
+  final TkCmsApiServiceBaseV2 apiService;
 
   /// The entity access service for Firestore operations.
   /// firestore is not used as an accessor here but for data conversion

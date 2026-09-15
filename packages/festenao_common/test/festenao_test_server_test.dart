@@ -6,6 +6,9 @@ import 'package:tekartik_common_utils/common_utils_import.dart';
 Future<void> main() async {
   testFestenaoServerGroup(
     initFestenaoTestServerContextAllMemory,
-    options: TestFestenaoServerGroupOptions(addFirestoreDoc: true),
+    options: TestFestenaoServerGroupOptions(
+      addFirestoreDoc: true,
+      strangerCredentials: memoryStrangerCredentials,
+    ),
   );
 }

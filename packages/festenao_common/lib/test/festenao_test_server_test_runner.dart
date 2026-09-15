@@ -10,6 +10,7 @@ import 'package:festenao_common/server/festeano_server_app.dart';
 import 'package:festenao_common/server/festeano_server_entity_handler.dart';
 import 'package:festenao_common/server/festeano_server_firestore_handler.dart';
 import 'package:festenao_common/server/festeano_server_object_storage_handler.dart';
+import 'package:festenao_common/test/entity_set_public_api_test_runner.dart';
 import 'package:tekartik_app_media/mime_type.dart';
 import 'package:tekartik_firebase_functions/ff_server.dart';
 import 'package:tkcms_common/tkcms_app.dart';
@@ -254,6 +255,13 @@ class FestenaoTestServerContext
   }
 }
 
+/// The second test user of [initFestenaoTestServerContextAllMemory], for
+/// [TestFestenaoServerGroupOptions.strangerCredentials].
+const memoryStrangerCredentials = TkCmsEmailPasswordCredentials(
+  email: 'test2',
+  password: 'test2',
+);
+
 /// Init all in memory.
 Future<FestenaoTestServerContext>
 initFestenaoTestServerContextAllMemory() async {
@@ -286,6 +294,12 @@ initFestenaoTestServerContextAllMemory() async {
         serverApp: ffServerApp,
       );
 
+  // The second test user of the memory context (a stranger), then the first
+  // one, signed in.
+  await ffContext.auth.signInOrUpWithEmailAndPassword(
+    email: memoryStrangerCredentials.email,
+    password: memoryStrangerCredentials.password,
+  );
   await ffContext.auth.signInOrUpWithEmailAndPassword(
     email: 'test',
     password: 'test',
@@ -344,8 +358,15 @@ class TestFestenaoServerGroupOptions {
   /// Requires auth and firestore doc function
   final bool addFirestoreDoc;
 
+  /// A second test user, with no access on anything, for the tests that
+  /// need a stranger (the set public suite); those are skipped without it.
+  final TkCmsEmailPasswordCredentials? strangerCredentials;
+
   /// Constructor for [TestFestenaoServerGroupOptions].
-  TestFestenaoServerGroupOptions({this.addFirestoreDoc = false});
+  TestFestenaoServerGroupOptions({
+    this.addFirestoreDoc = false,
+    this.strangerCredentials,
+  });
 }
 
 /// Test server group.
@@ -703,4 +724,41 @@ void testFestenaoServerGroup(
     await firestoreDocApiService.deleteDoc(path);
     expect(await firestoreDocApiService.getDoc(path), isNull);
   }, skip: !options.addFirestoreDoc);
+  group('set public', () {
+    // The shared suite of `entity/project/set-public`: the first test user
+    // publishes and unpublishes a project it created; a second one, when
+    // the deployment has one, is refused.
+    entitySetPublicApiTestRunner<FsProject>(() async {
+      var auth = context.clientContext.firebaseAuth;
+      var credentials = context.clientContext.credentials;
+      if (auth == null || credentials == null) {
+        throw StateError('Auth and credentials are required for this test');
+      }
+      var strangerCredentials = options!.strangerCredentials;
+      var client = context.projectApiClient;
+      Future<String> signIn(TkCmsEmailPasswordCredentials credentials) async =>
+          (await auth.signInWithEmailAndPassword(
+            email: credentials.email,
+            password: credentials.password,
+          )).user.uid;
+      return EntitySetPublicApiTestContext<FsProject>(
+        client: client,
+        signInAdmin: () => signIn(credentials),
+        signInStranger: strangerCredentials == null
+            ? null
+            : () => signIn(strangerCredentials),
+        createEntity: () async => (await client.createEntity(
+          entity: FsProject()
+            ..name.v = 'Set public ${DateTime.timestamp().toIso8601String()}',
+        )).id,
+        purgeEntity: (entityId) async {
+          await client.deleteEntity(entityId: entityId);
+          await client.purgeEntity(entityId: entityId);
+        },
+        // The festenao project handler has no app level condition.
+        privilegeRequired: false,
+        flagReadable: !noFirestoreCheck,
+      );
+    });
+  }, skip: noSignIn ? 'no sign in' : null);
 }
