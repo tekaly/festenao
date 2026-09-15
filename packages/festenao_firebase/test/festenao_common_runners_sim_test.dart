@@ -14,26 +14,12 @@ Future<void> main() async {
   tearDownAll(() async {
     await ctx.close();
   });
-  group(
-    'standalone',
-    () {
-      projectStandaloneAccessTestRunner(
-        () => ProjectStandaloneAccessTestContext(
-          auth: ctx.auth,
-          firestore: ctx.firestore,
-        ),
-        rulesSupported: true,
-      );
-    },
-    // Fails on the emulator too (checked with the hand written rules as well
-    // as the generated ones): `standaloneDeleteAndPurge` lists the `item`
-    // sub collection of the project (its tree def) as the user, and no rule
-    // allows a list under `{entity}/{entityId}` outside of `data`. The
-    // simulator reproduces that denial; the runner or the tree def is to be
-    // fixed upstream.
-    skip:
-        'standalone helpers/invited/public purge lists project/<id>/item, '
-        'denied by the no-api rules on the emulator as well',
+  projectStandaloneAccessTestRunner(
+    () => ProjectStandaloneAccessTestContext(
+      auth: ctx.auth,
+      firestore: ctx.firestore,
+    ),
+    rulesSupported: true,
   );
   appUserPrvAccessTestRunner(
     () => UserPrvAccessTestContext(auth: ctx.auth, firestore: ctx.firestore),
