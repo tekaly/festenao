@@ -27,3 +27,7 @@ export 'src/screen/project_sdb_view_screen.dart';
 export 'src/screen/project_sdb_view_screen_bloc.dart';
 export 'src/screen/projects_access_screen.dart';
 export 'src/screen/projects_sdb_screen_bloc.dart';
+export 'src/screen/quizz/quizz_control_screen.dart';
+export 'src/screen/quizz/quizz_home_screen.dart';
+export 'src/screen/quizz/quizz_question_edit_screen.dart';
+export 'src/screen/quizz/quizz_tv_screen.dart';

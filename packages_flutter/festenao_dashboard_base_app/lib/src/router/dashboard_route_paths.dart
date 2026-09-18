@@ -30,6 +30,12 @@ class DashboardRouteParams {
 
   /// `media_id`
   static const mediaId = ContentMediaScreen.mediaIdPathParameter;
+
+  /// `question_id`
+  static const questionId = 'question_id';
+
+  /// `quiz_id`
+  static const quizId = 'quiz_id';
 }
 
 /// `/`, the root of the dashboard.
@@ -136,3 +142,28 @@ final projectAccessPath = RoutePathDef.parse(
 
 /// `/logs`
 final dashboardLogsPath = RoutePathDef.parse('/logs', name: 'dashboard_logs');
+
+/// `/project/:project_id/quizz`, the quizz home of a project (questions and
+/// quizzes).
+final quizzHomePath = dashboardProjectPath.child('quizz', name: 'quizz');
+
+/// `/project/:project_id/quizz/question_create`
+final quizzQuestionCreatePath = quizzHomePath.child(
+  'question_create',
+  name: 'quizz_question_create',
+);
+
+/// `/project/:project_id/quizz/question/:question_id`
+final quizzQuestionEditPath = quizzHomePath.child(
+  'question/:${DashboardRouteParams.questionId}',
+  name: 'quizz_question_edit',
+);
+
+/// `/project/:project_id/quizz/quiz/:quiz_id`, the admin control of a quiz.
+final quizzControlPath = quizzHomePath.child(
+  'quiz/:${DashboardRouteParams.quizId}',
+  name: 'quizz_control',
+);
+
+/// `/project/:project_id/quizz/quiz/:quiz_id/tv`, the tv display of a quiz.
+final quizzTvPath = quizzControlPath.child('tv', name: 'quizz_tv');

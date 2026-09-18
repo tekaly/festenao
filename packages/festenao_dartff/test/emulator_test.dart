@@ -9,9 +9,11 @@ import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:festenao_common/festenao_flavor.dart';
+import 'package:festenao_common/festenao_quizz.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/test/festenao_doc_test_server_test_runner.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
+import 'package:festenao_common/test/quizz_server_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:tekartik_firebase_functions_call_http/functions_call_http.dart';
 import 'package:test/test.dart';
@@ -234,6 +236,32 @@ Future<void> main() async {
         options: TestFestenaoServerGroupOptions(addFirestoreDoc: true),
       );
       testFestenaoDocServerGroup(() async => testContext);
+      testQuizzServerGroup(() async {
+        var projectId = 'quizz_test';
+        // The quizz data is written through the rules enforced firestore:
+        // signed in as an admin of the project, created if needed.
+        var auth = testContext.clientContext.firebaseAuth!;
+        await auth.signInOrUpWithEmailAndPassword(
+          email: emulatorCredentials.email,
+          password: emulatorCredentials.password,
+        );
+        await testContext.projectApiClient.createEntity(
+          entity: FsProject()..name.v = 'Quizz test',
+          entityId: projectId,
+        );
+        return QuizzTestContext(
+          apiService: testContext.apiService,
+          projectId: projectId,
+          database: QuizzFirestoreDatabase(
+            firestore: firestore,
+            // The app of `FfApp` (its default), see functions/bin/server.dart
+            rootDocument: festenaoProjectQuizzRootDocument(
+              app: testAppId,
+              projectId: projectId,
+            ),
+          ),
+        );
+      });
     }, timeout: Timeout(Duration(minutes: 5)));
     tearDownAll(() async {
       await testContext.close();

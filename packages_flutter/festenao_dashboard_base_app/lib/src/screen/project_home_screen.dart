@@ -106,6 +106,20 @@ class _DashboardProjectHomeScreenBody extends StatelessWidget {
                     ),
 
                     ListTile(
+                      title: const Text('Quizz'),
+                      subtitle: const Text(
+                        'Questions, quizzes, admin control and tv display',
+                      ),
+                      onTap: () {
+                        context.pushPath(
+                          quizzHomePath,
+                          parameters: {
+                            DashboardRouteParams.projectId: projectId,
+                          },
+                        );
+                      },
+                    ),
+                    ListTile(
                       title: const Text('Content Images'),
                       onTap: () {
                         goToContentImagesScreen(

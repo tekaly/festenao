@@ -5,6 +5,7 @@ import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/data/firestore_doc.dart';
 import 'package:festenao_common/data/object_storage.dart';
+import 'package:festenao_common/festenao_quizz.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/server/festeano_server_app.dart';
 import 'package:festenao_common/server/festeano_server_entity_handler.dart';
@@ -71,10 +72,20 @@ class FestenaoServerAppTest extends FestenaoServerApp {
     options: FestenaoFirestoreHandlerOptions(firestore: fsDatabase.firestore),
   );
 
+  /// Quizz handler, the quizz data of a project living at
+  /// `app/<app>/project/<projectId>/data/<dataId>`.
+  late final quizzHandler = QuizzServerHandler(
+    options: QuizzServerHandlerOptions(
+      firestore: fsDatabase.firestore,
+      rootDocumentResolver: festenaoQuizzRootDocumentResolver(app: app),
+    ),
+  );
+
   late final _handlers = <FestenaoApiHandler>[
     firestoreHandler,
     ?objectStorageHandler,
     projectHandler,
+    quizzHandler,
   ];
 
   @override

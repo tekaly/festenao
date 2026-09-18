@@ -199,6 +199,10 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_node.dart
       path: firebase_emulator
+  tekartik_app_crypto:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      path: app_crypto
   # path: ^1.8.0
 
 dev_dependencies:
