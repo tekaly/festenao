@@ -129,19 +129,28 @@ final contentDemoPath = dashboardProjectPath.child(
 );
 
 /// `/projects_access`
-final projectsAccessPath = RoutePathDef.parse(
+///
+/// A child of [dashboardHomePath], so the route hangs under `/` and a location
+/// opened directly (a fresh page load on the web) builds the home page below
+/// it: there is always a way back to the root.
+final projectsAccessPath = dashboardHomePath.child(
   DashboardProjectsAccessScreen.routeLocation,
   name: DashboardProjectsAccessScreen.routeName,
 );
 
-/// `/project_access/:project_id`
-final projectAccessPath = RoutePathDef.parse(
+/// `/project_access/:project_id`, a child of [dashboardHomePath] for the same
+/// reason as [projectsAccessPath].
+final projectAccessPath = dashboardHomePath.child(
   DashboardProjectAccessScreen.routeLocation,
   name: DashboardProjectAccessScreen.routeName,
 );
 
-/// `/logs`
-final dashboardLogsPath = RoutePathDef.parse('/logs', name: 'dashboard_logs');
+/// `/logs`, a child of [dashboardHomePath] for the same reason as
+/// [projectsAccessPath].
+final dashboardLogsPath = dashboardHomePath.child(
+  'logs',
+  name: 'dashboard_logs',
+);
 
 /// `/project/:project_id/quizz`, the quizz home of a project (questions and
 /// quizzes).

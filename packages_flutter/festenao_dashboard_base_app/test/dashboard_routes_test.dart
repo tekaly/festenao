@@ -56,6 +56,25 @@ void main() {
       ]);
     });
 
+    test('the access and log routes are children of the home route', () {
+      var routes = ModularRouteResolver.assembleRoutes(
+        baseModules: dashboardBaseRouteModules(),
+      );
+      // Mounted under `/`, not at the top level: `/projects_access` opened
+      // directly (a fresh page load on the web) then builds the home page
+      // below it, so there is always a way back to the root.
+      var home = routes.single as GoRoute;
+      expect(home.name, dashboardHomePath.name);
+      expect(
+        home.routes.whereType<GoRoute>().map((route) => route.name),
+        containsAll([
+          projectsAccessPath.name,
+          projectAccessPath.name,
+          dashboardLogsPath.name,
+        ]),
+      );
+    });
+
     test('the blog demo is a child of the project route', () {
       var routes = ModularRouteResolver.assembleRoutes(
         baseModules: dashboardBaseRouteModules(),
