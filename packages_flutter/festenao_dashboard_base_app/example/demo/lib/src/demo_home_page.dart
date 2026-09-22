@@ -1,7 +1,10 @@
+import 'package:festenao_cms_flutter/festenao_cms_flutter.dart'
+    show cmsHtmlFrameSupported;
 import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
 import 'package:festenao_common_flutter/firestore_explorer_flutter.dart';
 import 'package:flutter/material.dart';
 
+import 'demo_cms_navigation.dart';
 import 'demo_data.dart';
 import 'demo_theme.dart';
 
@@ -71,7 +74,7 @@ class DemoHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(
-      title: const Text('Festenao explorers demo'),
+      title: const Text('Festenao explorers & cms demo'),
       actions: [
         if (themes.isNotEmpty)
           ExplorerChip(
@@ -138,6 +141,40 @@ class DemoHomePage extends StatelessWidget {
             explorer: data.explorer,
             kind: FileSystemDatabaseKind.sembast,
           ),
+        ),
+        const ExplorerSectionHeader(label: 'CMS'),
+        ListTile(
+          leading: const Icon(Icons.article_outlined),
+          title: const Text('CMS pages'),
+          subtitle: const Text(
+            'Manage the pages: publish, create, edit, preview',
+          ),
+          onTap: () => data.cms.openPages(context),
+        ),
+        ListTile(
+          leading: const Icon(Icons.language),
+          title: const Text('CMS site'),
+          subtitle: const Text(
+            'The generated html, navigated like the web site: rendered, '
+            'source or SEO view',
+          ),
+          onTap: () => data.cms.browseSite(context),
+        ),
+        if (cmsHtmlFrameSupported)
+          ListTile(
+            leading: const Icon(Icons.open_in_browser),
+            title: const Text('CMS site, browser rendering'),
+            subtitle: const Text(
+              'The same html drawn by the browser itself, css included, '
+              'in a sandboxed frame (web only)',
+            ),
+            onTap: () => data.cms.browseSiteInBrowser(context),
+          ),
+        ListTile(
+          leading: const Icon(Icons.table_rows_outlined),
+          title: const Text('CMS database'),
+          subtitle: const Text('The raw page records, in the object explorer'),
+          onTap: () => data.cms.exploreDatabase(context),
         ),
         const ExplorerSectionHeader(label: 'More'),
         ListTile(

@@ -100,11 +100,14 @@ Future<void> _loadFonts() async {
     '$_poppinsFontsPath/Poppins-Medium.ttf',
     '$_poppinsFontsPath/Poppins-SemiBold.ttf',
   ]);
-  await load(festenaoMonospaceFontFamily, [
+  var monospaceFonts = [
     '$_monospaceFontsPath/JetBrainsMonoNL-Regular.ttf',
     '$_monospaceFontsPath/JetBrainsMonoNL-Medium.ttf',
     '$_monospaceFontsPath/JetBrainsMonoNL-SemiBold.ttf',
-  ]);
+  ];
+  await load(festenaoMonospaceFontFamily, monospaceFonts);
+  // The generic family the rendered html asks for in `<pre>` and `<code>`.
+  await load('monospace', monospaceFonts);
 }
 
 /// Lets the really asynchronous backends settle, pumping between real delays.
@@ -135,6 +138,17 @@ Future<void> _shot(WidgetTester tester, String name) async {
 Future<void> _tap(WidgetTester tester, Finder finder) async {
   await tester.tap(finder);
   await _settle(tester);
+}
+
+/// Scrolls the menu to [text], then taps it: the menu is taller than the
+/// window.
+Future<void> _tapMenu(WidgetTester tester, String text) async {
+  await tester.scrollUntilVisible(
+    find.text(text),
+    100,
+    scrollable: find.byType(Scrollable).first,
+  );
+  await _tap(tester, find.text(text));
 }
 
 /// Goes back one screen.
@@ -287,13 +301,64 @@ void main() {
       await _back(tester);
       await _back(tester);
 
+      // ---- cms: the pages ----
+      await _tapMenu(tester, 'CMS pages');
+      await _shot(tester, 'cms_pages');
+
+      await _tap(tester, find.text('Opening night concert'));
+      await _shot(tester, 'cms_page_preview');
+
+      await _tap(tester, find.byTooltip('Edit'));
+      await _shot(tester, 'cms_page_editor');
+      await _back(tester);
+      await _back(tester);
+      await _back(tester);
+
+      // ---- cms: the generated site ----
+      await _tapMenu(tester, 'CMS site');
+      await _shot(tester, 'cms_site_index');
+
+      await _tap(tester, find.widgetWithText(TextButton, 'Program'));
+      await _shot(tester, 'cms_site_program');
+
+      await tester.tapOnText(
+        find.textRange.ofSubstring('Opening night concert').first,
+      );
+      await _shot(tester, 'cms_site_event');
+
+      await _tap(tester, find.text('Html'));
+      await _shot(tester, 'cms_site_html_source');
+
+      await _tap(tester, find.text('SEO'));
+      await _shot(tester, 'cms_site_seo');
+      await _tap(tester, find.text('Rendered'));
+
+      await _tap(tester, find.byTooltip('Go to'));
+      await _tap(tester, find.text('sitemap.xml'));
+      await _shot(tester, 'cms_site_sitemap');
+
+      // A draft, served once the drafts are.
+      await tester.enterText(find.byType(TextField), '/page/line-up-2027');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await _shot(tester, 'cms_site_draft_not_found');
+      await _tap(tester, find.widgetWithText(FilterChip, 'Drafts'));
+      await _shot(tester, 'cms_site_draft');
+      await _back(tester);
+
+      // ---- cms: the raw records ----
+      await _tapMenu(tester, 'CMS database');
+      await _tap(tester, find.text('cms_page'));
+      await _shot(tester, 'cms_database_records');
+      await _back(tester);
+      await _back(tester);
+
       // ---- every database together ----
-      await _tap(tester, find.text('Every database'));
+      await _tapMenu(tester, 'Every database');
       await _shot(tester, 'every_database');
       await _back(tester);
 
       // ---- editing a value in memory ----
-      await _tap(tester, find.text('Edit an object in memory'));
+      await _tapMenu(tester, 'Edit an object in memory');
       await _shot(tester, 'edit_object_in_memory');
 
       // The type selector, on the count field.
@@ -326,6 +391,10 @@ void main() {
       ScaffoldMessenger.of(
         tester.element(find.byType(DemoHomePage)),
       ).clearSnackBars();
+      await _settle(tester);
+
+      // The menu from its top.
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, 3000));
       await _settle(tester);
 
       for (var (index, demoTheme) in themes.indexed.skip(1)) {

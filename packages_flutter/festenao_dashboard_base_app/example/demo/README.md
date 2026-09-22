@@ -1,7 +1,8 @@
-# Festenao explorers demo
+# Festenao explorers & cms demo
 
-Everything the explorers of `festenao_common_flutter` reach, on content built
-at startup **in memory**: nothing is written to the disk, and modifications are
+Everything the explorers of `festenao_common_flutter` reach, and the cms of
+`festenao_cms_flutter` on a small festival site, on content built at startup
+**in memory**: nothing is written to the disk, and modifications are
 lost on restart — which is what makes it safe to edit anything in it.
 
 ```sh
@@ -25,6 +26,10 @@ flutter create --project-name festenao_dashboard_app_demo \
 | File system explorer | an in-memory `fs_shim` file system: a json, a yaml, a text and a binary document, a sub directory, and the two databases below |
 | Sdb explorer | the sdb databases **found** in that file system, not a path typed by hand |
 | Sembast explorer | the sembast ones, told apart from the sdb ones by what each file holds |
+| CMS pages | the pages of the festival site: publish toggles, create, preview, edit (markdown or html body, item link, SEO fields) |
+| CMS site | the html the pages render to, navigated like the web site — see below |
+| CMS site, browser rendering | on the web only: the same html drawn by the browser itself, css included |
+| CMS database | the raw `cms_page` records, in the object explorer |
 | Every database | both kinds together |
 | Edit an object in memory | the editor on a value, answering what it became |
 
@@ -33,12 +38,79 @@ Everything is read write, `Sdb explorer` and `Sembast explorer` going through
 tell what it is — so the list is what can really be browsed rather than what is
 merely named `.db`.
 
+## The CMS site
+
+`CMS site` (or the globe button of `CMS pages`, or of a page preview) opens
+`CmsSiteBrowserScreen` on `https://festival.example.com/`. Nothing is served
+there: each url is rendered on the fly from the pages in memory by a
+`CmsSiteHandler`, exactly what the cloud function would answer (see
+`festenaoCmsSiteDartHandler` in `festenao_dartff`) — the index, the pages,
+`sitemap.xml`, `robots.txt`, a 404 for the rest. Links within the site are
+followed, the others only shown; back, forward and the address bar work as in
+a browser, and an edit in `CMS pages` shows at once.
+
+Three view modes:
+
+- **Rendered** — the body as widgets, the default templates drawn with the app
+  theme (Flutter runs no css).
+- **Html** — the document as served.
+- **SEO** — title and description with their length, canonical url, language,
+  indexing, open graph and twitter tags, and the JSON-LD.
+
+The seeded pages cover every kind: free pages (`about`, a `program` table,
+`practical`), an event with its details and `Event` structured data, a
+location, an activity, an offer, an html page (`partners`), a no index one
+(`legal`, out of the sitemap) and a draft (`line-up-2027`, a 404 until the
+**Drafts** chip serves it, then rendered no index).
+
+### On the web: the browser's own rendering
+
+```sh
+flutter run -d chrome
+```
+
+Flutter runs no css, so the Rendered view above approximates the templates.
+On the web the browser can draw the real thing: **CMS site, browser
+rendering** in the menu, the globe-arrow button of **CMS site** (the same
+session: history and drafts toggle shared), or **Open in a new tab**. The
+page sits in an iframe sandboxed with `allow-scripts` only — an opaque origin
+that reaches nothing of the app — and its links are followed within the site,
+the others opening a tab of their own.
+
+## The CMS site served over http
+
+The same pages, served by the dart http function a deployment would run
+(`festenaoCmsSiteDartHandler` of `festenao_dartff`, on its admin sdk http
+runner), from a standalone local server:
+
+```sh
+dart run bin/server.dart          # http://localhost:8040/cms/
+dart run bin/server_ff_app.dart   # the festenao functions too, see below
+```
+
+- `bin/server.dart` — the cms site alone, as the function `cms`.
+- `bin/server_ff_app.dart` — a dev `FfApp` (`commanddartv2dev`,
+  `callcommanddartv2dev`, `ampdev`) on in memory firebase services, plus the
+  cms site as `cmsdev` (`http://localhost:8040/cmsdev/`).
+
+Both take another port as first argument, keep everything in memory, and are
+built on the shared helpers of `festenao_dartff`: `declareCmsSiteRunner`
+(registration) and `serveFestenaoFunctionsHttp` (the server). The page links
+are relative or absolute to the function url, so the site works below it.
+`test/demo_server_test.dart` serves both in memory and crawls them.
+
 ## What it is built from
 
 - `lib/src/demo_data.dart` builds it all, reusing the shared demo content
   (`demoJsonContent`, `fillDemoSembastDatabase`, `demoSdbDatabaseSchema`,
   `fillDemoFirestore`…), so the demo and the `+` menu of the file system
   explorer show the same thing.
+- `lib/src/demo_cms_data.dart` seeds the cms, free of Flutter: the site
+  (`demoCmsSite`), its pages (`demoCmsPages`), the details and structured data
+  of the items they present (`demoCmsPageOptions`), in an in memory sdb;
+  `lib/src/demo_cms.dart` adds the items the page editor offers.
+- `lib/src/demo_server.dart` holds the two servers of `bin/`.
+- `lib/src/demo_cms_navigation.dart` wires the cms screens together.
 - `lib/src/demo_home_page.dart` is the menu.
 
 See `packages/festenao_common/doc/` for what each explorer does.

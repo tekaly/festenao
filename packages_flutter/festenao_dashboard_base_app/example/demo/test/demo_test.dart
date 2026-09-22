@@ -1,5 +1,7 @@
+import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
 import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
 import 'package:festenao_dashboard_app_demo/main.dart';
+import 'package:festenao_dashboard_app_demo/src/demo_cms.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_data.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_theme.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +73,56 @@ void main() {
           'sembast_demo.db': FileSystemDatabaseKind.sembast,
         },
       );
+    });
+
+    test('builds a cms site whose every link leads somewhere', () async {
+      var data = await DemoData.create();
+      var cms = data.cms;
+      expect((await cms.pages.getPages()).length, demoCmsPages().length);
+      var published = await cms.pages.getPages(publishedOnly: true);
+      expect(
+        published.map((page) => page.slug.v),
+        isNot(contains('line-up-2027')),
+      );
+
+      // Crawl the site from the index as a search engine would: every link
+      // within the site is a page that is served.
+      var handler = CmsSiteHandler(
+        pages: cms.pages,
+        renderer: cms.renderer,
+        pageOptions: cms.pageOptions,
+      );
+      var hrefRegExp = RegExp(r'href="([^"]+)"');
+      var visited = <String>{};
+      var toVisit = ['', 'sitemap.xml', 'robots.txt'];
+      while (toVisit.isNotEmpty) {
+        var path = toVisit.removeLast();
+        if (!visited.add(path)) {
+          continue;
+        }
+        var response = await handler.handlePath(path);
+        expect(response.statusCode, 200, reason: path);
+        var url = Uri.parse(handler.urlOf(path));
+        for (var match in hrefRegExp.allMatches(response.body)) {
+          var target = handler.pathOf(url.resolve(match.group(1)!));
+          if (target != null) {
+            toVisit.add(target);
+          }
+        }
+      }
+      // Every published page is reached, the draft is not.
+      for (var page in published) {
+        expect(visited, contains('page/${page.slug.v}'));
+      }
+      expect(visited, isNot(contains('page/line-up-2027')));
+
+      // The pages presenting an item carry its structured data.
+      var event = await handler.handlePath('page/opening-night-concert');
+      expect(event.body, contains('"@type":"Event"'));
+      expect(event.body, contains('<dt>Date</dt><dd>2027-07-09 20:00</dd>'));
+      // The no index page stays out of the sitemap.
+      var sitemap = await handler.handlePath('sitemap.xml');
+      expect(sitemap.body, isNot(contains('page/legal')));
     });
 
     test('is editable and loses the edits on a restart', () async {
@@ -219,6 +271,72 @@ void main() {
       await tester.tap(find.text('sembast_demo.db'));
       await _settle(tester);
       expect(find.text('settings'), findsOneWidget);
+      expect(find.text('event'), findsOneWidget);
+    });
+
+    _testWidgets('manages the cms pages', (tester) async {
+      await tester.pumpWidget(const FestenaoExplorersDemoApp());
+      await _settle(tester);
+
+      await tester.tap(find.text('CMS pages'));
+      await _settle(tester);
+      // Drafts included, with their publish toggle.
+      expect(find.text('About the festival'), findsOneWidget);
+      expect(find.text('Line-up 2027'), findsOneWidget);
+      expect(find.byType(Switch), findsWidgets);
+
+      // A page, as the app shows it, then as the site serves it.
+      await tester.tap(find.text('Program'));
+      await _settle(tester);
+      expect(find.byType(CmsPagePreviewScreen), findsOneWidget);
+      await tester.tap(find.byTooltip('View the generated html'));
+      await _settle(tester);
+      expect(find.byType(CmsSiteBrowserScreen), findsOneWidget);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        'https://festival.example.com/page/program',
+      );
+
+      // And the editor, from the browser.
+      await tester.tap(find.byTooltip('Edit this page'));
+      await _settle(tester);
+      expect(find.byType(CmsPageEditScreen), findsOneWidget);
+      expect(find.text('Body (markdown)'), findsOneWidget);
+    });
+
+    _testWidgets('browses the generated cms site', (tester) async {
+      await tester.pumpWidget(const FestenaoExplorersDemoApp());
+      await _settle(tester);
+
+      await tester.tap(find.text('CMS site'));
+      await _settle(tester);
+      // The index: a card per published page.
+      expect(
+        find.text(
+          'Three days of music, workshops and night markets by the lake.',
+        ),
+        findsWidgets,
+      );
+      expect(find.text('Line-up 2027'), findsNothing);
+
+      // The header navigation, then a link of the body.
+      await tester.tap(find.widgetWithText(TextButton, 'Program'));
+      await _settle(tester);
+      expect(
+        find.text('Who plays when, and where.', findRichText: true),
+        findsOneWidget,
+      );
+      await tester.tapOnText(
+        find.textRange.ofSubstring('Opening night concert').first,
+      );
+      await _settle(tester);
+      expect(find.text('2027-07-09 20:00', findRichText: true), findsOneWidget);
+
+      // Its head, with the event structured data.
+      await tester.tap(find.text('SEO'));
+      await _settle(tester);
+      expect(find.text('Opening night concert'), findsWidgets);
+      expect(find.text('og:type'), findsOneWidget);
       expect(find.text('event'), findsOneWidget);
     });
 

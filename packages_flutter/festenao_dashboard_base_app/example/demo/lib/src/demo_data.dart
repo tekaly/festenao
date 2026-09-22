@@ -5,6 +5,8 @@ import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart'
     as firestore_memory;
 
+import 'demo_cms.dart';
+
 /// Everything the demo runs on, all of it in memory: nothing is written to the
 /// disk and nothing survives a restart.
 class DemoData {
@@ -17,15 +19,20 @@ class DemoData {
   /// The explorer of that file system, read write.
   final FileSystemExplorer explorer;
 
+  /// The cms pages, and the site they render to.
+  final DemoCms cms;
+
   /// Data on [firestore] and [fileSystem].
   DemoData({
     required this.firestore,
     required this.fileSystem,
     required this.explorer,
+    required this.cms,
   });
 
   /// Builds it all: a firestore tree, a few documents, a sembast database and
-  /// an sdb one, so every explorer has something to show.
+  /// an sdb one, so every explorer has something to show, and the pages of a
+  /// small festival site for the cms.
   static Future<DemoData> create() async {
     // ignore: deprecated_member_use
     var firestore = firestore_memory.newFirestoreMemory();
@@ -66,6 +73,7 @@ class DemoData {
       firestore: firestore,
       fileSystem: fileSystem,
       explorer: explorer,
+      cms: await DemoCms.create(),
     );
   }
 }

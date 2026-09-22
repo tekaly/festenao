@@ -1,8 +1,9 @@
-/// The festenao explorers demo, everything in memory.
+/// The festenao explorers and cms demo, everything in memory.
 ///
-/// It opens the firestore, file system, sdb and sembast explorers on content
-/// built at startup: nothing is written to the disk, and modifications are
-/// lost on restart, which is what makes it safe to edit anything in it.
+/// It opens the firestore, file system, sdb and sembast explorers, and the
+/// cms screens and site browser, on content built at startup: nothing is
+/// written to the disk, and modifications are lost on restart, which is what
+/// makes it safe to edit anything in it.
 ///
 /// ```sh
 /// flutter run -d linux     # or -d chrome
@@ -39,7 +40,7 @@ class _FestenaoExplorersDemoAppState extends State<FestenaoExplorersDemoApp> {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'Festenao explorers demo',
+    title: 'Festenao explorers & cms demo',
     debugShowCheckedModeBanner: false,
     theme: _themes[_themeIndex].build(),
     home: DemoLoadingPage(
