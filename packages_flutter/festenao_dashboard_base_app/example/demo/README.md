@@ -42,3 +42,16 @@ merely named `.db`.
 - `lib/src/demo_home_page.dart` is the menu.
 
 See `packages/festenao_common/doc/` for what each explorer does.
+
+## Screenshots
+
+```sh
+flutter test tool/screenshot_test.dart
+```
+
+Writes one png per screen to `.local/screenshots_1` (gitignored). It renders
+through the flutter test pipeline rather than a running window: the widgets and
+the rendering are the real ones, nothing needs a display, and each screen is
+reached on purpose rather than by driving a window. The text and icon fonts are
+loaded from the flutter sdk, without which the test harness draws every glyph
+as a box.
