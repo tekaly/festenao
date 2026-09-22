@@ -38,6 +38,15 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_node.dart
       path: firebase_emulator
+  # The standalone function servers (serveFestenaoFunctionsHttp).
+  tekartik_http:
+    git:
+      url: https://github.com/tekartik/http.dart
+      path: http
+  tekartik_http_io:
+    git:
+      url: https://github.com/tekartik/http.dart
+      path: http_io
   tekartik_firebase_local:
     git:
       url: https://github.com/tekartik/firebase.dart

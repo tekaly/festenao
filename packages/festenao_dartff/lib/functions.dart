@@ -6,8 +6,14 @@ import 'package:tkcms_common/server/server_admin_sdk.dart';
 import 'package:tkcms_common/server/server_common.dart';
 
 export 'package:festenao_common/server/festeano_server_app.dart';
+export 'package:tekartik_firebase_functions_admin_sdk_http/functions_admin_sdk_http.dart'
+    show
+        FirebaseFunctionsAdminSdkHttp,
+        TekartikFirebaseFunctionsAdminSdkHttpRunner;
 
+export 'src/cms_function.dart';
 export 'src/ff_app.dart';
+export 'src/functions_http_server.dart';
 
 /// The AMP command name for the given [app] flavor (amp vs ampdev).
 String festenaoAmpCommand(FestenaoServerApp app) =>
