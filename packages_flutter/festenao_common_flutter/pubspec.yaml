@@ -28,6 +28,13 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
       path: app_dev_menu
+  tekartik_app_flutter_fs:
+    git:
+      url: https://github.com/tekartik/app_flutter_utils.dart
+      path: app_fs
+    version: '>=0.2.0'
+  path_provider: ">=2.1.0"
+  fs_shim: ">=2.5.5"
   tekartik_app_flutter_common_utils:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
@@ -71,6 +78,9 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # The file system explorer tests open sembast and sdb database files.
+  idb_shim: ">=2.9.10-1"
+  sembast: ">=3.8.5+1"
   flutter_lints: ">=6.0.0"
 
 # For information on the generic Dart part of this file, see the

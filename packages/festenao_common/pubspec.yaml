@@ -11,6 +11,13 @@ dependencies:
   collection: ">=1.19.1"
   uuid: ">=3.0.6"
   dev_test: ">=1.0.1"
+  # Console menu and shell helpers of the object editor command line tools.
+  dev_build: ">=1.1.10"
+  # Object editor: yaml documents, edited in place.
+  yaml: ">=3.1.2"
+  yaml_edit: ">=2.2.1"
+  # sdb (object editor sources, log storage).
+  idb_shim: ">=2.9.10-1"
   path: ">=1.9.1"
   sembast: ">=3.8.5+1"
   meta: ">=1.18.0"
