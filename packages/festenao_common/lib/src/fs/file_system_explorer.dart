@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:fs_shim/fs.dart';
+import 'package:idb_shim/sdb.dart';
 import 'package:path/path.dart' as p;
 import 'package:sembast/sembast.dart' as sembast;
 
@@ -208,12 +209,32 @@ class FileSystemExplorer {
   /// for a document and the backend one for a database record.
   final ObjectTypeRegistry typeRegistry;
 
+  /// The factory the sembast databases are opened with, the `fs_shim` bridge
+  /// over [fileSystem] by default.
+  ///
+  /// Give the one the app itself uses — `databaseFactoryIo`, the sqflite one,
+  /// the web one — to open and edit the databases it opened: they are then
+  /// the same handles on the same storage, rather than a second one. It must
+  /// address the storage this explorer browses, and it is given the path
+  /// [nativePath] answers, the one below the sandboxes.
+  final sembast.DatabaseFactory? sembastDatabaseFactory;
+
+  /// The factory the sdb databases are opened with, the `fs_shim` bridge over
+  /// [fileSystem] by default.
+  ///
+  /// Give the one the app itself uses — `sdbFactorySqflite`, `sdbFactoryWeb` —
+  /// to open and edit the databases it opened. Same contract as
+  /// [sembastDatabaseFactory].
+  final SdbFactory? sdbFactory;
+
   /// Explorer of [rootPath] in [fileSystem].
   FileSystemExplorer({
     required this.fileSystem,
     required this.rootPath,
     this.isReadOnly = false,
     ObjectTypeRegistry? typeRegistry,
+    this.sembastDatabaseFactory,
+    this.sdbFactory,
   }) : typeRegistry = typeRegistry ?? defaultObjectTypeRegistry;
 
   /// What a screen displays as the title.
@@ -227,6 +248,8 @@ class FileSystemExplorer {
           rootPath: rootPath,
           isReadOnly: true,
           typeRegistry: typeRegistry,
+          sembastDatabaseFactory: sembastDatabaseFactory,
+          sdbFactory: sdbFactory,
         );
 
   /// An explorer rooted at [path] of this one, read only when this one is.
@@ -235,6 +258,8 @@ class FileSystemExplorer {
     rootPath: fsPath(path),
     isReadOnly: isReadOnly,
     typeRegistry: typeRegistry,
+    sembastDatabaseFactory: sembastDatabaseFactory,
+    sdbFactory: sdbFactory,
   );
 
   /// The path of [fileSystem] the explorer path [path] points at.
@@ -252,6 +277,23 @@ class FileSystemExplorer {
       throw FileSystemExplorerPathException(path);
     }
     return fileSystem.path.joinAll([rootPath, ...p.posix.split(normalized)]);
+  }
+
+  /// The path [path] has in the storage below the explorer, the sandboxes
+  /// unwrapped.
+  ///
+  /// [fsPath] is what [fileSystem] itself takes; this is what something
+  /// underneath it takes — the database factory of the app, addressing the
+  /// same file without going through the sandbox. The two are the same when
+  /// the explorer is not sandboxed.
+  String nativePath(String path) {
+    var current = fsPath(path);
+    var fs = fileSystem;
+    while (fs is FsShimSandboxedFileSystem) {
+      current = fs.delegatePath(current);
+      fs = fs.rootDirectory.fs;
+    }
+    return current;
   }
 
   /// The entries of the directory [path], directories first then files, each
@@ -374,9 +416,8 @@ class FileSystemExplorer {
     // sdb reads the same file through its own factory, so the sembast handle
     // used to detect it goes first.
     await database.close();
-    var sdbDatabase = await getSdbFactoryFsShim(
-      fileSystem,
-    ).openDatabase(fsPath(path));
+    var (sdbDatabaseFactory, sdbPath) = _sdb(path);
+    var sdbDatabase = await sdbDatabaseFactory.openDatabase(sdbPath);
     return FileSystemDatabase(
       kind: databaseKind,
       path: path,
@@ -419,6 +460,102 @@ class FileSystemExplorer {
     await file.writeAsString(content);
   }
 
+  /// Writes [bytes] to the file [path], the directories above it included.
+  Future<void> writeAsBytes(String path, List<int> bytes) async {
+    _checkWritable('write $path');
+    var file = fileSystem.file(fsPath(path));
+    await file.parent.create(recursive: true);
+    await file.writeAsBytes(
+      bytes is Uint8List ? bytes : Uint8List.fromList(bytes),
+    );
+  }
+
+  /// Creates a sembast database at [path] and opens it.
+  ///
+  /// [onCreate] fills it before it is handed back — a demo, a first record, a
+  /// schema of your own. The caller closes what comes back, see
+  /// [FileSystemDatabase.close].
+  ///
+  /// Throws a [StateError] when something already sits there: an existing
+  /// database is opened with [openDatabase], not created again.
+  Future<FileSystemDatabase> createSembastDatabase(
+    String path, {
+    Future<void> Function(sembast.Database database)? onCreate,
+  }) async {
+    _checkWritable('create $path');
+    await _checkFree(path);
+    var (factory, databasePath) = _sembast(path);
+    var database = await factory.openDatabase(databasePath);
+    try {
+      await onCreate?.call(database);
+    } catch (_) {
+      await database.close();
+      rethrow;
+    }
+    return FileSystemDatabase(
+      kind: FileSystemDatabaseKind.sembast,
+      path: path,
+      repository: SembastObjectRepository(
+        database,
+        title: path,
+        isReadOnly: isReadOnly,
+      ),
+      close: database.close,
+    );
+  }
+
+  /// Creates an sdb database at [path], with the stores [schema] declares, and
+  /// opens it.
+  ///
+  /// The schema is where the `cv` sdb helpers come in: declare the records as
+  /// `ScvStringRecordBase` models, the stores with `scvStringStoreFactory`,
+  /// and hand their `schema()` over.
+  ///
+  /// ```dart
+  /// var noteStore = scvStringStoreFactory.store<DemoNote>('note');
+  /// await explorer.createSdbDatabase(
+  ///   'notes.db',
+  ///   schema: SdbDatabaseSchema(stores: [noteStore.schema()]),
+  /// );
+  /// ```
+  Future<FileSystemDatabase> createSdbDatabase(
+    String path, {
+    required SdbDatabaseSchema schema,
+    int version = 1,
+    Future<void> Function(SdbDatabase database)? onCreate,
+  }) async {
+    _checkWritable('create $path');
+    await _checkFree(path);
+    var (factory, databasePath) = _sdb(path);
+    var database = await factory.openDatabase(
+      databasePath,
+      options: SdbOpenDatabaseOptions(version: version, schema: schema),
+    );
+    try {
+      await onCreate?.call(database);
+    } catch (_) {
+      await database.close();
+      rethrow;
+    }
+    return FileSystemDatabase(
+      kind: FileSystemDatabaseKind.sdb,
+      path: path,
+      repository: SdbObjectRepository(
+        database,
+        title: path,
+        isReadOnly: isReadOnly,
+      ),
+      close: database.close,
+    );
+  }
+
+  /// Throws a [StateError] when something already sits at [path].
+  Future<void> _checkFree(String path) async {
+    if (await fileSystem.type(fsPath(path)) != FileSystemEntityType.notFound) {
+      throw StateError('$path already exists');
+    }
+  }
+
   /// Deletes the file or directory at [path], a directory with what it holds.
   Future<void> delete(String path) async {
     _checkWritable('delete $path');
@@ -453,13 +590,31 @@ class FileSystemExplorer {
     return (await entry(newPath))!;
   }
 
-  Future<sembast.Database> _openSembast(String path) =>
-      getDatabaseFactoryFsShim(fileSystem).openDatabase(
-        fsPath(path),
-        mode: isReadOnly
-            ? sembast.DatabaseMode.readOnly
-            : sembast.DatabaseMode.existing,
-      );
+  /// The sembast factory and the path it takes.
+  (sembast.DatabaseFactory, String) _sembast(String path) {
+    var factory = sembastDatabaseFactory;
+    return factory == null
+        ? (getDatabaseFactoryFsShim(fileSystem), fsPath(path))
+        : (factory, nativePath(path));
+  }
+
+  /// The sdb factory and the path it takes.
+  (SdbFactory, String) _sdb(String path) {
+    var factory = sdbFactory;
+    return factory == null
+        ? (getSdbFactoryFsShim(fileSystem), fsPath(path))
+        : (factory, nativePath(path));
+  }
+
+  Future<sembast.Database> _openSembast(String path) {
+    var (factory, databasePath) = _sembast(path);
+    return factory.openDatabase(
+      databasePath,
+      mode: isReadOnly
+          ? sembast.DatabaseMode.readOnly
+          : sembast.DatabaseMode.existing,
+    );
+  }
 
   /// An sdb database keeps its indexeddb schema in the sembast main store,
   /// under `stores`; a plain sembast database has nothing there.

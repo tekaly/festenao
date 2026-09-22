@@ -3,9 +3,13 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fs_shim/fs.dart';
 import 'package:fs_shim/fs_memory.dart' show newFileSystemMemory;
+import 'package:idb_shim/sdb.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:sembast/sembast.dart' as sembast;
 import 'package:tekartik_app_flutter_fs/fs.dart' as app_fs;
 
+import 'file_system_create_action.dart';
+import 'file_system_demo.dart';
 import 'files_system_explorer_flutter.dart';
 import 'object_editor/object_value_editor.dart';
 
@@ -125,15 +129,25 @@ List<FileSystemRoot> festenaoFileSystemRoots({
 ///
 /// Sandboxing is what makes a picked directory safe to hand to the explorer:
 /// its paths are rooted there and `..` leads nowhere.
+///
+/// [sembastDatabaseFactory] and [sdbFactory] are the app's own, when it has
+/// them: the explorer then opens and edits the very databases the app opened,
+/// rather than a second handle on the same files. The sandbox is handled —
+/// a factory is given the path below it, see
+/// [FileSystemExplorer.nativePath].
 FileSystemExplorer festenaoDirectoryExplorer(
   Directory directory, {
   bool isReadOnly = false,
+  sembast.DatabaseFactory? sembastDatabaseFactory,
+  SdbFactory? sdbFactory,
 }) {
   var sandboxed = directory.fs.sandbox(path: directory.path);
   return FileSystemExplorer(
     fileSystem: sandboxed,
     rootPath: sandboxed.currentDirectory.path,
     isReadOnly: isReadOnly,
+    sembastDatabaseFactory: sembastDatabaseFactory,
+    sdbFactory: sdbFactory,
   );
 }
 
@@ -163,6 +177,22 @@ class FileSystemRootPickerScreen extends StatefulWidget {
   /// Names the directory on linux and windows.
   final String? packageName;
 
+  /// The sembast factory the explorer opens databases with, the `fs_shim`
+  /// bridge by default; give the app's own to edit its databases.
+  final sembast.DatabaseFactory? sembastDatabaseFactory;
+
+  /// The sdb factory the explorer opens databases with, the `fs_shim` bridge
+  /// by default; give the app's own to edit its databases.
+  final SdbFactory? sdbFactory;
+
+  /// What the `+` menu of the explorer offers to create.
+  ///
+  /// [defaultFileSystemCreateActions] plus [festenaoFileSystemDemoActions] by
+  /// default, so a debug menu can make a populated example of each kind and
+  /// look at it straight away. An app passes its own — a sembast database
+  /// seeded its way, an sdb database with the schema it declares.
+  final List<FileSystemCreateAction>? createActions;
+
   /// Picker of one of [roots].
   const FileSystemRootPickerScreen({
     super.key,
@@ -170,6 +200,9 @@ class FileSystemRootPickerScreen extends StatefulWidget {
     this.isReadOnly = false,
     this.valueEditors,
     this.packageName,
+    this.createActions,
+    this.sembastDatabaseFactory,
+    this.sdbFactory,
   });
 
   @override
@@ -195,6 +228,10 @@ class _FileSystemRootPickerScreenState
     }
     return resolved;
   }
+
+  late final List<FileSystemCreateAction> _createActions =
+      widget.createActions ??
+      [...defaultFileSystemCreateActions(), ...festenaoFileSystemDemoActions()];
 
   var _isReadOnly = false;
 
@@ -260,8 +297,11 @@ class _FileSystemRootPickerScreenState
                   explorer: festenaoDirectoryExplorer(
                     directory,
                     isReadOnly: _isReadOnly,
+                    sembastDatabaseFactory: widget.sembastDatabaseFactory,
+                    sdbFactory: widget.sdbFactory,
                   ),
                   valueEditors: widget.valueEditors,
+                  createActions: _createActions,
                 ),
               ),
           ],
@@ -278,6 +318,9 @@ Future<void> goToFileSystemRootPickerScreen(
   bool isReadOnly = false,
   ObjectValueEditorRegistry? valueEditors,
   String? packageName,
+  List<FileSystemCreateAction>? createActions,
+  sembast.DatabaseFactory? sembastDatabaseFactory,
+  SdbFactory? sdbFactory,
 }) => Navigator.of(context).push<void>(
   MaterialPageRoute(
     builder: (_) => FileSystemRootPickerScreen(
@@ -285,6 +328,9 @@ Future<void> goToFileSystemRootPickerScreen(
       isReadOnly: isReadOnly,
       valueEditors: valueEditors,
       packageName: packageName,
+      createActions: createActions,
+      sembastDatabaseFactory: sembastDatabaseFactory,
+      sdbFactory: sdbFactory,
     ),
   ),
 );

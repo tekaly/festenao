@@ -193,6 +193,11 @@ dependencies:
     git:
       url: https://github.com/tekartikprj/tekaly
       path: packages/sdb_synced
+  # Synced source export, shared by the sembast and sdb implementations.
+  tekaly_synced_db_common:
+    git:
+      url: https://github.com/tekartikprj/tekaly
+      path: packages/synced_db_common
   googleapis: any
   tekartik_gdrive_api_utils:
     git:

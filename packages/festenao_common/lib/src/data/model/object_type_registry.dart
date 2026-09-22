@@ -57,6 +57,29 @@ class ObjectTypeRegistry {
         (handler) => handler.isCustom && handler.decodeAliases.contains(id),
       );
 
+  /// The prefixes the custom types of this registry are marked with, the
+  /// default `$` included so a map that looks encoded is always escaped.
+  late final Set<String> prefixes = {
+    objectCustomTypePrefix,
+    ...customHandlers.map((handler) => handler.prefix),
+  };
+
+  /// The handler [key] names, [key] being the key of a one key map: a prefix
+  /// this registry knows, then a type id or one of its aliases.
+  ///
+  /// Null when no prefix matches or nothing answers to what follows it.
+  ObjectValueTypeHandler? decodeHandlerForKey(String key) {
+    for (var prefix in prefixes) {
+      if (prefix.isNotEmpty && key.startsWith(prefix)) {
+        var handler = decodeHandler(key.substring(prefix.length));
+        if (handler != null && handler.isCustom) {
+          return handler;
+        }
+      }
+    }
+    return null;
+  }
+
   /// The handler of id [id], throws an [ArgumentError] when there is none.
   ObjectValueTypeHandler handlerOrThrow(String id) =>
       handler(id) ?? (throw ArgumentError.value(id, 'id', 'Unknown type'));
@@ -85,7 +108,8 @@ class ObjectTypeRegistry {
   ];
 
   /// [value] converted to a json encodable tree, a custom value becoming a one
-  /// key map (`{'$timestamp': '2024-01-01T00:00:00.000Z'}`).
+  /// key map (`{'$timestamp': '2024-01-01T00:00:00.000Z'}`), the key being the
+  /// [ObjectValueTypeHandler.prefix] of its type then its id.
   ///
   /// A map that already looks like one of those is escaped, so the conversion
   /// round trips. Throws an [ArgumentError] on a value no handler matches.
@@ -93,7 +117,7 @@ class ObjectTypeRegistry {
     var handler = typeOf(value);
     if (handler.isCustom) {
       return <String, Object?>{
-        '$objectCustomTypePrefix${handler.id}': handler.encode(value),
+        '${handler.prefix}${handler.id}': handler.encode(value),
       };
     }
     if (value == null || value is String || value is num || value is bool) {
@@ -121,14 +145,14 @@ class ObjectTypeRegistry {
 
   /// The tree back from what [toJsonEncodable] produced.
   ///
-  /// A one key map marked with [objectCustomTypePrefix] whose type the registry
-  /// does not know is left as is, so reading a document never drops data the
-  /// editor cannot represent.
+  /// A one key map marked with a prefix this registry knows but whose type it
+  /// does not is left as is, so reading a document never drops data the editor
+  /// cannot represent.
   Object? fromJsonEncodable(Object? value) {
     if (value is Map) {
       if (value.length == 1) {
         var key = value.keys.first;
-        if (key is String && key.startsWith(objectCustomTypePrefix)) {
+        if (key is String) {
           if (key == objectCustomTypePrefix) {
             // Escaped map, see [toJsonEncodable]: its own single key is one
             // this method must not read as a type again, only its values are
@@ -143,10 +167,8 @@ class ObjectTypeRegistry {
             }
             return fromJsonEncodable(escaped);
           }
-          var handler = decodeHandler(
-            key.substring(objectCustomTypePrefix.length),
-          );
-          if (handler != null && handler.isCustom) {
+          var handler = decodeHandlerForKey(key);
+          if (handler != null) {
             return handler.decode(value.values.first);
           }
         }
@@ -163,9 +185,13 @@ class ObjectTypeRegistry {
     return value;
   }
 
-  /// Whether [map] would be read back as an encoded custom value.
+  /// Whether [map] would be read back as an encoded custom value, under any
+  /// of the prefixes this registry knows.
   bool _looksEncoded(Map<String, Object?> map) =>
-      map.length == 1 && map.keys.first.startsWith(objectCustomTypePrefix);
+      map.length == 1 &&
+      prefixes.any(
+        (prefix) => prefix.isNotEmpty && map.keys.first.startsWith(prefix),
+      );
 
   @override
   String toString() =>

@@ -1,8 +1,8 @@
 import 'package:festenao_common/data/object_editor.dart';
 import 'package:festenao_common/fs/file_system_explorer.dart';
 import 'package:fs_shim/fs_memory.dart';
-import 'package:idb_shim/sdb.dart';
 import 'package:sembast/sembast.dart' as sembast;
+import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 import 'package:test/test.dart';
 
 /// A file system holding a small tree, the explorer being rooted at `root`.
@@ -178,6 +178,20 @@ count: 2
   });
 
   group('writing', () {
+    test('writes and reads bytes', () async {
+      var explorer = await _newExplorer();
+      await explorer.writeAsBytes('data.bin', [0, 1, 2, 255]);
+      expect(await explorer.readAsBytes('data.bin'), [0, 1, 2, 255]);
+      expect(
+        (await explorer.entry('data.bin'))!.kind,
+        FileSystemEntryKind.binary,
+      );
+      expect(
+        explorer.readOnly.writeAsBytes('data.bin', [1]),
+        throwsA(isA<ReadOnlyException>()),
+      );
+    });
+
     test('creates a directory and a file', () async {
       var explorer = await _newExplorer();
       await explorer.createDirectory('made/up');
@@ -286,6 +300,151 @@ count: 2
       await opened.close();
     });
 
+    test('creates a sembast database and fills it', () async {
+      var explorer = await _newExplorer();
+      var store = sembast.stringMapStoreFactory.store('config');
+      var created = await explorer.createSembastDatabase(
+        'made.db',
+        onCreate: (database) => store.record('main').put(database, {'a': 1}),
+      );
+      expect(created.kind, FileSystemDatabaseKind.sembast);
+      var collections = await created.repository.listCollections();
+      expect(collections.single.name, 'config');
+      expect(await collections.single.source('main').read(), {'a': 1});
+      await created.close();
+
+      // It really is a file of the explorer, listed as a database.
+      var entry = (await explorer.entry('made.db'))!;
+      expect(entry.isDatabase, isTrue);
+      expect(
+        await explorer.databaseKind('made.db'),
+        FileSystemDatabaseKind.sembast,
+      );
+    });
+
+    test('creates an sdb database from a cv schema', () async {
+      _initDemoBuilders();
+      var explorer = await _newExplorer();
+      var created = await explorer.createSdbDatabase(
+        'notes.db',
+        schema: SdbDatabaseSchema(
+          stores: [
+            _noteStore.schema(
+              indexes: [_noteTitleIndex.schema(keyPath: 'title')],
+            ),
+          ],
+        ),
+        onCreate: (database) async {
+          await _noteStore
+              .record('first')
+              .put(
+                database,
+                _DemoNote()
+                  ..title.v = 'First'
+                  ..createdAt.v = SdbTimestamp.parse(
+                    '2024-01-02T03:04:05.000Z',
+                  ),
+              );
+        },
+      );
+      expect(created.kind, FileSystemDatabaseKind.sdb);
+      var collections = await created.repository.listCollections();
+      expect(collections.single.name, 'note');
+      expect(await collections.single.listIds(), ['first']);
+      // The record reads back with its timestamp, through the sdb types.
+      var source = collections.single.source('first');
+      expect(await source.read(), {
+        'title': 'First',
+        'createdAt': SdbTimestamp.parse('2024-01-02T03:04:05.000Z'),
+      });
+      await created.close();
+
+      expect(
+        await explorer.databaseKind('notes.db'),
+        FileSystemDatabaseKind.sdb,
+      );
+    });
+
+    test('refuses to create a database over something', () async {
+      var explorer = await _newExplorer();
+      expect(
+        explorer.createSembastDatabase('config.json'),
+        throwsA(isA<StateError>()),
+      );
+      expect(
+        explorer.readOnly.createSembastDatabase('made.db'),
+        throwsA(isA<ReadOnlyException>()),
+      );
+    });
+
+    test('opens a database through the factory it is given', () async {
+      // The app has its own sembast and sdb factories, on a storage of their
+      // own; the explorer browses the same one through fs_shim and is handed
+      // those factories, so it opens the very databases the app opened.
+      var fileSystem = newFileSystemMemory();
+      var sembastFactory = getDatabaseFactoryFsShim(fileSystem);
+      var sdbFactory = getSdbFactoryFsShim(fileSystem);
+
+      var store = sembast.stringMapStoreFactory.store('config');
+      var appDatabase = await sembastFactory.openDatabase('root/app.db');
+      await store.record('main').put(appDatabase, {'a': 1});
+      await appDatabase.close();
+
+      var explorer = FileSystemExplorer(
+        fileSystem: fileSystem,
+        rootPath: 'root',
+        sembastDatabaseFactory: sembastFactory,
+        sdbFactory: sdbFactory,
+      );
+      expect(explorer.sembastDatabaseFactory, same(sembastFactory));
+      expect(
+        await explorer.databaseKind('app.db'),
+        FileSystemDatabaseKind.sembast,
+      );
+      var opened = await explorer.openDatabase('app.db');
+      var collections = await opened.repository.listCollections();
+      expect(await collections.single.source('main').read(), {'a': 1});
+      await opened.close();
+
+      // And it creates through them too.
+      var created = await explorer.createSembastDatabase('made.db');
+      await created.close();
+      expect(await sembastFactory.databaseExists('root/made.db'), isTrue);
+    });
+
+    test('a sandboxed explorer hands a factory the path below it', () async {
+      var fileSystem = newFileSystemMemory();
+      await fileSystem.directory('root/inner').create(recursive: true);
+      var sandboxed = fileSystem.sandbox(path: 'root/inner');
+      var explorer = FileSystemExplorer(
+        fileSystem: sandboxed,
+        rootPath: sandboxed.currentDirectory.path,
+        // A factory of the file system below the sandbox.
+        sembastDatabaseFactory: getDatabaseFactoryFsShim(fileSystem),
+      );
+
+      var created = await explorer.createSembastDatabase('made.db');
+      await created.close();
+
+      // It landed in the sandbox, not at the root of the file system below.
+      expect(await fileSystem.file('root/inner/made.db').exists(), isTrue);
+      expect(await fileSystem.file('made.db').exists(), isFalse);
+      expect((await explorer.list()).single.name, 'made.db');
+    });
+
+    test('carries the factories into its read only and sub views', () async {
+      var fileSystem = newFileSystemMemory();
+      await fileSystem.directory('root/inner').create(recursive: true);
+      var factory = getDatabaseFactoryFsShim(fileSystem);
+      var explorer = FileSystemExplorer(
+        fileSystem: fileSystem,
+        rootPath: 'root',
+        sembastDatabaseFactory: factory,
+      );
+      expect(explorer.readOnly.sembastDatabaseFactory, same(factory));
+      expect(explorer.sub('inner').sembastDatabaseFactory, same(factory));
+    });
+
     test('answers no kind for a file that is not a database', () async {
       var explorer = await _newExplorer();
       expect(await explorer.databaseKind('notes.txt'), isNull);
@@ -293,3 +452,20 @@ count: 2
     });
   });
 }
+
+/// A record of the sdb demo schema, declared with the `cv` sdb helpers.
+class _DemoNote extends ScvStringRecordBase {
+  final title = CvField<String>('title');
+  final createdAt = CvField<SdbTimestamp>('createdAt');
+
+  @override
+  CvFields get fields => [title, createdAt];
+}
+
+/// cv needs to know how to build a model before it reads one back.
+void _initDemoBuilders() {
+  cvAddConstructor(_DemoNote.new);
+}
+
+final _noteStore = scvStringStoreFactory.store<_DemoNote>('note');
+final _noteTitleIndex = _noteStore.index<String>('title');

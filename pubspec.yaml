@@ -29,6 +29,7 @@ workspace:
   - packages_flutter/festenao_object_storage_picker
   - packages_flutter/festenao_riverpod_flutter
   - packages_flutter/festenao_dashboard_base_app
+  - packages_flutter/festenao_dashboard_base_app/example/demo
   - packages_flutter/festenao_navigator_flutter
   - packages_flutter/festenao_kiosk
   - packages/festenao_dartff/festenao_firebase_api_context.dart

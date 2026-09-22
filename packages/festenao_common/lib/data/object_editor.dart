@@ -58,6 +58,7 @@ export '../src/data/model/object_source_firestore.dart'
         FirestoreObjectRepository,
         FirestoreObjectSource,
         FirestoreTimestampTypeHandler,
+        firestoreNewReferencePath,
         firestoreObjectTypeRegistry;
 export '../src/data/model/object_source_fs.dart'
     show FsObjectCollection, FsObjectSource;
@@ -87,6 +88,7 @@ export '../src/data/model/object_text_format.dart'
         objectYamlFormat;
 export '../src/data/model/object_type.dart'
     show
+        ObjectCustomTypeHandler,
         ObjectValueTypeHandler,
         objectBasicTypeHandlers,
         objectCustomTypePrefix,

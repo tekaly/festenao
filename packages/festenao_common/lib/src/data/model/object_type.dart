@@ -48,6 +48,14 @@ abstract class ObjectValueTypeHandler {
   /// True for a type that needs [encode]/[decode] to reach json.
   bool get isCustom => !isBasic && !isContainer;
 
+  /// The prefix marking this type in the json encodable form, `$` by
+  /// default.
+  ///
+  /// The key of the one key map a custom value becomes is [prefix] then [id]:
+  /// `{"\$timestamp": ...}`. Give another one to read and write a different
+  /// convention — the legacy sembast `@` one, `{"@Timestamp": ...}`.
+  String get prefix => objectCustomTypePrefix;
+
   /// The other type ids [decode] also reads.
   ///
   /// What one backend calls a `timestamp` another calls a `dateTime`, and both
@@ -113,6 +121,9 @@ abstract class _TypeHandlerBase implements ObjectValueTypeHandler {
 
   @override
   Set<String> get decodeAliases => const {};
+
+  @override
+  String get prefix => objectCustomTypePrefix;
 
   @override
   Object? encode(Object? value) => value;
@@ -437,6 +448,96 @@ const objectTypeBytes = _BytesTypeHandler();
 
 /// Matches any value no handler was found for, read only.
 const objectTypeUnknown = _UnknownTypeHandler();
+
+/// A custom type declared rather than written: a prefix, a key, and the text
+/// a value of it reads and writes as.
+///
+/// It is the whole of a custom type in one place — what the value is
+/// ([matchesValue]), what it looks like ([formatValue]), what text makes one
+/// ([parseValue]) — and its json encodable form is that same text under
+/// `prefix + id`, which is how every built in custom type is encoded too.
+///
+/// ```dart
+/// var durationType = ObjectCustomTypeHandler(
+///   id: 'duration',
+///   label: 'Duration',
+///   matchesValue: (value) => value is Duration,
+///   newValueBuilder: () => Duration.zero,
+///   formatValue: (value) => '${(value as Duration).inMilliseconds}',
+///   parseValue: (text) => Duration(milliseconds: int.parse(text.trim())),
+/// );
+///
+/// var registry = defaultObjectTypeRegistry.withHandlers([durationType]);
+/// ```
+///
+/// A `Duration` then reads `{"\$duration": "1500"}` in json, edits as `1500`
+/// in the editor, and copies into any other tree that knows the type.
+class ObjectCustomTypeHandler extends ObjectValueTypeHandler {
+  @override
+  final String id;
+
+  @override
+  final String label;
+
+  @override
+  final String prefix;
+
+  @override
+  final Set<String> decodeAliases;
+
+  /// Whether a value is one of this type.
+  final bool Function(Object? value) matchesValue;
+
+  /// The value a field takes when its type is switched to this one.
+  final Object? Function() newValueBuilder;
+
+  /// The value as text, which is both what an editor shows and what json
+  /// holds.
+  final String Function(Object? value) formatValue;
+
+  /// The value back from that text, throwing a [FormatException] on a text
+  /// that is not one.
+  final Object? Function(String text) parseValue;
+
+  /// A shorter display than [formatValue], when the text is long — what a row
+  /// shows before it is edited.
+  final String Function(Object? value)? displayValue;
+
+  /// Type [id], marked with [prefix] in json.
+  ObjectCustomTypeHandler({
+    required this.id,
+    required this.label,
+    required this.matchesValue,
+    required this.newValueBuilder,
+    required this.formatValue,
+    required this.parseValue,
+    this.displayValue,
+    this.prefix = objectCustomTypePrefix,
+    this.decodeAliases = const {},
+  });
+
+  @override
+  bool matches(Object? value) => matchesValue(value);
+
+  @override
+  Object? get newValue => newValueBuilder();
+
+  @override
+  String format(Object? value) =>
+      objectTypeTruncate((displayValue ?? formatValue)(value));
+
+  @override
+  String toText(Object? value) => formatValue(value);
+
+  @override
+  Object? parseText(String text) => parseValue(text);
+
+  @override
+  Object? encode(Object? value) => formatValue(value);
+
+  @override
+  Object? decode(Object? encoded) => parseValue('$encoded');
+}
 
 /// The 5 json scalar types plus the 2 containers, in the order a type
 /// selector lists them.

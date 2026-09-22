@@ -158,7 +158,54 @@ and back, see [the object editor](object_editor.md).
 
 ---
 
-### 8. Picking the directory, and the debug menu
+### 8. Creating what it opens
+
+The `+` menu is a list of `FileSystemCreateAction`, which is the hook an app
+extends it through:
+
+```dart
+FileSystemExplorerScreen(
+  explorer: explorer,
+  createActions: [
+    ...defaultFileSystemCreateActions(),
+    fileSystemCreateSembastDatabaseAction(
+      onCreate: (db) => myStore.record('main').put(db, {'hello': 'world'}),
+    ),
+    fileSystemCreateSdbDatabaseAction(
+      label: 'New notes database',
+      schema: SdbDatabaseSchema(stores: [noteStore.schema()]),
+    ),
+  ],
+)
+```
+
+The sdb schema is where the `cv` sdb helpers come in: declare the records as
+`ScvStringRecordBase` models, the stores with `scvStringStoreFactory`, and hand
+their `schema()` over. `FileSystemExplorer.createSembastDatabase` and
+`createSdbDatabase` are the core calls underneath, usable without any UI.
+
+`festenaoFileSystemDemoActions()` is one populated demo per kind — a json and a
+yaml document, a text file, a binary one, a sembast database and an sdb one
+built from `demoSdbDatabaseSchema()` — so a debug menu has something to show
+straight away. It is what the picker offers unless an app passes its own.
+
+---
+
+### 9. Text and binary files
+
+A text file opens in `FileSystemTextFileScreen`. Anything else opens in
+`FileSystemHexFileScreen`: the classic dump — offset, the bytes of the row in
+hex, the printable ones as text — plus, above it, the whole content decoded as
+text when it happens to be valid utf8, which is what tells a mislabelled text
+file from a real binary one at a glance.
+
+A row is edited by tapping it and retyping its bytes, with or without spaces;
+a row may be given fewer or more of them, so the file grows and shrinks from
+its end.
+
+---
+
+### 10. Picking the directory, and the debug menu
 
 `FileSystemRootPickerScreen` picks what the explorer opens on, among the
 directories `path_provider` names — documents, support, temporary, downloads,
@@ -181,3 +228,25 @@ muiBodyWidget(() {
 `festenao_dashboard_base_app` groups that with whatever else every dashboard
 app gets, in `dashboardDebugMenuContent()` and the ready made
 `DashboardDebugScreen`.
+
+---
+
+### 11. The app's own database factories
+
+The explorer opens databases through the `fs_shim` bridge by default. Give it
+the factories the app itself uses and it opens the very databases the app
+opened, rather than a second handle on the same files:
+
+```dart
+FileSystemExplorer(
+  fileSystem: fileSystemIo,
+  rootPath: '.local',
+  sembastDatabaseFactory: databaseFactoryIo,
+  sdbFactory: sdbFactorySqflite,
+);
+```
+
+A supplied factory addresses the storage below the explorer, so it is handed
+`nativePath`, the path with the sandboxes unwrapped, rather than the sandboxed
+one. `festenaoDirectoryExplorer`, the picker and the debug menu item all take
+the pair too.

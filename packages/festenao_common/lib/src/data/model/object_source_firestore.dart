@@ -139,6 +139,10 @@ class FirestoreGeoPointTypeHandler extends ObjectValueTypeHandler {
   }
 }
 
+/// The path [FirestoreDocumentReferenceTypeHandler] starts a new reference
+/// on, there being no empty one.
+const firestoreNewReferencePath = 'collection/document';
+
 /// A firestore [DocumentReference], edited as its path and encoded as that
 /// path under `$documentReference`.
 ///
@@ -160,8 +164,11 @@ class FirestoreDocumentReferenceTypeHandler extends ObjectValueTypeHandler {
   @override
   bool matches(Object? value) => value is DocumentReference;
 
+  /// A reference has to point somewhere, so switching a field to this type
+  /// gives it a placeholder path to edit rather than a null, which would read
+  /// back as the null type and leave no way to type a path.
   @override
-  Object? get newValue => null;
+  Object? get newValue => firestore.doc(firestoreNewReferencePath);
 
   @override
   String format(Object? value) => (value as DocumentReference).path;

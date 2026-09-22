@@ -16,6 +16,7 @@ library;
 
 export 'package:festenao_common/data/object_editor.dart';
 
+export 'src/object_editor/edit_object.dart' show editCvModel, editObject;
 export 'src/object_editor/object_clipboard_flutter.dart'
     show FlutterObjectClipboard, globalFlutterObjectClipboard;
 export 'src/object_editor/object_editor_dialogs.dart'

@@ -50,6 +50,9 @@ its own:
 | `sdbObjectTypeRegistry` | the same, sdb reusing the sembast types |
 | `firestoreObjectTypeRegistry(firestore)` | `timestamp`, `blob`, `geoPoint`, `documentReference` |
 
+sembast and sdb share one registry, sdb being `idb_shim` over sembast: one
+`Timestamp`, one `Blob`, the same records either way.
+
 A custom value reaches json as a one key map, the sembast V2 convention:
 
 ```json
@@ -61,7 +64,29 @@ so a record exported to a file reads back where it came from. A map that
 already looks like one of those is escaped, and a type the registry does not
 know is left as it is rather than dropped.
 
-Adding one is a handler plus a registry:
+**Declaring one** takes a key, a string representation and, when the
+convention calls for it, a prefix:
+
+```dart
+var durationType = ObjectCustomTypeHandler(
+  id: 'duration',                                   // the key, `$duration`
+  label: 'Duration',
+  matchesValue: (value) => value is Duration,
+  newValueBuilder: () => Duration.zero,
+  formatValue: (value) => '${(value as Duration).inMilliseconds}',
+  parseValue: (text) => Duration(milliseconds: int.parse(text.trim())),
+);
+
+var registry = defaultObjectTypeRegistry.withHandlers([durationType]);
+```
+
+A `Duration` then reads `{"$duration": "1500"}` in json, edits as `1500` in the
+editor, and copies into any other tree that knows the type. `prefix:` takes
+another marker than `$` — `'@'` reads and writes the legacy sembast
+convention, `{"@Timestamp": ...}` — and a registry decodes every prefix its
+types declare.
+
+Writing one out in full, when the text form is not the json form:
 
 ```dart
 class DurationTypeHandler extends ObjectValueTypeHandler {

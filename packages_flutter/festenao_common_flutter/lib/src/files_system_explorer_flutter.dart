@@ -2,6 +2,8 @@ import 'package:festenao_common/data/object_editor.dart';
 import 'package:festenao_common/fs/file_system_explorer.dart';
 import 'package:flutter/material.dart';
 
+import 'file_system_create_action.dart';
+import 'file_system_hex_editor.dart';
 import 'object_editor/object_clipboard_flutter.dart';
 import 'object_editor/object_editor_dialogs.dart';
 import 'object_editor/object_editor_screen.dart';
@@ -60,6 +62,15 @@ class FileSystemExplorerScreen extends StatefulWidget {
   /// Where a copied document goes, the global one by default.
   final FlutterObjectClipboard? clipboard;
 
+  /// What the `+` menu offers to create, beside the folder.
+  ///
+  /// [defaultFileSystemCreateActions] by default — a json, yaml, text and
+  /// binary file. An app adds its own: a sembast database seeded its way, an
+  /// sdb database with the schema it declares, a template document. See
+  /// [FileSystemCreateAction], and `festenaoFileSystemDemoActions` for one
+  /// populated demo of each kind.
+  final List<FileSystemCreateAction>? createActions;
+
   /// Explorer screen of [path].
   const FileSystemExplorerScreen({
     super.key,
@@ -67,6 +78,7 @@ class FileSystemExplorerScreen extends StatefulWidget {
     this.path = '',
     this.valueEditors,
     this.clipboard,
+    this.createActions,
   });
 
   @override
@@ -85,6 +97,9 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
 
   FlutterObjectClipboard get _clipboard =>
       widget.clipboard ?? globalFlutterObjectClipboard;
+
+  late final List<FileSystemCreateAction> _createActions =
+      widget.createActions ?? defaultFileSystemCreateActions();
 
   void _reload() => setState(() {
     _loading = explorer.list(path);
@@ -117,6 +132,7 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
           path: entry.path,
           valueEditors: widget.valueEditors,
           clipboard: widget.clipboard,
+          createActions: widget.createActions,
         );
       case FileSystemEntryKind.json:
       case FileSystemEntryKind.yaml:
@@ -136,7 +152,11 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
           path: entry.path,
         );
       case FileSystemEntryKind.binary:
-        _snack('${entry.name}: ${fileSystemFormatSize(entry.size)}');
+        await goToFileSystemHexFileScreen(
+          context,
+          explorer: explorer,
+          path: entry.path,
+        );
     }
     _reload();
   }
@@ -165,28 +185,20 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
     }
   }
 
-  Future<void> _create(String extension, String content) async {
-    var name = await objectEditorPromptText(
-      context,
-      title: 'New file',
-      labelText: 'Name (${extension.isEmpty ? 'no extension' : extension})',
-    );
-    if (name == null || name.isEmpty) {
+  /// Runs a create action and opens what it made.
+  Future<void> _create(FileSystemCreateAction action) async {
+    String? created;
+    await _run(() async {
+      created = await action.create(context, explorer, path);
+    });
+    _reload();
+    if (created == null || !mounted) {
       return;
     }
-    if (extension.isNotEmpty && !name.endsWith(extension)) {
-      name = '$name$extension';
+    var entry = await explorer.entry(created!);
+    if (entry != null && mounted) {
+      await _open(entry);
     }
-    await _run(() async {
-      var entry = await explorer.createFile(
-        path.isEmpty ? name! : '$path/$name',
-        content: content,
-      );
-      _reload();
-      if (mounted) {
-        await _open(entry);
-      }
-    });
   }
 
   Future<void> _createDirectory() async {
@@ -348,21 +360,15 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
     ),
     floatingActionButton: isReadOnly
         ? null
-        : PopupMenuButton<String>(
+        : PopupMenuButton<int>(
             tooltip: 'New',
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'folder', child: Text('New folder')),
-              PopupMenuItem(value: 'json', child: Text('New json file')),
-              PopupMenuItem(value: 'yaml', child: Text('New yaml file')),
-              PopupMenuItem(value: 'text', child: Text('New text file')),
+            itemBuilder: (context) => [
+              const PopupMenuItem(value: -1, child: Text('New folder')),
+              for (var (index, action) in _createActions.indexed)
+                PopupMenuItem(value: index, child: Text(action.label)),
             ],
-            onSelected: (action) => switch (action) {
-              'folder' => _createDirectory(),
-              'json' => _create('.json', '{}\n'),
-              'yaml' => _create('.yaml', ''),
-              'text' => _create('.txt', ''),
-              _ => null,
-            },
+            onSelected: (index) =>
+                index < 0 ? _createDirectory() : _create(_createActions[index]),
             child: const FloatingActionButton(
               onPressed: null,
               child: Icon(Icons.add),
@@ -494,6 +500,7 @@ Future<void> goToFileSystemExplorerScreen(
   String path = '',
   ObjectValueEditorRegistry? valueEditors,
   FlutterObjectClipboard? clipboard,
+  List<FileSystemCreateAction>? createActions,
 }) => Navigator.of(context).push<void>(
   MaterialPageRoute(
     builder: (_) => FileSystemExplorerScreen(
@@ -501,6 +508,7 @@ Future<void> goToFileSystemExplorerScreen(
       path: path,
       valueEditors: valueEditors,
       clipboard: clipboard,
+      createActions: createActions,
     ),
   ),
 );
