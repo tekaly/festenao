@@ -1,27 +1,23 @@
-import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_view_screen.dart';
-import 'package:festenao_dashboard_base_app/src/screen/project_sdb_view_screen_bloc.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
-class DashboardProjectAccessScreen extends ConsumerWidget {
+/// The access screen of one festenao project, `/project_access/:project_id`.
+///
+/// The dashboard manages the festenao project entity, which is what
+/// [ProjectViewScreen] defaults to, so nothing has to be scoped here.
+class DashboardProjectAccessScreen extends StatelessWidget {
+  /// The route name.
   static const routeName = 'project_access';
+
+  /// The route location.
   static const routeLocation = '/project_access/:project_id';
 
+  /// The firestore project id.
   final String projectId;
 
+  /// The access screen of the project [projectId].
   const DashboardProjectAccessScreen({super.key, required this.projectId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    var projectsDb = ref.watch(rpdUserProjectsDbProvider);
-    return BlocProvider(
-      blocBuilder: () => ProjectSdbViewScreenBloc(
-        projectsDb: projectsDb,
-        projectId: projectId,
-      ),
-      child: const ProjectViewScreen(),
-    );
-  }
+  Widget build(BuildContext context) => ProjectViewScreen(entityId: projectId);
 }
