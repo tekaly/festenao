@@ -1,6 +1,7 @@
 import 'package:festenao_common/data/object_editor.dart';
 import 'package:flutter/material.dart';
 
+import '../explorer_ui/explorer_chip.dart';
 import 'object_clipboard_flutter.dart';
 import 'object_editor_dialogs.dart';
 import 'object_value_editor.dart';
@@ -114,10 +115,11 @@ class _ObjectEditorViewState extends State<ObjectEditorView> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(
-            width: 32,
+            width: 28,
             child: isContainer
                 ? IconButton(
                     padding: EdgeInsets.zero,
+                    iconSize: 20,
                     icon: Icon(
                       _isExpanded(node)
                           ? Icons.arrow_drop_down
@@ -127,21 +129,36 @@ class _ObjectEditorViewState extends State<ObjectEditorView> {
                   )
                 : null,
           ),
+          // The name and, right beside it, what the value is: a type is read
+          // at a glance rather than guessed from how the value looks.
           SizedBox(
-            width: 140,
-            child: Text(
-              node.name,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+            width: 172,
+            child: Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    node.name,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                ExplorerTypeChip(type: node.type),
+              ],
             ),
           ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 4),
               child: isContainer
-                  ? Text(node.display, style: theme.textTheme.bodySmall)
+                  ? Text(
+                      node.display,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    )
                   : _buildValue(node),
             ),
           ),

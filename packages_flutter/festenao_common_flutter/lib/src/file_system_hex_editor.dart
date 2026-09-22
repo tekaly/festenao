@@ -1,9 +1,12 @@
 import 'dart:convert';
 
 import 'package:festenao_common/fs/file_system_explorer.dart';
+import 'package:festenao_theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'explorer_ui/explorer_chip.dart';
+import 'explorer_ui/explorer_scaffold.dart';
 import 'object_editor/object_editor_dialogs.dart';
 
 /// How many bytes a row of the hex dump holds.
@@ -199,30 +202,46 @@ class _FileSystemHexFileScreenState extends State<FileSystemHexFileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    var monospace = const TextStyle(fontFamily: 'monospace', fontSize: 13);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.path, overflow: TextOverflow.fade),
-        actions: [
-          if (isReadOnly)
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 8),
-              child: Center(child: Icon(Icons.lock_outline, size: 20)),
-            ),
-          IconButton(
-            icon: const Icon(Icons.copy_all_outlined),
-            tooltip: 'Copy the dump',
-            onPressed: _copy,
+    var monospace = const TextStyle(
+      fontFamily: festenaoMonospaceFontFamily,
+      fontSize: 13,
+    );
+    return ExplorerScaffold(
+      title: widget.path,
+      isReadOnly: isReadOnly,
+      stateChip: _isDirty
+          ? const ExplorerChip(
+              label: 'unsaved',
+              icon: Icons.edit_outlined,
+              tone: ExplorerChipTone.accent,
+            )
+          : const ExplorerChip(label: 'saved', icon: Icons.check),
+      statusBar: ExplorerStatusBar(
+        message:
+            '${_bytes.length} bytes · '
+            '$_rowCount rows of $fileSystemHexBytesPerRow',
+        trailing: [
+          ExplorerChip(
+            label: '0x${_bytes.length.toRadixString(16)}',
+            monospace: true,
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Reload',
-            onPressed: () => setState(() {
-              _loading = _load();
-            }),
-          ),
+          ExplorerChip(label: _text == null ? 'binary' : 'utf8'),
         ],
       ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.copy_all_outlined),
+          tooltip: 'Copy the dump',
+          onPressed: _copy,
+        ),
+        IconButton(
+          icon: const Icon(Icons.refresh),
+          tooltip: 'Reload',
+          onPressed: () => setState(() {
+            _loading = _load();
+          }),
+        ),
+      ],
       body: FutureBuilder<Uint8List>(
         future: _loading,
         builder: (context, snapshot) {

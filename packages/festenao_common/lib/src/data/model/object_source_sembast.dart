@@ -23,6 +23,9 @@ class SembastTimestampTypeHandler extends ObjectValueTypeHandler {
   @override
   String get label => 'Timestamp';
 
+  @override
+  String get shortLabel => 'ts';
+
   /// A `dateTime` of a plain json document is the same iso8601 string.
   @override
   Set<String> get decodeAliases => const {'dateTime'};
@@ -59,6 +62,9 @@ class SembastBlobTypeHandler extends ObjectValueTypeHandler {
 
   @override
   String get label => 'Blob';
+
+  @override
+  String get shortLabel => 'byte';
 
   @override
   bool matches(Object? value) => value is Blob;

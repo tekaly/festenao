@@ -1,6 +1,8 @@
 import 'package:festenao_common/data/object_editor.dart';
 import 'package:flutter/material.dart';
 
+import '../explorer_ui/explorer_chip.dart';
+import '../explorer_ui/explorer_scaffold.dart';
 import 'object_clipboard_flutter.dart';
 import 'object_editor_dialogs.dart';
 import 'object_editor_screen.dart';
@@ -28,12 +30,18 @@ class ObjectExplorerScreen extends StatefulWidget {
   /// Where a copied record goes, the global one by default.
   final FlutterObjectClipboard? clipboard;
 
+  /// What backs [repository], shown beside the store count: the database
+  /// kind, engine and version for one opened from a [FileSystemExplorer],
+  /// nothing for a backend that has no such thing to say (firestore).
+  final List<Widget> infoChips;
+
   /// Explorer of [repository].
   const ObjectExplorerScreen({
     super.key,
     required this.repository,
     this.valueEditors,
     this.clipboard,
+    this.infoChips = const [],
   });
 
   @override
@@ -45,23 +53,29 @@ class _ObjectExplorerScreenState extends State<ObjectExplorerScreen> {
       .listCollections();
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(widget.repository.title),
-      actions: [
-        if (widget.repository.isReadOnly)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Center(child: Icon(Icons.lock_outline, size: 20)),
-          ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Reload',
-          onPressed: () => setState(() {
-            _loading = widget.repository.listCollections();
-          }),
-        ),
-      ],
+  Widget build(BuildContext context) => ExplorerScaffold(
+    title: widget.repository.title,
+    isReadOnly: widget.repository.isReadOnly,
+    crumbs: [ExplorerCrumb(widget.repository.title)],
+    actions: [
+      IconButton(
+        icon: const Icon(Icons.refresh),
+        tooltip: 'Reload',
+        onPressed: () => setState(() {
+          _loading = widget.repository.listCollections();
+        }),
+      ),
+    ],
+    statusBar: FutureBuilder<List<ObjectCollection>>(
+      future: _loading,
+      builder: (context, snapshot) => ExplorerStatusBar(
+        message: widget.repository.title,
+        trailing: [
+          ...widget.infoChips,
+          if (snapshot.data case var collections?)
+            ExplorerChip(label: '${collections.length} stores'),
+        ],
+      ),
     ),
     body: FutureBuilder<List<ObjectCollection>>(
       future: _loading,
@@ -77,12 +91,24 @@ class _ObjectExplorerScreenState extends State<ObjectExplorerScreen> {
           return const Center(child: Text('No collection'));
         }
         return ListView.builder(
-          itemCount: collections.length,
+          itemCount: collections.length + 1,
           itemBuilder: (context, index) {
-            var collection = collections[index];
+            if (index == 0) {
+              return ExplorerSectionHeader(
+                label: 'Stores',
+                trailing: ExplorerChip(label: '${collections.length}'),
+              );
+            }
+            var collection = collections[index - 1];
             return ListTile(
               leading: const Icon(Icons.folder_outlined),
               title: Text(collection.name),
+              trailing: collection.isReadOnly
+                  ? const ExplorerChip(
+                      label: 'read only',
+                      icon: Icons.lock_outline,
+                    )
+                  : null,
               onTap: () => goToObjectCollectionScreen(
                 context,
                 collection: collection,
@@ -250,21 +276,26 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(collection.name),
-      actions: [
-        if (_isReadOnly)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Center(child: Icon(Icons.lock_outline, size: 20)),
-          ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Reload',
-          onPressed: _reload,
-        ),
-      ],
+  Widget build(BuildContext context) => ExplorerScaffold(
+    title: collection.name,
+    isReadOnly: _isReadOnly,
+    crumbs: [ExplorerCrumb(collection.name)],
+    actions: [
+      IconButton(
+        icon: const Icon(Icons.refresh),
+        tooltip: 'Reload',
+        onPressed: _reload,
+      ),
+    ],
+    statusBar: FutureBuilder<List<String>>(
+      future: _loading,
+      builder: (context, snapshot) => ExplorerStatusBar(
+        message: collection.name,
+        trailing: [
+          if (snapshot.data case var ids?)
+            ExplorerChip(label: '${ids.length} records'),
+        ],
+      ),
     ),
     body: FutureBuilder<List<String>>(
       future: _loading,
@@ -280,9 +311,15 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
           return const Center(child: Text('No object'));
         }
         return ListView.builder(
-          itemCount: ids.length,
+          itemCount: ids.length + 1,
           itemBuilder: (context, index) {
-            var id = ids[index];
+            if (index == 0) {
+              return ExplorerSectionHeader(
+                label: 'Records',
+                trailing: ExplorerChip(label: '${ids.length}'),
+              );
+            }
+            var id = ids[index - 1];
             return ListTile(
               leading: const Icon(Icons.description_outlined),
               title: Text(id),
@@ -346,12 +383,14 @@ Future<void> goToObjectExplorerScreen(
   required ObjectRepository repository,
   ObjectValueEditorRegistry? valueEditors,
   FlutterObjectClipboard? clipboard,
+  List<Widget> infoChips = const [],
 }) => Navigator.of(context).push<void>(
   MaterialPageRoute(
     builder: (_) => ObjectExplorerScreen(
       repository: repository,
       valueEditors: valueEditors,
       clipboard: clipboard,
+      infoChips: infoChips,
     ),
   ),
 );

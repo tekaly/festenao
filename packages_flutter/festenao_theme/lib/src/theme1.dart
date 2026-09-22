@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:tekartik_app_flutter_common_utils/color.dart';
+
+import '../fonts/jetbrains_mono/jetbrains_mono_font.dart';
+import '../fonts/poppins/poppins_font.dart';
 
 /// Festenao theme
 const colorBlue = Colors.blue;
@@ -23,9 +25,17 @@ const colorError = Colors.red;
 /// Festenao theme
 const colorGrey = Colors.grey;
 
-/// The Poppins font family, loaded by google_fonts: the font of the poppins
-/// themes, for an app building its own theme with it.
-String? get festenaoPoppinsFontFamily => GoogleFonts.poppins().fontFamily;
+/// The Poppins font family: the font of the poppins themes, for an app
+/// building its own theme with it.
+///
+/// Bundled as a plain Flutter font (see the package's `pubspec.yaml`) rather
+/// than fetched by google_fonts at runtime, so it renders the same offline,
+/// in tests, and on a device with no network.
+const festenaoPoppinsFontFamily = poppinsFontFamily;
+
+/// The monospace font family the explorers draw hex dumps and raw text
+/// with: JetBrains Mono, bundled the same way as [festenaoPoppinsFontFamily].
+const festenaoMonospaceFontFamily = jetBrainsMonoFontFamily;
 
 /// Dark theme with the Poppins font.
 ThemeData poppinsThemeData1({Color? seedColor}) {
@@ -93,7 +103,15 @@ ThemeData themeData1({
       floatingLabelBehavior: FloatingLabelBehavior.always,
       border: OutlineInputBorder(borderSide: BorderSide(color: seedColor)),
     ),
-    textTheme: textTheme.copyWith(labelSmall: TextStyle(color: seedColor)),
+    // Only the colour of labelSmall changes: replacing the style outright
+    // would drop its font family, and the small labels — badges, section
+    // headers — would then be drawn in the platform font rather than in the
+    // one the theme was built with.
+    textTheme: textTheme.copyWith(
+      labelSmall: (textTheme.labelSmall ?? const TextStyle()).copyWith(
+        color: seedColor,
+      ),
+    ),
     dividerTheme: const DividerThemeData(
       color: colorGrey,
       //thickness: 2,

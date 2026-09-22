@@ -1,6 +1,7 @@
 import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
 import 'package:festenao_dashboard_app_demo/main.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_data.dart';
+import 'package:festenao_dashboard_app_demo/src/demo_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -18,7 +19,16 @@ void _testWidgets(
   Future<void> Function(WidgetTester) body,
 ) {
   testWidgets(description, (tester) async {
-    await tester.runAsync(() => body(tester));
+    await tester.runAsync(() async {
+      // The home page carries a theme picker above the menu, so the window
+      // has to be tall enough for the last entry to be built.
+      await tester.binding.setSurfaceSize(const Size(900, 1400));
+      try {
+        await body(tester);
+      } finally {
+        await tester.binding.setSurfaceSize(null);
+      }
+    });
   });
 }
 
@@ -101,6 +111,56 @@ void main() {
           'Sembast explorer',
         ]),
       );
+    });
+
+    _testWidgets('swaps the theme from the home screen', (tester) async {
+      await tester.pumpWidget(const FestenaoExplorersDemoApp());
+      await _settle(tester);
+
+      // Every theme is offered, the first one being on.
+      for (var demoTheme in demoThemes()) {
+        expect(find.text(demoTheme.name), findsWidgets);
+      }
+      var before = Theme.of(
+        tester.element(find.text('Firestore explorer')),
+      ).colorScheme;
+      expect(before.brightness, Brightness.light);
+
+      // The dark one is another brightness, and the explorers follow it
+      // without a colour of their own.
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Material dark'));
+      await _settle(tester);
+      var after = Theme.of(
+        tester.element(find.text('Firestore explorer')),
+      ).colorScheme;
+      expect(after.brightness, Brightness.dark);
+      expect(after.surface, isNot(before.surface));
+
+      // And it carries into the screens it opens.
+      await tester.tap(find.text('File system explorer'));
+      await _settle(tester);
+      expect(
+        Theme.of(
+          tester.element(find.text('config.json')),
+        ).colorScheme.brightness,
+        Brightness.dark,
+      );
+    });
+
+    _testWidgets('offers the poppins themes', (tester) async {
+      await tester.pumpWidget(const FestenaoExplorersDemoApp());
+      await _settle(tester);
+
+      await tester.tap(
+        find.widgetWithText(ChoiceChip, 'Festenao poppins dark'),
+      );
+      await _settle(tester);
+      var theme = Theme.of(tester.element(find.text('Firestore explorer')));
+      expect(theme.colorScheme.brightness, Brightness.dark);
+      // The poppins themes carry the rules of themeData1: floating snack
+      // bars, and a font family of their own.
+      expect(theme.snackBarTheme.behavior, SnackBarBehavior.floating);
+      expect(theme.textTheme.bodyMedium?.fontFamily, isNotNull);
     });
 
     _testWidgets('opens the firestore explorer on the demo tree', (

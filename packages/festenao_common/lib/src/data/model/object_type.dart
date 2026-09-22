@@ -38,6 +38,13 @@ abstract class ObjectValueTypeHandler {
   /// Human readable type name, what a type selector displays.
   String get label;
 
+  /// A two to four letter name, what a type badge beside a field shows.
+  ///
+  /// [id] by default, which reads well for the short ids (`int`, `bool`,
+  /// `map`) and not for the long ones — hence `str`, `date`, `byte`, `ts`,
+  /// `geo`, `ref`.
+  String get shortLabel => id;
+
   /// True for a type json holds natively (string, int, double, bool, null).
   bool get isBasic => false;
 
@@ -123,6 +130,9 @@ abstract class _TypeHandlerBase implements ObjectValueTypeHandler {
   Set<String> get decodeAliases => const {};
 
   @override
+  String get shortLabel => id;
+
+  @override
   String get prefix => objectCustomTypePrefix;
 
   @override
@@ -137,6 +147,9 @@ abstract class _TypeHandlerBase implements ObjectValueTypeHandler {
 
 class _StringTypeHandler extends _TypeHandlerBase {
   const _StringTypeHandler() : super('string', 'String');
+
+  @override
+  String get shortLabel => 'str';
 
   @override
   bool get isBasic => true;
@@ -187,6 +200,9 @@ class _IntTypeHandler extends _TypeHandlerBase {
 
 class _DoubleTypeHandler extends _TypeHandlerBase {
   const _DoubleTypeHandler() : super('double', 'Double');
+
+  @override
+  String get shortLabel => 'num';
 
   @override
   bool get isBasic => true;
@@ -326,6 +342,9 @@ class _ListTypeHandler extends _TypeHandlerBase {
 class _DateTimeTypeHandler extends _TypeHandlerBase {
   const _DateTimeTypeHandler() : super('dateTime', 'DateTime');
 
+  @override
+  String get shortLabel => 'date';
+
   /// A `timestamp` of sembast, sdb or firestore is the same iso8601 string.
   @override
   Set<String> get decodeAliases => const {'timestamp'};
@@ -354,6 +373,9 @@ class _DateTimeTypeHandler extends _TypeHandlerBase {
 
 class _BytesTypeHandler extends _TypeHandlerBase {
   const _BytesTypeHandler() : super('blob', 'Blob');
+
+  @override
+  String get shortLabel => 'byte';
 
   @override
   bool matches(Object? value) => value is Uint8List;
@@ -395,6 +417,9 @@ class _BytesTypeHandler extends _TypeHandlerBase {
 /// what a missing handler looks like in a viewer, rather than a crash.
 class _UnknownTypeHandler extends _TypeHandlerBase {
   const _UnknownTypeHandler() : super('unknown', 'Unknown');
+
+  @override
+  String get shortLabel => '?';
 
   @override
   bool matches(Object? value) => true;
@@ -503,6 +528,9 @@ class ObjectCustomTypeHandler extends ObjectValueTypeHandler {
   /// shows before it is edited.
   final String Function(Object? value)? displayValue;
 
+  @override
+  final String shortLabel;
+
   /// Type [id], marked with [prefix] in json.
   ObjectCustomTypeHandler({
     required this.id,
@@ -512,9 +540,10 @@ class ObjectCustomTypeHandler extends ObjectValueTypeHandler {
     required this.formatValue,
     required this.parseValue,
     this.displayValue,
+    String? shortLabel,
     this.prefix = objectCustomTypePrefix,
     this.decodeAliases = const {},
-  });
+  }) : shortLabel = shortLabel ?? id;
 
   @override
   bool matches(Object? value) => matchesValue(value);

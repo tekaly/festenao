@@ -3,6 +3,8 @@ import 'package:festenao_common/fs/file_system_explorer.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_firebase_firestore/firestore.dart';
 
+import 'explorer_ui/explorer_chip.dart';
+import 'explorer_ui/explorer_scaffold.dart';
 import 'firestore_backup_flutter.dart';
 import 'object_editor/object_clipboard_flutter.dart';
 import 'object_editor/object_editor_dialogs.dart';
@@ -191,35 +193,45 @@ class _FirestoreExplorerScreenState extends State<FirestoreExplorerScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(
-        widget.title ?? widget.documentPath ?? 'Firestore',
-        overflow: TextOverflow.fade,
+  Widget build(BuildContext context) => ExplorerScaffold(
+    title: widget.title ?? widget.documentPath ?? 'Firestore',
+    isReadOnly: widget.isReadOnly,
+    crumbs: ExplorerBreadcrumb.ofPath(
+      widget.documentPath ?? '',
+      root: widget.title ?? 'firestore',
+    ),
+    stateChip: ExplorerChip(
+      label: _mustName ? 'named' : 'listed',
+      icon: Icons.cloud_outlined,
+      tone: ExplorerChipTone.accent,
+    ),
+    actions: [
+      if (widget.backupExplorer != null)
+        IconButton(
+          icon: const Icon(Icons.backup_outlined),
+          tooltip: 'Back up',
+          onPressed: _backup,
+        ),
+      IconButton(
+        icon: const Icon(Icons.find_in_page_outlined),
+        tooltip: 'Open a document',
+        onPressed: _openDocument,
       ),
-      actions: [
-        if (widget.backupExplorer != null)
-          IconButton(
-            icon: const Icon(Icons.backup_outlined),
-            tooltip: 'Back up',
-            onPressed: _backup,
-          ),
-        if (widget.isReadOnly)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Center(child: Icon(Icons.lock_outline, size: 20)),
-          ),
-        IconButton(
-          icon: const Icon(Icons.find_in_page_outlined),
-          tooltip: 'Open a document',
-          onPressed: _openDocument,
-        ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Reload',
-          onPressed: _reload,
-        ),
-      ],
+      IconButton(
+        icon: const Icon(Icons.refresh),
+        tooltip: 'Reload',
+        onPressed: _reload,
+      ),
+    ],
+    statusBar: FutureBuilder<List<ObjectCollection>>(
+      future: _loading,
+      builder: (context, snapshot) => ExplorerStatusBar(
+        message: widget.documentPath ?? 'firestore',
+        trailing: [
+          if (snapshot.data case var collections?)
+            ExplorerChip(label: '${collections.length} collections'),
+        ],
+      ),
     ),
     body: FutureBuilder<List<ObjectCollection>>(
       future: _loading,
@@ -239,9 +251,15 @@ class _FirestoreExplorerScreenState extends State<FirestoreExplorerScreen> {
           );
         }
         return ListView.builder(
-          itemCount: collections.length,
+          itemCount: collections.length + 1,
           itemBuilder: (context, index) {
-            var collection = collections[index];
+            if (index == 0) {
+              return ExplorerSectionHeader(
+                label: 'Collections',
+                trailing: ExplorerChip(label: '${collections.length}'),
+              );
+            }
+            var collection = collections[index - 1];
             return ListTile(
               leading: const Icon(Icons.folder_outlined),
               title: Text(collection.name),

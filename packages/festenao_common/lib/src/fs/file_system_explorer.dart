@@ -161,16 +161,32 @@ class FileSystemDatabase {
   /// Closes the database.
   final Future<void> Function() close;
 
+  /// What actually stores it, beyond [kind]: the sdb factory's own name
+  /// (`idb-sqflite`, `idb-web`, `idb-sembast`, a `sandbox(...)` of one of
+  /// those...) or, for a plain sembast file, the sembast factory's runtime
+  /// type (`DatabaseFactoryIo`, `DatabaseFactoryMemory`...).
+  ///
+  /// `sdb` is `idb_shim` on top of one of several real engines — sqflite
+  /// (native sqlite), the browser's indexeddb, or sembast itself, which is
+  /// why [kind] alone (`sembast` or `sdb`) does not say which storage a file
+  /// actually sits on.
+  final String engine;
+
+  /// The version stored in the file, as sembast/idb_shim report it.
+  final int version;
+
   /// Database [path], browsed through [repository].
   FileSystemDatabase({
     required this.kind,
     required this.path,
     required this.repository,
     required this.close,
+    required this.engine,
+    required this.version,
   });
 
   @override
-  String toString() => '$path (${kind.name})';
+  String toString() => '$path (${kind.name} · $engine v$version)';
 }
 
 /// A file system rooted at one directory, browsed and edited through
@@ -411,6 +427,8 @@ class FileSystemExplorer {
           isReadOnly: isReadOnly,
         ),
         close: database.close,
+        engine: _sembast(path).$1.runtimeType.toString(),
+        version: database.version,
       );
     }
     // sdb reads the same file through its own factory, so the sembast handle
@@ -427,6 +445,8 @@ class FileSystemExplorer {
         isReadOnly: isReadOnly,
       ),
       close: sdbDatabase.close,
+      engine: sdbDatabaseFactory.name,
+      version: sdbDatabase.version,
     );
   }
 
@@ -501,6 +521,8 @@ class FileSystemExplorer {
         isReadOnly: isReadOnly,
       ),
       close: database.close,
+      engine: factory.runtimeType.toString(),
+      version: database.version,
     );
   }
 
@@ -546,6 +568,8 @@ class FileSystemExplorer {
         isReadOnly: isReadOnly,
       ),
       close: database.close,
+      engine: factory.name,
+      version: database.version,
     );
   }
 

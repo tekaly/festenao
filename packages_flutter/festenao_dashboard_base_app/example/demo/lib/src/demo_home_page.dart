@@ -3,6 +3,7 @@ import 'package:festenao_common_flutter/firestore_explorer_flutter.dart';
 import 'package:flutter/material.dart';
 
 import 'demo_data.dart';
+import 'demo_theme.dart';
 
 /// The main menu: one entry per explorer, in the order they are worth trying.
 ///
@@ -12,12 +13,75 @@ class DemoHomePage extends StatelessWidget {
   /// What the explorers run on.
   final DemoData data;
 
+  /// The themes offered, [demoThemes] by default.
+  final List<DemoTheme> themes;
+
+  /// Which one is on.
+  final int themeIndex;
+
+  /// Picks another one.
+  final ValueChanged<int>? onThemeChanged;
+
   /// Home page on [data].
-  const DemoHomePage({super.key, required this.data});
+  const DemoHomePage({
+    super.key,
+    required this.data,
+    this.themes = const [],
+    this.themeIndex = 0,
+    this.onThemeChanged,
+  });
+
+  /// The theme picker: the explorers take no colour of their own, so swapping
+  /// the theme is how to see that they follow it.
+  Widget _buildThemePicker(BuildContext context) {
+    var theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const ExplorerSectionHeader(label: 'Theme'),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (var (index, demoTheme) in themes.indexed)
+                ChoiceChip(
+                  label: Text(demoTheme.name),
+                  selected: index == themeIndex,
+                  onSelected: (_) => onThemeChanged?.call(index),
+                ),
+            ],
+          ),
+        ),
+        if (themes.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: Text(
+              themes[themeIndex].description,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Festenao explorers demo')),
+    appBar: AppBar(
+      title: const Text('Festenao explorers demo'),
+      actions: [
+        if (themes.isNotEmpty)
+          ExplorerChip(
+            label: themes[themeIndex].name,
+            icon: Icons.palette_outlined,
+            tone: ExplorerChipTone.accent,
+          ),
+        const SizedBox(width: 12),
+      ],
+    ),
     body: ListView(
       children: [
         const Padding(
@@ -28,7 +92,11 @@ class DemoHomePage extends StatelessWidget {
             'content back as it was.',
           ),
         ),
-        const Divider(),
+        if (themes.isNotEmpty) ...[
+          _buildThemePicker(context),
+          const SizedBox(height: 8),
+        ],
+        const ExplorerSectionHeader(label: 'Explorers'),
         ListTile(
           leading: const Icon(Icons.cloud_outlined),
           title: const Text('Firestore explorer'),
@@ -71,7 +139,7 @@ class DemoHomePage extends StatelessWidget {
             kind: FileSystemDatabaseKind.sembast,
           ),
         ),
-        const Divider(),
+        const ExplorerSectionHeader(label: 'More'),
         ListTile(
           leading: const Icon(Icons.search),
           title: const Text('Every database'),

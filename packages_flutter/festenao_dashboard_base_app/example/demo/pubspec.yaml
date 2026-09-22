@@ -15,6 +15,11 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_common_flutter
+  # The poppins themes the demo swaps between.
+  festenao_theme:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_theme
   # The in memory backends the demo runs on.
   fs_shim: ">=2.5.5"
   idb_shim: ">=2.9.10-1"

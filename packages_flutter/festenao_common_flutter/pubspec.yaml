@@ -14,8 +14,24 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages/festenao_common
+  # The monospace font the hex and text editors draw with.
+  festenao_theme:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_theme
   flutter:
     sdk: flutter
+  # Zipping a folder for download.
+  archive: ">=4.3.0"
+  # Uploading a file from the device, and downloading one to it.
+  tekaly_file_download:
+    git:
+      url: https://github.com/tekartikprj/tekaly
+      path: flutter_packages/file_download
+  tekaly_file_picker_flutter:
+    git:
+      url: https://github.com/tekartikprj/tekaly
+      path: flutter_packages/file_picker_flutter
   tekaly_assets:
     git:
       url: https://github.com/tekartikprj/tekaly

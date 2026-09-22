@@ -41,7 +41,7 @@ class _HostState extends State<_Host> {
 
 /// The row of the field named [name].
 Finder _row(String name) =>
-    find.ancestor(of: find.text(name), matching: find.byType(Row)).first;
+    find.ancestor(of: find.text(name), matching: find.byType(Row)).last;
 
 class _Settings extends CvModelBase {
   final name = CvField<String>('name');

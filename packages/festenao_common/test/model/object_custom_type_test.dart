@@ -119,6 +119,8 @@ void main() {
     });
   });
 
+  group('short labels', _shortLabelTests);
+
   group('the backend registries', () {
     test('sembast and sdb read the same types', () {
       // sdb is idb_shim over sembast: one Timestamp, one Blob, one registry.
@@ -140,5 +142,37 @@ void main() {
         'dateTime',
       ]);
     });
+  });
+}
+
+/// The short names the type badges of the explorers show.
+void _shortLabelTests() {
+  test('every type has a short name for its badge', () {
+    expect(
+      {
+        for (var handler in defaultObjectTypeRegistry.handlers)
+          handler.id: handler.shortLabel,
+      },
+      {
+        'string': 'str',
+        'int': 'int',
+        'double': 'num',
+        'bool': 'bool',
+        'null': 'null',
+        'map': 'map',
+        'list': 'list',
+        'dateTime': 'date',
+        'blob': 'byte',
+      },
+    );
+    expect(
+      {
+        for (var handler in sembastObjectTypeRegistry.customHandlers)
+          handler.id: handler.shortLabel,
+      },
+      {'timestamp': 'ts', 'blob': 'byte', 'dateTime': 'date'},
+    );
+    expect(durationType.shortLabel, 'duration');
+    expect(objectTypeUnknown.shortLabel, '?');
   });
 }

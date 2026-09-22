@@ -11,13 +11,12 @@
 library;
 
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
-import 'package:festenao_common_flutter/firestore_explorer_flutter.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_data.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_home_page.dart';
+import 'package:festenao_dashboard_app_demo/src/demo_theme.dart';
+import 'package:festenao_theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -47,6 +46,17 @@ String get _flutterFontsPath {
   }
   return '$root/bin/cache/artifacts/material_fonts';
 }
+
+/// Where festenao_theme keeps the bundled poppins family.
+///
+/// `flutter test` runs from the package directory, and festenao_theme is three
+/// levels up beside `festenao_dashboard_base_app`.
+String get _poppinsFontsPath =>
+    '${Directory.current.path}/../../../festenao_theme/lib/fonts/poppins';
+
+/// Where festenao_theme keeps the bundled monospace family.
+String get _monospaceFontsPath =>
+    '${Directory.current.path}/../../../festenao_theme/lib/fonts/jetbrains_mono';
 
 /// Loads the real text and icon fonts.
 Future<void> _loadFonts() async {
@@ -80,8 +90,20 @@ Future<void> _loadFonts() async {
     '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
   ]);
   await load('MaterialIcons', ['$fonts/MaterialIcons-Regular.otf']);
-  await load('monospace', [
-    '/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf',
+
+  // Poppins and the explorers' monospace font are plain Flutter fonts
+  // declared by festenao_theme's own pubspec, under the family names its
+  // constants name — no google_fonts runtime lookup involved, so there is no
+  // family name to guess here.
+  await load(festenaoPoppinsFontFamily, [
+    '$_poppinsFontsPath/Poppins-Regular.ttf',
+    '$_poppinsFontsPath/Poppins-Medium.ttf',
+    '$_poppinsFontsPath/Poppins-SemiBold.ttf',
+  ]);
+  await load(festenaoMonospaceFontFamily, [
+    '$_monospaceFontsPath/JetBrainsMonoNL-Regular.ttf',
+    '$_monospaceFontsPath/JetBrainsMonoNL-Medium.ttf',
+    '$_monospaceFontsPath/JetBrainsMonoNL-SemiBold.ttf',
   ]);
 }
 
@@ -127,20 +149,38 @@ void main() {
       await _loadFonts();
       await tester.binding.setSurfaceSize(screenshotSize);
       var data = await DemoData.create();
+      var themes = demoThemes();
+      var themeIndex = 0;
+      late StateSetter setTheme;
+
       await tester.pumpWidget(
         RepaintBoundary(
           key: _rootKey,
-          child: MaterialApp(
-            title: 'Festenao explorers demo',
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-            ),
-            home: DemoHomePage(data: data),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              setTheme = setState;
+              return MaterialApp(
+                title: 'Festenao explorers demo',
+                debugShowCheckedModeBanner: false,
+                theme: themes[themeIndex].build(),
+                home: DemoHomePage(
+                  data: data,
+                  themes: themes,
+                  themeIndex: themeIndex,
+                  onThemeChanged: (index) => setTheme(() => themeIndex = index),
+                ),
+              );
+            },
           ),
         ),
       );
       await _shot(tester, 'main_menu');
+
+      /// Shows the same screen under another theme.
+      Future<void> withTheme(int index, String name) async {
+        setTheme(() => themeIndex = index);
+        await _shot(tester, name);
+      }
 
       // ---- firestore ----
       await _tap(tester, find.text('Firestore explorer'));
@@ -158,7 +198,7 @@ void main() {
         find.descendant(
           of: find
               .ancestor(of: find.text('joinedAt'), matching: find.byType(Row))
-              .first,
+              .last,
           matching: find.byIcon(Icons.more_vert),
         ),
       );
@@ -262,7 +302,7 @@ void main() {
         find.descendant(
           of: find
               .ancestor(of: find.text('count'), matching: find.byType(Row))
-              .first,
+              .last,
           matching: find.byIcon(Icons.more_vert),
         ),
       );
@@ -270,6 +310,31 @@ void main() {
       await _shot(tester, 'type_selector');
       await tester.tapAt(const Offset(10, 10));
       await _settle(tester);
+
+      // The menu under each theme: the explorers take no colour of their
+      // own, so this is what the themes do to them.
+      await tester.tapAt(const Offset(10, 10));
+      await _settle(tester);
+      // Back to the menu, and with nothing left hanging over it: the editor
+      // says what it answered on the way out. The tap that dismissed the
+      // dialog may have landed on the back button already, so this pops only
+      // while the menu is still covered.
+      while (find.byType(DemoHomePage).evaluate().isEmpty) {
+        await _back(tester);
+      }
+      // From inside the app, where the messenger lives.
+      ScaffoldMessenger.of(
+        tester.element(find.byType(DemoHomePage)),
+      ).clearSnackBars();
+      await _settle(tester);
+
+      for (var (index, demoTheme) in themes.indexed.skip(1)) {
+        await withTheme(
+          index,
+          'theme_${demoTheme.name.toLowerCase().replaceAll(' ', '_')}',
+        );
+      }
+      setTheme(() => themeIndex = 0);
 
       await tester.binding.setSurfaceSize(null);
     });

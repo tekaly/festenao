@@ -151,6 +151,31 @@ void main() {
       });
     });
 
+    test('records nothing when a value is set to what it already is', () {
+      var editor = ObjectEditor({
+        'a': 1,
+        'nested': {'b': 2},
+      });
+      var a = ObjectPath.root.field('a');
+      editor.setValueAt(a, 1);
+      expect(editor.isDirty, isFalse);
+      expect(editor.operations, isEmpty);
+
+      // A nested value compares by what it holds, not by identity.
+      editor.setValueAt(ObjectPath.root.field('nested'), {'b': 2});
+      expect(editor.isDirty, isFalse);
+
+      // A real change still registers, once.
+      editor.setValueAt(a, 2);
+      expect(editor.operations.length, 1);
+
+      // And a field that is not there yet is added even holding null, a
+      // missing path being nothing like an unchanged one.
+      editor.addField(ObjectPath.root, 'empty');
+      expect(editor.value, containsPair('empty', isNull));
+      expect(editor.operations.length, 2);
+    });
+
     test('records the operations', () {
       var editor = ObjectEditor({'a': 1});
       editor.setValueAt(ObjectPath.root.field('a'), 2);

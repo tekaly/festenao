@@ -6,10 +6,11 @@ Widget _app(Widget child) => MaterialApp(
   home: Scaffold(body: SingleChildScrollView(child: child)),
 );
 
-/// The row of the field named [name]: every row is a [Row], and the root has
-/// one of its own, so rows are targeted by name rather than by index.
+/// The row of the field named [name]. A row holds a [Row] of its own for
+/// the name and its type badge, so the outermost ancestor is the one
+/// carrying the value and the menu.
 Finder _row(String name) =>
-    find.ancestor(of: find.text(name), matching: find.byType(Row)).first;
+    find.ancestor(of: find.text(name), matching: find.byType(Row)).last;
 
 /// Opens the menu of the row named [name].
 Future<void> _openMenu(WidgetTester tester, String name) async {
@@ -160,6 +161,28 @@ void main() {
   });
 
   group('ObjectEditorScreen', () {
+    testWidgets('says in the app bar whether it is saved', (tester) async {
+      var source = MemoryObjectSource(title: 'demo', value: {'name': 'test'});
+      await tester.pumpWidget(
+        MaterialApp(home: ObjectEditorScreen(source: source)),
+      );
+      await tester.pumpAndSettle();
+
+      // Loaded and untouched.
+      expect(find.text('saved'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).first, 'edited');
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pumpAndSettle();
+      expect(find.text('1 unsaved'), findsOneWidget);
+      expect(find.text('saved'), findsNothing);
+
+      await tester.tap(find.byIcon(Icons.save));
+      await tester.pumpAndSettle();
+      expect(find.text('saved'), findsOneWidget);
+      await source.close();
+    });
+
     testWidgets('loads, edits and saves a source', (tester) async {
       var source = MemoryObjectSource(title: 'demo', value: {'name': 'test'});
       await tester.pumpWidget(
@@ -167,7 +190,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('demo'), findsOneWidget);
+      // The app bar and the status bar both name the source.
+      expect(find.text('demo'), findsWidgets);
 
       await tester.enterText(find.byType(TextField).first, 'edited');
       await tester.testTextInput.receiveAction(TextInputAction.done);

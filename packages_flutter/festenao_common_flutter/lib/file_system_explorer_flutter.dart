@@ -21,6 +21,15 @@ library;
 export 'package:festenao_common/fs/file_system_explorer.dart';
 
 export 'object_editor_flutter.dart';
+export 'src/explorer_ui/explorer_chip.dart'
+    show ExplorerChip, ExplorerChipTone, ExplorerTypeChip, explorerChipFontSize;
+export 'src/explorer_ui/explorer_scaffold.dart'
+    show
+        ExplorerBreadcrumb,
+        ExplorerCrumb,
+        ExplorerScaffold,
+        ExplorerSectionHeader,
+        ExplorerStatusBar;
 export 'src/file_system_create_action.dart'
     show
         FileSystemCreateAction,

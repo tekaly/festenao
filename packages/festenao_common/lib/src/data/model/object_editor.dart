@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
+
 import 'object_edit_operation.dart';
 import 'object_node.dart';
 import 'object_path.dart';
@@ -136,9 +138,20 @@ class ObjectEditor {
   /// Sets the value at [path], whether something sat there or not.
   ///
   /// The root takes [value] as a whole, see [setRootValue].
+  ///
+  /// Setting a value to what it already is changes nothing and records
+  /// nothing: an editor that reports the same edit twice — a text field
+  /// submitted and then losing the focus does exactly that — would show a
+  /// clean tree as modified and replay the same write twice on save.
   void setValueAt(ObjectPath path, Object? value) {
     if (path.isRoot) {
       setRootValue(value);
+      return;
+    }
+    // A missing path is not an unchanged one, so a new field holding null is
+    // still added.
+    if (exists(path) &&
+        const DeepCollectionEquality().equals(valueAt(path), value)) {
       return;
     }
     var parent = _containerOrThrow(path.parent!);

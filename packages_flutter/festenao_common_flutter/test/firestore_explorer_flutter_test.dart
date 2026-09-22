@@ -206,7 +206,7 @@ void main() {
         find.descendant(
           of: find
               .ancestor(of: find.text('name'), matching: find.byType(Row))
-              .first,
+              .last,
           matching: find.byIcon(Icons.more_vert),
         ),
       );

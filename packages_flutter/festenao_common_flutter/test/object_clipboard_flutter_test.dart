@@ -40,7 +40,7 @@ Widget _app(Widget child) => MaterialApp(
 Future<void> _openMenu(WidgetTester tester, String name) async {
   await tester.tap(
     find.descendant(
-      of: find.ancestor(of: find.text(name), matching: find.byType(Row)).first,
+      of: find.ancestor(of: find.text(name), matching: find.byType(Row)).last,
       matching: find.byIcon(Icons.more_vert),
     ),
   );

@@ -18,6 +18,9 @@ class FirestoreTimestampTypeHandler extends ObjectValueTypeHandler {
   @override
   String get label => 'Timestamp';
 
+  @override
+  String get shortLabel => 'ts';
+
   /// A `dateTime` of a plain json document is the same iso8601 string.
   @override
   Set<String> get decodeAliases => const {'dateTime'};
@@ -54,6 +57,9 @@ class FirestoreBlobTypeHandler extends ObjectValueTypeHandler {
 
   @override
   String get label => 'Blob';
+
+  @override
+  String get shortLabel => 'byte';
 
   @override
   bool matches(Object? value) => value is Blob;
@@ -93,6 +99,9 @@ class FirestoreGeoPointTypeHandler extends ObjectValueTypeHandler {
 
   @override
   String get label => 'GeoPoint';
+
+  @override
+  String get shortLabel => 'geo';
 
   @override
   bool matches(Object? value) => value is GeoPoint;
@@ -160,6 +169,9 @@ class FirestoreDocumentReferenceTypeHandler extends ObjectValueTypeHandler {
 
   @override
   String get label => 'Reference';
+
+  @override
+  String get shortLabel => 'ref';
 
   @override
   bool matches(Object? value) => value is DocumentReference;

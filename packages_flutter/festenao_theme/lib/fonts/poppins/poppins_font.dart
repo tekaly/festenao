@@ -12,6 +12,6 @@ void addPoppinsLicense() {
     final license = await rootBundle.loadString(
       'packages/festenao_theme/fonts/poppins/OFL.txt',
     );
-    yield LicenseEntryWithLineBreaks(['google_fonts'], license);
+    yield LicenseEntryWithLineBreaks(['Poppins'], license);
   });
 }

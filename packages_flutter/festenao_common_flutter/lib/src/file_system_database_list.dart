@@ -1,6 +1,8 @@
 import 'package:festenao_common/fs/file_system_explorer.dart';
 import 'package:flutter/material.dart';
 
+import 'explorer_ui/explorer_chip.dart';
+import 'explorer_ui/explorer_scaffold.dart';
 import 'object_editor/object_explorer_screen.dart';
 import 'object_editor/object_value_editor.dart';
 
@@ -9,6 +11,23 @@ typedef FileSystemDatabaseEntry = (
   FileSystemEntry entry,
   FileSystemDatabaseKind kind,
 );
+
+/// The badges an opened [database] is shown with: its kind, the engine that
+/// actually stores it, and its version — `sdb` and `sembast` alone don't say
+/// whether a file sits on sqflite, the browser's indexeddb, or plain sembast.
+List<Widget> fileSystemDatabaseInfoChips(FileSystemDatabase database) => [
+  ExplorerChip(
+    label: database.kind.name,
+    tone: ExplorerChipTone.accent,
+    tooltip: 'Database kind',
+  ),
+  ExplorerChip(
+    label: database.engine,
+    monospace: true,
+    tooltip: 'Storage engine',
+  ),
+  ExplorerChip(label: 'v${database.version}', tooltip: 'Database version'),
+];
 
 /// The databases under [path] of [explorer], walking the directories below it.
 ///
@@ -126,6 +145,7 @@ class _FileSystemDatabaseListScreenState
         context,
         repository: database.repository,
         valueEditors: widget.valueEditors,
+        infoChips: fileSystemDatabaseInfoChips(database),
       );
     } finally {
       await database.close();
@@ -133,29 +153,35 @@ class _FileSystemDatabaseListScreenState
     _reload();
   }
 
+  String get _title =>
+      widget.title ??
+      switch (widget.kind) {
+        FileSystemDatabaseKind.sembast => 'Sembast databases',
+        FileSystemDatabaseKind.sdb => 'Sdb databases',
+        null => 'Databases',
+      };
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(
-        widget.title ??
-            switch (widget.kind) {
-              FileSystemDatabaseKind.sembast => 'Sembast databases',
-              FileSystemDatabaseKind.sdb => 'Sdb databases',
-              null => 'Databases',
-            },
+  Widget build(BuildContext context) => ExplorerScaffold(
+    title: _title,
+    isReadOnly: explorer.isReadOnly,
+    crumbs: [ExplorerCrumb(explorer.title), ExplorerCrumb(_title)],
+    actions: [
+      IconButton(
+        icon: const Icon(Icons.refresh),
+        tooltip: 'Reload',
+        onPressed: _reload,
       ),
-      actions: [
-        if (explorer.isReadOnly)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Center(child: Icon(Icons.lock_outline, size: 20)),
-          ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Reload',
-          onPressed: _reload,
-        ),
-      ],
+    ],
+    statusBar: FutureBuilder<List<FileSystemDatabaseEntry>>(
+      future: _loading,
+      builder: (context, snapshot) => ExplorerStatusBar(
+        message: explorer.title,
+        trailing: [
+          if (snapshot.data case var found?)
+            ExplorerChip(label: '${found.length} found'),
+        ],
+      ),
     ),
     body: FutureBuilder<List<FileSystemDatabaseEntry>>(
       future: _loading,
@@ -171,18 +197,30 @@ class _FileSystemDatabaseListScreenState
           return const Center(child: Text('No database here'));
         }
         return ListView.builder(
-          itemCount: found.length,
+          itemCount: found.length + 1,
           itemBuilder: (context, index) {
-            var (entry, kind) = found[index];
+            if (index == 0) {
+              return ExplorerSectionHeader(
+                label: 'Databases',
+                trailing: ExplorerChip(label: '${found.length}'),
+              );
+            }
+            var (entry, kind) = found[index - 1];
             return ListTile(
               leading: Icon(
                 kind == FileSystemDatabaseKind.sdb
                     ? Icons.dns_outlined
                     : Icons.storage_outlined,
               ),
-              title: Text(entry.name),
-              subtitle: Text('${entry.path} · ${kind.name}'),
-              onTap: () => _open(found[index]),
+              title: Row(
+                children: [
+                  Flexible(child: Text(entry.name)),
+                  const SizedBox(width: 8),
+                  ExplorerChip(label: kind.name, tone: ExplorerChipTone.accent),
+                ],
+              ),
+              subtitle: Text(entry.path),
+              onTap: () => _open(found[index - 1]),
             );
           },
         );
