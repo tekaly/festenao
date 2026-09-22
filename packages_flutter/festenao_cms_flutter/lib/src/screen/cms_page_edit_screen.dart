@@ -72,9 +72,11 @@ class _CmsPageEditScreenState extends ConsumerState<CmsPageEditScreen>
   final _seoTitleCtrl = TextEditingController();
   final _seoDescriptionCtrl = TextEditingController();
   final _heroUrlCtrl = TextEditingController();
+  final _orderCtrl = TextEditingController();
   late final _tabs = TabController(length: 2, vsync: this);
 
   String _itemKind = cmsItemKindPage;
+  String _bodyFormat = cmsPageBodyFormatMarkdown;
   var _published = false;
   var _noIndex = false;
   var _slugEdited = false;
@@ -118,6 +120,7 @@ class _CmsPageEditScreenState extends ConsumerState<CmsPageEditScreen>
       _seoTitleCtrl,
       _seoDescriptionCtrl,
       _heroUrlCtrl,
+      _orderCtrl,
     ]) {
       ctrl.dispose();
     }
@@ -131,6 +134,10 @@ class _CmsPageEditScreenState extends ConsumerState<CmsPageEditScreen>
     _slugEdited = true;
     _summaryCtrl.text = page.summary.v ?? '';
     _bodyCtrl.text = page.body.v ?? '';
+    _bodyFormat = page.isMarkdown
+        ? cmsPageBodyFormatMarkdown
+        : cmsPageBodyFormatHtml;
+    _orderCtrl.text = page.order.v?.toString() ?? '';
     _tagsCtrl.text = (page.tags.v ?? const <String>[]).join(', ');
     _itemKind = page.kind;
     _itemIdCtrl.text = page.itemId.v ?? '';
@@ -150,7 +157,8 @@ class _CmsPageEditScreenState extends ConsumerState<CmsPageEditScreen>
       ..slug.v = _emptyToNull(_slugCtrl.text)
       ..summary.v = _emptyToNull(_summaryCtrl.text)
       ..body.v = _bodyCtrl.text
-      ..bodyFormat.v = cmsPageBodyFormatMarkdown
+      ..bodyFormat.v = _bodyFormat
+      ..order.v = int.tryParse(_orderCtrl.text.trim())
       ..tags.v = _tagsCtrl.text
           .split(',')
           .map((tag) => tag.trim())
@@ -355,11 +363,33 @@ class _CmsPageEditScreenState extends ConsumerState<CmsPageEditScreen>
             maxLines: 2,
           ),
           const SizedBox(height: 12),
+          DropdownButtonFormField<String>(
+            initialValue: _bodyFormat,
+            decoration: const InputDecoration(labelText: 'Body format'),
+            items: const [
+              DropdownMenuItem(
+                value: cmsPageBodyFormatMarkdown,
+                child: Text('Markdown'),
+              ),
+              DropdownMenuItem(
+                value: cmsPageBodyFormatHtml,
+                child: Text('Html (trusted content only)'),
+              ),
+            ],
+            onChanged: readOnly
+                ? null
+                : (value) => setState(
+                    () => _bodyFormat = value ?? cmsPageBodyFormatMarkdown,
+                  ),
+          ),
+          const SizedBox(height: 12),
           TextFormField(
             controller: _bodyCtrl,
             readOnly: readOnly,
-            decoration: const InputDecoration(
-              labelText: 'Body (markdown)',
+            decoration: InputDecoration(
+              labelText: _bodyFormat == cmsPageBodyFormatHtml
+                  ? 'Body (html)'
+                  : 'Body (markdown)',
               alignLabelWithHint: true,
             ),
             minLines: 8,
@@ -383,6 +413,22 @@ class _CmsPageEditScreenState extends ConsumerState<CmsPageEditScreen>
               labelText: 'Tags',
               helperText: 'Comma separated',
             ),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _orderCtrl,
+            readOnly: readOnly,
+            decoration: const InputDecoration(
+              labelText: 'Order',
+              helperText: 'Position in the lists and the site index',
+            ),
+            keyboardType: TextInputType.number,
+            validator: (value) {
+              var text = (value ?? '').trim();
+              return text.isEmpty || int.tryParse(text) != null
+                  ? null
+                  : 'A whole number';
+            },
           ),
           const SizedBox(height: 24),
           Text('Presents', style: Theme.of(context).textTheme.titleMedium),

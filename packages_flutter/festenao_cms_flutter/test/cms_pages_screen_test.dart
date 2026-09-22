@@ -96,6 +96,50 @@ void main() {
     });
   });
 
+  testWidgets('edit keeps an html body html, and sets the order', (
+    tester,
+  ) async {
+    var sdb = await openTestSdb(tester, 'cms3.db');
+    late String pageId;
+    await tester.runAsync(() async {
+      pageId = (await sdb.addPage(
+        SdbCmsPage()
+          ..title.v = 'Partners'
+          ..body.v = '<p>Our <b>partners</b></p>'
+          ..bodyFormat.v = cmsPageBodyFormatHtml,
+      )).id;
+    });
+
+    // Tall enough for the whole form to be built.
+    await tester.binding.setSurfaceSize(const Size(800, 2000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await tester.pumpWidget(
+      MaterialApp(
+        home: cmsPageSdbScope(
+          sdb: sdb,
+          child: CmsPageEditScreen(pageId: pageId),
+        ),
+      ),
+    );
+    await pumpUntil(tester, find.text('Body (html)'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Order'), '5');
+    // The app bar one (the form ends with a save button too).
+    await tester.tap(find.byTooltip('Save'));
+    // Saved (the transaction runs in the test zone: pump it) and popped.
+    await pumpUntil(
+      tester,
+      find.byType(CmsPageEditScreen),
+      matcher: findsNothing,
+    );
+    await tester.runAsync(() async {
+      var page = (await sdb.getPage(pageId))!;
+      expect(page.bodyFormat.v, cmsPageBodyFormatHtml);
+      expect(page.body.v, '<p>Our <b>partners</b></p>');
+      expect(page.order.v, 5);
+    });
+  });
+
   testWidgets('create page', (tester) async {
     var sdb = await openTestSdb(tester, 'cms2.db');
 

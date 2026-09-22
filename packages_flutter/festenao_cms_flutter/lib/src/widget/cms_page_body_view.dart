@@ -1,9 +1,10 @@
+import 'package:festenao_cms_flutter/src/widget/cms_rendered_html_view.dart';
 import 'package:festenao_common/festenao_cms.dart';
 import 'package:festenao_markdown/markdown_plus.dart';
 import 'package:flutter/material.dart';
 
-/// The body of a page as the reader sees it: markdown rendered, raw html
-/// shown as text (the web renderer is the one showing html).
+/// The body of a page as the reader sees it: markdown rendered with
+/// festenao_markdown, an html body rendered as widgets.
 class CmsPageBodyView extends StatelessWidget {
   /// The page.
   final SdbCmsPage page;
@@ -23,7 +24,7 @@ class CmsPageBodyView extends StatelessWidget {
   Widget build(BuildContext context) {
     var body = page.body.v ?? '';
     if (!page.isMarkdown) {
-      return SelectableText(body);
+      return CmsRenderedHtmlView(bodyHtml: body);
     }
     return FestenaoMarkdownWidget(data: body, shrinkWrap: shrinkWrap);
   }

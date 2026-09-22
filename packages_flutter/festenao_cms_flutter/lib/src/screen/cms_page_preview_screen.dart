@@ -1,4 +1,5 @@
 import 'package:festenao_cms_flutter/src/provider/cms_page_providers.dart';
+import 'package:festenao_cms_flutter/src/screen/cms_site_browser_screen.dart';
 import 'package:festenao_cms_flutter/src/widget/cms_page_body_view.dart';
 import 'package:festenao_common/festenao_cms.dart';
 import 'package:flutter/material.dart';
@@ -12,11 +13,16 @@ class CmsPagePreviewScreen extends ConsumerWidget {
   /// Called to edit the page (an edit button shows when set).
   final void Function(BuildContext context, String pageId)? onEditPage;
 
+  /// Called to show the html the page renders to (a button shows when set,
+  /// typically pushing a [CmsSiteBrowserScreen] on the page path).
+  final void Function(BuildContext context, SdbCmsPage page)? onViewHtml;
+
   /// A preview screen.
   const CmsPagePreviewScreen({
     super.key,
     required this.pageId,
     this.onEditPage,
+    this.onViewHtml,
   });
 
   @override
@@ -27,6 +33,12 @@ class CmsPagePreviewScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(page?.title.v ?? 'Page'),
         actions: [
+          if (page != null && onViewHtml != null)
+            IconButton(
+              icon: const Icon(Icons.language),
+              tooltip: 'View the generated html',
+              onPressed: () => onViewHtml!(context, page),
+            ),
           if (onEditPage != null)
             IconButton(
               icon: const Icon(Icons.edit),

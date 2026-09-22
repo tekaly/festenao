@@ -1,5 +1,5 @@
 name: festenao_cms_flutter
-description: "Festenao mini CMS editor: list, edit, preview and publish the pages of a content database (riverpod, material)."
+description: "Festenao mini CMS editor: list, edit, preview and publish the pages of a content database, and browse the html site they render to (riverpod, material)."
 version: 0.1.0
 publish_to: none
 
@@ -19,6 +19,11 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_markdown
+  # The generated html, rendered as widgets (no webview: linux and web alike).
+  flutter_widget_from_html_core: ">=0.17.2"
+  html: ">=0.15.5"
+  # The browser rendering of the generated html (a sandboxed iframe, web only).
+  web: ">=1.1.0"
 
 dev_dependencies:
   flutter_test:

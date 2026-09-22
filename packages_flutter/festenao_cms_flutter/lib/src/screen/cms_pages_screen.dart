@@ -1,5 +1,6 @@
 import 'package:festenao_cms_flutter/src/provider/cms_page_providers.dart';
 import 'package:festenao_cms_flutter/src/screen/cms_page_edit_screen.dart';
+import 'package:festenao_cms_flutter/src/screen/cms_site_browser_screen.dart';
 import 'package:festenao_common/festenao_cms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +20,10 @@ class CmsPagesScreen extends ConsumerWidget {
   /// Called by the create button; defaults to pushing the edit screen.
   final void Function(BuildContext context)? onCreatePage;
 
+  /// Called by the view site button, which shows when set (typically pushing
+  /// a [CmsSiteBrowserScreen]).
+  final void Function(BuildContext context)? onBrowseSite;
+
   /// Whether the create button shows (false for a read only member).
   final bool canEdit;
 
@@ -28,6 +33,7 @@ class CmsPagesScreen extends ConsumerWidget {
     this.title = 'Pages',
     this.onOpenPage,
     this.onCreatePage,
+    this.onBrowseSite,
     this.canEdit = true,
   });
 
@@ -69,7 +75,17 @@ class CmsPagesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     var pagesAsync = ref.watch(cmsPagesProvider);
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppBar(
+        title: Text(title),
+        actions: [
+          if (onBrowseSite != null)
+            IconButton(
+              icon: const Icon(Icons.language),
+              tooltip: 'View the site',
+              onPressed: () => onBrowseSite!(context),
+            ),
+        ],
+      ),
       body: pagesAsync.when(
         data: (pages) {
           if (pages.isEmpty) {
@@ -80,6 +96,8 @@ class CmsPagesScreen extends ConsumerWidget {
             );
           }
           return ListView.builder(
+            // Room for the create button under the last switch.
+            padding: EdgeInsets.only(bottom: canEdit ? 88 : 0),
             itemCount: pages.length,
             itemBuilder: (context, index) {
               var page = pages[index];
