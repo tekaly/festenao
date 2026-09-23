@@ -389,12 +389,15 @@ class FileSystemExplorer {
 
   /// Which database the file at [path] holds, null when it holds neither.
   ///
-  /// It opens the file to tell: an sdb database is a sembast one whose main
-  /// store holds the indexeddb schema.
+  /// It opens the file to tell, read only whatever the explorer: sembast takes
+  /// a file it cannot decode — an sqlite database, an image, an empty file —
+  /// for an empty database of its own, and writes its header to it when it
+  /// may write. An sdb database is a sembast one whose main store holds the
+  /// indexeddb schema.
   Future<FileSystemDatabaseKind?> databaseKind(String path) async {
     sembast.Database database;
     try {
-      database = await _openSembast(path);
+      database = await _openSembast(path, readOnly: true);
     } catch (_) {
       return null;
     }
@@ -409,15 +412,36 @@ class FileSystemExplorer {
 
   /// Opens the database at [path] and the [ObjectRepository] browsing it.
   ///
-  /// The caller closes it, see [FileSystemDatabase.close]. [kind] skips the
-  /// detection when it is already known.
+  /// The caller closes it, see [FileSystemDatabase.close]. [kind] forces how
+  /// it is opened — an sdb database opens as the sembast one it also is — but
+  /// the file is told apart first all the same, read only, as [databaseKind]
+  /// does: a file that is not a database is never opened for writing.
+  ///
+  /// Throws when the file is not a sembast database, or not an sdb one when
+  /// [kind] asks for one.
   Future<FileSystemDatabase> openDatabase(
     String path, {
     FileSystemDatabaseKind? kind,
   }) async {
-    var database = await _openSembast(path);
-    var databaseKind = kind ?? await _databaseKindOf(database);
+    var database = await _openSembast(path, readOnly: true);
+    FileSystemDatabaseKind databaseKind;
+    try {
+      var fileKind = await _databaseKindOf(database);
+      databaseKind = kind ?? fileKind;
+      if (databaseKind == FileSystemDatabaseKind.sdb &&
+          fileKind != FileSystemDatabaseKind.sdb) {
+        throw FormatException('$path is not an sdb database');
+      }
+    } catch (_) {
+      await database.close();
+      rethrow;
+    }
     if (databaseKind == FileSystemDatabaseKind.sembast) {
+      if (!isReadOnly) {
+        // It is a database, it can be written to now.
+        await database.close();
+        database = await _openSembast(path);
+      }
       return FileSystemDatabase(
         kind: databaseKind,
         path: path,
@@ -630,11 +654,13 @@ class FileSystemExplorer {
         : (factory, nativePath(path));
   }
 
-  Future<sembast.Database> _openSembast(String path) {
+  /// Opens the sembast database at [path], read only when the explorer is or
+  /// [readOnly] asks for it.
+  Future<sembast.Database> _openSembast(String path, {bool readOnly = false}) {
     var (factory, databasePath) = _sembast(path);
     return factory.openDatabase(
       databasePath,
-      mode: isReadOnly
+      mode: readOnly || isReadOnly
           ? sembast.DatabaseMode.readOnly
           : sembast.DatabaseMode.existing,
     );

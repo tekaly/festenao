@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:festenao_common/data/object_editor.dart';
 import 'package:festenao_common/fs/file_system_explorer.dart';
 import 'package:fs_shim/fs_memory.dart';
@@ -450,6 +452,82 @@ count: 2
       expect(await explorer.databaseKind('notes.txt'), isNull);
       expect(await explorer.databaseKind('nope.db'), isNull);
     });
+
+    test('leaves a file sembast cannot decode as it is', () async {
+      // sembast reads a file it cannot decode — an sqlite database, an empty
+      // file — as an empty database of its own and appends its header to it
+      // when it may write: telling or opening one must not write.
+      var sqlite = Uint8List.fromList([
+        ...'SQLite format 3'.codeUnits,
+        0,
+        0x10,
+        0,
+        0xff,
+        0xfe,
+        ...List.filled(64, 0),
+      ]);
+      var explorer = await _newExplorer();
+      await explorer.writeAsBytes('app.db', sqlite);
+      await explorer.writeAsBytes('empty.db', <int>[]);
+
+      for (var path in ['app.db', 'empty.db']) {
+        expect(await explorer.databaseKind(path), isNull);
+        await expectLater(
+          explorer.openDatabase(path),
+          throwsA(isA<Exception>()),
+        );
+        for (var kind in FileSystemDatabaseKind.values) {
+          await expectLater(
+            explorer.openDatabase(path, kind: kind),
+            throwsA(isA<Exception>()),
+          );
+        }
+      }
+      expect(await explorer.readAsBytes('app.db'), sqlite);
+      expect(await explorer.readAsBytes('empty.db'), isEmpty);
+    });
+
+    test(
+      'opens an sdb database as sembast, not a sembast one as sdb',
+      () async {
+        var fileSystem = newFileSystemMemory();
+        var sembastDatabase = await getDatabaseFactoryFsShim(
+          fileSystem,
+        ).openDatabase('root/data.db');
+        await sembast.stringMapStoreFactory.store('config').record('main').put(
+          sembastDatabase,
+          {'name': 'test'},
+        );
+        await sembastDatabase.close();
+        var store = SdbStoreRef<String, SdbModel>('items');
+        var sdbDatabase = await getSdbFactoryFsShim(fileSystem).openDatabase(
+          'root/sdb.db',
+          options: SdbOpenDatabaseOptions(
+            version: 1,
+            schema: SdbDatabaseSchema(stores: [store.schema()]),
+          ),
+        );
+        await sdbDatabase.close();
+        var content = await fileSystem.file('root/data.db').readAsBytes();
+
+        var explorer = FileSystemExplorer(
+          fileSystem: fileSystem,
+          rootPath: 'root',
+        );
+        await expectLater(
+          explorer.openDatabase('data.db', kind: FileSystemDatabaseKind.sdb),
+          throwsA(isA<FormatException>()),
+        );
+        expect(await fileSystem.file('root/data.db').readAsBytes(), content);
+
+        var opened = await explorer.openDatabase(
+          'sdb.db',
+          kind: FileSystemDatabaseKind.sembast,
+        );
+        expect(opened.kind, FileSystemDatabaseKind.sembast);
+        await opened.close();
+      },
+    );
   });
 }
 
