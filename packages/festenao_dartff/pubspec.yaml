@@ -9,6 +9,11 @@ environment:
 dependencies:
   festenao_common:
     path: ../festenao_common
+  # The hard coded site of the cmsdemo function.
+  festenao_demo:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages/festenao_common/example/demo
   firebase_functions: ">=0.6.0"
   tekartik_firebase_functions_admin_sdk:
     git:

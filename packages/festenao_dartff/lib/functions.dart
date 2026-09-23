@@ -1,5 +1,6 @@
 import 'package:festenao_common/amp/amp_page.dart';
 import 'package:festenao_common/server/festeano_server_app.dart';
+import 'package:festenao_common/server/festenao_server_admin_sdk.dart';
 import 'package:tekartik_firebase_functions_admin_sdk/functions_admin_sdk.dart';
 import 'package:tekartik_firebase_functions_admin_sdk_http/functions_admin_sdk_http.dart';
 import 'package:tkcms_common/server/server_admin_sdk.dart';
@@ -32,7 +33,8 @@ Future<Response> festenaoAmpDartV2Handler(
   );
 }
 
-/// Declares the HTTP runner for admin SDK functions.
+/// Declares the HTTP runner for admin SDK functions: the api commands, amp
+/// and the cms sites of [app] (see [FestenaoServerApp.cmsCommand]).
 void declareRunner(
   FestenaoServerApp app,
   FirebaseFunctionsAdminSdkHttp functions,
@@ -59,5 +61,9 @@ void declareRunner(
   functions.https.onAdminSdkRequest(
     festenaoAmpCommand(app),
     festenaoAmpDartV2Handler,
+  );
+  functions.https.onAdminSdkRequest(
+    app.cmsCommand,
+    app.functionsCmsDartHandler,
   );
 }

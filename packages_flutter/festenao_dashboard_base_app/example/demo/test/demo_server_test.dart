@@ -49,7 +49,8 @@ void main() {
 
     test('serves the cms site on 8040, every link within it', () async {
       expect(server.uri.port, festenaoFunctionsHttpServerPort);
-      expect(server.cmsSiteUrl.path, '/cms/');
+      expect(server.cmsSiteUrl.path, '/cmsdemo/');
+      expect(server.projectSiteUrl, isNull);
       var visited = await _crawl(client, server.cmsSiteUrl);
       expect(visited, containsAll(['', 'page/about', 'page/program']));
       expect(visited, isNot(contains('page/line-up-2027')));
@@ -78,10 +79,21 @@ void main() {
     });
     tearDownAll(() => server.close());
 
-    test('serves the festenao functions and the cms site', () async {
+    test('serves the festenao functions and the cms sites', () async {
       expect(server.ffApp, isNotNull);
-      expect(server.cmsSiteUrl.path, '/cmsdev/');
+      expect(server.cmsSiteUrl.path, '/cmsdemo/');
       await _crawl(client, server.cmsSiteUrl);
+
+      // The demo project, synced in the in memory firestore, served by the
+      // cms function of the app.
+      var projectSiteUrl = server.projectSiteUrl!;
+      expect(projectSiteUrl.path, '/cmsdev/demo_festival/content/');
+      var visited = await _crawl(client, projectSiteUrl);
+      expect(visited, containsAll(['', 'page/about', 'page/program']));
+      var unknown = await client.get(
+        server.uri.replace(path: '/cmsdev/unknown/content/'),
+      );
+      expect(unknown.statusCode, 404);
 
       var amp = await client.get(server.uri.replace(path: '/ampdev'));
       expect(amp.statusCode, 200);

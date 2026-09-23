@@ -127,6 +127,11 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_functions.dart
       path: firebase_functions
+  # The dart (admin sdk) cloud functions handlers (server/festenao_server_admin_sdk.dart).
+  tekartik_firebase_functions_admin_sdk:
+    git:
+      url: https://github.com/tekartik/firebase_admin_sdk.dart
+      path: firebase_functions_admin_sdk
   tekartik_http:
     git:
       url: https://github.com/tekartik/http.dart

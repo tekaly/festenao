@@ -44,7 +44,7 @@ merely named `.db`.
 `CmsSiteBrowserScreen` on `https://festival.example.com/`. Nothing is served
 there: each url is rendered on the fly from the pages in memory by a
 `CmsSiteHandler`, exactly what the cloud function would answer (see
-`festenaoCmsSiteDartHandler` in `festenao_dartff`) — the index, the pages,
+`cmsdemo` in `festenao_dartff`) — the index, the pages,
 `sitemap.xml`, `robots.txt`, a 404 for the rest. Links within the site are
 followed, the others only shown; back, forward and the address bar work as in
 a browser, and an edit in `CMS pages` shows at once.
@@ -79,24 +79,29 @@ the others opening a tab of their own.
 
 ## The CMS site served over http
 
-The same pages, served by the dart http function a deployment would run
-(`festenaoCmsSiteDartHandler` of `festenao_dartff`, on its admin sdk http
-runner), from a standalone local server:
+The same pages, served by the dart http functions a deployment runs
+(`festenao_dartff`, on its admin sdk http runner), from a standalone local
+server:
 
 ```sh
-dart run bin/server.dart          # http://localhost:8040/cms/
+dart run bin/server.dart          # http://localhost:8040/cmsdemo/
 dart run bin/server_ff_app.dart   # the festenao functions too, see below
 ```
 
-- `bin/server.dart` — the cms site alone, as the function `cms`.
+- `bin/server.dart` — the demo site alone, as the function `cmsdemo` (what
+  the deployed `cmsdemo` serves at `https://<hosting>/cmsdemo/`).
 - `bin/server_ff_app.dart` — a dev `FfApp` (`commanddartv2dev`,
-  `callcommanddartv2dev`, `ampdev`) on in memory firebase services, plus the
-  cms site as `cmsdev` (`http://localhost:8040/cmsdev/`).
+  `callcommanddartv2dev`, `ampdev`, `cmsdev`) on in memory firebase
+  services, the demo pages synced into a demo project
+  (`fillDemoCmsProject`) whose site `cmsdev` serves at
+  `http://localhost:8040/cmsdev/demo_festival/content/` — what the deployed
+  `cmsdev` serves at `https://<hosting>/cms/<projectId>/<dataId>/` — plus
+  the demo site as `cmsdemo`.
 
 Both take another port as first argument, keep everything in memory, and are
-built on the shared helpers of `festenao_dartff`: `declareCmsSiteRunner`
-(registration) and `serveFestenaoFunctionsHttp` (the server). The page links
-are relative or absolute to the function url, so the site works below it.
+built on the shared helpers of `festenao_dartff`: `declareRunner`,
+`declareCmsSiteRunner` (registration) and `serveFestenaoFunctionsHttp` (the
+server). The links of a site follow the url it is reached at.
 `test/demo_server_test.dart` serves both in memory and crawls them.
 
 ## What it is built from
@@ -105,10 +110,12 @@ are relative or absolute to the function url, so the site works below it.
   (`demoJsonContent`, `fillDemoSembastDatabase`, `demoSdbDatabaseSchema`,
   `fillDemoFirestore`…), so the demo and the `+` menu of the file system
   explorer show the same thing.
-- `lib/src/demo_cms_data.dart` seeds the cms, free of Flutter: the site
-  (`demoCmsSite`), its pages (`demoCmsPages`), the details and structured data
-  of the items they present (`demoCmsPageOptions`), in an in memory sdb;
-  `lib/src/demo_cms.dart` adds the items the page editor offers.
+- `festenao_demo` (`packages/festenao_common/example/demo`) holds the cms
+  content, free of Flutter and shared with the `cmsdemo` cloud function: the
+  site (`demoCmsSite`), its pages (`demoCmsPages`), the details and
+  structured data of the items they present (`demoCmsPageOptions`), in an
+  in memory sdb (`DemoCms`); `lib/src/demo_cms.dart` adds the items the
+  page editor offers.
 - `lib/src/demo_server.dart` holds the two servers of `bin/`.
 - `lib/src/demo_cms_navigation.dart` wires the cms screens together.
 - `lib/src/demo_home_page.dart` is the menu.

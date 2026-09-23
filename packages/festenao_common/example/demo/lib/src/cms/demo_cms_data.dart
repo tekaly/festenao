@@ -1,18 +1,23 @@
-/// The cms content of the demo, free of Flutter: the app shows it, and
-/// `bin/server.dart` serves it.
+/// The cms content of the demo, free of Flutter: a small summer festival
+/// site, shown by the dashboard demo app, served by its local servers and by
+/// the `cmsdemo` cloud function.
 library;
 
 import 'package:festenao_common/festenao_cms.dart';
 
-/// The base url of the demo site in the app: nothing is served there, the
-/// site browser renders every url of it from the pages in memory.
+/// The default base url of the demo site: nothing is served there, the site
+/// browser of the dashboard demo renders every url of it from the pages in
+/// memory.
 final demoCmsBaseUrl = Uri.parse('https://festival.example.com/');
 
+/// The name of the demo site.
+const demoCmsSiteName = 'Festenao summer festival';
+
 /// The demo site, a small summer festival, at [baseUrl] ([demoCmsBaseUrl]
-/// by default; the url of the function serving it in `bin/server.dart`).
+/// by default; the url of the function serving it otherwise).
 CmsSite demoCmsSite({Uri? baseUrl}) {
   var site = CmsSite(
-    name: 'Festenao summer festival',
+    name: demoCmsSiteName,
     baseUrl: baseUrl ?? demoCmsBaseUrl,
     language: 'en',
     description:

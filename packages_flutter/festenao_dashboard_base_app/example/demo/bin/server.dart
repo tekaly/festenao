@@ -1,9 +1,9 @@
 /// The cms site of the demo, served by the dart http function a deployment
-/// runs (`festenaoCmsSiteDartHandler` on the admin sdk http runner of
-/// festenao_dartff), on a standalone local server.
+/// runs (`cmsdemo`, `festenaoCmsSiteDartHandler` on the admin sdk http runner
+/// of festenao_dartff), on a standalone local server.
 ///
 /// ```sh
-/// dart run bin/server.dart          # http://localhost:8040/cms/
+/// dart run bin/server.dart          # http://localhost:8040/cmsdemo/
 /// dart run bin/server.dart 8080     # another port
 /// ```
 ///

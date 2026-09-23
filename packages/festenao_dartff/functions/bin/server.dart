@@ -67,6 +67,13 @@ void main(List<String> args) {
       options: _httpsOptions,
       firebase.httpsHandler(festenaoAmpDartV2Handler),
     );
+    // The cms sites of the projects, rewritten from https://<hosting>/cms/
+    // on the dev hosting.
+    firebase.https.onRequest(
+      name: festenaoCmsFunctionDev,
+      options: _httpsOptions,
+      firebase.httpsHandler(appDev.functionsCmsDartHandler),
+    );
 
     var appProd = FfApp(
       context: TkCmsServerAppContext(
@@ -90,6 +97,21 @@ void main(List<String> args) {
       name: 'amp',
       options: _httpsOptions,
       firebase.httpsHandler(festenaoAmpDartV2Handler),
+    );
+    // The cms sites of the projects, rewritten from https://<hosting>/cms/
+    // on the prod hosting.
+    firebase.https.onRequest(
+      name: festenaoCmsFunctionProd,
+      options: _httpsOptions,
+      firebase.httpsHandler(appProd.functionsCmsDartHandler),
+    );
+
+    // The hard coded demo site, flavor free, rewritten from
+    // https://<hosting>/cmsdemo/.
+    firebase.https.onRequest(
+      name: festenaoCmsDemoFunction,
+      options: _httpsOptions,
+      firebase.httpsHandler(festenaoCmsDemoDartHandler),
     );
   });
 }

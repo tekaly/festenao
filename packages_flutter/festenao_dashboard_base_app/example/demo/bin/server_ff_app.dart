@@ -1,7 +1,8 @@
 /// The festenao dart http functions of a dev `FfApp` (`commanddartv2dev`,
-/// `callcommanddartv2dev`, `ampdev`) plus the cms site of the demo
-/// (`cmsdev`), on a standalone local server: the admin sdk http runner of
-/// festenao_dartff, the firebase services in memory.
+/// `callcommanddartv2dev`, `ampdev`, `cmsdev`) plus the demo cms site
+/// (`cmsdemo`), on a standalone local server: the admin sdk http runner of
+/// festenao_dartff, the firebase services in memory, a demo project seeded
+/// whose site `cmsdev` serves.
 ///
 /// ```sh
 /// dart run bin/server_ff_app.dart          # http://localhost:8040/
@@ -19,5 +20,7 @@ Future<void> main(List<String> args) async {
       int.tryParse(args.firstOrNull ?? '') ?? festenaoFunctionsHttpServerPort;
   var server = await DemoServer.serveFfApp(port: port);
   // ignore: avoid_print
-  print('cms site ${server.cmsSiteUrl}');
+  print('project cms site ${server.projectSiteUrl}');
+  // ignore: avoid_print
+  print('demo cms site ${server.cmsSiteUrl}');
 }

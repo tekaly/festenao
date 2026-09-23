@@ -4,12 +4,13 @@ description: >-
   Use when working on the festenao Dart cloud functions project
   festenao_dartff (admin sdk runtime, dart3 firebase functions): FfApp (the
   FestenaoServerApp of the functions), festenaoAmpCommand,
-  festenaoAmpDartV2Handler, declareRunner, festenaoCmsSiteDartHandler /
-  declareCmsSiteRunner / festenaoCmsCommand (the festenao cms site as an
-  http function), serveFestenaoFunctionsHttp (a standalone local server,
-  port 8040), the functions/bin/server.dart
-  entry point registering commanddartv2dev / callcommanddartv2dev / ampdev
-  and their prod twins with runFunctions, functionsHttpDartV2Handler and
+  festenaoAmpDartV2Handler, declareRunner, the cms site functions
+  (functionsCmsDartHandler for cms / cmsdev, festenaoCmsDemoDartHandler and
+  declareCmsDemoRunner for cmsdemo, declareCmsSiteRunner, the /cms/ hosting
+  rewrite), serveFestenaoFunctionsHttp (a standalone local server, port
+  8040), the functions/bin/server.dart entry point registering
+  commanddartv2dev / callcommanddartv2dev / ampdev / cmsdev, their prod
+  twins and cmsdemo with runFunctions, functionsHttpDartV2Handler and
   functionsCallDartV2Handler, compiling with tool/compile_dart_function.dart,
   running the firebase emulator (FirebaseEmulatorService,
   initEmulatorServerContext, testFestenaoServerGroup) and the three firestore
@@ -32,7 +33,8 @@ three sibling rules projects.
   `functions.yaml`), `firebase.json` (functions on 5001, firestore on 8080,
   auth on 9099), `firestore.rules`, `firestore.indexes.json`, `tool/`
   (`start_festenao_emulator.dart`, `compile_dart_function.dart`),
-  `test/emulator_test.dart`, and the rules contexts
+  `test/emulator_test.dart`, `test/cms_emulator_test.dart`,
+  `test/cms_function_test.dart`, and the rules contexts
   `festenao_firebase_api_context.dart/` (api + rules, no client side project
   creation), `festenao_firebase_full_api_context.dart/` (api + rules with
   standalone creation, public access and invites) and
@@ -40,9 +42,12 @@ three sibling rules projects.
   the no-api providers of `festenao_riverpod` run against). Each has its
   own `firestore.rules`, `tool/` emulator starter and one `test/` file.
 * Import `package:festenao_dartff/functions.dart`: `FfApp`,
-  `festenaoAmpCommand(app)`, `festenaoAmpDartV2Handler`, `declareRunner`;
-  it re-exports `festenao_common/server/festeano_server_app.dart`
-  (`FestenaoServerApp`). Around it:
+  `festenaoAmpCommand(app)`, `festenaoAmpDartV2Handler`, `declareRunner`,
+  the cms helpers below; it re-exports
+  `festenao_common/server/festeano_server_app.dart` (`FestenaoServerApp`,
+  the cms function names) and
+  `festenao_common/server/festenao_server_admin_sdk.dart`
+  (`festenaoCmsSiteDartHandler`, `functionsCmsDartHandler`). Around it:
   `package:tekartik_firebase_functions_admin_sdk/functions_admin_sdk.dart`
   (`runFunctions`, `HttpsOptions`, `CallableOptions`, `Cors`, `Region`,
   `SupportedRegion`, `httpsHandler`, `callHandler`),
@@ -59,8 +64,10 @@ three sibling rules projects.
   command by subclassing, see the `festenao-common-server-app` skill.
 * Two apps per process, one per flavor: dev (`FlavorContext.dev`) behind
   `commanddartv2dev` (`functionCommandDartV2Dev`), `callcommanddartv2dev`
-  (`callableFunctionCommandDartV2Dev`) and `ampdev`; prod behind
-  `commanddartv2prod`, `callcommanddartv2prod` and `amp`.
+  (`callableFunctionCommandDartV2Dev`), `ampdev` and `cmsdev`
+  (`festenaoCmsFunctionDev`); prod behind `commanddartv2prod`,
+  `callcommanddartv2prod`, `amp` and `cms` (`festenaoCmsFunctionProd`);
+  plus the flavor free `cmsdemo` (`festenaoCmsDemoFunction`).
   `festenaoAmpCommand(app)` is the amp name of an app's flavor. Both share
   one admin sdk `FirebaseContext` built from `firebaseAdminSdk`,
   `firestoreServiceAdminSdk`, `firebaseAuthServiceAdminSdk` and
@@ -81,23 +88,28 @@ three sibling rules projects.
   the verified auth context of `onCall`; an https `onRequest` command is
   anonymous and its user id is ignored. Entity creation with a first admin
   therefore goes through the callable api (see `test/emulator_test.dart`).
-* `festenaoCmsSiteDartHandler(functionName:, siteHandler:)` is an http
-  handler serving a `CmsSiteHandler` (`festenao_common/festenao_cms.dart`):
-  the index, `page/<slug>`, `sitemap.xml`, `robots.txt`, a 404 for anything
-  else (drafts included), with the content type of each and a CDN
-  `cache-control` on the 200s. `siteHandler` is called per request (a
-  `FestenaoCmsSiteHandlerProvider`, sync or async): open the content
-  database lazily there, and give the `CmsSite` the function url as base
-  url (`https://<region>-<project>.cloudfunctions.net/<functionName>/`) so
-  the page links, canonical urls and sitemap point back at the function.
-  The leading `functionName` segment is dropped (the local runners keep
-  it, the deployed runtime does not). It is not registered by
-  `functions/bin/server.dart`: festenao has no server side page database
-  yet, an app registers it with its own `onRequest`.
-* `declareCmsSiteRunner(functions, name:, siteHandler:)` registers that
-  handler on the admin sdk http runner, next to `declareRunner(app,
-  functions)`; `festenaoCmsCommand(app)` is its name for an app flavor
-  (`cms` / `cmsdev`).
+* Cms sites: `app.functionsCmsDartHandler` (an extension of
+  `FestenaoServerApp`) serves the published pages of the synced content
+  database `app/<app>/project/<projectId>/data/<dataId>` at
+  `<mount>/<projectId>/<dataId>/` (index, `page/<slug>`, `sitemap.xml`,
+  `robots.txt`, a 404 for anything else, drafts, unknown or deleted
+  projects included). The mount is the hosting path `cms` or the function
+  name (`app.cmsMountNames`); the site base url is the one the visitor
+  typed (`x-forwarded-host` / `x-forwarded-proto` of firebase hosting), so
+  the links, canonical urls and sitemap follow the hosting. The app is the
+  one of the `FfApp`, not in the url; customize a site with the
+  `FestenaoServerApp` hooks (see the `festenao-common-server-app` skill).
+* The app hosting rewrites `/cms/**` to `cmsdev` (dev target) or `cms`
+  (prod targets) and `/cmsdemo/**` to `cmsdemo`, before the `**` to
+  `index.html` rewrite (`"function": {"functionId": "cmsdev", "region":
+  "europe-west1"}`), in the same firebase project as the functions.
+* `cmsdemo` (`festenaoCmsDemoDartHandler`) serves the hard coded festival
+  site of `festenao_demo` (`packages/festenao_common/example/demo`,
+  `demoCmsServer`) at whatever url it is reached at.
+* `declareCmsSiteRunner(functions, name:, mountNames:, handler:)`
+  registers any `Future<CmsResponse> Function(CmsSiteRequest)` on the admin
+  sdk http runner; `declareCmsDemoRunner(functions)` registers `cmsdemo`;
+  `declareRunner(app, functions)` includes `app.cmsCommand`.
 * `serveFestenaoFunctionsHttp(declare:, port:, firebaseApp:,
   httpServerFactory:)` serves what `declare` registers on a standalone
   server at `http://localhost:<port>/<function>/...` (`port` defaults to
@@ -106,8 +118,9 @@ three sibling rules projects.
   a cms site; give the app of a `FirebaseContext` for an `FfApp`),
   `httpServerFactory` to io (`httpFactoryMemory.server` in a test). It
   returns the functions: `functions.httpServer` to close. The
-  `festenao_dashboard_base_app/example/demo` `bin/server.dart` (cms) and
-  `bin/server_ff_app.dart` (`FfApp` plus cms) use both helpers.
+  `festenao_dashboard_base_app/example/demo` `bin/server.dart` (`cmsdemo`)
+  and `bin/server_ff_app.dart` (`FfApp`, a seeded demo project served by
+  `cmsdev`, plus `cmsdemo`) use both helpers.
 * `declareRunner(app, functions)` performs the same registrations on a
   `FirebaseFunctionsAdminSdkHttp`, the raw http runner of
   `tekartik_firebase_functions_admin_sdk_http`:
@@ -131,7 +144,10 @@ three sibling rules projects.
   hands it to the shared runners (`testFestenaoServerGroup`,
   `testFestenaoDocServerGroup`, `testQuizzServerGroup`,
   `appProjectAccessTestRunner`, `appUserPrvAccessTestRunner`...), closing it
-  in `tearDownAll` (this stops the emulator).
+  in `tearDownAll` (this stops the emulator). `test/cms_emulator_test.dart`
+  seeds the demo project with `fillDemoCmsProject` through a rest firestore
+  bypassing the rules (`useEmulator(firestoreOwner: true)`) and reads
+  `cmsdemo` and `cmsdev` at `http://localhost:5001/<project>/europe-west1/`.
 * The package is `publish_to: none`; to reuse `FfApp` from another project:
   ```yaml
   dependencies:
@@ -200,6 +216,11 @@ void main(List<String> args) {
       options: _httpsOptions,
       firebase.httpsHandler(festenaoAmpDartV2Handler),
     );
+    firebase.https.onRequest(
+      name: festenaoCmsFunctionDev, // cmsdev, appDev.cmsCommand
+      options: _httpsOptions,
+      firebase.httpsHandler(appDev.functionsCmsDartHandler),
+    );
 
     var appProd = FfApp(
       context: TkCmsServerAppContext(
@@ -222,6 +243,18 @@ void main(List<String> args) {
       options: _httpsOptions,
       firebase.httpsHandler(festenaoAmpDartV2Handler),
     );
+    firebase.https.onRequest(
+      name: festenaoCmsFunctionProd, // cms, appProd.cmsCommand
+      options: _httpsOptions,
+      firebase.httpsHandler(appProd.functionsCmsDartHandler),
+    );
+
+    // The demo site, flavor free.
+    firebase.https.onRequest(
+      name: festenaoCmsDemoFunction, // cmsdemo
+      options: _httpsOptions,
+      firebase.httpsHandler(festenaoCmsDemoDartHandler),
+    );
   });
 }
 ```
@@ -242,36 +275,19 @@ Future<void> serveFfApp(FfApp app) async {
 }
 ```
 
-### A standalone cms server (port 8040), and FfApp next to it
+### A standalone server (port 8040): FfApp, a project site, the demo site
 
 ```dart
-import 'package:festenao_common/festenao_cms.dart';
 import 'package:festenao_dartff/functions.dart';
+import 'package:festenao_demo/festenao_demo_cms.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
-/// `http://localhost:8040/cms/`: [pages] as a site, their links pointing at
-/// the function url.
-Future<FirebaseFunctionsAdminSdkHttp> serveCmsSite(CmsPageSdb pages) =>
-    serveFestenaoFunctionsHttp(
-      declare: (functions) => declareCmsSiteRunner(
-        functions,
-        name: 'cms',
-        siteHandler: () => CmsSiteHandler(
-          pages: pages,
-          renderer: CmsRenderer(
-            site: CmsSite(
-              name: 'My festival',
-              baseUrl: Uri.parse('http://localhost:8040/cms/'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-/// The dev api, amp and cms site functions, firebase in memory.
-Future<FirebaseFunctionsAdminSdkHttp> serveFfAppAndCms(CmsPageSdb pages) {
+/// `http://localhost:8040/cmsdev/demo_festival/content/`: the demo project
+/// of an in memory firestore; `http://localhost:8040/cmsdemo/`: the demo
+/// site; plus the dev api and amp.
+Future<FirebaseFunctionsAdminSdkHttp> serveFfAppAndCms() async {
   var firebaseContext = initFirebaseServicesLocalMemory(
     projectId: 'my-project',
   ).initContext();
@@ -282,24 +298,12 @@ Future<FirebaseFunctionsAdminSdkHttp> serveFfAppAndCms(CmsPageSdb pages) {
       flavorContext: FlavorContext.dev,
     ),
   );
-  var cmsName = festenaoCmsCommand(app); // cmsdev
+  await fillDemoCmsProject(firestore: firebaseContext.firestore, app: app.app);
   return serveFestenaoFunctionsHttp(
     firebaseApp: firebaseContext.firebaseApp,
     declare: (functions) {
-      declareRunner(app, functions);
-      declareCmsSiteRunner(
-        functions,
-        name: cmsName,
-        siteHandler: () => CmsSiteHandler(
-          pages: pages,
-          renderer: CmsRenderer(
-            site: CmsSite(
-              name: 'My festival',
-              baseUrl: Uri.parse('http://localhost:8040/$cmsName/'),
-            ),
-          ),
-        ),
-      );
+      declareRunner(app, functions); // ..., cmsdev
+      declareCmsDemoRunner(functions); // cmsdemo
     },
   );
 }
@@ -307,10 +311,7 @@ Future<FirebaseFunctionsAdminSdkHttp> serveFfAppAndCms(CmsPageSdb pages) {
 
 In a test, pass `httpServerFactory: httpFactoryMemory.server`
 (`package:tekartik_http/http_memory.dart`) and read the pages with
-`httpFactoryMemory.client.newClient()`. Deployed, register the handler next
-to the others in `functions/bin/server.dart` with
-`firebase.https.onRequest(name: 'cmsdev', options: _httpsOptions,
-firebase.httpsHandler(festenaoCmsSiteDartHandler(...)))`.
+`httpFactoryMemory.client.newClient()` (see `test/cms_function_test.dart`).
 
 ### An emulator test
 

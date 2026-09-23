@@ -3,8 +3,10 @@ name: festenao-common-server-app
 description: >-
   Use when writing or running the backend of a festenao app: a
   FestenaoServerApp (TkAppCmsServerAppBase) built on a TkCmsServerAppContext,
-  its initFunctions() (command/callCommand v2 functions, the amp function),
-  onCommand dispatch through FestenaoApiHandler.onCommandOrNull
+  its initFunctions() (command/callCommand v2 functions, the amp function,
+  the cms site function cms / cmsdev and its hooks cmsSiteOf,
+  cmsSiteProject, cmsSiteHandler, handleCmsRequest, cmsContentSdbOptions),
+  isAppAllowed, onCommand dispatch through FestenaoApiHandler.onCommandOrNull
   (FestenaoEntityHandler, FestenaoFirestoreHandler,
   FestenaoObjectStorageHandler), onCronCommand, ApiException errors, the
   local memory server (initFirebaseServicesLocalMemory, functions.serve) and
@@ -16,7 +18,8 @@ description: >-
 
 The backend of a festenao app is one class, a `FestenaoServerApp`, that owns
 the `FirebaseFunctions` of its runtime and answers the secured api commands
-(`command` http function, `callCommand` callable) plus an AMP http function.
+(`command` http function, `callCommand` callable), serves the cms sites of
+its projects (`cms` http function) plus an AMP http function.
 The same class runs on the deployed Cloud Functions (node or admin sdk
 runtime), on a local http server, and in memory for the tests.
 
@@ -37,8 +40,9 @@ runtime), on a local http server, and in memory for the tests.
   `FlavorContext.dev`, `devx`, `prod`, `prodx`, `test`.
 * `initFunctions()` fills `functions[name]`: the api command function
   (`command`, `commandv2dev` in dev, `commandv2prod` in prod), the callable
-  (`callCommand`, `callcommandv2dev` / `callcommandv2prod`), and `amp`
-  (`ampdev` in dev, `amp` in prod). A subclass
+  (`callCommand`, `callcommandv2dev` / `callcommandv2prod`) and `amp`
+  (`ampdev` in dev, `amp` in prod); `initCmsFunction()`, called after it,
+  adds `cmsCommand` (`cmsdev` in dev, `cms` in prod). A subclass
   adds its own after `super.initFunctions()`, suffixing the name with
   `flavorContext.ifNotProdFlavor` like the others. Call it once, before
   serving or exporting the functions.
@@ -69,6 +73,35 @@ runtime), on a local http server, and in memory for the tests.
   same process shares them and a client may end up authenticated on the
   first one. Tests keep one context per file (`dart test` runs each file in
   its own process).
+* Cms sites (`package:festenao_common/server/festenao_server_cms.dart`,
+  exported by `festeano_server_app.dart`): the `cmsCommand` function serves
+  the published pages (`festenao_cms.dart`) of the synced content database
+  `app/<app>/project/<projectId>/data/<dataId>` at
+  `<mount>/<projectId>/<dataId>/` (`page/<slug>`, `sitemap.xml`,
+  `robots.txt`), the mount being the hosting path `cms` or the function name
+  (`cmsMountNames`). `handleCmsRequest(CmsSiteRequest)` does it all and
+  never throws (404 when the url, the project or the content is unknown,
+  or the project deleted; 500 on error): `cmsSiteOf` splits the url into a
+  `FestenaoCmsSiteRef` (the app is the server one), `cmsSiteProject` reads
+  the project, `cmsContentCache` (`FestenaoCmsContentCache`) keeps the
+  contents pulled read only in memory sdbs and re-synced on each request,
+  `cmsSiteHandler` builds the `CmsSiteHandler` (site named after the
+  project, at the request base url). Override those hooks to change the url
+  shape or the site; give `cmsContentSdbOptions` the full schema when the
+  synced database holds other stores than the pages and the media (a
+  record of an unknown store fails the sync).
+* `CmsSiteRequest.fromUrl(url, mountNames:, forwardedHost:,
+  forwardedProto:)` derives the site base url from the request (firebase
+  hosting forwards the visitor host), `shift(n)` moves path segments into
+  it. `onHttpsCms` serves it on the express runtimes (io, node, sim,
+  registered by `initCmsFunction()`), the admin sdk one uses
+  `functionsCmsDartHandler`
+  (`server/festenao_server_admin_sdk.dart`). `festenaoCmsAddProjectPages`
+  writes pages into a project content in firestore (demos, tests).
+* `isAppAllowed(app)`: a dev server handles no prod app, a prod server no
+  dev app (`festenaoIsDevApp`: `-dev`, `_dev`, `-devx` suffixes). Not
+  checked yet by `onCommand` nor `handleCmsRequest`: call it once the app
+  comes from the request.
 * `onCronCommand(apiRequest)` answers `cron` (called daily by the
   scheduler): the base purges deleted projects and expired invites through
   `FestenaoFirestoreDatabase.projectDb`; an app with its own entities
@@ -221,6 +254,51 @@ Future<void> main() async {
   print(result.text.v); // HI
   await apiService.close();
   await ffServer.close();
+}
+```
+
+### A customized cms site
+
+```dart
+import 'package:festenao_common/festenao_cms.dart';
+import 'package:festenao_common/festenao_server.dart';
+import 'package:festenao_common/firebase/firestore_database.dart';
+
+class MySiteServerApp extends FestenaoServerApp {
+  MySiteServerApp({required super.context}) : super(app: 'myapp');
+
+  /// A single data id: `<cms>/<projectId>/...`.
+  @override
+  (FestenaoCmsSiteRef, CmsSiteRequest)? cmsSiteOf(CmsSiteRequest request) {
+    var siteRequest = request.shift(1);
+    if (siteRequest == null) {
+      return null;
+    }
+    return (
+      FestenaoCmsSiteRef(
+        app: app,
+        projectId: request.segments.first,
+        dataId: 'content',
+      ),
+      siteRequest,
+    );
+  }
+
+  @override
+  Future<CmsSiteHandler> cmsSiteHandler({
+    required FsProject project,
+    required FestenaoCmsContent content,
+    required CmsSiteRequest request,
+  }) async => CmsSiteHandler(
+    pages: content.pages,
+    renderer: CmsRenderer(
+      site: CmsSite(
+        name: project.name.v ?? 'My site',
+        baseUrl: request.baseUrl,
+        language: 'en',
+      ),
+    ),
+  );
 }
 ```
 

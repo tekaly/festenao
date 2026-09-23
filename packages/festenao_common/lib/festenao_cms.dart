@@ -13,5 +13,6 @@ export 'cms/cms_markdown.dart';
 export 'cms/cms_page.dart';
 export 'cms/cms_renderer.dart';
 export 'cms/cms_site_handler.dart';
+export 'cms/cms_site_request.dart';
 export 'cms/cms_structured_data.dart';
 export 'cms/cms_templates.dart';

@@ -1,6 +1,6 @@
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
 
-export 'demo_cms_data.dart';
+export 'package:festenao_demo/festenao_demo_cms.dart';
 
 /// The items of the (pretend) festival database the pages present: what the
 /// "Presents" picker of the page editor offers.

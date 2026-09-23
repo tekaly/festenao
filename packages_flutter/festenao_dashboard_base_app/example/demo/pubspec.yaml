@@ -11,11 +11,15 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ">=1.0.9"
-  # The cms content (Flutter free, shared with bin/).
   festenao_common:
     git:
       url: https://github.com/tekaly/festenao
       path: packages/festenao_common
+  # The cms content (Flutter free, shared with bin/ and the cmsdemo function).
+  festenao_demo:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages/festenao_common/example/demo
   # The dart http functions of bin/server.dart and bin/server_ff_app.dart.
   festenao_dartff:
     git:
