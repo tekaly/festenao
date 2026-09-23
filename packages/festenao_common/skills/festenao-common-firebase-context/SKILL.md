@@ -6,7 +6,8 @@ description: >-
   by a FirebaseServicesContext (init, initServer), the festenao bootstraps
   festenaoInitFirebaseMemory, festenaoInitFirebaseSim,
   festenaoInitFirebaseRest / festenaoInitFirebaseServicesContextRest,
-  festenaoInitFirebaseIoWithServiceAccount, the tkcms local ones
+  festenaoInitFirebaseRestIoWithServiceAccount,
+  festenaoInitFirebaseAdminSdkWithServiceAccount, the tkcms local ones
   initFirebaseServicesLocalMemory / initFirebaseServicesLocalSembast, the
   flavors (FlavorContext, AppFlavorContext, toAppFlavorContext) and the
   FestenaoFirestoreDatabase (projectDb, fsAppRoot, app/<appId> layout).
@@ -27,7 +28,7 @@ it into the `FirebaseContext` the rest of the code receives.
   (`FirebaseContext`, `FirebaseServicesContext`, `FirebaseAppOptions`) and
   the tkcms local bootstraps; the festenao bootstraps sit in
   `package:festenao_common/firebase/firebase_memory.dart`, `firebase_sim.dart`,
-  `firebase_rest.dart`, `firebase_io.dart`;
+  `firebase_rest.dart`, `firebase_io.dart`, `firebase_admin_sdk.dart`;
   `package:festenao_common/festenao_flavor.dart` for the flavors;
   `package:festenao_common/festenao_firestore.dart` plus
   `package:festenao_common/firebase/firestore_database.dart` for the
@@ -52,9 +53,15 @@ it into the `FirebaseContext` the rest of the code receives.
   `festenaoInitFirebaseRest(options:)` / `festenaoInitFirebaseServicesContextRest(appOptions:,
   googleAuthOptions:)` (REST with a user signed in, persisted on disk, the
   desktop and tool case; `FirebaseAppOptions(projectId:, apiKey:)` with the
-  web api key of the project), `festenaoInitFirebaseIoWithServiceAccount(serviceAccountMap:)`
-  (REST with a service account, scripts). Flutter apps use the flutterfire
-  context of `festenao_firebase_flutter` instead.
+  web api key of the project),
+  `festenaoInitFirebaseRestIoWithServiceAccount(serviceAccountMap:)` (REST
+  with a service account, scripts and admin tools; its auth lists the users;
+  `festenaoInitFirebaseIoWithServiceAccount` is the compat name),
+  `festenaoInitFirebaseAdminSdkWithServiceAccount(serviceAccountMap:)`
+  (`firebase_admin_sdk.dart`, the same through the admin sdk, io only).
+  Either initializes the default app: once per process, keep the context.
+  Flutter apps use the flutterfire context of `festenao_firebase_flutter`
+  instead.
 * Flavors: `FlavorContext.dev`, `devx`, `prod`, `prodx`, `test` with
   `isDev`, `isProd` and `ifNotProdFlavor` (`''` in prod, the flavor name
   otherwise, what suffixes function names and app ids).

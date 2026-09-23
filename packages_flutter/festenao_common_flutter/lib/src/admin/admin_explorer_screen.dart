@@ -1,3 +1,4 @@
+import 'package:festenao_common/festenao_firebase.dart' show FirebaseContext;
 import 'package:festenao_common/firebase/firebase_service_account.dart';
 import 'package:festenao_common/fs/file_system_explorer.dart';
 import 'package:flutter/material.dart';
@@ -133,6 +134,56 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
     _loading = credentialsDb.current();
   });
 
+  /// The firebase of the service account last opened, and that account.
+  ///
+  /// Firebase has one default app per process, so the explorers share it
+  /// while the account stays the same; it is deleted when another one is
+  /// opened, and when the screen goes.
+  (String, Future<FirebaseContext>)? _firebase;
+
+  Future<FirebaseContext> _firebaseContext(
+    String serviceAccount,
+    Map serviceAccountMap,
+  ) async {
+    var current = _firebase;
+    if (current != null) {
+      if (current.$1 == serviceAccount) {
+        return current.$2;
+      }
+      _firebase = null;
+      await _deleteFirebase(current.$2);
+    }
+    var context = festenaoInitFirebaseWithServiceAccount(
+      serviceAccountMap: serviceAccountMap,
+    );
+    _firebase = (serviceAccount, context);
+    try {
+      return await context;
+    } catch (_) {
+      if (_firebase?.$2 == context) {
+        _firebase = null;
+      }
+      rethrow;
+    }
+  }
+
+  static Future<void> _deleteFirebase(Future<FirebaseContext> context) async {
+    try {
+      await (await context).firebaseApp.delete();
+    } catch (_) {
+      // It never initialized, or is gone already.
+    }
+  }
+
+  @override
+  void dispose() {
+    var current = _firebase;
+    if (current != null) {
+      _deleteFirebase(current.$2);
+    }
+    super.dispose();
+  }
+
   void _snack(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context)
@@ -177,17 +228,17 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
     return serviceAccountMap;
   }
 
-  /// The users of the project, through the auth of the service account.
-  ///
-  /// The rest api cannot list them, so the explorer finds them by uid there.
+  /// The users of the project, through the auth of the service account,
+  /// which lists them.
   Future<void> _openUsers(AdminCredentials? credentials) async {
     var serviceAccountMap = _serviceAccountMap(credentials);
     if (credentials == null || serviceAccountMap == null) {
       return;
     }
     try {
-      var context = await festenaoInitFirebaseWithServiceAccount(
-        serviceAccountMap: serviceAccountMap,
+      var context = await _firebaseContext(
+        credentials.serviceAccount.v!,
+        serviceAccountMap,
       );
       if (!mounted) {
         return;
@@ -208,8 +259,9 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
       return;
     }
     try {
-      var context = await festenaoInitFirebaseWithServiceAccount(
-        serviceAccountMap: serviceAccountMap,
+      var context = await _firebaseContext(
+        credentials.serviceAccount.v!,
+        serviceAccountMap,
       );
       if (!mounted) {
         return;
@@ -331,7 +383,7 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
               subtitle: Text(
                 credentials == null
                     ? 'Pick a set of credentials first'
-                    : 'As ${credentials.displayName}, found by uid',
+                    : 'As ${credentials.displayName}, listed',
               ),
               enabled: credentials != null,
               onTap: () => _openUsers(credentials),

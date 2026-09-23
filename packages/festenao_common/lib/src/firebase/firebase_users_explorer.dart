@@ -104,7 +104,8 @@ class FirebaseUsersPage {
 /// when the service can ([canList]), looks one up by uid or email when the
 /// backend answers that, and creates or deletes one through
 /// [FirebaseAuthAdmin] ([canWrite]). The admin sdk and the local sdb backend
-/// do all of it; the rest api with a service account looks a user up by uid.
+/// do all of it; the rest api with a service account lists and looks users up
+/// (`firebaseAuthServiceRestAdmin`).
 ///
 /// A read only explorer refuses every write, so handing one out is all it
 /// takes to make a view read only.

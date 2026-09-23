@@ -44,6 +44,12 @@ dependencies:
       url: https://github.com/tekartik/firebase_auth.dart
       path: auth
     version: '>=0.7.2'
+  # The admin sdk init (firebase/firebase_admin_sdk.dart), already a tkcms_common
+  # dependency.
+  tekartik_firebase_admin_sdk:
+    git:
+      url: https://github.com/tekartik/firebase_admin_sdk.dart
+      path: firebase_admin_sdk
   tekartik_firebase_auth_rest:
     git:
       url: https://github.com/tekartik/firebase_rest.dart

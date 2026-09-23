@@ -237,7 +237,7 @@ void main() {
 
       expect(find.text('Demo (demo-project)'), findsOneWidget);
       expect(find.text('As Demo, backup included'), findsOneWidget);
-      expect(find.text('As Demo, found by uid'), findsOneWidget);
+      expect(find.text('As Demo, listed'), findsOneWidget);
       await db.close();
     });
   });

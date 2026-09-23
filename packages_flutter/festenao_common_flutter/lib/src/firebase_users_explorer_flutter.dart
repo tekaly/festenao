@@ -43,8 +43,8 @@ Future<void> _copyUid(BuildContext context, String uid) async {
 /// A screen browsing the users of a [FirebaseUsersExplorer].
 ///
 /// It lists them page by page when the backend can, and finds one by uid or
-/// email either way — the rest api with a service account cannot list its
-/// users, but still answers by uid. Tapping one shows all its backend
+/// email either way — a client auth (the rest api signed in as a user) cannot
+/// list, but may still answer by uid. Tapping one shows all its backend
 /// reports, see [FirebaseUserScreen].
 ///
 /// An admin auth (`FirebaseAuthAdmin`, the admin sdk or the local sdb one)

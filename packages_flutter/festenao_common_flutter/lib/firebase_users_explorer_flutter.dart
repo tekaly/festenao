@@ -5,9 +5,9 @@
 /// ([FirebaseUserScreen]). An admin auth — the admin sdk, the local sdb one —
 /// also creates and deletes users.
 ///
-/// What it reaches depends on the backend, see `FirebaseUsersExplorer`: the
-/// rest api with a service account cannot list its users, so the screen only
-/// finds them there.
+/// What it reaches depends on the backend, see `FirebaseUsersExplorer`: an
+/// auth that cannot list its users (`supportsListUsers` false) only finds
+/// them.
 ///
 /// ```dart
 /// await goToFirebaseUsersExplorerScreen(context, auth: auth);

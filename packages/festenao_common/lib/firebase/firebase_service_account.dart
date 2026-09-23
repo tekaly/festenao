@@ -19,7 +19,8 @@ Future<FirebaseContext> festenaoInitFirebaseWithServiceAccount({
     firebase: firebaseAdmin,
     firestoreService: firestoreServiceRest,
     storageService: storageServiceRest,
-    authService: firebaseAuthServiceRest,
+    // An admin: it lists the users.
+    authService: firebaseAuthServiceRestAdmin,
     firebaseApp: firebaseApp,
   ).initContext();
 }

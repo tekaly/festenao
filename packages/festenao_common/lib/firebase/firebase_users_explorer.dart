@@ -3,8 +3,8 @@
 /// A [FirebaseUsersExplorer] lists the users of a `FirebaseAuth` page by page,
 /// looks one up by uid or email, and creates or deletes one through
 /// `FirebaseAuthAdmin` — as far as the backend goes: the admin sdk and the
-/// local sdb backend do all of it, the rest api with a service account looks
-/// a user up by uid.
+/// local sdb backend do all of it, the rest api with a service account lists
+/// and looks users up.
 ///
 /// A backend implements only part of `UserRecord`, so a [FirebaseUserEntry]
 /// reads each field once, keeping the ones it reports
