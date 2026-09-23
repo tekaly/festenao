@@ -6,6 +6,7 @@ import 'package:tekartik_app_flutter_fs/fs.dart' as app_fs;
 
 import '../file_system_create_action.dart';
 import '../file_system_root_picker.dart';
+import '../firebase_users_explorer_flutter.dart';
 import '../firestore_explorer_flutter.dart';
 import '../object_editor/object_editor_dialogs.dart';
 import '../object_editor/object_explorer_screen.dart';
@@ -59,8 +60,9 @@ List<FileSystemRoot> adminFileSystemRoots({
 
 /// The admin home: everything an admin build reaches, in one list.
 ///
-/// Firestore through the credentials the app holds, the file system from
-/// wherever it is rooted, and any sembast or sdb database file by its path.
+/// Firestore and the users of the project through the credentials the app
+/// holds, the file system from wherever it is rooted, and any sembast or sdb
+/// database file by its path.
 ///
 /// It is the whole of what an admin build is for, so an app shows it behind
 /// one item of its start page.
@@ -161,14 +163,48 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
         .replaceAll(r'\\', '/');
   }
 
-  Future<void> _openFirestore(AdminCredentials? credentials) async {
+  /// The service account of [credentials], null (and said so) when there is
+  /// none to use.
+  Map? _serviceAccountMap(AdminCredentials? credentials) {
     if (credentials == null) {
       _snack('Pick a set of credentials first');
-      return;
+      return null;
     }
     var serviceAccountMap = credentials.serviceAccountMap;
     if (serviceAccountMap == null) {
       _snack('The service account of ${credentials.displayName} is not json');
+    }
+    return serviceAccountMap;
+  }
+
+  /// The users of the project, through the auth of the service account.
+  ///
+  /// The rest api cannot list them, so the explorer finds them by uid there.
+  Future<void> _openUsers(AdminCredentials? credentials) async {
+    var serviceAccountMap = _serviceAccountMap(credentials);
+    if (credentials == null || serviceAccountMap == null) {
+      return;
+    }
+    try {
+      var context = await festenaoInitFirebaseWithServiceAccount(
+        serviceAccountMap: serviceAccountMap,
+      );
+      if (!mounted) {
+        return;
+      }
+      await goToFirebaseUsersExplorerScreen(
+        this.context,
+        auth: context.auth,
+        title: credentials.projectId.v ?? credentials.displayName,
+      );
+    } catch (e) {
+      _snack('$e');
+    }
+  }
+
+  Future<void> _openFirestore(AdminCredentials? credentials) async {
+    var serviceAccountMap = _serviceAccountMap(credentials);
+    if (credentials == null || serviceAccountMap == null) {
       return;
     }
     try {
@@ -288,6 +324,17 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
               ),
               enabled: credentials != null,
               onTap: () => _openFirestore(credentials),
+            ),
+            ListTile(
+              leading: const Icon(Icons.people_outline),
+              title: const Text('Users explorer'),
+              subtitle: Text(
+                credentials == null
+                    ? 'Pick a set of credentials first'
+                    : 'As ${credentials.displayName}, found by uid',
+              ),
+              enabled: credentials != null,
+              onTap: () => _openUsers(credentials),
             ),
             ListTile(
               leading: const Icon(Icons.folder_open_outlined),

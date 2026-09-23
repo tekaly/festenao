@@ -1,6 +1,7 @@
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart'
     show cmsHtmlFrameSupported;
 import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
+import 'package:festenao_common_flutter/firebase_users_explorer_flutter.dart';
 import 'package:festenao_common_flutter/firestore_explorer_flutter.dart';
 import 'package:flutter/material.dart';
 
@@ -111,6 +112,18 @@ class DemoHomePage extends StatelessWidget {
             firestore: data.firestore,
             backupExplorer: data.explorer,
             title: 'Firestore (memory)',
+          ),
+        ),
+        ListTile(
+          leading: const Icon(Icons.people_outline),
+          title: const Text('Users explorer'),
+          subtitle: const Text(
+            'The users of an auth: listed, found, created, deleted',
+          ),
+          onTap: () => goToFirebaseUsersExplorerScreen(
+            context,
+            auth: data.auth,
+            title: 'Auth (memory)',
           ),
         ),
         ListTile(

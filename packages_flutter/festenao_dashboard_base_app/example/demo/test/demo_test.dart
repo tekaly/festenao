@@ -36,44 +36,60 @@ void _testWidgets(
 
 void main() {
   group('the demo data', () {
-    test('builds a firestore tree, documents and two databases', () async {
-      var data = await DemoData.create();
+    test(
+      'builds a firestore tree, users, documents and two databases',
+      () async {
+        var data = await DemoData.create();
 
-      // Firestore: the collections, and a sub collection under a document.
-      var collections = await data.firestore.listCollections();
-      expect(collections.map((collection) => collection.id).toSet(), {
-        'settings',
-        'user',
-        'event',
-      });
-      expect(
-        (await data.firestore.doc('user/alice').listCollections()).map(
-          (collection) => collection.id,
-        ),
-        ['note'],
-      );
+        // Firestore: the collections, and a sub collection under a document.
+        var collections = await data.firestore.listCollections();
+        expect(collections.map((collection) => collection.id).toSet(), {
+          'settings',
+          'user',
+          'event',
+        });
+        expect(
+          (await data.firestore.doc('user/alice').listCollections()).map(
+            (collection) => collection.id,
+          ),
+          ['note'],
+        );
 
-      // The file system: one document of each kind, and a sub directory.
-      var entries = await data.explorer.list();
-      expect(entries.map((entry) => entry.name), [
-        'data',
-        'sub',
-        'config.json',
-        'notes.txt',
-        'picture.bin',
-        'settings.yaml',
-      ]);
+        // The users: alice and bob match the user documents, and anonymous,
+        // disabled and phone only ones show what a listing marks.
+        var users = (await data.auth.listUsers()).users.nonNulls;
+        expect(users.map((user) => user.uid), [
+          'alice',
+          'anonymous-visitor',
+          'bob',
+          'carol',
+          'dave',
+          'erin',
+        ]);
+        expect((await data.firestore.doc('user/bob').get()).exists, isTrue);
 
-      // The databases, one of each kind, found by walking the tree.
-      var databases = await listFileSystemDatabases(data.explorer);
-      expect(
-        {for (var (entry, kind) in databases) entry.name: kind},
-        {
-          'sdb_demo.db': FileSystemDatabaseKind.sdb,
-          'sembast_demo.db': FileSystemDatabaseKind.sembast,
-        },
-      );
-    });
+        // The file system: one document of each kind, and a sub directory.
+        var entries = await data.explorer.list();
+        expect(entries.map((entry) => entry.name), [
+          'data',
+          'sub',
+          'config.json',
+          'notes.txt',
+          'picture.bin',
+          'settings.yaml',
+        ]);
+
+        // The databases, one of each kind, found by walking the tree.
+        var databases = await listFileSystemDatabases(data.explorer);
+        expect(
+          {for (var (entry, kind) in databases) entry.name: kind},
+          {
+            'sdb_demo.db': FileSystemDatabaseKind.sdb,
+            'sembast_demo.db': FileSystemDatabaseKind.sembast,
+          },
+        );
+      },
+    );
 
     test('builds a cms site whose every link leads somewhere', () async {
       var data = await DemoData.create();
@@ -158,6 +174,7 @@ void main() {
         titles,
         containsAllInOrder([
           'Firestore explorer',
+          'Users explorer',
           'File system explorer',
           'Sdb explorer',
           'Sembast explorer',
@@ -234,6 +251,20 @@ void main() {
       expect(find.text('updatedAt'), findsOneWidget);
       expect(find.byIcon(Icons.event), findsOneWidget);
       expect(find.text('48.8584,2.2945'), findsOneWidget);
+    });
+
+    _testWidgets('opens the users explorer on the demo users', (tester) async {
+      await tester.pumpWidget(const FestenaoExplorersDemoApp());
+      await _settle(tester);
+
+      await tester.tap(find.text('Users explorer'));
+      await _settle(tester);
+      expect(find.text('6 users'), findsOneWidget);
+      expect(find.text('Dave (disabled)'), findsOneWidget);
+
+      await tester.tap(find.text('Alice'));
+      await _settle(tester);
+      expect(find.text('alice@example.com'), findsOneWidget);
     });
 
     _testWidgets('opens the sdb databases and edits a record', (tester) async {

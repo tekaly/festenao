@@ -1,3 +1,4 @@
+import 'package:festenao_common/firebase/firebase_auth.dart';
 import 'package:idb_shim/sdb.dart';
 import 'package:sembast/sembast.dart' as sembast;
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
@@ -5,6 +6,7 @@ import 'package:tekartik_firebase_firestore/firestore.dart';
 
 import 'file_system_create_action.dart';
 import 'file_system_root_picker.dart';
+import 'firebase_users_explorer_flutter.dart';
 import 'firestore_explorer_flutter.dart';
 import 'object_editor/object_value_editor.dart';
 
@@ -79,6 +81,31 @@ void festenaoFirestoreExplorerMenuItem({
       isReadOnly: isReadOnly,
       collectionPaths: collectionPaths,
       valueEditors: valueEditors,
+    );
+  });
+}
+
+/// A debug menu item opening the users explorer on [auth].
+///
+/// It lists the users when the backend can, finds one by uid or email, and
+/// creates or deletes one with an admin auth — the admin sdk, the local sdb
+/// one.
+///
+/// ```dart
+/// muiBodyWidget(() {
+///   festenaoFirebaseUsersExplorerMenuItem(auth: myAuth);
+/// });
+/// ```
+void festenaoFirebaseUsersExplorerMenuItem({
+  required FirebaseAuth auth,
+  String title = 'Users explorer',
+  bool isReadOnly = false,
+}) {
+  muiItem(title, () {
+    goToFirebaseUsersExplorerScreen(
+      muiBuildContext,
+      auth: auth,
+      isReadOnly: isReadOnly,
     );
   });
 }

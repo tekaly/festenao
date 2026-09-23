@@ -1,10 +1,10 @@
 /// An admin build: everything the explorers reach, behind credentials the app
 /// itself holds.
 ///
-/// [AdminExplorerScreen] is the whole of it in one list — firestore through a
-/// service account, the file system from wherever it is rooted, and any
-/// sembast or sdb database by its path — so an app shows it behind one item of
-/// its start page.
+/// [AdminExplorerScreen] is the whole of it in one list — firestore and the
+/// users through a service account, the file system from wherever it is
+/// rooted, and any sembast or sdb database by its path — so an app shows it
+/// behind one item of its start page.
 ///
 /// The credentials live in an sdb database of their own
 /// ([AdminCredentialsDb]), which the user manages from the app: pasting a
@@ -23,6 +23,7 @@
 library;
 
 export 'file_system_explorer_flutter.dart';
+export 'firebase_users_explorer_flutter.dart';
 export 'firestore_explorer_flutter.dart';
 export 'src/admin/admin_credentials.dart'
     show

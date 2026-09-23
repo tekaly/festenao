@@ -214,13 +214,15 @@ void main() {
       await _settle(tester);
 
       expect(find.text('Firestore explorer'), findsOneWidget);
+      expect(find.text('Users explorer'), findsOneWidget);
       expect(find.text('File system explorer'), findsOneWidget);
       expect(find.text('Sembast explorer'), findsOneWidget);
       expect(find.text('Sdb explorer'), findsOneWidget);
       expect(find.text('Any database'), findsOneWidget);
-      // Without credentials, firestore says so rather than opening.
+      // Without credentials, firestore and the users say so rather than
+      // opening.
       expect(find.text('None selected'), findsOneWidget);
-      expect(find.text('Pick a set of credentials first'), findsOneWidget);
+      expect(find.text('Pick a set of credentials first'), findsNWidgets(2));
       await db.close();
     });
 
@@ -235,6 +237,7 @@ void main() {
 
       expect(find.text('Demo (demo-project)'), findsOneWidget);
       expect(find.text('As Demo, backup included'), findsOneWidget);
+      expect(find.text('As Demo, found by uid'), findsOneWidget);
       await db.close();
     });
   });

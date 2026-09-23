@@ -112,6 +112,15 @@ dev_dependencies:
     git:
       url: https://github.com/tekartik/firebase_firestore.dart
       path: firestore_sembast
+  # The users explorer tests: sdb lists its users, sembast only finds them.
+  tekartik_firebase_auth_sdb:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth_sdb
+  tekartik_firebase_auth_sembast:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth_sembast
   flutter_lints: ">=6.0.0"
 
 # For information on the generic Dart part of this file, see the

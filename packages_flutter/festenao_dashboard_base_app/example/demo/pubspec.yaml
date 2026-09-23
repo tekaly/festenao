@@ -39,6 +39,11 @@ dependencies:
   fs_shim: ">=2.5.5"
   idb_shim: ">=2.9.10-1"
   sembast: ">=3.8.5+1"
+  # The users of the users explorer, in an in memory sdb auth.
+  tekartik_firebase_auth_sdb:
+    git:
+      url: https://github.com/tekartik/firebase_auth.dart
+      path: auth_sdb
   tekartik_firebase_firestore:
     git:
       url: https://github.com/tekartik/firebase_firestore.dart

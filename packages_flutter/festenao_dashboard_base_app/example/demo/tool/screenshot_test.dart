@@ -242,6 +242,19 @@ void main() {
       await _settle(tester);
       await _back(tester);
 
+      // ---- users ----
+      await _tap(tester, find.text('Users explorer'));
+      await _shot(tester, 'users_list');
+
+      await _tap(tester, find.text('Alice'));
+      await _shot(tester, 'user_fields');
+      await _back(tester);
+
+      await _tap(tester, find.byTooltip('New user'));
+      await _shot(tester, 'user_new_dialog');
+      await _tap(tester, find.text('Cancel'));
+      await _back(tester);
+
       // ---- file system ----
       await _tap(tester, find.text('File system explorer'));
       await _shot(tester, 'file_system_listing');
