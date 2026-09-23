@@ -25,6 +25,11 @@ import 'object_editor/object_value_editor.dart';
 /// paths given as [collectionPaths] instead, and the screen offers to add one
 /// by hand, so a known collection is reachable either way.
 ///
+/// A document of a collection opens in the object editor, or its
+/// sub-collections open in another explorer, under that document — how the
+/// whole tree is walked. A document with no data but with sub-collections is
+/// hidden from a collection until asked for, and opens them straight away.
+///
 /// ```dart
 /// await goToFirestoreExplorerScreen(context, firestore: firestore);
 /// ```
@@ -141,6 +146,34 @@ class _FirestoreExplorerScreenState extends State<FirestoreExplorerScreen> {
     _reload();
   }
 
+  /// Opens another explorer on the collections under the document of
+  /// [collection] of id [id].
+  Future<void> _openSubCollections(
+    BuildContext context,
+    ObjectCollection collection,
+    String id,
+  ) => goToFirestoreExplorerScreen(
+    context,
+    firestore: firestore,
+    documentPath: '${collection.name}/$id',
+    isReadOnly: widget.isReadOnly,
+    valueEditors: widget.valueEditors,
+    clipboard: widget.clipboard,
+    backupExplorer: widget.backupExplorer,
+    backupDirectoryPath: widget.backupDirectoryPath,
+  );
+
+  /// Opens the document the collections sit under.
+  Future<void> _openParentDocument(String documentPath) =>
+      goToFirestoreDocumentScreen(
+        context,
+        firestore: firestore,
+        path: documentPath,
+        isReadOnly: widget.isReadOnly,
+        valueEditors: widget.valueEditors,
+        clipboard: widget.clipboard,
+      );
+
   /// Opens one document straight away, which is how a known path is reached
   /// without walking a collection that cannot be listed.
   Future<void> _openDocument() async {
@@ -206,6 +239,12 @@ class _FirestoreExplorerScreenState extends State<FirestoreExplorerScreen> {
       tone: ExplorerChipTone.accent,
     ),
     actions: [
+      if (widget.documentPath case var documentPath?)
+        IconButton(
+          icon: const Icon(Icons.description_outlined),
+          tooltip: 'Open $documentPath',
+          onPressed: () => _openParentDocument(documentPath),
+        ),
       if (widget.backupExplorer != null)
         IconButton(
           icon: const Icon(Icons.backup_outlined),
@@ -275,6 +314,8 @@ class _FirestoreExplorerScreenState extends State<FirestoreExplorerScreen> {
                 collection: collection,
                 valueEditors: widget.valueEditors,
                 clipboard: widget.clipboard,
+                onOpenSubCollections: (context, id) =>
+                    _openSubCollections(context, collection, id),
               ),
             );
           },

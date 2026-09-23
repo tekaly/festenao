@@ -129,6 +129,10 @@ class _ObjectExplorerScreenState extends State<ObjectExplorerScreen> {
 /// A collection that may hold hidden records — a firestore document with no
 /// data of its own but with sub-collections, see
 /// [ObjectCollection.supportsHiddenIds] — offers to show them too.
+///
+/// Records with collections under them — firestore documents — each get a
+/// sub-collections action beside the one opening the record, see
+/// [onOpenSubCollections].
 class ObjectCollectionScreen extends StatefulWidget {
   /// The collection being listed.
   final ObjectCollection collection;
@@ -142,6 +146,13 @@ class ObjectCollectionScreen extends StatefulWidget {
   /// How many ids are listed at most.
   final int limit;
 
+  /// Opens the collections under the record [id], null when records have
+  /// none (a sembast or sdb store).
+  ///
+  /// A hidden record, which has nothing but them, opens them when tapped.
+  final Future<void> Function(BuildContext context, String id)?
+  onOpenSubCollections;
+
   /// Listing of [collection].
   const ObjectCollectionScreen({
     super.key,
@@ -149,6 +160,7 @@ class ObjectCollectionScreen extends StatefulWidget {
     this.valueEditors,
     this.clipboard,
     this.limit = 200,
+    this.onOpenSubCollections,
   });
 
   @override
@@ -244,6 +256,23 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
     } catch (e) {
       _snack('$e');
     }
+    _reload();
+  }
+
+  Future<void> _open(String id) async {
+    await goToObjectEditorScreen(
+      context,
+      source: collection.source(id),
+      valueEditors: widget.valueEditors,
+      clipboard: widget.clipboard,
+    );
+    _reload();
+  }
+
+  /// A record can come and go with what is written under it: a hidden one
+  /// appears with its first sub-collection document, and goes with the last.
+  Future<void> _openSubCollections(String id) async {
+    await widget.onOpenSubCollections!(context, id);
     _reload();
   }
 
@@ -351,8 +380,10 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
             }
             var id = ids[index - 1];
             // A hidden record holds nothing to copy nor delete, but it can
-            // be written.
+            // be written, opening it empty.
             var isHidden = listed.isHidden(id);
+            var hasSubCollections = widget.onOpenSubCollections != null;
+            var hasMenu = !isHidden || !_isReadOnly;
             return ListTile(
               leading: Icon(
                 isHidden
@@ -368,44 +399,59 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
                       ],
                     )
                   : Text(id),
-              trailing: isHidden && _isReadOnly
+              trailing: !hasSubCollections && !hasMenu
                   ? null
-                  : PopupMenuButton<String>(
-                      icon: const Icon(Icons.more_vert, size: 20),
-                      itemBuilder: (context) => [
-                        if (!isHidden)
-                          const PopupMenuItem(
-                            value: 'copy',
-                            child: Text('Copy'),
-                          ),
-                        if (!_isReadOnly) ...[
-                          const PopupMenuItem(
-                            value: 'paste',
-                            child: Text('Paste over'),
-                          ),
-                          if (!isHidden)
-                            const PopupMenuItem(
-                              value: 'delete',
-                              child: Text('Delete'),
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (hasSubCollections)
+                          IconButton(
+                            icon: const Icon(
+                              Icons.folder_open_outlined,
+                              size: 20,
                             ),
-                        ],
+                            tooltip: 'Sub-collections',
+                            onPressed: () => _openSubCollections(id),
+                          ),
+                        if (hasMenu)
+                          PopupMenuButton<String>(
+                            icon: const Icon(Icons.more_vert, size: 20),
+                            itemBuilder: (context) => [
+                              if (isHidden)
+                                const PopupMenuItem(
+                                  value: 'open',
+                                  child: Text('Open'),
+                                )
+                              else
+                                const PopupMenuItem(
+                                  value: 'copy',
+                                  child: Text('Copy'),
+                                ),
+                              if (!_isReadOnly) ...[
+                                const PopupMenuItem(
+                                  value: 'paste',
+                                  child: Text('Paste over'),
+                                ),
+                                if (!isHidden)
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  ),
+                              ],
+                            ],
+                            onSelected: (action) => switch (action) {
+                              'open' => _open(id),
+                              'copy' => _copy(id),
+                              'paste' => _paste(id: id),
+                              'delete' => _delete(id),
+                              _ => null,
+                            },
+                          ),
                       ],
-                      onSelected: (action) => switch (action) {
-                        'copy' => _copy(id),
-                        'paste' => _paste(id: id),
-                        'delete' => _delete(id),
-                        _ => null,
-                      },
                     ),
-              onTap: () async {
-                await goToObjectEditorScreen(
-                  context,
-                  source: collection.source(id),
-                  valueEditors: widget.valueEditors,
-                  clipboard: widget.clipboard,
-                );
-                _reload();
-              },
+              onTap: () => isHidden && hasSubCollections
+                  ? _openSubCollections(id)
+                  : _open(id),
             );
           },
         );
@@ -456,12 +502,14 @@ Future<void> goToObjectCollectionScreen(
   required ObjectCollection collection,
   ObjectValueEditorRegistry? valueEditors,
   FlutterObjectClipboard? clipboard,
+  Future<void> Function(BuildContext context, String id)? onOpenSubCollections,
 }) => Navigator.of(context).push<void>(
   MaterialPageRoute(
     builder: (_) => ObjectCollectionScreen(
       collection: collection,
       valueEditors: valueEditors,
       clipboard: clipboard,
+      onOpenSubCollections: onOpenSubCollections,
     ),
   ),
 );

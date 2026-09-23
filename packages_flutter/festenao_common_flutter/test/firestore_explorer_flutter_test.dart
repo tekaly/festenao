@@ -142,6 +142,54 @@ void main() {
       expect(find.text('2 records'), findsOneWidget);
     });
 
+    _testWidgets('walks down the sub-collections of a document', (
+      tester,
+    ) async {
+      var firestore = await _newFirestore();
+      await firestore.doc('config/main/items/a').set({'label': 'item a'});
+      await _pump(tester, firestore);
+      await tester.tap(find.text('config'));
+      await _settle(tester);
+
+      await tester.tap(
+        find.descendant(
+          of: find.widgetWithText(ListTile, 'main'),
+          matching: find.byTooltip('Sub-collections'),
+        ),
+      );
+      await _settle(tester);
+      expect(find.text('config/main/items'), findsOneWidget);
+
+      // The document itself is one tap away.
+      await tester.tap(find.byTooltip('Open config/main'));
+      await _settle(tester);
+      expect(find.text('name'), findsOneWidget);
+      expect(find.text('test'), findsOneWidget);
+      await tester.pageBack();
+      await _settle(tester);
+
+      await tester.tap(find.text('config/main/items'));
+      await _settle(tester);
+      await tester.tap(find.text('a'));
+      await _settle(tester);
+      expect(find.text('label'), findsOneWidget);
+      expect(find.text('item a'), findsOneWidget);
+    });
+
+    _testWidgets('a hidden document opens its sub-collections', (tester) async {
+      var firestore = await _newFirestore();
+      await firestore.doc('config/ghost/items/a').set({'label': 'item a'});
+      await _pump(tester, firestore);
+      await tester.tap(find.text('config'));
+      await _settle(tester);
+      await tester.tap(find.byTooltip('Show hidden records'));
+      await _settle(tester);
+
+      await tester.tap(find.text('ghost'));
+      await _settle(tester);
+      expect(find.text('config/ghost/items'), findsOneWidget);
+    });
+
     _testWidgets('a read only explorer writes nothing', (tester) async {
       var firestore = await _newFirestore();
       await _pump(tester, firestore, isReadOnly: true);
