@@ -125,6 +125,10 @@ class _ObjectExplorerScreenState extends State<ObjectExplorerScreen> {
 
 /// A screen listing the ids of an [ObjectCollection]: the records of a store,
 /// the documents of a firestore collection, the files of a directory.
+///
+/// A collection that may hold hidden records — a firestore document with no
+/// data of its own but with sub-collections, see
+/// [ObjectCollection.supportsHiddenIds] — offers to show them too.
 class ObjectCollectionScreen extends StatefulWidget {
   /// The collection being listed.
   final ObjectCollection collection;
@@ -154,16 +158,28 @@ class ObjectCollectionScreen extends StatefulWidget {
 class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
   ObjectCollection get collection => widget.collection;
 
-  late Future<List<String>> _loading = collection.listIds(limit: widget.limit);
+  /// True to list the hidden records too.
+  var _showHidden = false;
+
+  late Future<ObjectCollectionIds> _loading = _list();
 
   bool get _isReadOnly => collection.isReadOnly;
 
   FlutterObjectClipboard get _clipboard =>
       widget.clipboard ?? globalFlutterObjectClipboard;
 
+  Future<ObjectCollectionIds> _list() async => _showHidden
+      ? await collection.listIdsWithHidden(limit: widget.limit)
+      : ObjectCollectionIds(await collection.listIds(limit: widget.limit));
+
   void _reload() => setState(() {
-    _loading = collection.listIds(limit: widget.limit);
+    _loading = _list();
   });
+
+  void _toggleHidden() {
+    _showHidden = !_showHidden;
+    _reload();
+  }
 
   void _snack(String message) {
     if (mounted) {
@@ -281,32 +297,46 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
     isReadOnly: _isReadOnly,
     crumbs: [ExplorerCrumb(collection.name)],
     actions: [
+      if (collection.supportsHiddenIds)
+        IconButton(
+          icon: Icon(
+            _showHidden
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
+          ),
+          tooltip: _showHidden ? 'Hide hidden records' : 'Show hidden records',
+          onPressed: _toggleHidden,
+        ),
       IconButton(
         icon: const Icon(Icons.refresh),
         tooltip: 'Reload',
         onPressed: _reload,
       ),
     ],
-    statusBar: FutureBuilder<List<String>>(
+    statusBar: FutureBuilder<ObjectCollectionIds>(
       future: _loading,
       builder: (context, snapshot) => ExplorerStatusBar(
         message: collection.name,
         trailing: [
-          if (snapshot.data case var ids?)
-            ExplorerChip(label: '${ids.length} records'),
+          if (snapshot.data case var listed?) ...[
+            ExplorerChip(label: '${listed.ids.length} records'),
+            if (_showHidden)
+              ExplorerChip(label: '${listed.hiddenIds.length} hidden'),
+          ],
         ],
       ),
     ),
-    body: FutureBuilder<List<String>>(
+    body: FutureBuilder<ObjectCollectionIds>(
       future: _loading,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('${snapshot.error}'));
         }
-        var ids = snapshot.data;
-        if (ids == null) {
+        var listed = snapshot.data;
+        if (listed == null) {
           return const Center(child: CircularProgressIndicator());
         }
+        var ids = listed.ids;
         if (ids.isEmpty) {
           return const Center(child: Text('No object'));
         }
@@ -320,28 +350,53 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
               );
             }
             var id = ids[index - 1];
+            // A hidden record holds nothing to copy nor delete, but it can
+            // be written.
+            var isHidden = listed.isHidden(id);
             return ListTile(
-              leading: const Icon(Icons.description_outlined),
-              title: Text(id),
-              trailing: PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, size: 20),
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 'copy', child: Text('Copy')),
-                  if (!_isReadOnly) ...[
-                    const PopupMenuItem(
-                      value: 'paste',
-                      child: Text('Paste over'),
-                    ),
-                    const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  ],
-                ],
-                onSelected: (action) => switch (action) {
-                  'copy' => _copy(id),
-                  'paste' => _paste(id: id),
-                  'delete' => _delete(id),
-                  _ => null,
-                },
+              leading: Icon(
+                isHidden
+                    ? Icons.visibility_off_outlined
+                    : Icons.description_outlined,
               ),
+              title: isHidden
+                  ? Row(
+                      children: [
+                        Flexible(child: Text(id)),
+                        const SizedBox(width: 8),
+                        const ExplorerChip(label: 'hidden'),
+                      ],
+                    )
+                  : Text(id),
+              trailing: isHidden && _isReadOnly
+                  ? null
+                  : PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, size: 20),
+                      itemBuilder: (context) => [
+                        if (!isHidden)
+                          const PopupMenuItem(
+                            value: 'copy',
+                            child: Text('Copy'),
+                          ),
+                        if (!_isReadOnly) ...[
+                          const PopupMenuItem(
+                            value: 'paste',
+                            child: Text('Paste over'),
+                          ),
+                          if (!isHidden)
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Text('Delete'),
+                            ),
+                        ],
+                      ],
+                      onSelected: (action) => switch (action) {
+                        'copy' => _copy(id),
+                        'paste' => _paste(id: id),
+                        'delete' => _delete(id),
+                        _ => null,
+                      },
+                    ),
               onTap: () async {
                 await goToObjectEditorScreen(
                   context,

@@ -93,6 +93,18 @@ abstract class ObjectCollection {
   /// The ids in the collection, at most [limit] of them.
   Future<List<String>> listIds({int? limit});
 
+  /// True when the collection may hold hidden objects, the ones [listIds]
+  /// leaves out: a firestore document with no data of its own but with
+  /// sub-collections. [listIdsWithHidden] lists them.
+  bool get supportsHiddenIds => false;
+
+  /// The ids in the collection, the hidden ones included, at most [limit] of
+  /// them — see [supportsHiddenIds].
+  ///
+  /// [listIds], none of them hidden, when the collection has no hidden ids.
+  Future<ObjectCollectionIds> listIdsWithHidden({int? limit}) async =>
+      ObjectCollectionIds(await listIds(limit: limit));
+
   /// The source of the object of id [id], whether it exists or not.
   ObjectSource source(String id);
 
@@ -105,6 +117,25 @@ abstract class ObjectCollection {
 
   @override
   String toString() => '$runtimeType($name)';
+}
+
+/// The ids [ObjectCollection.listIdsWithHidden] lists, and which of them are
+/// hidden.
+class ObjectCollectionIds {
+  /// Every id listed, the hidden ones included.
+  final List<String> ids;
+
+  /// The ids of [ids] whose object is hidden.
+  final Set<String> hiddenIds;
+
+  /// The [ids] listed, [hiddenIds] among them.
+  ObjectCollectionIds(this.ids, {this.hiddenIds = const {}});
+
+  /// True when the object of id [id] is a hidden one.
+  bool isHidden(String id) => hiddenIds.contains(id);
+
+  @override
+  String toString() => 'ObjectCollectionIds($ids, hidden: $hiddenIds)';
 }
 
 /// A set of collections: a sembast or sdb database, a firestore instance, a

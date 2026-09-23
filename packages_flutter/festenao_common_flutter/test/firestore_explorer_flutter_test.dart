@@ -115,6 +115,33 @@ void main() {
       expect((data['other'] as DocumentReference).path, 'config/second');
     });
 
+    _testWidgets('shows the hidden documents on demand', (tester) async {
+      var firestore = await _newFirestore();
+      // No data of its own, only a sub-collection.
+      await firestore.doc('config/ghost/items/a').set({'name': 'a'});
+      await _pump(tester, firestore);
+      await tester.tap(find.text('config'));
+      await _settle(tester);
+
+      expect(find.text('main'), findsOneWidget);
+      expect(find.text('ghost'), findsNothing);
+
+      await tester.tap(find.byTooltip('Show hidden records'));
+      await _settle(tester);
+      expect(find.text('ghost'), findsOneWidget);
+      expect(find.text('hidden'), findsOneWidget);
+      expect(find.text('1 hidden'), findsOneWidget);
+      expect(find.text('3 records'), findsOneWidget);
+      // The others are still listed, not marked.
+      expect(find.text('main'), findsOneWidget);
+      expect(find.text('second'), findsOneWidget);
+
+      await tester.tap(find.byTooltip('Hide hidden records'));
+      await _settle(tester);
+      expect(find.text('ghost'), findsNothing);
+      expect(find.text('2 records'), findsOneWidget);
+    });
+
     _testWidgets('a read only explorer writes nothing', (tester) async {
       var firestore = await _newFirestore();
       await _pump(tester, firestore, isReadOnly: true);

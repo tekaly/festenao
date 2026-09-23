@@ -358,6 +358,11 @@ count: 0
       var collection = FsObjectCollection(fs.directory('dir'));
       expect(await collection.listIds(), ['a', 'b']);
       expect(collection.source('a').title, 'dir/a.json');
+      // Nothing is hidden in a directory.
+      expect(collection.supportsHiddenIds, isFalse);
+      var listed = await collection.listIdsWithHidden();
+      expect(listed.ids, ['a', 'b']);
+      expect(listed.hiddenIds, isEmpty);
     });
 
     test('edits a sembast record', () async {
@@ -456,6 +461,34 @@ count: 0
         path: 'config',
       );
       expect(await collection.listIds(), ['main']);
+    });
+
+    test('lists the hidden firestore documents', () async {
+      // ignore: deprecated_member_use
+      var firestore = newFirestoreMemory();
+      await firestore.doc('config/main').set({'name': 'test'});
+      await firestore.doc('config/other').set({'name': 'other'});
+      // No data of its own, only a sub-collection.
+      await firestore.doc('config/ghost/items/a').set({'name': 'a'});
+
+      var collection = FirestoreObjectCollection(
+        firestore: firestore,
+        path: 'config',
+      );
+      expect(collection.supportsHiddenIds, isTrue);
+      expect(await collection.listIds(), ['main', 'other']);
+
+      var listed = await collection.listIdsWithHidden();
+      expect(listed.ids, ['ghost', 'main', 'other']);
+      expect(listed.hiddenIds, {'ghost'});
+      expect(listed.isHidden('ghost'), isTrue);
+      expect(listed.isHidden('main'), isFalse);
+      expect(await collection.source('ghost').read(), isNull);
+
+      listed = await collection.listIdsWithHidden(limit: 2);
+      expect(listed.ids, ['ghost', 'main']);
+      expect(listed.hiddenIds, {'ghost'});
+      expect((await collection.listIdsWithHidden(limit: 0)).ids, isEmpty);
     });
 
     test('edits a value in memory', () async {

@@ -45,6 +45,7 @@ export '../src/data/model/object_source.dart'
     show
         MemoryObjectSource,
         ObjectCollection,
+        ObjectCollectionIds,
         ObjectRepository,
         ObjectSource,
         ObjectSourceEditor,

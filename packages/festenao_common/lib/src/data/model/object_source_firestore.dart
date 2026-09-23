@@ -314,6 +314,47 @@ class FirestoreObjectCollection extends ObjectCollection {
     return snapshot.docs.map((doc) => doc.ref.id).toList();
   }
 
+  /// A missing document — no data of its own, but sub-collections — is a
+  /// hidden one, when the backend can list them.
+  @override
+  bool get supportsHiddenIds => firestore.service.supportsListMissingDocuments;
+
+  /// Lists the documents with [CollectionReference.listDocuments], which also
+  /// finds the missing ones, then reads them to tell those apart.
+  @override
+  Future<ObjectCollectionIds> listIdsWithHidden({int? limit}) async {
+    if (!supportsHiddenIds) {
+      return super.listIdsWithHidden(limit: limit);
+    }
+    var collection = firestore.collection(path);
+    var refs = <DocumentReference>[];
+    String? pageToken;
+    // A page may hold fewer documents than asked while more remain.
+    while (limit == null || refs.length < limit) {
+      var result = await collection.listDocuments(
+        options: FirestoreListDocumentsOptions(
+          pageSize: limit == null ? null : limit - refs.length,
+          pageToken: pageToken,
+        ),
+      );
+      refs.addAll(result.refs);
+      pageToken = result.nextPageToken;
+      if (pageToken == null) {
+        break;
+      }
+    }
+    var snapshots = refs.isEmpty
+        ? <DocumentSnapshot>[]
+        : await firestore.getAll(refs);
+    return ObjectCollectionIds(
+      refs.map((ref) => ref.id).toList()..sort(),
+      hiddenIds: {
+        for (var snapshot in snapshots)
+          if (!snapshot.exists) snapshot.ref.id,
+      },
+    );
+  }
+
   @override
   Stream<List<String>> watchIds({int? limit}) => _query(limit: limit)
       .onSnapshot()
