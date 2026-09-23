@@ -99,10 +99,12 @@ three sibling rules projects.
   the links, canonical urls and sitemap follow the hosting. The app is the
   one of the `FfApp`, not in the url; customize a site with the
   `FestenaoServerApp` hooks (see the `festenao-common-server-app` skill).
-* The app hosting rewrites `/cms/**` to `cmsdev` (dev target) or `cms`
-  (prod targets) and `/cmsdemo/**` to `cmsdemo`, before the `**` to
+* The app hosting rewrites `/cms{,/**}` to `cmsdev` (dev target) or `cms`
+  (prod targets) and `/cmsdemo{,/**}` to `cmsdemo`, before the `**` to
   `index.html` rewrite (`"function": {"functionId": "cmsdev", "region":
-  "europe-west1"}`), in the same firebase project as the functions.
+  "europe-west1"}`), in the same firebase project as the functions. `{,/**}`
+  covers the path without trailing slash: a `/cmsdemo` → `/cmsdemo/`
+  redirect loops (a redirect source matches both).
 * `cmsdemo` (`festenaoCmsDemoDartHandler`) serves the hard coded festival
   site of `festenao_demo` (`packages/festenao_common/example/demo`,
   `demoCmsServer`) at whatever url it is reached at.

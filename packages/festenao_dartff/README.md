@@ -28,15 +28,15 @@ The app hosting (same firebase project as the functions) rewrites them to
 the function of its flavor, before its `**` rewrite:
 
 ```json
-"redirects": [
-  { "source": "/cmsdemo", "destination": "/cmsdemo/", "type": 301 }
-],
 "rewrites": [
-  { "source": "/cms/**", "function": { "functionId": "cmsdev", "region": "europe-west1" } },
-  { "source": "/cmsdemo/**", "function": { "functionId": "cmsdemo", "region": "europe-west1" } },
+  { "source": "/cms{,/**}", "function": { "functionId": "cmsdev", "region": "europe-west1" } },
+  { "source": "/cmsdemo{,/**}", "function": { "functionId": "cmsdemo", "region": "europe-west1" } },
   { "source": "**", "destination": "/index.html" }
 ]
 ```
+
+`{,/**}` also sends `/cmsdemo` (no trailing slash) to the function; a
+`/cmsdemo` → `/cmsdemo/` redirect loops instead, its source matching both.
 
 The links of a site follow the url the visitor typed (the forwarded host of
 the hosting), so the same function also answers at its own url and on a
