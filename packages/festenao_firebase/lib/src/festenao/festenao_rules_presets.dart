@@ -26,6 +26,11 @@ class FestenaoRulesOptions {
   /// Header comment of the generated file.
   final String? header;
 
+  /// Add the slug registry (`<parent>/slug/{slug}`, see
+  /// [TkCmsEntityRules.addSlugRules]): readable one by one by anyone,
+  /// written by the admins of the entity a slug points to (and the server).
+  final bool slugs;
+
   /// Creates preset options.
   const FestenaoRulesOptions({
     this.userAccess = false,
@@ -33,6 +38,7 @@ class FestenaoRulesOptions {
     this.publicAccess = false,
     this.maxDepth = 1,
     this.header,
+    this.slugs = false,
   });
 }
 
@@ -82,6 +88,7 @@ FirestoreRules festenaoApiContextRules({
       level.addUserAccessRules();
     }
   }
+  _addSlugRules(tkCms, options);
   return rules;
 }
 
@@ -116,6 +123,7 @@ FirestoreRules festenaoNoApiContextRules({
       level.addUserAccessRules();
     }
   }
+  _addSlugRules(tkCms, options);
   return rules;
 }
 
@@ -174,6 +182,7 @@ FirestoreRules festenaoFullApiContextRules({
       level.addUserAccessRules();
     }
   }
+  _addSlugRules(tkCms, options);
   return rules;
 }
 
@@ -232,6 +241,7 @@ FirestoreRules festenaoServerFullApiRules({
       level.addUserAccessRules();
     }
   }
+  _addSlugRules(tkCms, options);
   return rules;
 }
 
@@ -276,7 +286,19 @@ FirestoreRules festenaoDartffRules({
 
   top.addPublicAccessRules();
   sub.addPublicAccessRules();
+  _addSlugRules(tkCms, options);
   return rules;
+}
+
+/// The slug registry of every entity level, when [FestenaoRulesOptions.slugs].
+void _addSlugRules(TkCmsFirestoreRules tkCms, FestenaoRulesOptions options) {
+  if (!options.slugs) {
+    return;
+  }
+  tkCms.rules.blankLine();
+  for (var depth = 1; depth <= options.maxDepth; depth++) {
+    tkCms.level(depth).addSlugRules(clientWrite: true);
+  }
 }
 
 /// The presets by name, as used by the generation tool.

@@ -1,4 +1,5 @@
 import 'package:festenao_common/festenao_sdb.dart';
+import 'package:festenao_common/slug/slug.dart';
 
 /// Body format: markdown (the default).
 const cmsPageBodyFormatMarkdown = 'markdown';
@@ -205,76 +206,14 @@ void initFestenaoCmsBuilders() {
   cvAddConstructors([SdbCmsPage.new, CvCmsImage.new]);
 }
 
-const _accentMap = <String, String>{
-  'à': 'a',
-  'á': 'a',
-  'â': 'a',
-  'ã': 'a',
-  'ä': 'a',
-  'å': 'a',
-  'æ': 'ae',
-  'ç': 'c',
-  'è': 'e',
-  'é': 'e',
-  'ê': 'e',
-  'ë': 'e',
-  'ì': 'i',
-  'í': 'i',
-  'î': 'i',
-  'ï': 'i',
-  'ñ': 'n',
-  'ò': 'o',
-  'ó': 'o',
-  'ô': 'o',
-  'õ': 'o',
-  'ö': 'o',
-  'ø': 'o',
-  'œ': 'oe',
-  'ù': 'u',
-  'ú': 'u',
-  'û': 'u',
-  'ü': 'u',
-  'ý': 'y',
-  'ÿ': 'y',
-  'ß': 'ss',
-};
-
 /// Make a url slug out of [text]: lower case ascii letters, digits and dashes.
 ///
 /// Accents are stripped (`Café` gives `cafe`), anything else becomes a dash,
 /// dashes are collapsed and trimmed, and the result is capped to
 /// [cmsSlugMaxLength]. Returns [fallback] (defaults to `page`) when nothing
 /// usable remains.
-String cmsSlugify(String text, {String fallback = 'page'}) {
-  var sb = StringBuffer();
-  var lastDash = true;
-  for (var rune in text.toLowerCase().runes) {
-    var char = String.fromCharCode(rune);
-    char = _accentMap[char] ?? char;
-    for (var c in char.codeUnits) {
-      var isAlnum = (c >= 0x30 && c <= 0x39) || (c >= 0x61 && c <= 0x7a);
-      if (isAlnum) {
-        sb.writeCharCode(c);
-        lastDash = false;
-      } else if (!lastDash) {
-        sb.write('-');
-        lastDash = true;
-      }
-    }
-  }
-  var slug = sb.toString();
-  if (slug.endsWith('-')) {
-    slug = slug.substring(0, slug.length - 1);
-  }
-  if (slug.length > cmsSlugMaxLength) {
-    slug = slug.substring(0, cmsSlugMaxLength);
-    var lastDashIndex = slug.lastIndexOf('-');
-    if (lastDashIndex > cmsSlugMaxLength ~/ 2) {
-      slug = slug.substring(0, lastDashIndex);
-    }
-  }
-  return slug.isEmpty ? fallback : slug;
-}
+String cmsSlugify(String text, {String fallback = 'page'}) =>
+    festenaoSlugify(text, maxLength: cmsSlugMaxLength, fallback: fallback);
 
 /// Typed access to the pages of a content database.
 ///

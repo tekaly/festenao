@@ -18,6 +18,9 @@ const tkCmsRulesUserPrvCollectionId = 'user_prv';
 /// The `user_access` collection of app level user rights.
 const tkCmsRulesUserAccessCollectionId = 'user_access';
 
+/// The `slug` registry collection (`festenao_common` `FestenaoSlugRegistry`).
+const tkCmsRulesSlugCollectionId = 'slug';
+
 /// The `public/get` world readable documents.
 const tkCmsRulesPublicGetPath = 'public/get';
 
@@ -727,6 +730,43 @@ class TkCmsEntityRules {
         RulesMethod.read,
       ], signedIn & requestAuthUid.eq(m.v('userId'))),
     );
+  }
+
+  /// The slug registry (`festenao_common` `FestenaoSlugRegistry`):
+  /// `<parent>/slug/{slug}` documents, each pointing to an entity of this
+  /// level (`entityType` is its collection, `entityId` its id).
+  ///
+  /// Anyone gets one (resolving a link, signed out included), nobody lists
+  /// them. With [clientWrite] an admin of the entity a slug points to
+  /// creates it, updates it (the entity before and after the write: moving
+  /// it to an alias) and deletes it; otherwise only the server writes them.
+  ///
+  /// Beware that the no-api creator rules ([addCreatorRules]) let a signed
+  /// in user create any `<parent>/<collection>/<id>` document carrying its
+  /// own `creatorUserId`, `slug/<id>` included.
+  void addSlugRules({bool clientWrite = false}) {
+    rules.comment(
+      clientWrite
+          ? 'Slugs: get only, written by the admins of their entity'
+          : 'Slugs: get only, written by the server',
+    );
+    rules.match(level.pattern('/$tkCmsRulesSlugCollectionId/{slug}'), (m) {
+      m.allow([RulesMethod.get], true);
+      if (clientWrite) {
+        var parentVars = level.parentVars(m);
+        RulesExpr adminOf(RulesExpr data) => hasEntityAdminAccessFunction.call([
+          ...parentVars,
+          data.get('entityType', ''),
+          data.get('entityId', ''),
+          uid,
+        ]);
+        m.allow([RulesMethod.create], signedIn & adminOf(requestResourceData));
+        m.allow([
+          RulesMethod.update,
+        ], signedIn & adminOf(resourceData) & adminOf(requestResourceData));
+        m.allow([RulesMethod.delete], signedIn & adminOf(resourceData));
+      }
+    });
   }
 
   /// World readable documents under `<parent>/public/get/**` (get only, no

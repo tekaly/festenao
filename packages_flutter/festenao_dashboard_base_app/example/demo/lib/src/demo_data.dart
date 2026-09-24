@@ -9,6 +9,7 @@ import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart'
     as firestore_memory;
 
 import 'demo_cms.dart';
+import 'demo_slug.dart';
 
 /// Everything the demo runs on, all of it in memory: nothing is written to the
 /// disk and nothing survives a restart.
@@ -45,6 +46,7 @@ class DemoData {
     // ignore: deprecated_member_use
     var firestore = firestore_memory.newFirestoreMemory();
     await fillDemoFirestore(firestore);
+    await fillDemoSlugs(firestore);
 
     // alice and bob are also the user documents of the firestore tree.
     var auth = newFirebaseAuthSdbMemory() as FirebaseAuthSdb;

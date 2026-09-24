@@ -1,6 +1,7 @@
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
+import 'package:festenao_common/festenao_slug.dart';
 import 'package:tkcms_common/tkcms_audi.dart';
 import 'package:tkcms_common/tkcms_common.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
@@ -15,8 +16,11 @@ class ProjectSdbEditScreenBlocState {
   /// Projects
   final SdbUserProject? project;
 
+  /// The current slug of the project url (`/p/<slug>`), null when none.
+  final String? slug;
+
   /// Projects screen bloc state
-  ProjectSdbEditScreenBlocState({this.project, this.identity});
+  ProjectSdbEditScreenBlocState({this.project, this.identity, this.slug});
 }
 
 /// Projects screen bloc
@@ -37,14 +41,39 @@ class ProjectEditScreenBloc
       if (identity == null) {
         add(ProjectSdbEditScreenBlocState());
       } else {
+        String? slug;
+        var project = this.project;
+        if (project != null) {
+          try {
+            var fsDb = globalFestenaoFirestoreDatabase;
+            slug =
+                (await fsDb.projectDb
+                        .fsEntityRef(project.fsId)
+                        .get(fsDb.firestore))
+                    .slug
+                    .v;
+          } catch (_) {
+            // Offline, or not readable: edited without its url.
+          }
+        }
         add(
-          ProjectSdbEditScreenBlocState(project: project, identity: identity),
+          ProjectSdbEditScreenBlocState(
+            project: project,
+            identity: identity,
+            slug: slug,
+          ),
         );
       }
     }();
   }
 
-  Future<void> saveProject(SdbUserProject project) async {
+  /// Save [project], and give it the url [slug] when it is a new one (see
+  /// [FestenaoFirestoreDatabaseSlugExt.setProjectSlug]).
+  Future<void> saveProject(
+    SdbUserProject project, {
+    String? slug,
+    String? currentSlug,
+  }) async {
     await globalProjectsSdb.ready;
     var fsDb = globalFestenaoFirestoreDatabase;
     var firestore = fsDb.firestore;
@@ -58,6 +87,9 @@ class ProjectEditScreenBloc
         entity: fsProject,
         entityId: project.uid.v,
       );
+      if (slug != null && slug.isNotEmpty) {
+        await fsDb.setProjectSlug(projectUid, slug);
+      }
       if (userId == null) {
         var newDbProject = SdbUserProject()
           ..fromFirestore(
@@ -91,6 +123,9 @@ class ProjectEditScreenBloc
         fsProject.name.setValue(project.name.v);
         txn.refUpdate(fsProjectRef, fsProject);
       });
+      if (slug != null && slug.isNotEmpty && slug != currentSlug) {
+        await fsDb.setProjectSlug(project.fsId, slug);
+      }
       await globalProjectsSdb.db.inStoreTransaction(
         dbProjectStore.rawRef,
         SdbTransactionMode.readWrite,

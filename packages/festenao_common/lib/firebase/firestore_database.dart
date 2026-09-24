@@ -23,8 +23,14 @@ void initFestenaoFsBuilders() {
 
 /// Main entity database for projects.
 class FsProject extends TkCmsFsProject {
+  /// The current slug of the project url (`/p/<slug>`), see
+  /// `FestenaoFirestoreDatabaseSlugExt.setProjectSlug`; the slug registry
+  /// (`app/<app>/slug/<slug>`) is the reference, this is its copy for the
+  /// screens showing the project.
+  final slug = CvField<String>('slug');
+
   @override
-  CvFields get fields => [...super.fields];
+  CvFields get fields => [...super.fields, slug];
 }
 
 /// User private entity database.

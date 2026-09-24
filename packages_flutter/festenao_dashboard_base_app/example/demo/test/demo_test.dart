@@ -384,4 +384,35 @@ void main() {
       expect(find.byIcon(Icons.lock_outline), findsNothing);
     });
   });
+
+  group('project urls', () {
+    _testWidgets('checks, claims and resolves slugs', (tester) async {
+      await tester.pumpWidget(const FestenaoExplorersDemoApp());
+      await _settle(tester);
+      await tester.scrollUntilVisible(find.text('Project urls'), 200);
+      await tester.tap(find.text('Project urls'));
+      await _settle(tester);
+
+      var slugField = find.byType(TextField).first;
+      await tester.enterText(slugField, 'festival');
+      await _settle(tester);
+      expect(find.text('Already taken'), findsOneWidget);
+
+      await tester.enterText(slugField, 'My URL');
+      await _settle(tester);
+      expect(find.text('Available'), findsOneWidget);
+      await tester.tap(find.text('Use this url'));
+      await _settle(tester);
+      expect(find.text('/p/my-url'), findsOneWidget);
+      expect(find.text('Current url'), findsOneWidget);
+
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Open a link'),
+        'https://my-app.web.app/p/festival',
+      );
+      await tester.tap(find.text('Resolve'));
+      await _settle(tester);
+      expect(find.text('Project fest (an old url of it)'), findsOneWidget);
+    });
+  });
 }

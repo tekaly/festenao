@@ -36,6 +36,9 @@ class DashboardRouteParams {
 
   /// `quiz_id`
   static const quizId = 'quiz_id';
+
+  /// `slug`, the url of a project (`/p/:slug`).
+  static const slug = 'slug';
 }
 
 /// `/`, the root of the dashboard.
@@ -143,6 +146,13 @@ final projectsAccessPath = dashboardHomePath.child(
 final projectAccessPath = dashboardHomePath.child(
   DashboardProjectAccessScreen.routeLocation,
   name: DashboardProjectAccessScreen.routeName,
+);
+
+/// `/p/:slug`, the url of a project, resolved to its access screen; a child
+/// of [dashboardHomePath] for the same reason as [projectsAccessPath].
+final dashboardProjectSlugPath = dashboardHomePath.child(
+  'p/:${DashboardRouteParams.slug}',
+  name: 'project_slug',
 );
 
 /// `/logs`, a child of [dashboardHomePath] for the same reason as

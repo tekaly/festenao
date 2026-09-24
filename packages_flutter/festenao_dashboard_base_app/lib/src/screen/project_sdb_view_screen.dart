@@ -16,6 +16,7 @@ import 'package:tkcms_user_app/theme/theme1.dart';
 import 'package:tkcms_user_app/view/body_container.dart';
 
 import 'project_sdb_edit_screen.dart';
+import 'project_slug_screen.dart';
 
 /// What the access screen pops when the entity is gone.
 class ProjectViewResult {
@@ -167,6 +168,7 @@ class ProjectViewScreenState extends ConsumerState<ProjectViewScreen>
           subtitle: accessText(intl, fsProjectAccess ?? TkCmsFsUserAccess()),
         ),
       ],
+      DashboardProjectUrlTile(entityId: _entityId),
     ];
 
     return Scaffold(

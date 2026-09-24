@@ -1,7 +1,9 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/view/unsaved_changes_dialog.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
+import 'package:festenao_common_flutter/festenao_slug_flutter.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_edit_screen_bloc.dart';
+import 'package:festenao_dashboard_base_app/src/screen/project_slug_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
@@ -27,6 +29,9 @@ class ProjectSdbEditScreenState
   final formKey = GlobalKey<FormState>();
   TextEditingController? _nameController;
   TextEditingController? _idController;
+  TextEditingController? _slugController;
+  String? _initialSlug;
+  var _slugStatus = FestenaoSlugStatus.empty;
 
   bool _gotInitialProject = false;
 
@@ -44,6 +49,9 @@ class ProjectSdbEditScreenState
       return true;
     }
     if (_isCreate && project.uid.v?.trimmedNonEmpty() != null) {
+      return true;
+    }
+    if (_slugController!.text.trimmedNonEmpty() != _initialSlug) {
       return true;
     }
     return false;
@@ -68,9 +76,14 @@ class ProjectSdbEditScreenState
     if (_isEmptyNote(project)) {
       return;
     }
+    var slug = _slugController!.text.trimmedNonEmpty();
+    if (slug != null && !_slugStatus.isAcceptable) {
+      await muiSnack(context, 'Choose an available url');
+      return;
+    }
     var result = await busyAction(() async {
       var bloc = BlocProvider.of<ProjectEditScreenBloc>(context);
-      await bloc.saveProject(project);
+      await bloc.saveProject(project, slug: slug, currentSlug: _initialSlug);
     });
     if (!result.busy) {
       if (result.error == null) {
@@ -108,6 +121,10 @@ class ProjectSdbEditScreenState
             TextEditingController(
               text: _isCreate ? null : initialProject.uid.v,
             ),
+          );
+          _initialSlug = state.slug;
+          _slugController = audiAddTextEditingController(
+            TextEditingController(text: _initialSlug),
           );
         }
 
@@ -183,6 +200,19 @@ class ProjectSdbEditScreenState
                                 maxLines: 1,
                               ),
                             ),
+                            const SizedBox(height: 16),
+                            if (_slugController != null)
+                              BodyHPadding(
+                                child: DashboardProjectSlugField(
+                                  controller: _slugController!,
+                                  projectId: _isCreate
+                                      ? null
+                                      : initialProject.fsId,
+                                  currentSlug: _initialSlug,
+                                  onStatusChanged: (status) =>
+                                      _slugStatus = status,
+                                ),
+                              ),
                             const SizedBox(height: 16),
                             const SizedBox(height: 64),
                           ],

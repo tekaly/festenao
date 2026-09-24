@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import 'demo_cms_navigation.dart';
 import 'demo_data.dart';
+import 'demo_slug.dart';
 import 'demo_theme.dart';
 
 /// The main menu: one entry per explorer, in the order they are worth trying.
@@ -190,6 +191,19 @@ class DemoHomePage extends StatelessWidget {
           onTap: () => data.cms.exploreDatabase(context),
         ),
         const ExplorerSectionHeader(label: 'More'),
+        ListTile(
+          leading: const Icon(Icons.link),
+          title: const Text('Project urls'),
+          subtitle: const Text(
+            'Slugs: checked as you type, claimed, old urls kept, links '
+            'resolved',
+          ),
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute<void>(
+              builder: (context) => DemoSlugPage(firestore: data.firestore),
+            ),
+          ),
+        ),
         ListTile(
           leading: const Icon(Icons.search),
           title: const Text('Every database'),

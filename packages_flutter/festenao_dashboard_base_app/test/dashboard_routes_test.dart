@@ -52,6 +52,7 @@ void main() {
         '/project/:project_id/quizz/quiz/:quiz_id/tv',
         '/projects_access',
         '/project_access/:project_id',
+        '/p/:slug',
         '/logs',
       ]);
     });
@@ -70,6 +71,7 @@ void main() {
         containsAll([
           projectsAccessPath.name,
           projectAccessPath.name,
+          dashboardProjectSlugPath.name,
           dashboardLogsPath.name,
         ]),
       );
