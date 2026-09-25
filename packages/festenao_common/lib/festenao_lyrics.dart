@@ -9,15 +9,44 @@
 /// Pure Dart; the karaoke display is in `festenao_lyrics_player`.
 library;
 
-export 'lyrics/lyrics_chord.dart';
-export 'lyrics/lyrics_clock.dart';
-export 'lyrics/lyrics_import.dart';
-export 'lyrics/lyrics_lrc.dart';
-export 'lyrics/lyrics_merge.dart';
-export 'lyrics/lyrics_model.dart';
-export 'lyrics/lyrics_subtitles.dart';
-export 'lyrics/lyrics_tap_editor.dart';
-export 'lyrics/lyrics_text.dart';
-export 'lyrics/lyrics_time.dart';
-export 'lyrics/lyrics_timeline.dart';
-export 'lyrics/media_range.dart';
+export 'src/lyrics/lyrics_chord.dart'
+    show CvLyricsChordExt, transposeLyricsChord;
+export 'src/lyrics/lyrics_clock.dart' show LyricsClock;
+export 'src/lyrics/lyrics_import.dart'
+    show LyricsFormat, detectLyricsFormat, importLyrics;
+export 'src/lyrics/lyrics_lrc.dart'
+    show LyricsImport, formatLrcLyrics, parseLrcLyrics;
+export 'src/lyrics/lyrics_merge.dart' show mergeLyricsTiming;
+export 'src/lyrics/lyrics_model.dart'
+    show
+        CvLyrics,
+        CvLyricsExt,
+        CvLyricsLine,
+        CvLyricsLineExt,
+        CvLyricsPart,
+        CvLyricsPartExt,
+        initFestenaoLyricsBuilders;
+export 'src/lyrics/lyrics_subtitles.dart' show parseSubtitleLyrics;
+export 'src/lyrics/lyrics_tap_editor.dart'
+    show
+        LyricsTapEditor,
+        LyricsTimingGranularity,
+        LyricsTimingIssue,
+        LyricsUnitRef;
+export 'src/lyrics/lyrics_text.dart'
+    show
+        formatLyricsText,
+        isLyricsChordName,
+        parseLyricsText,
+        parseLyricsTextLine;
+export 'src/lyrics/lyrics_time.dart' show formatLyricsTime, parseLyricsTime;
+export 'src/lyrics/lyrics_timeline.dart'
+    show
+        LyricsLocation,
+        LyricsTimeline,
+        LyricsTimelineLine,
+        LyricsTimelineOptions,
+        LyricsTimelinePage,
+        LyricsTimelinePart;
+export 'src/lyrics/media_range.dart'
+    show MediaRange, computePlayRanges, nextPlayRangeIndex;
