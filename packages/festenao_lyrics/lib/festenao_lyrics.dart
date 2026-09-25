@@ -9,13 +9,11 @@
 /// Pure Dart; the karaoke display is in `festenao_lyrics_player`.
 library;
 
-export 'src/lyrics_chord.dart'
-    show CvLyricsChordExt, transposeLyricsChord;
+export 'src/lyrics_chord.dart' show CvLyricsChordExt, transposeLyricsChord;
 export 'src/lyrics_clock.dart' show LyricsClock;
 export 'src/lyrics_import.dart'
     show LyricsFormat, detectLyricsFormat, importLyrics;
-export 'src/lyrics_lrc.dart'
-    show LyricsImport, formatLrcLyrics, parseLrcLyrics;
+export 'src/lyrics_lrc.dart' show LyricsImport, formatLrcLyrics, parseLrcLyrics;
 export 'src/lyrics_merge.dart' show mergeLyricsTiming;
 export 'src/lyrics_model.dart'
     show
