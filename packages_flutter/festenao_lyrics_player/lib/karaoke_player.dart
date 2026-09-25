@@ -1,13 +1,13 @@
-/// The karaoke display of `festenao_common` lyrics ([CvLyrics]): a page (or
+/// The karaoke display of `festenao_lyrics` lyrics ([CvLyrics]): a page (or
 /// a scrolling list) of lines, the syllables wiped as they are sung, lead-in
 /// dots after a gap ([KaraokeLyricsView]); and their songbook text, the
 /// chords above the syllables ([SongbookLyricsView]).
 ///
-/// Re-exports `package:festenao_common/festenao_lyrics.dart` (the model, the
+/// Re-exports `package:festenao_lyrics/festenao_lyrics.dart` (the model, the
 /// formats, the timeline and the clock).
 library;
 
-export 'package:festenao_common/festenao_lyrics.dart';
+export 'package:festenao_lyrics/festenao_lyrics.dart';
 
 export 'src/karaoke/karaoke_lyrics_view.dart'
     show KaraokeLyricsLayout, KaraokeLyricsStyle, KaraokeLyricsView;

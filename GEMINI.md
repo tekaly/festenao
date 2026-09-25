@@ -20,6 +20,7 @@ The project appears to be a media-centric application with a client-server archi
 *   `festenao_common`: The heart of the application's business logic. It defines data models, services, and seems to handle the communication with the backend. It has extensive dependencies on `sembast`, `tekartik_firebase_*` packages, and other utilities.
 *   `festenao_support`: Contains support tools and scripts for development, build processes, and continuous integration.
 *   `festenao_blur_hash`: A utility for working with BlurHash, likely for image placeholders.
+*   `festenao_lyrics`: Lyrics for karaoke and songbooks (model, LRC/SRT/text/ChordPro, timing, play ranges, timing editor logic), pure Dart.
 
 ### Flutter Packages (`packages_flutter/`)
 
@@ -32,7 +33,7 @@ The project appears to be a media-centric application with a client-server archi
 #### Feature Packages
 
 *   `festenao_audio_player`: Handles audio playback.
-*   `festenao_lyrics_player`: A widget for displaying synchronized lyrics with audio.
+*   `festenao_lyrics_player`: A widget for displaying synchronized lyrics with audio; `karaoke_player.dart` shows `festenao_lyrics` lyrics (karaoke, songbook).
 *   `festenao_youtube_player`: For embedding and playing YouTube videos.
 *   `festenao_markdown`: For rendering markdown content.
 *   `festenao_icon`: Provides a centralized set of icons for the application.

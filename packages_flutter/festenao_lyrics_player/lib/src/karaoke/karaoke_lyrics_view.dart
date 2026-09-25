@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:festenao_common/festenao_lyrics.dart';
+import 'package:festenao_lyrics/festenao_lyrics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 

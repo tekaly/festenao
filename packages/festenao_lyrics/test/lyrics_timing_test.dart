@@ -1,4 +1,4 @@
-import 'package:festenao_common/festenao_lyrics.dart';
+import 'package:festenao_lyrics/festenao_lyrics.dart';
 import 'package:test/test.dart';
 
 CvLyricsLine line(List<String> words, {int? startMs, int? endMs}) =>

@@ -1,8 +1,8 @@
 ---
-name: festenao-common-lyrics
+name: festenao-lyrics-model
 description: >-
   Use when an app stores, imports, exports, times or plays song lyrics for
-  karaoke or a songbook with festenao_common's festenao_lyrics.dart: the
+  karaoke or a songbook with package:festenao_lyrics/festenao_lyrics.dart: the
   CvLyrics / CvLyricsLine / CvLyricsPart model (media milliseconds), LRC and
   enhanced LRC (parseLrcLyrics, formatLrcLyrics), SRT/WebVTT
   (parseSubtitleLyrics), the lyrics text format and ChordPro
@@ -12,7 +12,7 @@ description: >-
   LyricsClock, LyricsTapEditor and transposeLyricsChord.
 ---
 
-# festenao_common lyrics
+# festenao_lyrics
 
 Lyrics are lines of parts (syllables); every time is an `int` of
 milliseconds of the media's own timeline (it depends neither on the playback
@@ -23,7 +23,7 @@ display is `festenao_lyrics_player` (`karaoke_player.dart`).
 
 ## Guidelines
 
-* Import `package:festenao_common/festenao_lyrics.dart`; call
+* Import `package:festenao_lyrics/festenao_lyrics.dart`; call
   `initFestenaoLyricsBuilders()` before (de)serializing (the models are cv
   models, they go to sdb, firestore and json untouched).
 * Model: `CvLyrics.of(lines, offsetMs:, language:)`,
@@ -77,7 +77,7 @@ display is `festenao_lyrics_player` (`karaoke_player.dart`).
 ## Examples
 
 ```dart
-import 'package:festenao_common/festenao_lyrics.dart';
+import 'package:festenao_lyrics/festenao_lyrics.dart';
 
 void main() {
   initFestenaoLyricsBuilders();

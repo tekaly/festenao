@@ -1,4 +1,4 @@
-import 'package:festenao_common/festenao_lyrics.dart';
+import 'package:festenao_lyrics/festenao_lyrics.dart';
 import 'package:flutter/material.dart';
 
 /// Lyrics as songbook text: the lines, the chords above their syllables, the

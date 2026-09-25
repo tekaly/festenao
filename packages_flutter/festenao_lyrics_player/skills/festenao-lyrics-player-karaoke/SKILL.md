@@ -1,7 +1,7 @@
 ---
 name: festenao-lyrics-player-karaoke
 description: >-
-  Use when a Flutter screen shows festenao_common lyrics (CvLyrics) as
+  Use when a Flutter screen shows festenao_lyrics lyrics (CvLyrics) as
   karaoke following a media position, or as songbook text with chords:
   KaraokeLyricsView (lyrics, positionMs, layout KaraokeLyricsLayout.page /
   scroll, linesPerPage, style, leadInGapMs, leadInMs), KaraokeLyricsStyle
@@ -11,7 +11,7 @@ description: >-
 
 # Karaoke and songbook display (festenao_lyrics_player)
 
-`karaoke_player.dart` draws the lyrics model of `festenao_common`
+`karaoke_player.dart` draws the lyrics model of `festenao_lyrics`
 (`festenao_lyrics.dart`, re-exported): `KaraokeLyricsView` follows a media
 position, `SongbookLyricsView` is the text with the chords above the
 syllables. (The older `lyrics_player.dart` draws the `tekaly_lyrics` model.)

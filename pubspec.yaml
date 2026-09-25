@@ -8,6 +8,7 @@ workspace:
   - packages/festenao_common/example/demo
   - packages/festenao_dartff
   - packages/festenao_firebase
+  - packages/festenao_lyrics
   - packages/festenao_dartff/functions
   - packages/festenao_riverpod
   - packages/festenao_support
