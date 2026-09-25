@@ -53,7 +53,15 @@ Paths are posix relative paths inside the store (`songs/intro.mp3`); a
   `gdrive/upload`, `gdrive/download`, `gdrive/delete`,
   `gdrive/getDownloadUrl`); `initGdriveApiBuilders()` registers their
   models (import `package:festenao_common/api/gdrive_api_service.dart`).
-  The client still needs a signed in user when the server checks one.
+  The client still needs a signed in user when the server checks one: the
+  https transport carries none, pass `callableApi:` (the callable function
+  of the same server, `functionsCall.callable(...)`) so the commands go with
+  the user.
+* Server options: `FestenaoObjectStorageHandlerOptions(objectStorage:,
+  readOnly: true)` refuses `gdrive/upload` and `gdrive/delete`
+  (permission-denied); `authenticatedCommands: {GdriveApiService.listCommand}`
+  refuses those commands without a user (unauthenticated) — keep a folder
+  from being browsed by anybody while a file stays readable by id.
 * Keep business code on `ObjectStorage`: a song cache, a picker, a sync
   work the same on drive, on firebase storage and on a memory file system,
   which is how they are tested.

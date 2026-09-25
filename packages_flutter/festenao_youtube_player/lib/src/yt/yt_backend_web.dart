@@ -301,7 +301,11 @@ class YtIframeBackend implements YtPlayerBackend {
   }
 
   @override
-  Future<void> open(YtPlaylistEntry entry, {bool autoPlay = true}) async {
+  Future<void> open(
+    YtPlaylistEntry entry, {
+    bool autoPlay = true,
+    Duration? start,
+  }) async {
     _durationProbe?.cancel();
     _durationProbe = null;
     _durationProbesLeft = _durationProbeAttempts;
@@ -310,11 +314,20 @@ class YtIframeBackend implements YtPlayerBackend {
       duration: Duration.zero,
       buffering: true,
     );
+    final startSeconds = start == null || start <= Duration.zero
+        ? null
+        : start.inMilliseconds / 1000;
     if (autoPlay) {
-      await _controller.loadVideoById(videoId: entry.videoId);
+      await _controller.loadVideoById(
+        videoId: entry.videoId,
+        startSeconds: startSeconds,
+      );
       _armAutoplayWatchdog();
     } else {
-      await _controller.cueVideoById(videoId: entry.videoId);
+      await _controller.cueVideoById(
+        videoId: entry.videoId,
+        startSeconds: startSeconds,
+      );
     }
   }
 

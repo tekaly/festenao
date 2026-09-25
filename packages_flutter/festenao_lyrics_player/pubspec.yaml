@@ -14,6 +14,12 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_common_flutter
+  # The lyrics model of the karaoke display (already there through
+  # festenao_common_flutter).
+  festenao_common:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages/festenao_common
   tekaly_lyrics:
     git:
       url: https://github.com/tekartikprj/music

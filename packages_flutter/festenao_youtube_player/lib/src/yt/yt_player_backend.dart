@@ -139,7 +139,14 @@ abstract class YtPlayerBackend {
   Future<YtResolvedPlaylist> resolve(YtSource source);
 
   /// Loads [entry], and starts playing it unless [autoPlay] is off.
-  Future<void> open(YtPlaylistEntry entry, {bool autoPlay = true});
+  ///
+  /// [start] starts it there rather than at the beginning: a seek right
+  /// after [open] may be lost while the media is still loading.
+  Future<void> open(
+    YtPlaylistEntry entry, {
+    bool autoPlay = true,
+    Duration? start,
+  });
 
   /// Resumes playback.
   Future<void> play();

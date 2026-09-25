@@ -193,7 +193,14 @@ class GdriveApiService extends FestenaoApiService {
   static const getDownloadUrlCommand = 'gdrive/getDownloadUrl';
 
   /// Constructor.
-  GdriveApiService({super.httpClientFactory, required super.httpsApiUri}) {
+  ///
+  /// [callableApi] carries the signed in user (the http transport does not):
+  /// a server may require one for some commands (listing a folder, say).
+  GdriveApiService({
+    super.httpClientFactory,
+    required super.httpsApiUri,
+    super.callableApi,
+  }) {
     initGdriveApiBuilders();
   }
 

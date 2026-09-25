@@ -53,8 +53,10 @@ every platform.
   transparent layer over the web iframe so taps, focus and keys stay with
   Flutter. Set `true` only when you want youtube's/media_kit's own controls.
 * `parseYtSource(String input)` returns a **sealed** `YtSource?`, so `switch`
-  on it exhaustively: `YtVideoSource(videoId)` or
-  `YtPlaylistSource(playlistId, startVideoId:, startIndex:)`. It understands
+  on it exhaustively: `YtVideoSource(videoId, start:)` or
+  `YtPlaylistSource(playlistId, startVideoId:, startIndex:, start:)`;
+  `start` is the `t=` (or `start=`) of the link (`90`, `1m30s`, `1h2m3s`,
+  see `parseYtStartTime`), null without one. It understands
   `watch?v=`, `youtu.be/`, `/shorts/`, `/embed/`, `/live/`, `/v/`,
   `playlist?list=`, `music.youtube.com` and bare video (11 chars) or playlist
   ids, and returns `null` for anything else. A link with both `v=` and `list=`

@@ -155,14 +155,24 @@ class YtMediaKitBackend implements YtPlayerBackend {
   );
 
   @override
-  Future<void> open(YtPlaylistEntry entry, {bool autoPlay = true}) async {
+  Future<void> open(
+    YtPlaylistEntry entry, {
+    bool autoPlay = true,
+    Duration? start,
+  }) async {
     final manifest = await _yt.videos.streamsClient.getManifest(entry.videoId);
     final streams = await _streamChooser.choose(manifest);
     if (streams == null) {
       throw YtResolveException('No playable stream for ${entry.videoId}');
     }
 
-    await _player.open(Media(streams.videoUrl.toString()), play: autoPlay);
+    await _player.open(
+      Media(
+        streams.videoUrl.toString(),
+        start: start == null || start <= Duration.zero ? null : start,
+      ),
+      play: autoPlay,
+    );
     // Reset the track explicitly: a muxed stream following an adaptive one
     // must not keep the previous video's external audio.
     final audioUrl = streams.audioUrl;

@@ -20,4 +20,9 @@ export 'src/yt/yt_player_backend.dart'
         YtResolvedPlaylist;
 export 'src/yt/yt_playlist_entry.dart' show YtPlaylistEntry;
 export 'src/yt/yt_source.dart'
-    show YtPlaylistSource, YtSource, YtVideoSource, parseYtSource;
+    show
+        YtPlaylistSource,
+        YtSource,
+        YtVideoSource,
+        parseYtSource,
+        parseYtStartTime;

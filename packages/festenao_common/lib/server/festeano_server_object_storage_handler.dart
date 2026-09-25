@@ -10,8 +10,21 @@ class FestenaoObjectStorageHandlerOptions {
   /// The delegate
   final ObjectStorage objectStorage;
 
+  /// True to refuse the commands that write (upload, delete): a server that
+  /// only reads the storage.
+  final bool readOnly;
+
+  /// The commands that need a signed in user (`GdriveApiService.listCommand`
+  /// to keep a folder from being browsed by anybody, say). The user only
+  /// comes with the callable transport.
+  final Set<String> authenticatedCommands;
+
   /// Creates a new [FestenaoObjectStorageHandlerOptions] with [objectStorage] delegate.
-  const FestenaoObjectStorageHandlerOptions({required this.objectStorage});
+  const FestenaoObjectStorageHandlerOptions({
+    required this.objectStorage,
+    this.readOnly = false,
+    this.authenticatedCommands = const {},
+  });
 }
 
 /// Handler for Festenao object storage commands.
@@ -21,6 +34,15 @@ class FestenaoObjectStorageHandler implements FestenaoApiHandler {
 
   ObjectStorage get _objectStorage => options.objectStorage;
 
+  static const _commands = {
+    GdriveApiService.listCommand,
+    GdriveApiService.getItemCommand,
+    GdriveApiService.uploadCommand,
+    GdriveApiService.downloadCommand,
+    GdriveApiService.deleteCommand,
+    GdriveApiService.getDownloadUrlCommand,
+  };
+
   /// Creates a new [FestenaoObjectStorageHandler] with the given [options].
   FestenaoObjectStorageHandler({required this.options});
 
@@ -28,6 +50,28 @@ class FestenaoObjectStorageHandler implements FestenaoApiHandler {
   @override
   Future<ApiResult?> onCommandOrNull(ApiRequest apiRequest) async {
     var command = apiRequest.command.v!;
+    if (!_commands.contains(command)) {
+      return null;
+    }
+    if (options.readOnly &&
+        (command == GdriveApiService.uploadCommand ||
+            command == GdriveApiService.deleteCommand)) {
+      throw ApiException(
+        error: ApiError()
+          ..code.v = HttpsErrorCode.permissionDenied
+          ..noRetry.v = true
+          ..message.v = 'Read only storage',
+      );
+    }
+    if (options.authenticatedCommands.contains(command) &&
+        apiRequest.userId.v == null) {
+      throw ApiException(
+        error: ApiError()
+          ..code.v = HttpsErrorCode.unauthenticated
+          ..noRetry.v = true
+          ..message.v = 'User not authenticated',
+      );
+    }
     switch (command) {
       case GdriveApiService.listCommand:
         return await onListCommand(apiRequest);

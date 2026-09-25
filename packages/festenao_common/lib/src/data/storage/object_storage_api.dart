@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_common/festenao_http.dart';
 import 'package:festenao_common/src/data/storage/gdrive_api_service.dart';
+import 'package:tekartik_firebase_functions_call_rest/functions_call_rest.dart'
+    show FirebaseFunctionsCallable;
 
 /// Client implementation of [ObjectStorageMeta].
 class _ObjectStorageApiMeta implements ObjectStorageMeta {
@@ -52,13 +54,19 @@ class ObjectStorageApiClient extends ObjectStorage {
   /// url is fetched with as well: the api hands out urls of its own (a
   /// server reachable through the memory client only, in a test, hands out
   /// urls only that client reaches). The platform one when null.
+  ///
+  /// [callableApi] (the callable function of the same server) sends the
+  /// commands with the signed in user, the https endpoint without: a server
+  /// requiring a user for some commands needs it.
   ObjectStorageApiClient({
     HttpClientFactory? httpClientFactory,
     required Uri httpsUri,
+    FirebaseFunctionsCallable? callableApi,
   }) : _httpClientFactory = httpClientFactory {
     _api = GdriveApiService(
       httpsApiUri: httpsUri,
       httpClientFactory: httpClientFactory,
+      callableApi: callableApi,
     );
   }
 

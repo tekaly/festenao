@@ -68,4 +68,36 @@ void main() {
       expect(parseYtSource('https://www.youtube.com/'), isNull);
     });
   });
+
+  group('start time', () {
+    test('parseYtStartTime', () {
+      expect(parseYtStartTime('90'), const Duration(seconds: 90));
+      expect(parseYtStartTime('90s'), const Duration(seconds: 90));
+      expect(parseYtStartTime('1m30s'), const Duration(seconds: 90));
+      expect(parseYtStartTime('1h2m3s'), const Duration(seconds: 3723));
+      expect(parseYtStartTime('0'), isNull);
+      expect(parseYtStartTime('abc'), isNull);
+      expect(parseYtStartTime(null), isNull);
+    });
+    test('in links', () {
+      var video =
+          parseYtSource('https://youtu.be/dQw4w9WgXcQ?t=42') as YtVideoSource;
+      expect(video.start, const Duration(seconds: 42));
+      video =
+          parseYtSource('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1m2s')
+              as YtVideoSource;
+      expect(video.start, const Duration(seconds: 62));
+      video =
+          parseYtSource('https://www.youtube.com/embed/dQw4w9WgXcQ?start=10')
+              as YtVideoSource;
+      expect(video.start, const Duration(seconds: 10));
+      var playlist =
+          parseYtSource(
+                'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG&t=5',
+              )
+              as YtPlaylistSource;
+      expect(playlist.start, const Duration(seconds: 5));
+      expect((parseYtSource('dQw4w9WgXcQ') as YtVideoSource).start, isNull);
+    });
+  });
 }
