@@ -53,6 +53,21 @@ final festenaoFirebaseUserIdProvider = Provider<String?>(
   name: 'festenaoFirebaseUserId',
 );
 
+/// Who the app acts as, the tkcms [TkCmsFbIdentity]: the service account
+/// ([TkCmsFbIdentityServiceAccount]) when the firebase app has admin
+/// credentials (the admin sdk), the signed in user ([TkCmsFbIdentityUser])
+/// otherwise, null when signed out.
+///
+/// Prefer it to [festenaoFirebaseUserProvider] in an app that may run with
+/// admin credentials: that auth never has a current user, its
+/// `onCurrentUser` never emits and [festenaoFirebaseUserProvider] stays
+/// loading forever.
+final festenaoFbIdentityProvider = StreamProvider<TkCmsFbIdentity?>((ref) {
+  var bloc = TkCmsFbIdentityBloc(auth: ref.watch(festenaoFirebaseAuthProvider));
+  ref.onDispose(bloc.dispose);
+  return bloc.state.map((state) => state.identity);
+}, name: 'festenaoFbIdentity');
+
 /// The overrides binding [festenaoFirebaseContextProvider] and
 /// [festenaoFirebaseAppProvider] to [firebaseContext].
 ///
