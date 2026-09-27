@@ -1,23 +1,13 @@
-## Lyrics
+## Lyrics (moved)
 
-Lyrics for karaoke and songbooks, pure Dart: the model (`CvLyrics`, every
-time in media milliseconds), the formats (LRC and enhanced LRC, SRT/WebVTT,
-the lyrics text format which also reads ChordPro), the effective timing
-(`LyricsTimeline`), what a player plays of a song (`computePlayRanges`), a
-smooth display position (`LyricsClock`) and the timing editor logic
-(`LyricsTapEditor`). The Flutter display is `festenao_lyrics_player`
-(`karaoke_player.dart`).
-
-Setup `pubspec.yaml`:
+Moved to `tekaly_lyrics_core` in `tekartikprj/music`
+(`package:tekaly_lyrics_core/lyrics_core.dart`). This package only re-exports
+it, deprecated, until its users switch; then it goes.
 
 ```yaml
-  festenao_lyrics:
+  tekaly_lyrics_core:
     git:
-      url: https://github.com/tekaly/festenao
-      path: packages/festenao_lyrics
+      url: https://github.com/tekartikprj/music
+      path: packages/lyrics_core
     version: '>=0.1.0'
-```
-
-```dart
-import 'package:festenao_lyrics/festenao_lyrics.dart';
 ```

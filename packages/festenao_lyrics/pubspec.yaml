@@ -1,9 +1,8 @@
 name: festenao_lyrics
 description: >-
-  Lyrics for karaoke and songbooks: a cv model in media milliseconds, LRC,
-  SRT/WebVTT, text and ChordPro formats, timing, play ranges, the timing
-  editor logic. Pure Dart.
-version: 0.1.0
+  Deprecated, moved to tekaly_lyrics_core (tekartikprj/music), which it
+  re-exports until its users switch.
+version: 0.2.0
 publish_to: none
 
 resolution: workspace
@@ -11,7 +10,11 @@ environment:
   sdk: ^3.12.0
 
 dependencies:
-  cv: ">=1.1.10"
+  tekaly_lyrics_core:
+    git:
+      url: https://github.com/tekartikprj/music
+      path: packages/lyrics_core
+    version: '>=0.1.0'
 
 dev_dependencies:
   test: ">=1.31.0"

@@ -1,6 +1,6 @@
 name: festenao_lyrics_player
 description: "Flutter lyrics player"
-version: 0.1.2
+version: 0.2.0
 publish_to: none
 
 environment:
@@ -14,11 +14,16 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_common_flutter
-  # The lyrics model of the karaoke display.
+  # Deprecated re-exports (karaoke_player.dart): moved to tekaly_lyrics_view.
   festenao_lyrics:
     git:
       url: https://github.com/tekaly/festenao
       path: packages/festenao_lyrics
+    version: '>=0.2.0'
+  tekaly_lyrics_view:
+    git:
+      url: https://github.com/tekartikprj/music
+      path: packages_flutter/lyrics_view
     version: '>=0.1.0'
   tekaly_lyrics:
     git:
