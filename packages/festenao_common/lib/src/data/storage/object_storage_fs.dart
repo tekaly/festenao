@@ -148,9 +148,11 @@ class ObjectStorageFs extends ObjectStorage {
   Future<ObjectStorageMeta> getItem(String path) async {
     var fsPath = _toFsPath(path);
 
-    var file = fileSystem.file(fsPath);
-    if (await file.exists()) {
-      var stat = await file.stat();
+    // The entity type first: a memory (or idb) file system says a directory
+    // `exists()` as a file too, dart:io does not.
+    var type = await fileSystem.type(fsPath);
+    if (type == FileSystemEntityType.file) {
+      var stat = await fileSystem.file(fsPath).stat();
       return _FsMeta(
         name: fileSystem.path.basename(fsPath),
         path: path,
@@ -160,8 +162,7 @@ class ObjectStorageFs extends ObjectStorage {
       );
     }
 
-    var dir = fileSystem.directory(fsPath);
-    if (await dir.exists()) {
+    if (type == FileSystemEntityType.directory) {
       return _FsMeta(
         name: fileSystem.path.basename(fsPath),
         path: path,

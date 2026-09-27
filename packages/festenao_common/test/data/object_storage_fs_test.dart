@@ -64,9 +64,32 @@ class ObjectStorageFsTestContext implements ObjectStorageTestContext {
   }
 }
 
+/// A folder is a location, a file is not, whatever the file system says of
+/// `File.exists` on a directory (true on a memory one).
+void folderGetItemTest(ObjectStorageFsTestContext Function() create) {
+  test('getItem of a folder and of a file', () async {
+    var ctx = create();
+    var meta = await ctx.storage.upload(
+      'folder_test',
+      name: 'hello.txt',
+      data: Uint8List.fromList('hello'.codeUnits),
+      mimeType: 'text/plain',
+    );
+    var folder = await ctx.storage.getItem('folder_test');
+    expect(folder.isLocation, isTrue);
+    expect(folder.name, 'folder_test');
+    var file = await ctx.storage.getItem(meta.path);
+    expect(file.isLocation, isFalse);
+    expect(file.size, 5);
+    await expectLater(ctx.storage.getItem('no_such_item'), throwsException);
+    await ctx.dispose();
+  });
+}
+
 void main() {
   group('object_storage_fs_memory', () {
     objectStorageTest(ObjectStorageFsTestContext.memory);
+    folderGetItemTest(ObjectStorageFsTestContext.memory);
 
     test('write and read simple text file', () async {
       var ctx = ObjectStorageFsTestContext.memory();
@@ -94,6 +117,7 @@ void main() {
   if (!kDartIsWeb) {
     group('object_storage_fs_io', () {
       objectStorageTest(() => ObjectStorageFsTestContext.io('standard'));
+      folderGetItemTest(() => ObjectStorageFsTestContext.io('folder'));
 
       test('write and read simple text file', () async {
         var ctx = ObjectStorageFsTestContext.io('text_file');

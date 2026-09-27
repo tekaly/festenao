@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:googleapis/drive/v3.dart' as gd;
+import 'package:meta/meta.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
 import 'package:tekartik_gdrive_api_utils/gdrive.dart';
 
@@ -26,6 +27,40 @@ class _GdriveMeta implements ObjectStorageMeta {
     this.mimeType,
     required this.isLocation,
   });
+}
+
+/// The mime type of a drive shortcut (a link to a file or a folder kept
+/// elsewhere, "Add shortcut to Drive").
+const gdriveShortcutMimeType = 'application/vnd.google-apps.shortcut';
+
+/// The file fields read: a shortcut comes with its target.
+const _fileFields =
+    'id,name,mimeType,size,shortcutDetails(targetId,targetMimeType)';
+
+/// The meta of a drive [file]; a shortcut is its target — its id, mime type,
+/// folder or not — under the name of the shortcut: listed, read or
+/// downloaded as if it were there (drive refuses to download a shortcut
+/// itself, "Only files with binary content can be downloaded").
+@visibleForTesting
+ObjectStorageMeta gdriveObjectStorageMeta(gd.File file) {
+  var id = file.id!;
+  var mimeType = file.mimeType;
+  var size = int.tryParse(file.size ?? '');
+  var target = file.shortcutDetails;
+  if (mimeType == gdriveShortcutMimeType && target?.targetId != null) {
+    id = target!.targetId!;
+    mimeType = target.targetMimeType;
+    // The size is the target's, not listed with the shortcut.
+    size = null;
+  }
+  var isLocation = mimeType == GDrive.folderMimeType;
+  return _GdriveMeta(
+    name: file.name!,
+    path: id,
+    size: isLocation ? null : size,
+    mimeType: mimeType,
+    isLocation: isLocation,
+  );
 }
 
 /// Google Drive implementation of [ObjectStorageListResponse].
@@ -91,19 +126,12 @@ class ObjectStorageGdrive extends ObjectStorage {
   }*/
 
   Future<gd.File> _getFile(String fileId) async {
-    var file = await gdrive.driveApi.files.get(
-      fileId,
-      $fields: 'id,name,mimeType,size',
-    );
+    var file = await gdrive.driveApi.files.get(fileId, $fields: _fileFields);
     return file as gd.File;
   }
 
   String _folderIdFromPath(String path) {
     return path;
-  }
-
-  String _folderIdToPath(String folderId) {
-    return folderId;
   }
 
   @override
@@ -119,21 +147,9 @@ class ObjectStorageGdrive extends ObjectStorage {
       pageSize: maxResults ?? 100,
       q: "'$folderId' in parents and trashed = false",
       pageToken: pageToken,
-      $fields: 'nextPageToken,files(id,name,mimeType,size)',
+      $fields: 'nextPageToken,files($_fileFields)',
     );
-    var items = (fileList.files ?? []).map((f) {
-      var isFolder = f.mimeType == GDrive.folderMimeType;
-      var folderId = f.id!;
-      var mimeType = f.mimeType;
-      var path = _folderIdToPath(folderId);
-      return _GdriveMeta(
-        name: f.name!,
-        path: path,
-        size: isFolder ? null : int.tryParse(f.size ?? ''),
-        mimeType: mimeType,
-        isLocation: isFolder,
-      );
-    }).toList();
+    var items = (fileList.files ?? []).map(gdriveObjectStorageMeta).toList();
     return _GdriveListResponse(
       items: items,
       nextPageToken: fileList.nextPageToken,
@@ -149,25 +165,27 @@ class ObjectStorageGdrive extends ObjectStorage {
     return file.webContentLink;
   }
 
+  /// A shortcut is read as its target (see [gdriveObjectStorageMeta]), its
+  /// size included.
   @override
   Future<ObjectStorageMeta> getItem(String path) async {
     await gdrive.ready;
     var object = await _getFile(path);
-    return _toMeta(object);
-
-    //    throw Exception('Item not found: $path');
+    var meta = gdriveObjectStorageMeta(object);
+    if (meta.path != object.id && !meta.isLocation) {
+      var target = gdriveObjectStorageMeta(await _getFile(meta.path));
+      return _GdriveMeta(
+        name: meta.name,
+        path: target.path,
+        size: target.size,
+        mimeType: target.mimeType,
+        isLocation: false,
+      );
+    }
+    return meta;
   }
 
-  ObjectStorageMeta _toMeta(gd.File file) {
-    var isLocation = file.mimeType == GDrive.folderMimeType;
-    return _GdriveMeta(
-      name: file.name!,
-      path: file.id!,
-      size: int.tryParse(file.size ?? ''),
-      mimeType: file.mimeType,
-      isLocation: isLocation,
-    );
-  }
+  ObjectStorageMeta _toMeta(gd.File file) => gdriveObjectStorageMeta(file);
 
   @override
   Future<ObjectStorageMeta> upload(
