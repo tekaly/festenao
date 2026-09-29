@@ -29,6 +29,20 @@ void main() {
       );
     }, timeout: const Timeout(Duration(minutes: 2)));
 
+    // Youtube serves this one (15 videos) in the older layout of the page,
+    // `playlistVideoRenderer` items, which used to come back empty.
+    test('reads a short playlist in the older layout', () async {
+      final listing = await page.fetch('PLVu2zpEl70e8');
+      expect(listing.title, isNotEmpty);
+      expect(listing.entries.length, greaterThanOrEqualTo(10));
+      for (final entry in listing.entries) {
+        expect(entry.videoId, hasLength(11));
+        expect(entry.title, isNotEmpty);
+        expect(entry.author, isNotEmpty);
+        expect(entry.duration, isNotNull);
+      }
+    }, timeout: const Timeout(Duration(minutes: 2)));
+
     test('honours the max', () async {
       final listing = await page.fetch(
         'PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI',

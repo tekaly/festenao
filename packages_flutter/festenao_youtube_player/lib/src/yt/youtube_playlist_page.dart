@@ -23,6 +23,10 @@ class YoutubePlaylistListing {
 /// nothing at all. Everything else it does (single videos, media urls) still
 /// works, so this only covers the listing.
 ///
+/// Both layouts of the page are read: the `lockupViewModel` one and the older
+/// `playlistVideoRenderer` one, which youtube still serves for some playlists
+/// (short ones in particular, as of September 2026).
+///
 /// The page carries the first 100 entries inline; the rest come from the same
 /// innertube continuation call the page itself would make while scrolling.
 class YoutubePlaylistPage {
@@ -121,6 +125,14 @@ class YoutubePlaylistPage {
 
   /// Walks [data] for video entries, appending them to [entries], and returns
   /// the continuation token for the next page if there is one.
+  ///
+  /// Youtube serves the page two ways: the current one lists
+  /// `lockupViewModel` items, the older one (still served for some
+  /// playlists, short ones in particular) `playlistVideoRenderer` items. Both
+  /// keep the videos in one list, closed by a continuation item when there
+  /// are more, and only that continuation is returned: the other ones of the
+  /// page (the playlists suggested under a short playlist) belong to other
+  /// sections, whose content must not pass as videos.
   String? _collect(
     Object? data,
     List<YtPlaylistEntry> entries,
@@ -131,26 +143,24 @@ class YoutubePlaylistPage {
 
     void visit(Object? node) {
       if (node is List) {
+        // A list holding video items: a continuation item among them pages
+        // that same list.
+        final videoList = node.any(_isVideoItem);
         for (final child in node) {
+          if (videoList && !_isVideoItem(child)) {
+            continuation ??= _continuationTokenIn(child);
+          }
           visit(child);
         }
         return;
       }
       if (node is! Map) return;
-
-      final lockup = node['lockupViewModel'];
-      if (lockup is Map && lockup['contentType'] == _videoContentType) {
-        final entry = _entryOf(lockup);
+      if (_isVideoItem(node)) {
+        final entry = _entryOfItem(node);
         if (entry != null && entries.length < max && seen.add(entry.videoId)) {
           entries.add(entry);
         }
-      }
-      // The page carries several continuation commands (and a couple of empty
-      // ones); the first real token is the one that pages the video grid.
-      final command = node['continuationCommand'];
-      if (continuation == null && command is Map) {
-        final token = command['token'];
-        if (token is String && token.isNotEmpty) continuation = token;
+        return;
       }
       for (final child in node.values) {
         visit(child);
@@ -162,6 +172,46 @@ class YoutubePlaylistPage {
   }
 
   static const _videoContentType = 'LOCKUP_CONTENT_TYPE_VIDEO';
+
+  /// True for an item of the video list, in either layout.
+  static bool _isVideoItem(Object? node) {
+    if (node is! Map) return false;
+    final lockup = node['lockupViewModel'];
+    if (lockup is Map && lockup['contentType'] == _videoContentType) {
+      return true;
+    }
+    return node['playlistVideoRenderer'] is Map;
+  }
+
+  static YtPlaylistEntry? _entryOfItem(Map<Object?, Object?> item) {
+    final lockup = item['lockupViewModel'];
+    if (lockup is Map) return _entryOf(lockup);
+    final renderer = item['playlistVideoRenderer'];
+    if (renderer is Map) return _entryOfRenderer(renderer);
+    return null;
+  }
+
+  /// The first continuation token under [node], null when there is none.
+  static String? _continuationTokenIn(Object? node) {
+    if (node is List) {
+      for (final child in node) {
+        final token = _continuationTokenIn(child);
+        if (token != null) return token;
+      }
+      return null;
+    }
+    if (node is! Map) return null;
+    final command = node['continuationCommand'];
+    if (command is Map) {
+      final token = command['token'];
+      if (token is String && token.isNotEmpty) return token;
+    }
+    for (final child in node.values) {
+      final token = _continuationTokenIn(child);
+      if (token != null) return token;
+    }
+    return null;
+  }
 
   static YtPlaylistEntry? _entryOf(Map<Object?, Object?> lockup) {
     final videoId = lockup['contentId'];
@@ -186,6 +236,44 @@ class YoutubePlaylistPage {
       author: author is String && author.isNotEmpty ? author : null,
       duration: _durationOf(lockup),
     );
+  }
+
+  /// A `playlistVideoRenderer` item, the older layout. A video that cannot
+  /// be played (deleted, private) is left out, as youtube's own player does.
+  static YtPlaylistEntry? _entryOfRenderer(Map<Object?, Object?> renderer) {
+    final videoId = renderer['videoId'];
+    if (videoId is! String || videoId.isEmpty) return null;
+    if (renderer['isPlayable'] == false) return null;
+
+    final lengthSeconds = int.tryParse('${renderer['lengthSeconds']}');
+    final lengthText = _dig(renderer, ['lengthText', 'simpleText']);
+    final duration = lengthSeconds != null
+        ? Duration(seconds: lengthSeconds)
+        : lengthText is String
+        ? parseClockDuration(lengthText)
+        : null;
+
+    return YtPlaylistEntry(
+      videoId: videoId,
+      title: _textOf(renderer['title']),
+      author: _textOf(renderer['shortBylineText']),
+      duration: duration,
+    );
+  }
+
+  /// The text of a `{"simpleText": ..}` or `{"runs": [{"text": ..}, ..]}`
+  /// node, null when empty.
+  static String? _textOf(Object? node) {
+    if (node is! Map) return null;
+    final simple = node['simpleText'];
+    if (simple is String && simple.isNotEmpty) return simple;
+    final runs = node['runs'];
+    if (runs is! List) return null;
+    final text = [
+      for (final run in runs)
+        if (run is Map && run['text'] is String) run['text'] as String,
+    ].join();
+    return text.isEmpty ? null : text;
   }
 
   /// The runtime lives in the badge drawn over the thumbnail, as `3:55`.
