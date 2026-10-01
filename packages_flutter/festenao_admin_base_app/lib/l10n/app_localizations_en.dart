@@ -150,6 +150,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectEditTitle => 'Edit Project';
 
   @override
+  String get projectEmailInviteTitle => 'Invite by email';
+
+  @override
+  String get projectEmailInviteInformation =>
+      'The invite is reserved to this address: the person sees it in the app once signed in with that email, verified.';
+
+  @override
+  String get projectEmailInviteEmailLabel => 'Email address';
+
+  @override
+  String get projectEmailInviteSend => 'Send the invite';
+
+  @override
+  String projectEmailInviteSent(String email) {
+    return 'Invite sent to $email';
+  }
+
+  @override
+  String get projectEmailInviteInvalidEmail => 'Enter a valid email address';
+
+  @override
+  String get projectEmailInviteListTitle => 'Email invites';
+
+  @override
+  String get projectEmailInviteNone => 'No email invite';
+
+  @override
+  String get projectEmailInviteStatusPending => 'Pending';
+
+  @override
+  String get projectEmailInviteStatusAccepted => 'Accepted';
+
+  @override
+  String get projectEmailInviteStatusDiscarded => 'Declined';
+
+  @override
+  String get projectEmailInviteRevoke => 'Remove the invite';
+
+  @override
+  String projectEmailInviteRevokeConfirm(String email) {
+    return 'Remove the invite sent to $email?';
+  }
+
+  @override
   String get projectInviteAccept => 'Accept project invite';
 
   @override

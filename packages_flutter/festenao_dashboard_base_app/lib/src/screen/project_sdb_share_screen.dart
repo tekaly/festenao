@@ -1,5 +1,6 @@
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
+import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_invite_view_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_share_screen_bloc.dart';
@@ -10,7 +11,9 @@ import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
-/// Project share screen: generate an invite with a given access level.
+/// Project share screen: generate an invite (a link) with a given access
+/// level, and send invites by email (addressed invites, for an admin, when
+/// the secured api is there).
 ///
 /// Dashboard counterpart of Notelio's `BookletShareScreen`.
 class ProjectSdbShareScreen extends StatefulWidget {
@@ -27,6 +30,13 @@ class _ProjectSdbShareScreenState
   bool _read = true;
   bool _busy = false;
   bool _accessInitialized = false;
+  final _emailController = TextEditingController();
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
 
   void _initAccess(SdbSharedEntity project) {
     _accessInitialized = true;
@@ -92,6 +102,169 @@ class _ProjectSdbShareScreenState
         }
       }
     }
+  }
+
+  Future<void> _sendEmailInvite(
+    BuildContext context,
+    ProjectSdbShareScreenBloc bloc,
+  ) async {
+    var intl = festenaoAdminAppIntl(context);
+    var email = tkCmsNormalizeInviteEmail(_emailController.text);
+    if (email == null || !email.contains('@')) {
+      await muiSnack(context, intl.projectEmailInviteInvalidEmail);
+      return;
+    }
+    setState(() => _busy = true);
+    try {
+      await bloc.createEmailInvite(
+        email: email,
+        admin: _admin,
+        write: _write,
+        read: _read,
+      );
+      _emailController.clear();
+      if (context.mounted) {
+        await muiSnack(context, intl.projectEmailInviteSent(email));
+      }
+    } catch (e) {
+      if (context.mounted) {
+        if (kDebugMode) {
+          // ignore: avoid_print
+          print('email invite error: $e');
+        }
+        await muiSnack(context, 'Erreur: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+  }
+
+  Future<void> _revokeEmailInvite(
+    BuildContext context,
+    ProjectSdbShareScreenBloc bloc,
+    TkCmsCvEmailInvite invite,
+  ) async {
+    var intl = festenaoAdminAppIntl(context);
+    var confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(intl.projectEmailInviteRevoke),
+        content: Text(
+          intl.projectEmailInviteRevokeConfirm(invite.email.v ?? ''),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(intl.cancelButtonLabel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text(intl.projectEmailInviteRevoke),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      setState(() => _busy = true);
+      try {
+        await bloc.deleteEmailInvite(invite.inviteId.v!);
+      } catch (e) {
+        if (context.mounted) {
+          await muiSnack(context, 'Erreur: $e');
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _busy = false);
+        }
+      }
+    }
+  }
+
+  String _emailInviteStatusLabel(AppLocalizations intl, String? status) =>
+      switch (status) {
+        tkCmsEmailInviteStatusAccepted => intl.projectEmailInviteStatusAccepted,
+        tkCmsEmailInviteStatusDiscarded =>
+          intl.projectEmailInviteStatusDiscarded,
+        _ => intl.projectEmailInviteStatusPending,
+      };
+
+  IconData _emailInviteStatusIcon(String? status) => switch (status) {
+    tkCmsEmailInviteStatusAccepted => Icons.check_circle_outline,
+    tkCmsEmailInviteStatusDiscarded => Icons.cancel_outlined,
+    _ => Icons.hourglass_empty,
+  };
+
+  /// The email invites section: an admin sends addressed invites and sees
+  /// what happened to the ones sent (request and response, nothing streams:
+  /// no client reads this data).
+  List<Widget> _buildEmailInvites(
+    BuildContext context,
+    AppLocalizations intl,
+    ProjectSdbShareScreenBloc bloc,
+    ProjectSdbShareScreenBlocState state,
+  ) {
+    var textTheme = Theme.of(context).textTheme;
+    var emailInvites = state.emailInvites;
+    var error = state.emailInvitesError;
+    var canSend = !_busy && _read;
+    return [
+      const Divider(height: 48),
+      Text(intl.projectEmailInviteTitle, style: textTheme.titleMedium),
+      const SizedBox(height: 8),
+      Text(intl.projectEmailInviteInformation),
+      const SizedBox(height: 16),
+      TextField(
+        controller: _emailController,
+        enabled: !_busy,
+        keyboardType: TextInputType.emailAddress,
+        autocorrect: false,
+        decoration: InputDecoration(
+          labelText: intl.projectEmailInviteEmailLabel,
+          border: const OutlineInputBorder(),
+        ),
+        onSubmitted: canSend ? (_) => _sendEmailInvite(context, bloc) : null,
+      ),
+      const SizedBox(height: 8),
+      Center(
+        child: ElevatedButton.icon(
+          onPressed: canSend ? () => _sendEmailInvite(context, bloc) : null,
+          icon: const Icon(Icons.mail_outline),
+          label: Text(intl.projectEmailInviteSend),
+        ),
+      ),
+      const SizedBox(height: 16),
+      Text(intl.projectEmailInviteListTitle, style: textTheme.titleSmall),
+      if (error != null)
+        Text('Erreur: $error')
+      else if (emailInvites == null)
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: LinearProgressIndicator(),
+        )
+      else if (emailInvites.isEmpty)
+        Text(intl.projectEmailInviteNone)
+      else
+        for (var invite in emailInvites)
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(_emailInviteStatusIcon(invite.status.v)),
+            title: Text(invite.email.v ?? ''),
+            subtitle: Text(
+              '${accessString(intl, invite)} · '
+              '${_emailInviteStatusLabel(intl, invite.status.v)}',
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete_outline),
+              tooltip: intl.projectEmailInviteRevoke,
+              onPressed: _busy
+                  ? null
+                  : () => _revokeEmailInvite(context, bloc, invite),
+            ),
+          ),
+    ];
   }
 
   @override
@@ -267,6 +440,8 @@ class _ProjectSdbShareScreenState
                       : () => _deleteInvite(context, bloc, state.inviteId!),
                 ),
               ],
+              if (bloc.emailInvitesSupported && project.isAdmin)
+                ..._buildEmailInvites(context, intl, bloc, state),
             ],
           );
         },

@@ -11,7 +11,25 @@ handler, client, `TkCmsFsEmailInvite<FsProject>` registered), tested on the
 memory server by `festenao_email_invite_test_runner.dart` (six tests, the
 invitee ones need a verified email, which the local sembast auth gives through
 its admin `createUser`; on the emulator they are skipped until a hook exists).
-Phases 3 and 4 (the rules denial test, the UI) are not started. Where the code
+Phase 3 (the §9 rules denial test, the §11 inviter UI) is written too:
+`festenao_common/lib/test/email_invite_rules_test_runner.dart`, run by the
+dartff emulator full test (green on the emulator: the entity admin, a stranger
+and the invitee are refused get, both queries, update, set, create and delete;
+not in festenao_noff, which is outside the pub workspace), and the email
+invite section of `ProjectSdbShareScreen` (festenao_dashboard_base_app): an
+email field and a send button using the access checkboxes, the list of the
+invites sent with their status and a revoke action, shown to an admin when
+the bloc has a secured api (`ProjectSdbShareScreenBloc.apiService`, the
+festenao global one by default, hidden otherwise: standalone), the
+`projectEmailInvite*` strings in festenao_admin_base_app, a bloc test on the
+memory server. On the way: `FestenaoApiFsEntityClient` registers the api
+builders for its own entity type (the bloc client is typed on the base
+entity), and the REST firestore `updateDocument` surfaces a
+`FirestoreException` like the other operations (firebase_rest.dart). Not
+done: the pending list on the users screen, the app wiring (the festenaoprv
+dashboard has the global api; playelio and songbookelio route their invites
+through their own commands, their servers must take the generic entity
+commands first), phase 4 (the invitee UI) and the mail. Where the code
 differs from the text below:
 
 - the client method `createEntityEmailInvite` is the addressed invite; the

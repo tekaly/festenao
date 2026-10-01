@@ -15,10 +15,15 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
   final TkCmsFirestoreDatabaseServiceEntityAccess<T> entityAccess;
 
   /// Creates a new [FestenaoApiFsEntityClient] instance.
+  ///
+  /// The api models are generic on the entity type: the builders for [T] are
+  /// registered here, whatever the app registered for its own entity types.
   FestenaoApiFsEntityClient({
     required this.apiService,
     required this.entityAccess,
-  });
+  }) {
+    initFestenaoFsEntityApiBuilders<T>();
+  }
 
   /// Creates a new entity in the CMS and returns the created entity.
   Future<T> createEntity({required T entity, String? entityId}) async {

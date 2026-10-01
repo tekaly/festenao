@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:festenao_common/test/app_api_access_test_runner.dart';
+import 'package:festenao_common/test/email_invite_rules_test_runner.dart';
 import 'package:festenao_common/test/festenao_email_invite_test_runner.dart';
 import 'package:festenao_common/test/festenao_invite_email_test_runner.dart';
 import 'package:festenao_common/test/festenao_test_server_emulator_helper.dart';
@@ -61,6 +62,11 @@ Future<void> main() async {
 
       appPublicAccessTestRunner(() async => testContext.clientContext);
       appProjectPublicAccessTestRunner(() async => testContext.clientContext);
+    });
+    // The addressed email invites are admin only data: the rules refuse
+    // every client, the api is the only way in.
+    group('email invite rules', () {
+      appEmailInviteRulesTestRunner(() async => testContext);
     });
     // The addressed email invites; no verified email hook on the emulator
     // yet, the invitee tests are skipped.

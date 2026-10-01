@@ -183,6 +183,70 @@
   "@projectEditTitle": {
     "description": "Edit Project title"
   },
+  "projectEmailInviteTitle": "Invite by email",
+  "@projectEmailInviteTitle": {
+    "description": "Email invite section title"
+  },
+  "projectEmailInviteInformation": "The invite is reserved to this address: the person sees it in the app once signed in with that email, verified.",
+  "@projectEmailInviteInformation": {
+    "description": "Email invite section information"
+  },
+  "projectEmailInviteEmailLabel": "Email address",
+  "@projectEmailInviteEmailLabel": {
+    "description": "Email invite address field label"
+  },
+  "projectEmailInviteSend": "Send the invite",
+  "@projectEmailInviteSend": {
+    "description": "Email invite send button"
+  },
+  "projectEmailInviteSent": "Invite sent to {email}",
+  "@projectEmailInviteSent": {
+    "description": "Email invite sent message",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "someone@example.com"
+      }
+    }
+  },
+  "projectEmailInviteInvalidEmail": "Enter a valid email address",
+  "@projectEmailInviteInvalidEmail": {
+    "description": "Email invite invalid address message"
+  },
+  "projectEmailInviteListTitle": "Email invites",
+  "@projectEmailInviteListTitle": {
+    "description": "Email invites list title"
+  },
+  "projectEmailInviteNone": "No email invite",
+  "@projectEmailInviteNone": {
+    "description": "Email invites empty list"
+  },
+  "projectEmailInviteStatusPending": "Pending",
+  "@projectEmailInviteStatusPending": {
+    "description": "Email invite status: waiting for the invitee"
+  },
+  "projectEmailInviteStatusAccepted": "Accepted",
+  "@projectEmailInviteStatusAccepted": {
+    "description": "Email invite status: accepted"
+  },
+  "projectEmailInviteStatusDiscarded": "Declined",
+  "@projectEmailInviteStatusDiscarded": {
+    "description": "Email invite status: discarded by the invitee"
+  },
+  "projectEmailInviteRevoke": "Remove the invite",
+  "@projectEmailInviteRevoke": {
+    "description": "Email invite revoke action"
+  },
+  "projectEmailInviteRevokeConfirm": "Remove the invite sent to {email}?",
+  "@projectEmailInviteRevokeConfirm": {
+    "description": "Email invite revoke confirmation message",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "someone@example.com"
+      }
+    }
+  },
   "projectInviteAccept": "Accept project invite",
   "@projectInviteAccept": {
     "description": "Accept project"

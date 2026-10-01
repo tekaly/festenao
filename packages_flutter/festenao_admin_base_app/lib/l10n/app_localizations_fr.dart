@@ -151,6 +151,51 @@ class AppLocalizationsFr extends AppLocalizations {
   String get projectEditTitle => 'Modifier le livret';
 
   @override
+  String get projectEmailInviteTitle => 'Inviter par e-mail';
+
+  @override
+  String get projectEmailInviteInformation =>
+      'L\'invitation est réservée à cette adresse : la personne la voit dans l\'application une fois connectée avec cet e-mail, vérifié.';
+
+  @override
+  String get projectEmailInviteEmailLabel => 'Adresse e-mail';
+
+  @override
+  String get projectEmailInviteSend => 'Envoyer l\'invitation';
+
+  @override
+  String projectEmailInviteSent(String email) {
+    return 'Invitation envoyée à $email';
+  }
+
+  @override
+  String get projectEmailInviteInvalidEmail =>
+      'Saisissez une adresse e-mail valide';
+
+  @override
+  String get projectEmailInviteListTitle => 'Invitations par e-mail';
+
+  @override
+  String get projectEmailInviteNone => 'Aucune invitation par e-mail';
+
+  @override
+  String get projectEmailInviteStatusPending => 'En attente';
+
+  @override
+  String get projectEmailInviteStatusAccepted => 'Acceptée';
+
+  @override
+  String get projectEmailInviteStatusDiscarded => 'Refusée';
+
+  @override
+  String get projectEmailInviteRevoke => 'Supprimer l\'invitation';
+
+  @override
+  String projectEmailInviteRevokeConfirm(String email) {
+    return 'Supprimer l\'invitation envoyée à $email ?';
+  }
+
+  @override
   String get projectInviteAccept => 'Accepter l\'invitation du livret';
 
   @override

@@ -374,6 +374,84 @@ abstract class AppLocalizations {
   /// **'Edit Project'**
   String get projectEditTitle;
 
+  /// Email invite section title
+  ///
+  /// In en, this message translates to:
+  /// **'Invite by email'**
+  String get projectEmailInviteTitle;
+
+  /// Email invite section information
+  ///
+  /// In en, this message translates to:
+  /// **'The invite is reserved to this address: the person sees it in the app once signed in with that email, verified.'**
+  String get projectEmailInviteInformation;
+
+  /// Email invite address field label
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get projectEmailInviteEmailLabel;
+
+  /// Email invite send button
+  ///
+  /// In en, this message translates to:
+  /// **'Send the invite'**
+  String get projectEmailInviteSend;
+
+  /// Email invite sent message
+  ///
+  /// In en, this message translates to:
+  /// **'Invite sent to {email}'**
+  String projectEmailInviteSent(String email);
+
+  /// Email invite invalid address message
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get projectEmailInviteInvalidEmail;
+
+  /// Email invites list title
+  ///
+  /// In en, this message translates to:
+  /// **'Email invites'**
+  String get projectEmailInviteListTitle;
+
+  /// Email invites empty list
+  ///
+  /// In en, this message translates to:
+  /// **'No email invite'**
+  String get projectEmailInviteNone;
+
+  /// Email invite status: waiting for the invitee
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get projectEmailInviteStatusPending;
+
+  /// Email invite status: accepted
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get projectEmailInviteStatusAccepted;
+
+  /// Email invite status: discarded by the invitee
+  ///
+  /// In en, this message translates to:
+  /// **'Declined'**
+  String get projectEmailInviteStatusDiscarded;
+
+  /// Email invite revoke action
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the invite'**
+  String get projectEmailInviteRevoke;
+
+  /// Email invite revoke confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the invite sent to {email}?'**
+  String projectEmailInviteRevokeConfirm(String email);
+
   /// Accept project
   ///
   /// In en, this message translates to:
