@@ -20,11 +20,12 @@ const festenaoInviteTestOtherEmail = 'other@festenao-test.local';
 /// Password of the test users.
 const festenaoInviteTestPassword = 'test1234';
 
-/// Test group for the invite by email api.
+/// Test group for the link invite reserved to an email.
 ///
-/// Covers [FestenaoApiFsEntityClient.createEntityInvite] /
-/// [FestenaoApiFsEntityClient.createEntityEmailInvite] with an email and
-/// [FestenaoApiFsEntityClient.acceptEntityInvite] email check.
+/// Covers [FestenaoApiFsEntityClient.createEntityInvite] with an email and
+/// the [FestenaoApiFsEntityClient.acceptEntityInvite] email check. The
+/// addressed email invites (`check-email-invites`...) are covered by
+/// `festenao_email_invite_test_runner.dart`.
 void testFestenaoInviteEmailGroup(
   Future<FestenaoTestServerContext> Function() initAllContext,
 ) {
@@ -104,7 +105,7 @@ void testFestenaoInviteEmailGroup(
     var ownerUserId = await setUpEntity(entityId);
 
     // The owner invites a user by email, with read access only.
-    var inviteId = await client.createEntityEmailInvite(
+    var inviteId = await client.createEntityInvite(
       entityId: entityId,
       email: festenaoInviteTestEmail,
       fsUserAccess: TkCmsFsUserAccess()..read.v = true,
@@ -260,7 +261,7 @@ void testFestenaoInviteEmailGroup(
     var entityId = 'test_invite_email_delete_entity';
 
     var ownerUserId = await setUpEntity(entityId);
-    var inviteId = await client.createEntityEmailInvite(
+    var inviteId = await client.createEntityInvite(
       entityId: entityId,
       email: festenaoInviteTestEmail,
       fsUserAccess: TkCmsFsUserAccess()..read.v = true,

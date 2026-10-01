@@ -17,6 +17,7 @@ void initFestenaoFsBuilders() {
     FsExport.new,
     FsProject.new,
     TkCmsFsInviteEntity<FsProject>.new,
+    TkCmsFsEmailInvite<FsProject>.new,
   ]);
   initFsFormBuilders();
 }

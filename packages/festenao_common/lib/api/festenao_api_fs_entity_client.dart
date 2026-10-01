@@ -97,18 +97,116 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     return result.inviteId.v!;
   }
 
-  /// Creates a new invite for the entity, reserved to [email].
+  /// Creates an addressed email invite for the entity: only the user whose
+  /// verified email is [email] can accept it, after finding it with
+  /// [checkEmailInvites]. Returns the invite ID.
   ///
-  /// Returns the invite ID.
+  /// The server only lets an admin of the entity or a global app admin do it
+  /// (`permission-denied` otherwise), and refuses an access greater than the
+  /// inviter's own. Inviting the same email again updates the pending invite
+  /// and returns its id.
   Future<String> createEntityEmailInvite({
     required String entityId,
     required String email,
     required TkCmsFsUserAccess fsUserAccess,
-  }) async => await createEntityInvite(
-    entityId: entityId,
-    fsUserAccess: fsUserAccess,
-    email: email,
-  );
+  }) async {
+    var result = await apiService
+        .getApiResult<FsCmsEntityCreateEmailInviteApiResult<T>>(
+          ApiRequest(command: entityAccess.info.createEmailInviteCommand)
+            ..setQuery(
+              FsCmsEntityCreateEmailInviteApiQuery<T>()
+                ..entityId.setValue(entityId)
+                ..email.setValue(email)
+                ..write.v = fsUserAccess.write.v
+                ..admin.v = fsUserAccess.admin.v
+                ..read.v = fsUserAccess.read.v,
+            ),
+        );
+    return result.inviteId.v!;
+  }
+
+  /// The email invites sent on the entity (admin side), most recent first,
+  /// with what happened to them; optionally only the ones with [status]
+  /// (`pending`, `accepted`, `discarded`).
+  Future<List<TkCmsCvEmailInvite>> listEntityEmailInvites({
+    required String entityId,
+    String? status,
+  }) async {
+    var result = await apiService
+        .getApiResult<FsCmsEntityListEmailInvitesApiResult<T>>(
+          ApiRequest(command: entityAccess.info.listEmailInvitesCommand)
+            ..setQuery(
+              FsCmsEntityListEmailInvitesApiQuery<T>()
+                ..entityId.setValue(entityId)
+                ..status.setValue(status),
+            ),
+        );
+    return result.invites.v ?? <TkCmsCvEmailInvite>[];
+  }
+
+  /// Deletes (revokes) an email invite of the entity (admin side), whatever
+  /// its status.
+  Future<void> deleteEntityEmailInvite({
+    required String entityId,
+    required String inviteId,
+  }) async {
+    await apiService.getApiResult<FsCmsEntityDeleteEmailInviteApiResult<T>>(
+      ApiRequest(command: entityAccess.info.deleteEmailInviteCommand)..setQuery(
+        FsCmsEntityDeleteEmailInviteApiQuery<T>()
+          ..entityId.setValue(entityId)
+          ..inviteId.setValue(inviteId),
+      ),
+    );
+  }
+
+  /// The pending email invites addressed to the signed in user, to call on
+  /// app start and after login; optionally only the ones of [entityId].
+  ///
+  /// When the user email is not verified the result says so and lists no
+  /// invite: none can be accepted until then.
+  Future<FsCmsEntityCheckEmailInvitesApiResult<T>> checkEmailInvites({
+    String? entityId,
+  }) async {
+    return await apiService
+        .getApiResult<FsCmsEntityCheckEmailInvitesApiResult<T>>(
+          ApiRequest(command: entityAccess.info.checkEmailInvitesCommand)
+            ..setQuery(
+              FsCmsEntityCheckEmailInvitesApiQuery<T>()
+                ..entityId.setValue(entityId),
+            ),
+        );
+  }
+
+  /// Accepts an email invite addressed to the signed in user, whose email
+  /// must be verified: the invite access is merged into the user's.
+  Future<void> acceptEntityEmailInvite({
+    required String entityId,
+    required String inviteId,
+  }) async {
+    await apiService.getApiResult<FsCmsEntityAcceptEmailInviteApiResult<T>>(
+      ApiRequest(command: entityAccess.info.acceptEmailInviteCommand)..setQuery(
+        FsCmsEntityAcceptEmailInviteApiQuery<T>()
+          ..entityId.setValue(entityId)
+          ..inviteId.setValue(inviteId),
+      ),
+    );
+  }
+
+  /// Discards an email invite addressed to the signed in user, whose email
+  /// must be verified: no access is granted, it cannot be accepted any more.
+  Future<void> discardEntityEmailInvite({
+    required String entityId,
+    required String inviteId,
+  }) async {
+    await apiService.getApiResult<FsCmsEntityDiscardEmailInviteApiResult<T>>(
+      ApiRequest(command: entityAccess.info.discardEmailInviteCommand)
+        ..setQuery(
+          FsCmsEntityDiscardEmailInviteApiQuery<T>()
+            ..entityId.setValue(entityId)
+            ..inviteId.setValue(inviteId),
+        ),
+    );
+  }
 
   /// Accepts an invite for the entity.
   ///

@@ -67,8 +67,51 @@ const festenaoSetEntityPublicCommand = 'set-entity-public';
 String festenaoEntitySetPublicCommand(String entityType) =>
     '${festenaoEntityCommandPrefix(entityType)}set-public';
 
+/// Command name for creating an addressed email invite.
+const festenaoCreateEmailInviteCommand = 'create-email-invite';
+
+/// Command name for creating an addressed email invite.
+String festenaoEntityCreateEmailInviteCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}$festenaoCreateEmailInviteCommand';
+
+/// Command name for listing the email invites of an entity.
+const festenaoListEmailInvitesCommand = 'list-email-invites';
+
+/// Command name for listing the email invites of an entity.
+String festenaoEntityListEmailInvitesCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}$festenaoListEmailInvitesCommand';
+
+/// Command name for deleting (revoking) an email invite.
+const festenaoDeleteEmailInviteCommand = 'delete-email-invite';
+
+/// Command name for deleting (revoking) an email invite.
+String festenaoEntityDeleteEmailInviteCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}$festenaoDeleteEmailInviteCommand';
+
+/// Command name for checking the email invites addressed to the user.
+const festenaoCheckEmailInvitesCommand = 'check-email-invites';
+
+/// Command name for checking the email invites addressed to the user.
+String festenaoEntityCheckEmailInvitesCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}$festenaoCheckEmailInvitesCommand';
+
+/// Command name for accepting an email invite.
+const festenaoAcceptEmailInviteCommand = 'accept-email-invite';
+
+/// Command name for accepting an email invite.
+String festenaoEntityAcceptEmailInviteCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}$festenaoAcceptEmailInviteCommand';
+
+/// Command name for discarding an email invite.
+const festenaoDiscardEmailInviteCommand = 'discard-email-invite';
+
+/// Command name for discarding an email invite.
+String festenaoEntityDiscardEmailInviteCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}$festenaoDiscardEmailInviteCommand';
+
 /// Initializes API builders for Festenao file system entities.
 void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
+  initTkCmsFsUserAccessBuilders();
   cvAddConstructors([
     FsCmsEntityCreateApiQuery<T>.new,
     FsCmsEntityCreateApiResult<T>.new,
@@ -80,6 +123,13 @@ void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
     FsCmsEntityAcceptInviteApiQuery<T>.new,
     FsCmsEntitySetPublicApiQuery<T>.new,
     FsCmsEntitySetPublicApiResult<T>.new,
+    FsCmsEntityCreateEmailInviteApiQuery<T>.new,
+    FsCmsEntityListEmailInvitesApiQuery<T>.new,
+    FsCmsEntityListEmailInvitesApiResult<T>.new,
+    FsCmsEntityEmailInviteIdApiQuery<T>.new,
+    FsCmsEntityEmailInviteIdApiResult<T>.new,
+    FsCmsEntityCheckEmailInvitesApiQuery<T>.new,
+    FsCmsEntityCheckEmailInvitesApiResult<T>.new,
   ]);
 }
 
@@ -117,6 +167,30 @@ extension FestenaoFirestoreDatabaseEntityCollectionInfoApiExt<
 
   /// Command for making an entity public (or private again).
   String get setPublicCommand => festenaoEntitySetPublicCommand(entityType);
+
+  /// Command for creating an addressed email invite.
+  String get createEmailInviteCommand =>
+      festenaoEntityCreateEmailInviteCommand(entityType);
+
+  /// Command for listing the email invites of an entity.
+  String get listEmailInvitesCommand =>
+      festenaoEntityListEmailInvitesCommand(entityType);
+
+  /// Command for deleting (revoking) an email invite.
+  String get deleteEmailInviteCommand =>
+      festenaoEntityDeleteEmailInviteCommand(entityType);
+
+  /// Command for checking the email invites addressed to the user.
+  String get checkEmailInvitesCommand =>
+      festenaoEntityCheckEmailInvitesCommand(entityType);
+
+  /// Command for accepting an email invite.
+  String get acceptEmailInviteCommand =>
+      festenaoEntityAcceptEmailInviteCommand(entityType);
+
+  /// Command for discarding an email invite.
+  String get discardEmailInviteCommand =>
+      festenaoEntityDiscardEmailInviteCommand(entityType);
 }
 
 /// API query for creating a CMS entity.
@@ -281,4 +355,127 @@ class FsCmsEntitySetPublicApiResult<T extends TkCmsFsEntity>
 
   @override
   CvFields get fields => [...super.fields, public];
+}
+
+/// Base class for API queries and results naming an email invite of an
+/// entity.
+class FsCmsEntityEmailInviteIdBaseApiCommon<T extends TkCmsFsEntity>
+    extends FsCmsEntityEntityIdBaseApiCommon<T> {
+  /// The invite ID.
+  late final inviteId = CvField<String>('inviteId');
+
+  @override
+  CvFields get fields => [...super.fields, inviteId];
+}
+
+/// API query for creating an addressed email invite (`TkCmsFsEmailInvite`):
+/// only the user whose verified email is [email] can accept it, after
+/// finding it with the check command.
+///
+/// Server side, only an admin of the entity or a global app admin may do it,
+/// and the granted access cannot exceed the inviter's own. Inviting the same
+/// email again updates the pending invite.
+class FsCmsEntityCreateEmailInviteApiQuery<T extends TkCmsFsEntity>
+    extends ApiQuery
+    with TkCmsCvUserAccessMixin {
+  /// The entity ID.
+  final entityId = CvField<String>('entityId');
+
+  /// The invited email.
+  final email = CvField<String>('email');
+
+  @override
+  late final CvFields fields = [entityId, email, ...userAccessFields];
+}
+
+/// API result for creating an addressed email invite: its id and the
+/// normalized email.
+typedef FsCmsEntityCreateEmailInviteApiResult<T extends TkCmsFsEntity> =
+    FsCmsEntityCreateInviteApiResult<T>;
+
+/// API query for listing the email invites of an entity (entity admin or app
+/// admin).
+class FsCmsEntityListEmailInvitesApiQuery<T extends TkCmsFsEntity>
+    extends FsCmsEntityEntityIdBaseApiCommon<T>
+    implements ApiQuery {
+  /// Only the invites with this status (`pending`, `accepted`, `discarded`),
+  /// all of them when null.
+  final status = CvField<String>('status');
+
+  @override
+  CvFields get fields => [...super.fields, status];
+}
+
+/// API result for listing the email invites of an entity.
+class FsCmsEntityListEmailInvitesApiResult<T extends TkCmsFsEntity>
+    extends ApiResult {
+  /// The invites, most recent first.
+  final invites = CvModelListField<TkCmsCvEmailInvite>('invites');
+
+  @override
+  late final CvFields fields = [invites];
+}
+
+/// API query naming an email invite of an entity (delete, accept, discard).
+class FsCmsEntityEmailInviteIdApiQuery<T extends TkCmsFsEntity>
+    extends FsCmsEntityEmailInviteIdBaseApiCommon<T>
+    implements ApiQuery {}
+
+/// API result naming the email invite acted upon.
+class FsCmsEntityEmailInviteIdApiResult<T extends TkCmsFsEntity>
+    extends FsCmsEntityEmailInviteIdBaseApiCommon<T>
+    implements ApiResult {}
+
+/// API query for deleting (revoking) an email invite.
+typedef FsCmsEntityDeleteEmailInviteApiQuery<T extends TkCmsFsEntity> =
+    FsCmsEntityEmailInviteIdApiQuery<T>;
+
+/// API result for deleting (revoking) an email invite.
+typedef FsCmsEntityDeleteEmailInviteApiResult<T extends TkCmsFsEntity> =
+    FsCmsEntityEmailInviteIdApiResult<T>;
+
+/// API query for accepting an email invite (the invitee).
+typedef FsCmsEntityAcceptEmailInviteApiQuery<T extends TkCmsFsEntity> =
+    FsCmsEntityEmailInviteIdApiQuery<T>;
+
+/// API result for accepting an email invite.
+typedef FsCmsEntityAcceptEmailInviteApiResult<T extends TkCmsFsEntity> =
+    FsCmsEntityEmailInviteIdApiResult<T>;
+
+/// API query for discarding an email invite (the invitee).
+typedef FsCmsEntityDiscardEmailInviteApiQuery<T extends TkCmsFsEntity> =
+    FsCmsEntityEmailInviteIdApiQuery<T>;
+
+/// API result for discarding an email invite.
+typedef FsCmsEntityDiscardEmailInviteApiResult<T extends TkCmsFsEntity> =
+    FsCmsEntityEmailInviteIdApiResult<T>;
+
+/// API query for checking the pending email invites addressed to the signed
+/// in user, on app start and after login; optionally only the ones of
+/// [entityId].
+class FsCmsEntityCheckEmailInvitesApiQuery<T extends TkCmsFsEntity>
+    extends ApiQuery {
+  /// Only the invites of this entity, when set.
+  final entityId = CvField<String>('entityId');
+
+  @override
+  late final CvFields fields = [entityId];
+}
+
+/// API result of the check: the user email, whether it is verified (no
+/// invite is listed otherwise, and none can be accepted until then) and the
+/// pending invites addressed to it.
+class FsCmsEntityCheckEmailInvitesApiResult<T extends TkCmsFsEntity>
+    extends ApiResult {
+  /// The user email (normalized), null when the account has none.
+  final email = CvField<String>('email');
+
+  /// Whether the user email is verified.
+  final emailVerified = CvField<bool>('emailVerified');
+
+  /// The pending invites, most recent first.
+  final invites = CvModelListField<TkCmsCvEmailInvite>('invites');
+
+  @override
+  late final CvFields fields = [email, emailVerified, invites];
 }

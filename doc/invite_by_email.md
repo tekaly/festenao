@@ -5,9 +5,32 @@ Design note for adding *invite by email* next to the existing *invite by link*
 
 **Status (2026-10-01).** Phase 1 of §13 (the §5 models, the §6 access layer,
 the §10 cron sweep) is in tkcms `a2b4f68`, tested on the memory firestore
-(`tkcms_firestore_database_entity_user_access_test.dart`). Phases 2 to 4 (the
-festenao api, the rules denial test, the UI) are not started. Where the code
+(`tkcms_firestore_database_entity_user_access_test.dart`). Phase 2 (the §7
+commands, the handler, the §8 client) is written in festenao_common (api,
+handler, client, `TkCmsFsEmailInvite<FsProject>` registered), tested on the
+memory server by `festenao_email_invite_test_runner.dart` (six tests, the
+invitee ones need a verified email, which the local sembast auth gives through
+its admin `createUser`; on the emulator they are skipped until a hook exists).
+Phases 3 and 4 (the rules denial test, the UI) are not started. Where the code
 differs from the text below:
+
+- the client method `createEntityEmailInvite` is the addressed invite; the
+  August convenience wrapper of that name over the link invite is gone, use
+  `createEntityInvite(email: ...)` for a link invite reserved to an email;
+- the global app admin is an admin of the **app entity**
+  (`access/app/entity_id/<appId>/user_access/<userId>`, `TkCmsFsUserAccess`),
+  as the app api access tests bootstrap it, not the legacy
+  `app/<appId>/user_access` path; a server that is not a
+  `TkAppCmsServerAppBase` has no app admins;
+- `check-email-invites` filters on `entityId` in memory; `accept` and
+  `discard` take and return `entityId` + `inviteId` and answer `not-found`
+  when the invite is not on that entity; an unverified email answers
+  `failed-precondition` on accept and discard;
+- the handler helpers are `_requireUserId`, `_requireField`, `_requireUser`,
+  `_requireVerifiedEmail`, `_isEntityAdmin`, `_isAppAdmin`,
+  `_requireEmailInviteAdmin`; the older commands keep their inline checks.
+
+Phase 1 differences:
 
 - `createEmailInviteEntity` reads the entity in its transaction (it has to,
   for the exists and deleted checks) instead of taking it as a parameter;

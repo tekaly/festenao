@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:festenao_common/test/app_api_access_test_runner.dart';
+import 'package:festenao_common/test/festenao_email_invite_test_runner.dart';
 import 'package:festenao_common/test/festenao_invite_email_test_runner.dart';
 import 'package:festenao_common/test/festenao_test_server_emulator_helper.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
@@ -60,6 +61,14 @@ Future<void> main() async {
 
       appPublicAccessTestRunner(() async => testContext.clientContext);
       appProjectPublicAccessTestRunner(() async => testContext.clientContext);
+    });
+    // The addressed email invites; no verified email hook on the emulator
+    // yet, the invitee tests are skipped.
+    group('email invite (addressed)', () {
+      testFestenaoEmailInviteGroup(
+        () async => testContext,
+        closeContext: false,
+      );
     });
     // Last: the runner closes the context it is handed in its own tearDownAll,
     // which stops the emulator (closing again below is a no-op).

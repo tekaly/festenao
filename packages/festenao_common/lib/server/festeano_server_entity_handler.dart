@@ -2,6 +2,7 @@ import 'package:festenao_common/api/festenao_api_fs_entity.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_firestore/utils/json_utils.dart';
+import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
 /// The condition an app may add to making an entity public, on top of being
@@ -83,6 +84,19 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       return await onDeleteInviteCommand(apiRequest);
     } else if (command == festenaoEntitySetPublicCommand(_entityType)) {
       return await onSetPublicCommand(apiRequest);
+    } else if (command == festenaoEntityCreateEmailInviteCommand(_entityType)) {
+      return await onCreateEmailInviteCommand(apiRequest);
+    } else if (command == festenaoEntityListEmailInvitesCommand(_entityType)) {
+      return await onListEmailInvitesCommand(apiRequest);
+    } else if (command == festenaoEntityDeleteEmailInviteCommand(_entityType)) {
+      return await onDeleteEmailInviteCommand(apiRequest);
+    } else if (command == festenaoEntityCheckEmailInvitesCommand(_entityType)) {
+      return await onCheckEmailInvitesCommand(apiRequest);
+    } else if (command == festenaoEntityAcceptEmailInviteCommand(_entityType)) {
+      return await onAcceptEmailInviteCommand(apiRequest);
+    } else if (command ==
+        festenaoEntityDiscardEmailInviteCommand(_entityType)) {
+      return await onDiscardEmailInviteCommand(apiRequest);
     }
 
     // compat
@@ -375,5 +389,287 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     return FsCmsEntitySetPublicApiResult<T>()
       ..entityId.setValue(entityId)
       ..public.v = public;
+  }
+
+  // Email invites (addressed, `TkCmsFsEmailInvite`): admin only data, every
+  // access goes through the commands below (festenao `doc/invite_by_email.md`).
+
+  /// The app entity access, for the global app admin check.
+  late final _appEntityAccess =
+      TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsApp>(
+        entityCollectionInfo: tkCmsFsAppCollectionInfo,
+        firestore: firestore,
+      );
+
+  /// The user id of the caller, set by the callable transport only.
+  String _requireUserId(ApiRequest apiRequest) {
+    var userId = apiRequest.userId.v;
+    if (userId == null) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.unauthenticated
+            ..message.v = 'User not authenticated'
+            ..noRetry.v = true)
+          .exception();
+    }
+    return userId;
+  }
+
+  /// A required query field.
+  String _requireField(CvField<String> field) {
+    var value = field.v;
+    if (value == null) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.invalidArgument
+            ..message.v = 'Missing ${field.name}'
+            ..noRetry.v = true)
+          .exception();
+    }
+    return value;
+  }
+
+  /// The auth record of a user, for its email and whether it is verified.
+  Future<UserRecord> _requireUser(String userId) async {
+    var auth = app.firebaseContext.authOrNull;
+    if (auth == null) {
+      throw (ApiError()
+            ..code.v = apiErrorCodeInternal
+            ..message.v = 'No auth service'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var user = await auth.getUser(userId);
+    if (user == null) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.notFound
+            ..message.v = 'User $userId not found'
+            ..noRetry.v = true)
+          .exception();
+    }
+    return user;
+  }
+
+  /// The normalized verified email of the caller: an email invite is only
+  /// accepted or discarded by the user that owns the address.
+  Future<String> _requireVerifiedEmail(String userId) async {
+    var user = await _requireUser(userId);
+    var email = tkCmsNormalizeInviteEmail(user.email);
+    if (email == null || !user.emailVerified) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.failedPrecondition
+            ..message.v = 'A verified email is required'
+            ..noRetry.v = true)
+          .exception();
+    }
+    return email;
+  }
+
+  /// True when [userId] is an admin of the entity.
+  Future<bool> _isEntityAdmin(String entityId, String userId) async {
+    var access = await entityAccess
+        .fsEntityUserAccessRef(entityId, userId)
+        .get(firestore);
+    return access.exists && access.isAdmin;
+  }
+
+  /// The app id of the server, whose app entity holds the global admins;
+  /// null for a server without one (then only entity admins exist).
+  String? get _appId {
+    var app = this.app;
+    return app is TkAppCmsServerAppBase ? app.appFlavorContext.app : null;
+  }
+
+  /// True when [userId] is an admin of the app entity of this server
+  /// (`access/app/entity_id/<appId>/user_access/<userId>`, admins are per
+  /// flavor).
+  Future<bool> _isAppAdmin(String userId) async {
+    var appId = _appId;
+    if (appId == null) {
+      return false;
+    }
+    var access = await _appEntityAccess
+        .fsEntityUserAccessRef(appId, userId)
+        .get(firestore);
+    return access.exists && access.isAdmin;
+  }
+
+  /// Only an admin of the entity or an app admin manages its email invites;
+  /// `permission-denied` otherwise. Returns true for an app admin that is
+  /// not an admin of the entity (the access escalation check does not apply
+  /// to them).
+  Future<bool> _requireEmailInviteAdmin(String entityId, String userId) async {
+    if (await _isEntityAdmin(entityId, userId)) {
+      return false;
+    }
+    if (await _isAppAdmin(userId)) {
+      return true;
+    }
+    throw (ApiError()
+          ..code.v = HttpsErrorCode.permissionDenied
+          ..message.v = 'Not an admin of this entity'
+          ..noRetry.v = true)
+        .exception();
+  }
+
+  /// Check that the email invite [inviteId] exists and belongs to [entityId]
+  /// (the invitee commands name both); `not-found` otherwise.
+  Future<void> _checkEntityEmailInvite(String entityId, String inviteId) async {
+    var invite = await entityAccess.fsEmailInviteRef(inviteId).get(firestore);
+    if (!invite.exists || invite.entityId.v != entityId) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.notFound
+            ..message.v = 'Email invite $inviteId not found'
+            ..noRetry.v = true)
+          .exception();
+    }
+  }
+
+  /// Handles the create email invite command (entity admin or app admin):
+  /// an invite only the user with this verified email can accept, see
+  /// [TkCmsFirestoreDatabaseServiceEntityAccess.createEmailInviteEntity].
+  Future<FsCmsEntityCreateEmailInviteApiResult<T>> onCreateEmailInviteCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityCreateEmailInviteApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = _requireUserId(apiRequest);
+    var entityId = _requireField(query.entityId);
+    var email = tkCmsNormalizeInviteEmail(query.email.v);
+    if (email == null) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.invalidArgument
+            ..message.v = 'Missing email'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var isAppAdmin = await _requireEmailInviteAdmin(entityId, userId);
+    var userAccess = TkCmsCvUserAccess()..copyAccessFrom(query);
+    var inviteId = await entityAccess.createEmailInviteEntity(
+      userId: userId,
+      entityId: entityId,
+      email: email,
+      userAccess: userAccess,
+      skipAccessCheck: isAppAdmin,
+    );
+    return FsCmsEntityCreateEmailInviteApiResult<T>()
+      ..inviteId.v = inviteId
+      ..email.v = email;
+  }
+
+  /// Handles the list email invites command (entity admin or app admin):
+  /// the invites sent on the entity and what happened to them.
+  Future<FsCmsEntityListEmailInvitesApiResult<T>> onListEmailInvitesCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityListEmailInvitesApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = _requireUserId(apiRequest);
+    var entityId = _requireField(query.entityId);
+    await _requireEmailInviteAdmin(entityId, userId);
+    var invites = await entityAccess.listEntityEmailInvites(
+      entityId,
+      status: query.status.v,
+    );
+    return FsCmsEntityListEmailInvitesApiResult<T>()
+      ..invites.v = invites.map((invite) => invite.toCvEmailInvite()).toList();
+  }
+
+  /// Handles the delete email invite command (entity admin or app admin):
+  /// revokes it, whatever its status.
+  Future<FsCmsEntityDeleteEmailInviteApiResult<T>> onDeleteEmailInviteCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityDeleteEmailInviteApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = _requireUserId(apiRequest);
+    var entityId = _requireField(query.entityId);
+    var inviteId = _requireField(query.inviteId);
+    await _requireEmailInviteAdmin(entityId, userId);
+    await entityAccess.deleteEmailInviteEntity(
+      inviteId: inviteId,
+      entityId: entityId,
+    );
+    return FsCmsEntityDeleteEmailInviteApiResult<T>()
+      ..entityId.setValue(entityId)
+      ..inviteId.v = inviteId;
+  }
+
+  /// Handles the check email invites command (any signed in user, on app
+  /// start and after login): the pending invites addressed to the caller's
+  /// verified email. An unverified email gets an empty list, not an error,
+  /// so that the UI can ask for the verification.
+  Future<FsCmsEntityCheckEmailInvitesApiResult<T>> onCheckEmailInvitesCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityCheckEmailInvitesApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = _requireUserId(apiRequest);
+    var user = await _requireUser(userId);
+    var email = tkCmsNormalizeInviteEmail(user.email);
+    var result = FsCmsEntityCheckEmailInvitesApiResult<T>()
+      ..email.setValue(email)
+      ..emailVerified.v = user.emailVerified
+      ..invites.v = <TkCmsCvEmailInvite>[];
+    if (email == null || !user.emailVerified) {
+      return result;
+    }
+    var invites = await entityAccess.listEmailInvites(
+      email,
+      status: tkCmsEmailInviteStatusPending,
+    );
+    var entityId = query.entityId.v;
+    if (entityId != null) {
+      invites = invites
+          .where((invite) => invite.entityId.v == entityId)
+          .toList();
+    }
+    result.invites.v = invites
+        .map((invite) => invite.toCvEmailInvite())
+        .toList();
+    return result;
+  }
+
+  /// Handles the accept email invite command (the invitee): the invite must
+  /// be pending and addressed to the caller's verified email; its access is
+  /// merged into the user's.
+  Future<FsCmsEntityAcceptEmailInviteApiResult<T>> onAcceptEmailInviteCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityAcceptEmailInviteApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = _requireUserId(apiRequest);
+    var entityId = _requireField(query.entityId);
+    var inviteId = _requireField(query.inviteId);
+    var email = await _requireVerifiedEmail(userId);
+    await _checkEntityEmailInvite(entityId, inviteId);
+    await entityAccess.acceptEmailInviteEntity(
+      userId: userId,
+      email: email,
+      inviteId: inviteId,
+    );
+    return FsCmsEntityAcceptEmailInviteApiResult<T>()
+      ..entityId.setValue(entityId)
+      ..inviteId.v = inviteId;
+  }
+
+  /// Handles the discard email invite command (the invitee): the invite must
+  /// be pending and addressed to the caller's verified email; no access is
+  /// granted and it cannot be accepted any more.
+  Future<FsCmsEntityDiscardEmailInviteApiResult<T>> onDiscardEmailInviteCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityDiscardEmailInviteApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var userId = _requireUserId(apiRequest);
+    var entityId = _requireField(query.entityId);
+    var inviteId = _requireField(query.inviteId);
+    var email = await _requireVerifiedEmail(userId);
+    await _checkEntityEmailInvite(entityId, inviteId);
+    await entityAccess.discardEmailInviteEntity(
+      email: email,
+      inviteId: inviteId,
+    );
+    return FsCmsEntityDiscardEmailInviteApiResult<T>()
+      ..entityId.setValue(entityId)
+      ..inviteId.v = inviteId;
   }
 }
