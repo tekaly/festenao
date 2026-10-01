@@ -122,6 +122,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String get privacyPolicy => 'Privacy Policy';
 
   @override
+  String get pendingEmailInvitesTitle => 'Invitations';
+
+  @override
+  String pendingEmailInviteFor(String email) {
+    return 'For $email';
+  }
+
+  @override
+  String get pendingEmailInviteAccept => 'Accept';
+
+  @override
+  String pendingEmailInviteAcceptConfirm(String entity) {
+    return 'Join $entity with the proposed access?';
+  }
+
+  @override
+  String get pendingEmailInviteAccepted => 'Invite accepted';
+
+  @override
+  String get pendingEmailInviteDecline => 'Decline';
+
+  @override
+  String pendingEmailInviteDeclineConfirm(String entity) {
+    return 'Decline the invite to $entity?';
+  }
+
+  @override
+  String get pendingEmailInviteDeclined => 'Invite declined';
+
+  @override
   String get projectAccessAdmin => 'Admin access';
 
   @override

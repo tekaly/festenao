@@ -7,6 +7,7 @@ export 'src/provider/auth.dart';
 export 'src/provider/auth_rpd.dart';
 export 'src/provider/auth_screen.dart';
 export 'src/provider/blog_providers.dart';
+export 'src/provider/email_invite_providers.dart';
 export 'src/provider/festenao_user_projects.dart';
 export 'src/provider/firebase_app_rpd.dart';
 export 'src/provider/fs_providers.dart';

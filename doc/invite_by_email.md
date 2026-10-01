@@ -25,12 +25,24 @@ festenao global one by default, hidden otherwise: standalone), the
 memory server. On the way: `FestenaoApiFsEntityClient` registers the api
 builders for its own entity type (the bloc client is typed on the base
 entity), and the REST firestore `updateDocument` surfaces a
-`FirestoreException` like the other operations (firebase_rest.dart). Not
-done: the pending list on the users screen, the app wiring (the festenaoprv
+`FirestoreException` like the other operations (firebase_rest.dart).
+Phase 4 (the §11 invitee side) is written too, in festenao_dashboard_base_app:
+`rpdPendingEmailInvitesProvider` (`RpdPendingEmailInvites`, a riverpod
+notifier) calls `check-email-invites` on every identity change, that is on
+the app start and after each sign in and out, and on demand, through
+`emailInviteApiServiceProvider` (the festenao global api by default, an app
+overrides it) on the entity of `currentEntityAccessProvider`;
+`PendingEmailInvitesView` lists the pending invites with accept and decline
+(confirmation dialogs, `pendingEmailInvite*` strings) and shows nothing
+otherwise; it sits on the dashboard home page and on top of the projects
+list. The unverified email case is not surfaced (the server lists nothing
+then, the state carries `emailVerified` for an app that wants a hint). Tests:
+the provider on the memory server, the view with a fake notifier. Not done:
+the pending list on the users screen, the app wiring (the festenaoprv
 dashboard has the global api; playelio and songbookelio route their invites
 through their own commands, their servers must take the generic entity
-commands first), phase 4 (the invitee UI) and the mail. Where the code
-differs from the text below:
+commands first) and the mail (next_step §3.1 step 5, tkmail). Where the
+code differs from the text below:
 
 - the client method `createEntityEmailInvite` is the addressed invite; the
   August convenience wrapper of that name over the link invite is gone, use

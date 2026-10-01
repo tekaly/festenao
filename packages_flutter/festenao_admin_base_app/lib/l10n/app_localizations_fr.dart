@@ -123,6 +123,36 @@ class AppLocalizationsFr extends AppLocalizations {
   String get privacyPolicy => 'Politique de confidentialité';
 
   @override
+  String get pendingEmailInvitesTitle => 'Invitations';
+
+  @override
+  String pendingEmailInviteFor(String email) {
+    return 'Pour $email';
+  }
+
+  @override
+  String get pendingEmailInviteAccept => 'Accepter';
+
+  @override
+  String pendingEmailInviteAcceptConfirm(String entity) {
+    return 'Rejoindre $entity avec l\'accès proposé ?';
+  }
+
+  @override
+  String get pendingEmailInviteAccepted => 'Invitation acceptée';
+
+  @override
+  String get pendingEmailInviteDecline => 'Refuser';
+
+  @override
+  String pendingEmailInviteDeclineConfirm(String entity) {
+    return 'Refuser l\'invitation pour $entity ?';
+  }
+
+  @override
+  String get pendingEmailInviteDeclined => 'Invitation refusée';
+
+  @override
   String get projectAccessAdmin => 'Accès administrateur';
 
   @override

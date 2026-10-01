@@ -147,6 +147,56 @@
   "@privacyPolicy": {
     "description": "Privacy policy"
   },
+  "pendingEmailInvitesTitle": "Invitations",
+  "@pendingEmailInvitesTitle": {
+    "description": "Pending email invites title"
+  },
+  "pendingEmailInviteFor": "For {email}",
+  "@pendingEmailInviteFor": {
+    "description": "Pending email invites addressed to the user email",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "someone@example.com"
+      }
+    }
+  },
+  "pendingEmailInviteAccept": "Accept",
+  "@pendingEmailInviteAccept": {
+    "description": "Pending email invite accept action"
+  },
+  "pendingEmailInviteAcceptConfirm": "Join {entity} with the proposed access?",
+  "@pendingEmailInviteAcceptConfirm": {
+    "description": "Pending email invite accept confirmation message",
+    "placeholders": {
+      "entity": {
+        "type": "String",
+        "example": "My project"
+      }
+    }
+  },
+  "pendingEmailInviteAccepted": "Invite accepted",
+  "@pendingEmailInviteAccepted": {
+    "description": "Pending email invite accepted message"
+  },
+  "pendingEmailInviteDecline": "Decline",
+  "@pendingEmailInviteDecline": {
+    "description": "Pending email invite decline action"
+  },
+  "pendingEmailInviteDeclineConfirm": "Decline the invite to {entity}?",
+  "@pendingEmailInviteDeclineConfirm": {
+    "description": "Pending email invite decline confirmation message",
+    "placeholders": {
+      "entity": {
+        "type": "String",
+        "example": "My project"
+      }
+    }
+  },
+  "pendingEmailInviteDeclined": "Invite declined",
+  "@pendingEmailInviteDeclined": {
+    "description": "Pending email invite declined message"
+  },
   "projectAccessAdmin": "Admin access",
   "@projectAccessAdmin": {
     "description": "Project access admin"

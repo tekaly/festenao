@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_dashboard_base_app/src/provider/project_access_providers.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
+import 'package:festenao_dashboard_base_app/src/screen/pending_email_invites_view.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_leading.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_edit_screen.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
@@ -66,7 +67,8 @@ class DashboardProjectsAccessScreen extends ConsumerWidget {
   }
 }
 
-/// The project list, with a footer inviting a signed out user to sign in.
+/// The project list, with the pending email invites of the user on top and a
+/// footer inviting a signed out user to sign in.
 class _ProjectList extends StatelessWidget {
   final ProjectsAccessState state;
   final bool selectMode;
@@ -77,6 +79,7 @@ class _ProjectList extends StatelessWidget {
   Widget build(BuildContext context) {
     var projects = state.projects;
     return WithHeaderFooterListView.builder(
+      header: state.identity == null ? null : const PendingEmailInvitesView(),
       footer: state.identity == null
           ? const BodyContainer(
               child: BodyHPadding(

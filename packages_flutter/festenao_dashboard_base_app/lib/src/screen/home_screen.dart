@@ -3,6 +3,7 @@ import 'package:festenao_dashboard_base_app/src/provider/auth_rpd.dart';
 import 'package:festenao_dashboard_base_app/src/provider/auth_screen.dart';
 import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
+import 'package:festenao_dashboard_base_app/src/screen/pending_email_invites_view.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,8 @@ class DashboardHomePage extends ConsumerWidget {
                         padding: EdgeInsets.all(16.0),
                         child: Text('Welcome to Festenao Dashboard'),
                       ),
+                      // Checked on the app start and after each sign in.
+                      const PendingEmailInvitesView(),
                       ListTile(
                         leading: const Icon(Icons.list),
                         title: const Text('Projects'),

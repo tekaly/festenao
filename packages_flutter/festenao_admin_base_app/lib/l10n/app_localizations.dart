@@ -320,6 +320,54 @@ abstract class AppLocalizations {
   /// **'Privacy Policy'**
   String get privacyPolicy;
 
+  /// Pending email invites title
+  ///
+  /// In en, this message translates to:
+  /// **'Invitations'**
+  String get pendingEmailInvitesTitle;
+
+  /// Pending email invites addressed to the user email
+  ///
+  /// In en, this message translates to:
+  /// **'For {email}'**
+  String pendingEmailInviteFor(String email);
+
+  /// Pending email invite accept action
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get pendingEmailInviteAccept;
+
+  /// Pending email invite accept confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Join {entity} with the proposed access?'**
+  String pendingEmailInviteAcceptConfirm(String entity);
+
+  /// Pending email invite accepted message
+  ///
+  /// In en, this message translates to:
+  /// **'Invite accepted'**
+  String get pendingEmailInviteAccepted;
+
+  /// Pending email invite decline action
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get pendingEmailInviteDecline;
+
+  /// Pending email invite decline confirmation message
+  ///
+  /// In en, this message translates to:
+  /// **'Decline the invite to {entity}?'**
+  String pendingEmailInviteDeclineConfirm(String entity);
+
+  /// Pending email invite declined message
+  ///
+  /// In en, this message translates to:
+  /// **'Invite declined'**
+  String get pendingEmailInviteDeclined;
+
   /// Project access admin
   ///
   /// In en, this message translates to:
