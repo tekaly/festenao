@@ -58,6 +58,7 @@
   "projectEmailInviteEmailLabel": "Adresse e-mail",
   "projectEmailInviteSend": "Envoyer l'invitation",
   "projectEmailInviteSent": "Invitation envoyée à {email}",
+  "projectEmailInviteSaved": "Invitation enregistrée pour {email} : la personne la voit dans l'application une fois connectée avec cette adresse",
   "projectEmailInviteInvalidEmail": "Saisissez une adresse e-mail valide",
   "projectEmailInviteListTitle": "Invitations par e-mail",
   "projectEmailInviteNone": "Aucune invitation par e-mail",

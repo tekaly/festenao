@@ -61,12 +61,15 @@ void main() {
     expect(state.emailInvitesError, isNull);
 
     // Deliberately not normalized.
-    var inviteId = await bloc.createEmailInvite(
+    var result = await bloc.createEmailInvite(
       email: ' Invited@Test.Local ',
       admin: false,
       write: true,
       read: true,
     );
+    var inviteId = result.inviteId.v!;
+    // The memory server has no mailer.
+    expect(result.mailSent.v, isFalse);
     var invites = bloc.state.value.emailInvites!;
     expect(invites.map((e) => e.inviteId.v), [inviteId]);
     var invite = invites.single;
@@ -78,12 +81,12 @@ void main() {
     expect(invite.isAdmin, isFalse);
 
     // The same email again updates the pending invite.
-    var inviteId2 = await bloc.createEmailInvite(
+    var inviteId2 = (await bloc.createEmailInvite(
       email: 'invited@test.local',
       admin: true,
       write: true,
       read: true,
-    );
+    )).inviteId.v;
     expect(inviteId2, inviteId);
     invites = bloc.state.value.emailInvites!;
     expect(invites.length, 1);

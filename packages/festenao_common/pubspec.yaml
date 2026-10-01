@@ -231,6 +231,13 @@ dependencies:
       url: https://github.com/tekartik/app_common_utils.dart
       path: app_crypto
   # path: ^1.8.0
+  # The mail model the email invite mailer is written against (the app plugs
+  # its service, the tkmail AWS SES one).
+  tekartik_mail:
+    git:
+      url: https://github.com/tekartik/mail.dart
+      path: packages/mail
+    version: '>=0.1.2'
 
 dev_dependencies:
   lints: ">=6.1.0"

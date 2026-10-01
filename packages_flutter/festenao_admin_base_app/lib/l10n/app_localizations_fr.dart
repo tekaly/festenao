@@ -199,6 +199,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String projectEmailInviteSaved(String email) {
+    return 'Invitation enregistrée pour $email : la personne la voit dans l\'application une fois connectée avec cette adresse';
+  }
+
+  @override
   String get projectEmailInviteInvalidEmail =>
       'Saisissez une adresse e-mail valide';
 

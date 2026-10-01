@@ -52,9 +52,33 @@ invite documents of its own entity type. songbookelio cannot be wired: it has
 no server at all (firestore rules and hosting only, its invites are client
 side transactions) and the email invites are api only by design (§3.1); it
 keeps the link invites, and the songbook feature lands in playelio per the
-dev plan. Not done: the pending list on the users screen and the mail
-(next_step §3.1 step 5, tkmail). Where the code differs from the text
-below:
+dev plan.
+
+Mail (2026-10-01, the §14 "notification" question): the create command
+sends the invite mail when the handler has a mailer
+(`FestenaoEntityHandlerOptions.emailInviteMailer`, a
+`FestenaoEmailInviteMailer` of `festenao_common/server/festenao_email_invite_mailer.dart`):
+`FestenaoMailServiceEmailInviteMailer` writes the subject and text
+(`festenaoEmailInviteMailMessage`, French by default or English, the app
+name, the app url to open, the entity, the access, the inviter's name) and
+sends through any `tekartik_mail` `MailService`; the result carries
+`mailSent` (false when the app has no mailer or when it failed: the invite
+exists either way, the share screen then says "saved" instead of "sent").
+The memory server test uses a `MemoryMailService`. The test server app and
+the dartff `FfApp` built on it expose `projectEmailInviteMailer.mailer`; the
+playelio server takes `emailInviteMailer:`. What is left is deployment
+configuration: in each functions entry point (festenao_dartff and
+festenaoprv_firebase `functions/bin/server.dart`, the playelio functions),
+set a mailer on the tkmail AWS SES service
+(`TkmailAwsSesMailService(client: TkmailClientAwsSesProd(), options:
+TkmailAwsSesMailServiceOptions(region:, credentials:
+TkmailAwsSesCredentials(accessKeyId:, secretAccessKey:)))` of
+`package:tkmail_api/mail_api_aws_ses.dart`, a git dependency of the
+functions package) with the SES credentials from the function configuration
+and a sender address SES is verified for; the contaktly service of tkmail
+cannot be used, it fixes the recipient (a contact form relay).
+Not done: the pending list on the users screen. Where the code differs from
+the text below:
 
 - the client method `createEntityEmailInvite` is the addressed invite; the
   August convenience wrapper of that name over the link invite is gone, use
@@ -502,10 +526,9 @@ No standalone/rules phase: email invites are api-only by design (§3.1).
 
 - ~~**Http vs callable transport**~~ — resolved: the http transport no longer
   accepts a client-supplied userId (§7).
-- **Notification**: nothing here actually *sends* an email. The invite is only
-  discovered when the invitee opens the app. Sending a real mail (a
-  `mail` collection for the Trigger Email extension, or an SMTP call from the
-  function) is a separate, optional piece — but without it "invite by email"
-  only reaches people who already use the app.
+- ~~**Notification**: nothing here actually *sends* an email.~~ Resolved
+  (2026-10-01): the create command sends the mail through the mailer of the
+  handler options, see the status at the top; without a mailer configured the
+  invite is still only discovered in the app.
 - **Should an email invite auto-apply on signup** instead of needing an explicit
   accept? Current design says no — explicit accept/discard was the requirement.

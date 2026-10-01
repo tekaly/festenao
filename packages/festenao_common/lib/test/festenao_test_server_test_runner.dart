@@ -11,6 +11,7 @@ import 'package:festenao_common/server/festeano_server_app.dart';
 import 'package:festenao_common/server/festeano_server_entity_handler.dart';
 import 'package:festenao_common/server/festeano_server_firestore_handler.dart';
 import 'package:festenao_common/server/festeano_server_object_storage_handler.dart';
+import 'package:festenao_common/server/festenao_email_invite_mailer.dart';
 import 'package:festenao_common/test/entity_set_public_api_test_runner.dart';
 import 'package:tekartik_app_media/mime_type.dart';
 import 'package:tekartik_firebase_functions/ff_server.dart';
@@ -44,6 +45,10 @@ class FestenaoServerAppTest extends FestenaoServerApp {
   /// sets it to exercise [FestenaoEntityHandlerOptions.setPublicCheck].
   FestenaoEntitySetPublicCheck? projectSetPublicCheck;
 
+  /// The mailer of the project email invites, none until its `mailer` is set
+  /// (a test, or the app at start: the invite mails then go).
+  final projectEmailInviteMailer = FestenaoEmailInviteMailerDelegate();
+
   /// Project handler.
   late final projectHandler = FestenaoEntityHandler(
     app: this,
@@ -55,6 +60,7 @@ class FestenaoServerAppTest extends FestenaoServerApp {
             entityId: entityId,
           ) ??
           true,
+      emailInviteMailer: projectEmailInviteMailer,
     ),
   );
 

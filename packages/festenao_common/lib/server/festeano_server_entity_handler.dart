@@ -1,5 +1,6 @@
 import 'package:festenao_common/api/festenao_api_fs_entity.dart';
 import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_common/server/festenao_email_invite_mailer.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tekartik_firebase_firestore/utils/json_utils.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
@@ -18,6 +19,7 @@ class FestenaoEntityHandlerOptions {
   const FestenaoEntityHandlerOptions({
     this.customIdGenerator,
     this.setPublicCheck,
+    this.emailInviteMailer,
   });
 
   /// Custom ID generator function.
@@ -26,6 +28,10 @@ class FestenaoEntityHandlerOptions {
   /// The condition added to making an entity public (or private again), on
   /// top of being an admin of the entity; none by default.
   final FestenaoEntitySetPublicCheck? setPublicCheck;
+
+  /// Sends the mail of a created email invite to its address; none by
+  /// default, the invitee then only finds the invite in the app.
+  final FestenaoEmailInviteMailer? emailInviteMailer;
 }
 
 /// Entity handler for Festenao entities.
@@ -550,9 +556,51 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       userAccess: userAccess,
       skipAccessCheck: isAppAdmin,
     );
+    var mailSent = false;
+    var mailer = options.emailInviteMailer;
+    if (mailer != null && mailer.enabled) {
+      mailSent = await _sendEmailInviteMail(
+        mailer,
+        userId: userId,
+        inviteId: inviteId,
+      );
+    }
     return FsCmsEntityCreateEmailInviteApiResult<T>()
       ..inviteId.v = inviteId
-      ..email.v = email;
+      ..email.v = email
+      ..mailSent.v = mailSent;
+  }
+
+  /// Sends the mail of the created invite [inviteId], true when it went.
+  ///
+  /// A failure is logged, not an error of the command: the invite exists,
+  /// the invitee finds it in the app, the inviter is told the mail did not go
+  /// (`mailSent`).
+  Future<bool> _sendEmailInviteMail(
+    FestenaoEmailInviteMailer mailer, {
+    required String userId,
+    required String inviteId,
+  }) async {
+    try {
+      var invite = await entityAccess.fsEmailInviteRef(inviteId).get(firestore);
+      var inviter = await app.firebaseContext.authOrNull?.getUser(userId);
+      var inviterName = inviter?.displayName;
+      if (inviterName == null || inviterName.trim().isEmpty) {
+        inviterName = inviter?.email;
+      }
+      await mailer.sendEmailInvite(
+        FestenaoEmailInviteMail(
+          invite: invite.toCvEmailInvite(),
+          inviterName: inviterName,
+        ),
+      );
+      return true;
+    } catch (e) {
+      // The function logs: the invite is there, the mail is not.
+      // ignore: avoid_print
+      print('email invite $inviteId mail error: $e');
+      return false;
+    }
   }
 
   /// Handles the list email invites command (entity admin or app admin):

@@ -260,16 +260,18 @@ class ProjectSdbShareScreenBloc
     add(state.value.withEmailInvites(invites));
   }
 
-  /// Send an addressed email invite with the given access, return its id
-  /// and refresh the list. Inviting a pending email again updates its
-  /// invite.
-  Future<String> createEmailInvite({
+  /// Send an addressed email invite with the given access and refresh the
+  /// list; the result says whether the invite mail went (`mailSent`, false
+  /// when the app sends none: the invitee then finds the invite in the app).
+  /// Inviting a pending email again updates its invite.
+  Future<FsCmsEntityCreateEmailInviteApiResult<TkCmsFsEntity>>
+  createEmailInvite({
     required String email,
     required bool admin,
     required bool write,
     required bool read,
   }) async {
-    var inviteId = await _apiClient.createEntityEmailInvite(
+    var result = await _apiClient.sendEntityEmailInvite(
       entityId: projectId,
       email: email,
       fsUserAccess: TkCmsFsUserAccess()
@@ -278,7 +280,7 @@ class ProjectSdbShareScreenBloc
         ..admin.v = admin,
     );
     await refreshEmailInvites();
-    return inviteId;
+    return result;
   }
 
   /// Revoke (delete) an email invite, whatever its status, and refresh the

@@ -116,7 +116,7 @@ class _ProjectSdbShareScreenState
     }
     setState(() => _busy = true);
     try {
-      await bloc.createEmailInvite(
+      var result = await bloc.createEmailInvite(
         email: email,
         admin: _admin,
         write: _write,
@@ -124,7 +124,14 @@ class _ProjectSdbShareScreenState
       );
       _emailController.clear();
       if (context.mounted) {
-        await muiSnack(context, intl.projectEmailInviteSent(email));
+        // The mail went, or the app sends none: the invitee then finds the
+        // invite in the app once signed in with that address.
+        await muiSnack(
+          context,
+          result.mailSent.v == true
+              ? intl.projectEmailInviteSent(email)
+              : intl.projectEmailInviteSaved(email),
+        );
       }
     } catch (e) {
       if (context.mounted) {

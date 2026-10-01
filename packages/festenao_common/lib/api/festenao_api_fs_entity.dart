@@ -124,6 +124,7 @@ void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
     FsCmsEntitySetPublicApiQuery<T>.new,
     FsCmsEntitySetPublicApiResult<T>.new,
     FsCmsEntityCreateEmailInviteApiQuery<T>.new,
+    FsCmsEntityCreateEmailInviteApiResult<T>.new,
     FsCmsEntityListEmailInvitesApiQuery<T>.new,
     FsCmsEntityListEmailInvitesApiResult<T>.new,
     FsCmsEntityEmailInviteIdApiQuery<T>.new,
@@ -388,10 +389,24 @@ class FsCmsEntityCreateEmailInviteApiQuery<T extends TkCmsFsEntity>
   late final CvFields fields = [entityId, email, ...userAccessFields];
 }
 
-/// API result for creating an addressed email invite: its id and the
-/// normalized email.
-typedef FsCmsEntityCreateEmailInviteApiResult<T extends TkCmsFsEntity> =
-    FsCmsEntityCreateInviteApiResult<T>;
+/// API result for creating an addressed email invite: its id, the normalized
+/// email, and whether the invite mail went ([mailSent], false when the app
+/// sends none or when it failed: the invite exists either way, the invitee
+/// finds it in the app).
+class FsCmsEntityCreateEmailInviteApiResult<T extends TkCmsFsEntity>
+    extends ApiResult {
+  /// The invite ID.
+  final inviteId = CvField<String>('inviteId');
+
+  /// The invited email (normalized).
+  final email = CvField<String>('email');
+
+  /// True when the invite mail was sent.
+  final mailSent = CvField<bool>('mailSent');
+
+  @override
+  late final CvFields fields = [inviteId, email, mailSent];
+}
 
 /// API query for listing the email invites of an entity (entity admin or app
 /// admin).

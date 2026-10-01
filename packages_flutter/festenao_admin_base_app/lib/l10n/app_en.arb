@@ -259,6 +259,16 @@
       }
     }
   },
+  "projectEmailInviteSaved": "Invite saved for {email}: the person sees it in the app once signed in with that address",
+  "@projectEmailInviteSaved": {
+    "description": "Email invite saved message, when no mail is sent",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "someone@example.com"
+      }
+    }
+  },
   "projectEmailInviteInvalidEmail": "Enter a valid email address",
   "@projectEmailInviteInvalidEmail": {
     "description": "Email invite invalid address message"

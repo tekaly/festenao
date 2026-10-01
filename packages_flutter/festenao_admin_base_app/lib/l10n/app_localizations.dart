@@ -452,6 +452,12 @@ abstract class AppLocalizations {
   /// **'Invite sent to {email}'**
   String projectEmailInviteSent(String email);
 
+  /// Email invite saved message, when no mail is sent
+  ///
+  /// In en, this message translates to:
+  /// **'Invite saved for {email}: the person sees it in the app once signed in with that address'**
+  String projectEmailInviteSaved(String email);
+
   /// Email invite invalid address message
   ///
   /// In en, this message translates to:

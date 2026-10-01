@@ -102,20 +102,22 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     return result.inviteId.v!;
   }
 
-  /// Creates an addressed email invite for the entity: only the user whose
+  /// Sends an addressed email invite for the entity: only the user whose
   /// verified email is [email] can accept it, after finding it with
-  /// [checkEmailInvites]. Returns the invite ID.
+  /// [checkEmailInvites]. Returns the invite id, the normalized email and
+  /// whether the invite mail went (`mailSent`: false when the app sends none,
+  /// or when it failed; the invite exists either way).
   ///
   /// The server only lets an admin of the entity or a global app admin do it
   /// (`permission-denied` otherwise), and refuses an access greater than the
   /// inviter's own. Inviting the same email again updates the pending invite
-  /// and returns its id.
-  Future<String> createEntityEmailInvite({
+  /// (same id) and sends the mail again.
+  Future<FsCmsEntityCreateEmailInviteApiResult<T>> sendEntityEmailInvite({
     required String entityId,
     required String email,
     required TkCmsFsUserAccess fsUserAccess,
   }) async {
-    var result = await apiService
+    return await apiService
         .getApiResult<FsCmsEntityCreateEmailInviteApiResult<T>>(
           ApiRequest(command: entityAccess.info.createEmailInviteCommand)
             ..setQuery(
@@ -127,8 +129,18 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
                 ..read.v = fsUserAccess.read.v,
             ),
         );
-    return result.inviteId.v!;
   }
+
+  /// [sendEntityEmailInvite], returning the invite ID only.
+  Future<String> createEntityEmailInvite({
+    required String entityId,
+    required String email,
+    required TkCmsFsUserAccess fsUserAccess,
+  }) async => (await sendEntityEmailInvite(
+    entityId: entityId,
+    email: email,
+    fsUserAccess: fsUserAccess,
+  )).inviteId.v!;
 
   /// The email invites sent on the entity (admin side), most recent first,
   /// with what happened to them; optionally only the ones with [status]
