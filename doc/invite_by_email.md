@@ -1,7 +1,31 @@
 # Invite by email
 
 Design note for adding *invite by email* next to the existing *invite by link*
-(`TkCmsFsInviteEntity`). Nothing here is implemented yet.
+(`TkCmsFsInviteEntity`).
+
+**Status (2026-10-01).** Phase 1 of §13 (the §5 models, the §6 access layer,
+the §10 cron sweep) is in tkcms `a2b4f68`, tested on the memory firestore
+(`tkcms_firestore_database_entity_user_access_test.dart`). Phases 2 to 4 (the
+festenao api, the rules denial test, the UI) are not started. Where the code
+differs from the text below:
+
+- `createEmailInviteEntity` reads the entity in its transaction (it has to,
+  for the exists and deleted checks) instead of taking it as a parameter;
+- `discardEmailInviteEntity` takes the email and the invite id only;
+- `deleteEmailInviteEntity` takes an optional `entityId` and refuses an
+  invite of another entity;
+- the pending cap is `maxPendingEmailInvitesPerEntity` on the service, 100 by
+  default (`tkCmsEmailInviteMaxPendingPerEntityDefault`);
+- closed invites are swept after `tkCmsEmailInviteClosedExpirationDefault`
+  (3 days), pending ones after `tkCmsEmailInviteExpirationDefault` (30 days);
+  `deleteOldInvites()` runs `deleteOldLinkInvites()` then
+  `deleteOldEmailInvites()`;
+- `TkCmsFsEmailInvite.toCvEmailInvite()` builds the api summary
+  `TkCmsCvEmailInvite`, whose `timestamp` is an ISO 8601 string like the other
+  api models; `isPending` is on the document.
+
+Independently of this design, the link invite takes an optional `email` since
+2026-08-25 (`5d307af`): a bearer invite reserved to one email.
 
 ## 1. Requirements
 
