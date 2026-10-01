@@ -37,12 +37,24 @@ overrides it) on the entity of `currentEntityAccessProvider`;
 otherwise; it sits on the dashboard home page and on top of the projects
 list. The unverified email case is not surfaced (the server lists nothing
 then, the state carries `emailVerified` for an app that wants a hint). Tests:
-the provider on the memory server, the view with a fake notifier. Not done:
-the pending list on the users screen, the app wiring (the festenaoprv
-dashboard has the global api; playelio and songbookelio route their invites
-through their own commands, their servers must take the generic entity
-commands first) and the mail (next_step §3.1 step 5, tkmail). Where the
-code differs from the text below:
+the provider on the memory server, the view with a fake notifier.
+
+Apps (2026-10-01): the festenaoprv dashboard has it through the global
+festenao api. playelio is wired: its server routes the six
+`entity/playlist/*-email-invite*` commands to a `FestenaoEntityHandler` of
+the playlist entity (next to `set-public`, no app admin there), its share
+screen passes the playelio api, its root container overrides
+`emailInviteApiServiceProvider` and `currentEntityAccessProvider`, the
+pending invites sit on top of its playlists list (an accepted playlist shows
+up through its live mirror of the access list); server, app and rules
+simulator tests. On the way the tkcms access service registers the generic
+invite documents of its own entity type. songbookelio cannot be wired: it has
+no server at all (firestore rules and hosting only, its invites are client
+side transactions) and the email invites are api only by design (§3.1); it
+keeps the link invites, and the songbook feature lands in playelio per the
+dev plan. Not done: the pending list on the users screen and the mail
+(next_step §3.1 step 5, tkmail). Where the code differs from the text
+below:
 
 - the client method `createEntityEmailInvite` is the addressed invite; the
   August convenience wrapper of that name over the link invite is gone, use
