@@ -1,12 +1,15 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:js_interop';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'package:pointer_interceptor/pointer_interceptor.dart';
+import 'package:web/web.dart' as web;
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
+import 'yt_autoplay_watchdog.dart';
 import 'yt_player_backend.dart';
 import 'yt_playlist_entry.dart';
 import 'yt_source.dart';
@@ -50,8 +53,23 @@ class YtIframeBackend implements YtPlayerBackend {
   static const _durationProbeAttempts = 5;
 
   /// Autoplay with sound is blocked unless the page earned the right to it.
-  /// If a play request has not taken effect after this, retry it muted.
-  static const _autoplayGracePeriod = Duration(milliseconds: 1500);
+  /// The player says so (`onAutoplayBlocked`, see [_onWindowMessage]); the
+  /// watchdog is the net under it: a play request still not in effect after
+  /// this is retried muted. Long on purpose: a video can sit unstarted for
+  /// seconds on a slow connection, and a false alarm leaves the user with no
+  /// sound and no idea why.
+  static const _autoplayGracePeriod = Duration(seconds: 6);
+
+  /// How long the watchdog keeps looking at a loading video before letting
+  /// it be.
+  static const _autoplayMaxWait = Duration(seconds: 15);
+
+  /// An unmute the browser refuses pauses the video at once: no need to wait
+  /// long to see it.
+  static const _unmuteGracePeriod = Duration(milliseconds: 1500);
+
+  /// How long the watchdog keeps looking after an unmute.
+  static const _unmuteMaxWait = Duration(seconds: 6);
 
   late final YoutubePlayerController _controller;
 
@@ -61,8 +79,16 @@ class YtIframeBackend implements YtPlayerBackend {
 
   StreamSubscription<YoutubePlayerValue>? _valueSubscription;
   StreamSubscription<YoutubeVideoState>? _videoStateSubscription;
+  StreamSubscription<web.MessageEvent>? _messageSubscription;
   PlayerState _lastPlayerState = PlayerState.unknown;
-  Timer? _autoplayWatchdog;
+  late final _watchdog = YtAutoplayWatchdog(
+    probe: _probe,
+    onBlocked: _fallBackToMuted,
+  );
+
+  /// What the caller asked for; the sound can be off without it (the
+  /// browser refusing it, see [YtPlaybackState.soundBlocked]).
+  var _wantMuted = false;
   Timer? _durationProbe;
   var _durationProbesLeft = 0;
 
@@ -102,6 +128,46 @@ class YtIframeBackend implements YtPlayerBackend {
     _videoStateSubscription = _controller.videoStateStream.listen((state) {
       _playback.value = _playback.value.copyWith(position: state.position);
     });
+    // The player's own word on a refused autoplay. The package receives it
+    // too but only logs it, so listen to the frame messages as it does.
+    _messageSubscription = web.window.onMessage.listen(_onWindowMessage);
+  }
+
+  /// The player posts its events to the page as json strings, the event name
+  /// as key (`{"AutoplayBlocked": ..., "playerId": "..."}`): pick ours.
+  void _onWindowMessage(web.MessageEvent event) {
+    final data = event.data;
+    if (data == null || !data.typeofEquals('string')) {
+      return;
+    }
+    final text = (data as JSString).toDart;
+    if (!text.contains('AutoplayBlocked')) {
+      return;
+    }
+    try {
+      final message = jsonDecode(text);
+      // The id is the package's own, there is no other way to tell our
+      // player's messages from another's.
+      // ignore: invalid_use_of_internal_member
+      final playerId = _controller.playerId;
+      if (message is Map &&
+          message['playerId'] == playerId &&
+          message.containsKey('AutoplayBlocked')) {
+        unawaited(_onAutoplayBlocked());
+      }
+    } catch (_) {
+      // Not one of ours.
+    }
+  }
+
+  /// The browser refused to play with sound: play muted instead, and say so.
+  Future<void> _onAutoplayBlocked() async {
+    _watchdog.cancel();
+    if (_playback.value.muted) {
+      // Muted playback is never refused: nothing more to do.
+      return;
+    }
+    await _fallBackToMuted();
   }
 
   void _onValue(YoutubePlayerValue value) {
@@ -115,11 +181,11 @@ class YtIframeBackend implements YtPlayerBackend {
       playbackRate: value.playbackRate,
     );
 
-    // Only actually playing clears the watchdog: a blocked autoplay still
-    // reports buffering on its way back to unstarted.
-    if (state == PlayerState.playing) {
-      _autoplayWatchdog?.cancel();
-      _autoplayWatchdog = null;
+    // Only starting to play clears the watchdog: a blocked autoplay still
+    // reports buffering on its way back to unstarted, and a refused unmute
+    // pauses a playing video (the watch is on that transition).
+    if (state == PlayerState.playing && _lastPlayerState != state) {
+      _watchdog.cancel();
     }
 
     // The duration never arrives on its own here, see [_scheduleDurationProbe].
@@ -309,6 +375,16 @@ class YtIframeBackend implements YtPlayerBackend {
     _durationProbe?.cancel();
     _durationProbe = null;
     _durationProbesLeft = _durationProbeAttempts;
+    _watchdog.cancel();
+    if (!_wantMuted && _playback.value.muted) {
+      // The sound went off on the browser's refusal: try it again with this
+      // video, the page may have earned it since (a refusal mutes again).
+      await _controller.unMute();
+      _playback.value = _playback.value.copyWith(
+        muted: false,
+        soundBlocked: false,
+      );
+    }
     _playback.value = _playback.value.copyWith(
       position: Duration.zero,
       duration: Duration.zero,
@@ -362,23 +438,40 @@ class YtIframeBackend implements YtPlayerBackend {
   }
 
   /// Browsers refuse to start an unmuted video without a user gesture in the
-  /// iframe itself. When that happens nothing moves and no error is raised, so
-  /// fall back to muted playback and let the ui offer an unmute button.
+  /// iframe itself. The player reports it ([_onWindowMessage]); should that
+  /// word never come, the watchdog falls back to muted playback once the
+  /// video has clearly not started, and the ui offers an unmute button.
   void _armAutoplayWatchdog() {
-    _autoplayWatchdog?.cancel();
-    _autoplayWatchdog = Timer(_autoplayGracePeriod, () async {
-      _autoplayWatchdog = null;
-      if (_playback.value.muted) return;
-      if (await _controller.playerState == PlayerState.playing) return;
-      await setMuted(true);
-      await _controller.playVideo();
-    });
+    if (_playback.value.muted) {
+      // Muted playback is never refused.
+      _watchdog.cancel();
+      return;
+    }
+    _watchdog.arm(firstCheck: _autoplayGracePeriod, maxWait: _autoplayMaxWait);
+  }
+
+  /// What the player is doing, from its last reported state: the bridge is
+  /// not asked, its replies are keyed on the millisecond and get mixed up
+  /// with the package's own calls.
+  YtAutoplayProbe _probe() => switch (_lastPlayerState) {
+    PlayerState.playing => YtAutoplayProbe.playing,
+    PlayerState.buffering || PlayerState.unknown => YtAutoplayProbe.loading,
+    PlayerState.unStarted ||
+    PlayerState.ended ||
+    PlayerState.paused ||
+    PlayerState.cued => YtAutoplayProbe.stopped,
+  };
+
+  /// Play with the sound off, and say the browser wanted it so.
+  Future<void> _fallBackToMuted() async {
+    await _controller.mute();
+    _playback.value = _playback.value.copyWith(muted: true, soundBlocked: true);
+    await _controller.playVideo();
   }
 
   @override
   Future<void> pause() async {
-    _autoplayWatchdog?.cancel();
-    _autoplayWatchdog = null;
+    _watchdog.cancel();
     await _controller.pauseVideo();
   }
 
@@ -396,8 +489,8 @@ class YtIframeBackend implements YtPlayerBackend {
 
   @override
   Future<void> setMuted(bool muted) async {
-    _autoplayWatchdog?.cancel();
-    _autoplayWatchdog = null;
+    _wantMuted = muted;
+    _watchdog.cancel();
     if (muted) {
       await _controller.mute();
       _playback.value = _playback.value.copyWith(muted: true);
@@ -406,7 +499,10 @@ class YtIframeBackend implements YtPlayerBackend {
 
     final wasPlaying = _playback.value.playing;
     await _controller.unMute();
-    _playback.value = _playback.value.copyWith(muted: false);
+    _playback.value = _playback.value.copyWith(
+      muted: false,
+      soundBlocked: false,
+    );
     if (wasPlaying) _armSoundWatchdog();
   }
 
@@ -425,16 +521,7 @@ class YtIframeBackend implements YtPlayerBackend {
   /// owns the pointer. Put the sound back off and carry on playing rather than
   /// leaving a frozen picture behind.
   void _armSoundWatchdog() {
-    _autoplayWatchdog = Timer(_autoplayGracePeriod, () async {
-      _autoplayWatchdog = null;
-      if (await _controller.playerState == PlayerState.playing) return;
-      await _controller.mute();
-      _playback.value = _playback.value.copyWith(
-        muted: true,
-        soundBlocked: true,
-      );
-      await _controller.playVideo();
-    });
+    _watchdog.arm(firstCheck: _unmuteGracePeriod, maxWait: _unmuteMaxWait);
   }
 
   @override
@@ -472,10 +559,11 @@ class YtIframeBackend implements YtPlayerBackend {
 
   @override
   Future<void> dispose() async {
-    _autoplayWatchdog?.cancel();
+    _watchdog.cancel();
     _durationProbe?.cancel();
     await _valueSubscription?.cancel();
     await _videoStateSubscription?.cancel();
+    await _messageSubscription?.cancel();
     await _completions.close();
     await _controller.close();
     _http.close();
