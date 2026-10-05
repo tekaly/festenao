@@ -2,8 +2,8 @@ import 'package:festenao_cms_flutter/src/provider/cms_page_providers.dart';
 import 'package:festenao_cms_flutter/src/screen/cms_site_browser_screen.dart';
 import 'package:festenao_cms_flutter/src/widget/cms_page_body_view.dart';
 import 'package:festenao_common/festenao_cms.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A page as the reader sees it (title, summary, body, tags).
 class CmsPagePreviewScreen extends ConsumerWidget {

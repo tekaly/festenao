@@ -4,7 +4,7 @@ version: 0.1.0
 homepage:
 publish_to: none
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.13.0
   flutter: ">=1.17.0"
 
 dependencies:
@@ -34,6 +34,11 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_common_flutter
+  material_ui: ">=1.5.0"
+  festenao_theme:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_theme
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,7 +1,7 @@
 import 'package:festenao_cms_flutter/src/widget/cms_rendered_html_view.dart';
 import 'package:festenao_common/festenao_cms.dart';
 import 'package:festenao_markdown/markdown_plus.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The body of a page as the reader sees it: markdown rendered with
 /// festenao_markdown, an html body rendered as widgets.

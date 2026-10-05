@@ -4,8 +4,8 @@ import 'package:festenao_dashboard_app_demo/main.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_cms.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_data.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_theme.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// See the explorer tests: the backends are really asynchronous, so the demo
 /// runs with real timers.
@@ -190,18 +190,16 @@ void main() {
       for (var demoTheme in demoThemes()) {
         expect(find.text(demoTheme.name), findsWidgets);
       }
-      var before = Theme.of(
-        tester.element(find.text('Firestore explorer')),
-      ).colorScheme;
+      var before = Theme.of(tester.element(find.text('Firestore explorer')))
+          .colorScheme;
       expect(before.brightness, Brightness.light);
 
       // The dark one is another brightness, and the explorers follow it
       // without a colour of their own.
       await tester.tap(find.widgetWithText(ChoiceChip, 'Material dark'));
       await _settle(tester);
-      var after = Theme.of(
-        tester.element(find.text('Firestore explorer')),
-      ).colorScheme;
+      var after = Theme.of(tester.element(find.text('Firestore explorer')))
+          .colorScheme;
       expect(after.brightness, Brightness.dark);
       expect(after.surface, isNot(before.surface));
 
@@ -209,9 +207,9 @@ void main() {
       await tester.tap(find.text('File system explorer'));
       await _settle(tester);
       expect(
-        Theme.of(
-          tester.element(find.text('config.json')),
-        ).colorScheme.brightness,
+        Theme.of(tester.element(find.text('config.json')))
+            .colorScheme
+            .brightness,
         Brightness.dark,
       );
     });

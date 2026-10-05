@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:festenao_theme/legacy_material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 import 'package:html/dom.dart' as dom;
+import 'package:material_ui/material_ui.dart';
 
 /// Called when a link of a rendered document is tapped, with its href as
 /// written (resolve it against the document url).
@@ -51,89 +52,91 @@ class CmsRenderedHtmlView extends StatelessWidget {
     var muted = _css(colors.onSurfaceVariant);
     var card = _css(colors.surfaceContainerHighest);
     var line = _css(colors.outlineVariant);
-    return HtmlWidget(
-      bodyHtml,
-      baseUrl: baseUrl,
-      // Small documents: built at once, which keeps the view stable.
-      buildAsync: false,
-      textStyle: theme.textTheme.bodyLarge,
-      onTapUrl: (url) {
-        if (url.startsWith('#')) {
-          // An anchor, scrolled to by the widget.
-          return false;
-        }
-        _tap(url);
-        return true;
-      },
-      customWidgetBuilder: (element) {
-        if (element.localName == 'header' &&
-            element.classes.contains('site-header')) {
-          return _SiteHeader(element: element, onLink: _tap);
-        }
-        if (element.localName == 'ul' && element.classes.contains('cards')) {
-          return _Cards(element: element, baseUrl: baseUrl, onLink: _tap);
-        }
-        return null;
-      },
-      customStylesBuilder: (element) {
-        var classes = element.classes;
-        var tag = element.localName;
-        if (monospaceFontFamily != null &&
-            (tag == 'pre' || tag == 'code' || tag == 'tt')) {
-          // Quoted: a family name can hold spaces (`JetBrains Mono`).
-          return {'font-family': "'$monospaceFontFamily', monospace"};
-        }
-        if (tag == 'th' || tag == 'td') {
-          return {
-            'padding': '6px 12px',
-            'border-bottom': '1px solid $line',
-            'vertical-align': 'top',
-          };
-        }
-        if (tag == 'blockquote') {
-          return {
-            'margin': '16px 0',
-            'padding': '4px 16px',
-            'border-left': '3px solid $line',
-            'color': muted,
-          };
-        }
-        if (classes.contains('summary')) {
-          return {'color': muted, 'font-size': '1.15em'};
-        }
-        if (classes.contains('meta') || element.localName == 'figcaption') {
-          return {'color': muted, 'font-size': '0.9em'};
-        }
-        if (classes.contains('details')) {
-          return {
-            'background-color': card,
-            'padding': '12px 16px',
-            'border-radius': '8px',
-          };
-        }
-        if (element.localName == 'dt' &&
-            element.parent?.classes.contains('details') == true) {
-          return {'font-weight': '600'};
-        }
-        if (classes.contains('tag')) {
-          return {
-            'background-color': card,
-            'padding': '2px 10px',
-            'border-radius': '12px',
-            'font-size': '0.85em',
-          };
-        }
-        if (classes.contains('site-footer')) {
-          return {
-            'color': muted,
-            'font-size': '0.9em',
-            'border-top': '1px solid $line',
-            'margin-top': '24px',
-            'padding-top': '8px',
-          };
-        }
-        return null;
-      },
+    return legacyMaterialLeaf(
+      HtmlWidget(
+        bodyHtml,
+        baseUrl: baseUrl,
+        // Small documents: built at once, which keeps the view stable.
+        buildAsync: false,
+        textStyle: theme.textTheme.bodyLarge,
+        onTapUrl: (url) {
+          if (url.startsWith('#')) {
+            // An anchor, scrolled to by the widget.
+            return false;
+          }
+          _tap(url);
+          return true;
+        },
+        customWidgetBuilder: (element) {
+          if (element.localName == 'header' &&
+              element.classes.contains('site-header')) {
+            return _SiteHeader(element: element, onLink: _tap);
+          }
+          if (element.localName == 'ul' && element.classes.contains('cards')) {
+            return _Cards(element: element, baseUrl: baseUrl, onLink: _tap);
+          }
+          return null;
+        },
+        customStylesBuilder: (element) {
+          var classes = element.classes;
+          var tag = element.localName;
+          if (monospaceFontFamily != null &&
+              (tag == 'pre' || tag == 'code' || tag == 'tt')) {
+            // Quoted: a family name can hold spaces (`JetBrains Mono`).
+            return {'font-family': "'$monospaceFontFamily', monospace"};
+          }
+          if (tag == 'th' || tag == 'td') {
+            return {
+              'padding': '6px 12px',
+              'border-bottom': '1px solid $line',
+              'vertical-align': 'top',
+            };
+          }
+          if (tag == 'blockquote') {
+            return {
+              'margin': '16px 0',
+              'padding': '4px 16px',
+              'border-left': '3px solid $line',
+              'color': muted,
+            };
+          }
+          if (classes.contains('summary')) {
+            return {'color': muted, 'font-size': '1.15em'};
+          }
+          if (classes.contains('meta') || element.localName == 'figcaption') {
+            return {'color': muted, 'font-size': '0.9em'};
+          }
+          if (classes.contains('details')) {
+            return {
+              'background-color': card,
+              'padding': '12px 16px',
+              'border-radius': '8px',
+            };
+          }
+          if (element.localName == 'dt' &&
+              element.parent?.classes.contains('details') == true) {
+            return {'font-weight': '600'};
+          }
+          if (classes.contains('tag')) {
+            return {
+              'background-color': card,
+              'padding': '2px 10px',
+              'border-radius': '12px',
+              'font-size': '0.85em',
+            };
+          }
+          if (classes.contains('site-footer')) {
+            return {
+              'color': muted,
+              'font-size': '0.9em',
+              'border-top': '1px solid $line',
+              'margin-top': '24px',
+              'padding-top': '8px',
+            };
+          }
+          return null;
+        },
+      ),
     );
   }
 }

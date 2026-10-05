@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:festenao_common/festenao_slug.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Where a slug being edited stands.
 enum FestenaoSlugStatus {

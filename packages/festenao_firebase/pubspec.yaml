@@ -58,7 +58,7 @@ dependencies:
     git:
       url: https://github.com/tekartikprj/tkcms.git
       path: packages/tkcms_common
-  dev_test: ">=1.0.1"
+  dev_test: ">=1.0.3"
 
 dev_dependencies:
   lints: ">=6.1.0"

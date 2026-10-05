@@ -1,5 +1,6 @@
 import 'package:festenao_common/data/object_storage.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import 'object_storage_picker.dart';
 
 /// A full screen Scaffold wrapping [ObjectStoragePicker].

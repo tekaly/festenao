@@ -1,5 +1,5 @@
 import 'package:festenao_admin_base_app/theme/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 const darkGrayColor = Color(0xFF444444);
 // When the text is set

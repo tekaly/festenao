@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:festenao_common_flutter/firestore_explorer_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart';
 
 /// See the file system explorer tests: the backend is really asynchronous.

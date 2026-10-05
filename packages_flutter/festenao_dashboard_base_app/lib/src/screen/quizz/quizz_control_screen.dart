@@ -4,9 +4,9 @@ import 'package:festenao_dashboard_base_app/src/provider/quizz_providers.dart';
 import 'package:festenao_dashboard_base_app/src/provider/route_scope_providers.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The admin control of a quiz: start it, pause/resume/navigate, show the
 /// player link (qr code), validate the players at the end and see the

@@ -2,8 +2,8 @@ import 'dart:convert';
 
 import 'package:festenao_common/fs/file_system_explorer.dart';
 import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'explorer_ui/explorer_chip.dart';
 import 'explorer_ui/explorer_scaffold.dart';

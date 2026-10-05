@@ -1,8 +1,8 @@
 import 'package:festenao_markdown/gpt_markdown.dart' as gpt;
 import 'package:festenao_markdown/markdown.dart' as original;
 import 'package:festenao_markdown/markdown_plus.dart' as plus;
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   group('markdown widgets', () {

@@ -1,7 +1,7 @@
 import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fs_shim/fs_memory.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// See the file system explorer tests: the file system is really
 /// asynchronous, so everything runs with real timers.

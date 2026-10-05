@@ -2,9 +2,9 @@ import 'dart:convert';
 
 import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
 import 'package:festenao_common_flutter/firestore_explorer_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fs_shim/fs_memory.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart';
 
 /// See the file system explorer tests: real timers.
@@ -139,9 +139,8 @@ void main() {
         format: FirestoreBackupFormat.json,
       );
       expect(result.count, 2);
-      var data = FirestoreBackup(
-        firestore: firestore,
-      ).fromJsonText(await explorer.readAsString('all.json'));
+      var data = FirestoreBackup(firestore: firestore)
+          .fromJsonText(await explorer.readAsString('all.json'));
       expect(data.rootPath, isNull);
     });
 

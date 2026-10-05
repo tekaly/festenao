@@ -2,7 +2,7 @@ import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_edit_screen.dart';
 
 import 'package:festenao_admin_base_app/screen/fs_app_view_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
@@ -95,9 +95,8 @@ class _FsAppsScreenState extends State<FsAppsScreen> {
                       subtitle: Text(app.id),
                       onTap: () async {
                         if (bloc.selectMode) {
-                          Navigator.of(
-                            context,
-                          ).pop(FsAppsScreenSelectResult(appId: app.id));
+                          Navigator.of(context)
+                              .pop(FsAppsScreenSelectResult(appId: app.id));
                         } else {
                           var result = await goToFsAppViewScreen(
                             context,

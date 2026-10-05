@@ -4,12 +4,12 @@ version: 0.0.1
 publish_to: none
 
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.13.0
   flutter: ">=1.17.0"
 
 dependencies:
-  dev_test: ">=1.0.0+4"
-  cv: ">=1.1.10"
+  dev_test: ">=1.0.3"
+  cv: ">=1.1.11"
   festenao_common:
     git:
       url: https://github.com/tekaly/festenao
@@ -53,7 +53,7 @@ dependencies:
   fs_shim: ">=2.5.5"
   # The file system explorer creates sembast and sdb databases.
   idb_shim: ">=2.9.10-1"
-  sembast: ">=3.8.5+1"
+  sembast: ">=3.8.8"
   # The firestore explorer.
   tekartik_firebase_firestore:
     git:
@@ -104,6 +104,7 @@ dependencies:
       url: https://github.com/tekartik/app_web_utils.dart
       path: packages/web_splash
 
+  material_ui: ">=1.5.0"
 dev_dependencies:
   flutter_test:
     sdk: flutter

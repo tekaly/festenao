@@ -1,8 +1,8 @@
 import 'package:festenao_cms_flutter/src/provider/cms_page_providers.dart';
 import 'package:festenao_cms_flutter/src/screen/cms_page_preview_screen.dart';
 import 'package:festenao_common/festenao_cms.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A linkable item the host offers in the "presents" picker: an event, a
 /// location... of its own content database.
@@ -222,9 +222,8 @@ class _CmsPageEditScreenState extends ConsumerState<CmsPageEditScreen>
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Save failed: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Save failed: $e')));
       }
     } finally {
       if (mounted) {

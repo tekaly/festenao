@@ -1,7 +1,7 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/view/unsaved_changes_dialog.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';

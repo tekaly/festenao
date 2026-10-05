@@ -3,8 +3,8 @@ import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_dashboard_base_app/src/provider/blog_providers.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Blog demo screen, taking its ids as constructor arguments.
 ///

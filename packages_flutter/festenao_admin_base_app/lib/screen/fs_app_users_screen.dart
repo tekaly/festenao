@@ -5,7 +5,7 @@ import 'package:festenao_admin_base_app/screen/fs_app_users_screen_bloc.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_admin_base_app/view/app_path.dart';
 import 'package:festenao_admin_base_app/view/identity_info_tile.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
@@ -117,9 +117,8 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
                       subtitle: Text(accessString(intl, userAccess)),
                       onTap: () async {
                         if (bloc.selectMode) {
-                          Navigator.of(
-                            context,
-                          ).pop(FsAppUserSelectResult(userId: userId));
+                          Navigator.of(context)
+                              .pop(FsAppUserSelectResult(userId: userId));
                         } else {
                           var result = await goToAppUserEditScreen(
                             context,

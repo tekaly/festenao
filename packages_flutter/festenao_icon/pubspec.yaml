@@ -4,13 +4,14 @@ version: 0.0.1
 homepage:
 
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.13.0
   flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
   material_symbols_icons: ">=4.2874.0"
+  material_ui: ">=1.5.0"
 dev_dependencies:
   flutter_test:
     sdk: flutter

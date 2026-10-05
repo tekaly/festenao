@@ -1,6 +1,6 @@
 import 'package:festenao_base_app/form/src/app/app_bloc.dart';
 import 'package:festenao_base_app/form/src/view/app_scaffold.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/delayed_display.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tekartik_app_navigator_flutter/page_route.dart';
@@ -67,18 +67,19 @@ class _EndScreenState extends State<EndScreen>
                                     return ElevatedButton(
                                       onPressed: !(snapshot.data ?? false)
                                           ? () async {
-                                              var result = await busyAction(() async {
-                                                try {
-                                                  // ignore: unused_local_variable
-                                                  var uid = await gAppBloc
-                                                      .localDatabase
-                                                      .getUniqueDeviceId();
-                                                  // ignore: unused_local_variable
-                                                  var answers =
-                                                      gAppBloc.surveyAnswers;
+                                              var result = await busyAction(
+                                                () async {
+                                                  try {
+                                                    // ignore: unused_local_variable
+                                                    var uid = await gAppBloc
+                                                        .localDatabase
+                                                        .getUniqueDeviceId();
+                                                    // ignore: unused_local_variable
+                                                    var answers =
+                                                        gAppBloc.surveyAnswers;
 
-                                                  return true;
-                                                  /*
+                                                    return true;
+                                                    /*
                                                     await gAppBloc.apiService
                                                         .addSurveyEntry(
                                                           FufFormApiAddSurveyEntryRequest()
@@ -98,16 +99,17 @@ class _EndScreenState extends State<EndScreen>
                                                                     ?.toIso8601String(),
                                                         );
                                                     return true;*/
-                                                } catch (e) {
-                                                  if (context.mounted) {
-                                                    await muiSnack(
-                                                      context,
-                                                      'Une erreur est survenue, veuillez réessayer',
-                                                    );
+                                                  } catch (e) {
+                                                    if (context.mounted) {
+                                                      await muiSnack(
+                                                        context,
+                                                        'Une erreur est survenue, veuillez réessayer',
+                                                      );
+                                                    }
+                                                    rethrow;
                                                   }
-                                                  rethrow;
-                                                }
-                                              });
+                                                },
+                                              );
                                               if (result.result ?? false) {
                                                 if (context.mounted) {
                                                   await Navigator.pushAndRemoveUntil(

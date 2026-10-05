@@ -1,5 +1,5 @@
 import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 
 /// The debug items every dashboard app gets, the ones that need nothing of the

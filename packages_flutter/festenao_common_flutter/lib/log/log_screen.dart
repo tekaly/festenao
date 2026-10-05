@@ -1,5 +1,6 @@
 import 'package:festenao_common/log/log.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import 'log_playground.dart';
 import 'log_viewer.dart';
 

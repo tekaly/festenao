@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_common_utils/color.dart';
 
 import '../fonts/jetbrains_mono/jetbrains_mono_font.dart';

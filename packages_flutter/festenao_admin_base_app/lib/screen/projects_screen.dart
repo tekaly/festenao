@@ -3,7 +3,7 @@ import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_admin_base_app/screen/project_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_view_screen.dart';
 import 'package:festenao_admin_base_app/view/project_leading.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
@@ -138,9 +138,8 @@ class _ProjectsScreenState extends State<ProjectsScreen> {
 
 /// Go to Projects screen
 Future<Object?> goToProjectsScreen(BuildContext context) async {
-  return await ContentNavigator.of(
-    context,
-  ).pushPath<Object?>(ProjectsContentPath());
+  return await ContentNavigator.of(context)
+      .pushPath<Object?>(ProjectsContentPath());
   /*<Object?>(MaterialPageRoute(
       builder: (_) => BlocProvider(
           blocBuilder: () => ProjectsScreenBloc(),

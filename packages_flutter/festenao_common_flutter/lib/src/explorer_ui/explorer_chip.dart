@@ -1,6 +1,6 @@
 import 'package:festenao_common/data/object_editor.dart';
 import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The size the small labels of the explorer ui are drawn at.
 ///

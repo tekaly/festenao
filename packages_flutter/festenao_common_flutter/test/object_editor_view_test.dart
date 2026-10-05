@@ -1,6 +1,6 @@
 import 'package:festenao_common_flutter/object_editor_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 Widget _app(Widget child) => MaterialApp(
   home: Scaffold(body: SingleChildScrollView(child: child)),

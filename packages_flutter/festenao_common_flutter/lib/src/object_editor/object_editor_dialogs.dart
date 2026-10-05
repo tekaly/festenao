@@ -1,5 +1,5 @@
 import 'package:festenao_common/data/object_editor.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A new field: its name and the type it starts with.
 class ObjectEditorNewField {

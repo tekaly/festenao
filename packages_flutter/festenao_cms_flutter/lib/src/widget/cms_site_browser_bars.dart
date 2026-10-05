@@ -1,6 +1,6 @@
 import 'package:festenao_cms_flutter/src/cms_site_browser_controller.dart';
 import 'package:festenao_common/festenao_cms.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// [style] in [family], `monospace` by default.
 TextStyle? cmsMonospaceStyle(TextStyle? style, String? family) =>

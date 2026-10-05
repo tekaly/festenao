@@ -1,6 +1,6 @@
 import 'package:festenao_admin_base_app/admin_app/admin_app_context_db_bloc.dart';
 import 'package:festenao_common/data/festenao_db.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'admin_image_thumbnail.dart';
 

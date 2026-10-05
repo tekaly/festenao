@@ -10,8 +10,8 @@
 /// The pages are the demo ones, in memory: a restart brings them back.
 library;
 
-import 'package:festenao_dashboard_app_demo/src/demo_server.dart';
 import 'package:festenao_dartff/functions.dart';
+import 'package:festenao_dashboard_app_demo/src/demo_server.dart';
 
 Future<void> main(List<String> args) async {
   var port =

@@ -4,7 +4,7 @@ import 'package:festenao_common/form/tk_form.dart';
 import 'package:festenao_common/form/tk_form_db.dart';
 import 'package:festenao_theme/theme.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/delayed_display.dart';
 import 'package:tekartik_common_utils/list_utils.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
@@ -641,8 +641,7 @@ class _QuestionScreenState extends AutoDisposeBaseState<QuestionScreen>
                                 ..clear()
                                 ..add(choice.id);
                             });
-                            if (tkQuestionOptions
-                                .choiceAllowOther) // was .otherAnswerType.v == surveyAnswerTypeText)
+                            if (tkQuestionOptions.choiceAllowOther) // was .otherAnswerType.v == surveyAnswerTypeText)
                             {
                             } else {
                               validateAndGoNext();

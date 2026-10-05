@@ -6,7 +6,7 @@ import 'package:festenao_admin_base_app/screen/admin_media_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_media_db.dart';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_media_screen.dart';

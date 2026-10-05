@@ -6,9 +6,9 @@ import 'package:festenao_cms_flutter/src/widget/cms_html_document.dart';
 import 'package:festenao_cms_flutter/src/widget/cms_rendered_html_view.dart';
 import 'package:festenao_cms_flutter/src/widget/cms_site_browser_bars.dart';
 import 'package:festenao_common/festenao_cms.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// How [CmsSiteBrowserScreen] shows a document.
 enum CmsSiteViewMode {

@@ -2,7 +2,7 @@ import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_invite_view_screen_bloc.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';

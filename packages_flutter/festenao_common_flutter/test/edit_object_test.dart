@@ -1,7 +1,7 @@
 import 'package:cv/cv.dart';
 import 'package:festenao_common_flutter/object_editor_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A screen with a button opening the editor, so what it answers is checked
 /// the way an app would receive it.

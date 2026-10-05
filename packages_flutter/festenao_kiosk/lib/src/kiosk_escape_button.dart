@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'kiosk_app.dart';
 
@@ -32,9 +32,8 @@ class FestenaoKioskEscapeButton extends StatelessWidget {
             color: Colors.white.withValues(alpha: 0.08),
           ),
       onPressed: () async {
-        var unlocked = await FestenaoKioskApp.of(
-          context,
-        ).checkPasscode(context);
+        var unlocked = await FestenaoKioskApp.of(context)
+            .checkPasscode(context);
         if (unlocked) {
           onUnlocked();
         }

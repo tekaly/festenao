@@ -1,7 +1,7 @@
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Scoped by the shell route, must never be read outside of it.
 final currentSchoolIdProvider = Provider<String>(

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:festenao_theme/legacy_material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:media_kit/media_kit.dart';
@@ -210,12 +211,14 @@ class YtMediaKitBackend implements YtPlayerBackend {
   }
 
   @override
-  Widget buildVideoView(BuildContext context) => Video(
-    controller: _videoController,
-    // `NoVideoControls` is an untyped `null`, which strict-casts will not let
-    // through a conditional, so say null outright.
-    controls: options.showControls ? AdaptiveVideoControls : null,
-    fill: const Color(0xFF000000),
+  Widget buildVideoView(BuildContext context) => legacyMaterialLeaf(
+    Video(
+      controller: _videoController,
+      // `NoVideoControls` is an untyped `null`, which strict-casts will not let
+      // through a conditional, so say null outright.
+      controls: options.showControls ? AdaptiveVideoControls : null,
+      fill: const Color(0xFF000000),
+    ),
   );
 
   @override

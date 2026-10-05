@@ -1,5 +1,5 @@
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Project leading
 class ProjectLeading extends StatelessWidget {

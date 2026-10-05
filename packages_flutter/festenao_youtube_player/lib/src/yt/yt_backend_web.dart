@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
 
+import 'package:festenao_theme/legacy_material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
@@ -533,13 +534,15 @@ class YtIframeBackend implements YtPlayerBackend {
           constraints.maxWidth.isFinite &&
           constraints.maxHeight.isFinite &&
           constraints.maxHeight > 0;
-      final player = YoutubePlayer(
-        controller: _controller,
-        aspectRatio: sized
-            ? constraints.maxWidth / constraints.maxHeight
-            : 16 / 9,
-        autoFullScreen: false,
-        enableFullScreenOnVerticalDrag: false,
+      final player = legacyMaterialLeaf(
+        YoutubePlayer(
+          controller: _controller,
+          aspectRatio: sized
+              ? constraints.maxWidth / constraints.maxHeight
+              : 16 / 9,
+          autoFullScreen: false,
+          enableFullScreenOnVerticalDrag: false,
+        ),
       );
       if (options.showControls) return player;
       // `pointerEvents: none` only reaches the document inside the webview:

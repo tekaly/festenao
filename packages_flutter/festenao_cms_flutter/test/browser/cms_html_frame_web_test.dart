@@ -11,8 +11,8 @@ import 'dart:js_interop_unsafe';
 
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
 import 'package:festenao_cms_flutter/src/html_frame/cms_html_iframe_web.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:web/web.dart' as web;
 
 /// A page whose own script tries to reach the app, then taps its links

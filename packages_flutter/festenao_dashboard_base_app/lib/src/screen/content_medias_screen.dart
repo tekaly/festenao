@@ -6,8 +6,8 @@ import 'package:festenao_dashboard_base_app/src/router/dashboard_router.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_media_edit_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/content_media_screen.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 extension DashboardGoRouterStateExt on GoRouterState {
   String getProjectId() => pathParameters[DashboardRouter.projectIdParam]!;

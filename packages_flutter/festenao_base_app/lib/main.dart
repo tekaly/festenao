@@ -4,7 +4,7 @@ import 'package:festenao_base_app/form/src/screen/debug_screen.dart';
 import 'package:festenao_base_app/import/ui.dart';
 import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 late AppFlavorContext appFlavorContext;
 

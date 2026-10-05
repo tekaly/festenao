@@ -4,8 +4,8 @@ import 'package:festenao_base_app/db/festenao_db_compat.dart';
 import 'package:festenao_base_app/src/db/firebase_compat.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/data/festenao_storage.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart';
 
 class ImageWidget extends StatefulWidget {
@@ -41,11 +41,10 @@ class _ImageWidgetState extends State<ImageWidget> {
             Image(
               fit: BoxFit.cover,
               image: NetworkImage(
-                getUnauthenticatedStorageApi(
-                  projectId: appProjectId,
-                ).getMediaUrl(
-                  url.join(appStorageRootPath, 'image', image.name.v!),
-                ),
+                getUnauthenticatedStorageApi(projectId: appProjectId)
+                    .getMediaUrl(
+                      url.join(appStorageRootPath, 'image', image.name.v!),
+                    ),
               ),
             ),
         ],

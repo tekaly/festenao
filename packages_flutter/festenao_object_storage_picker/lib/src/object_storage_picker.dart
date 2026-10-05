@@ -1,10 +1,11 @@
 import 'package:festenao_common/data/object_storage.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Callback when files are selected.
-typedef ObjectStoragePickerOnSelect =
-    void Function(List<ObjectStorageMeta> selected);
+typedef ObjectStoragePickerOnSelect = void Function(
+  List<ObjectStorageMeta> selected,
+);
 
 /// A widget that allows browsing an [ObjectStorage] and picking files.
 class ObjectStoragePicker extends StatefulWidget {
@@ -191,9 +192,8 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
         // Path navigation/Breadcrumb bar
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          color: Theme.of(
-            context,
-          ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest
+              .withValues(alpha: 0.5),
           child: Row(
             children: [
               if (_pathStack.length > 1)

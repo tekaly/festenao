@@ -1,9 +1,9 @@
 import 'dart:convert';
 
 import 'package:festenao_common_flutter/admin_explorer_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:idb_shim/sdb.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A service account that looks like one, without being a real key.
 String _serviceAccount({String projectId = 'demo-project'}) => jsonEncode({

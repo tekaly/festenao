@@ -2,9 +2,9 @@ import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common_flutter/festenao_slug_flutter.dart';
 import 'package:festenao_common_flutter/share_link.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../provider/project_slug_providers.dart';
 
@@ -104,9 +104,8 @@ class DashboardProjectUrlTile extends ConsumerWidget {
         onPressed: () async {
           await Clipboard.setData(ClipboardData(text: link));
           if (context.mounted) {
-            ScaffoldMessenger.maybeOf(
-              context,
-            )?.showSnackBar(const SnackBar(content: Text('Link copied')));
+            ScaffoldMessenger.maybeOf(context)
+                ?.showSnackBar(const SnackBar(content: Text('Link copied')));
           }
         },
       ),
@@ -146,9 +145,8 @@ class DashboardProjectSlugField extends StatelessWidget {
   Widget build(BuildContext context) {
     var fsDb = fsDatabase ?? globalFestenaoFirestoreDatabase;
     var registry = fsDb.slugRegistry();
-    var prefix = appShareLink(
-      '$festenaoProjectUrlPathSegment/',
-    ).replaceFirst(RegExp(r'^https?://'), '');
+    var prefix = appShareLink('$festenaoProjectUrlPathSegment/')
+        .replaceFirst(RegExp(r'^https?://'), '');
     return FestenaoSlugField(
       controller: controller,
       currentSlug: currentSlug,

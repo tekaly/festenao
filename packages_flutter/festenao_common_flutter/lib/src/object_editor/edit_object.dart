@@ -1,6 +1,6 @@
 import 'package:cv/cv.dart';
 import 'package:festenao_common/data/object_editor.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'object_clipboard_flutter.dart';
 import 'object_editor_screen.dart';

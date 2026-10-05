@@ -1,6 +1,6 @@
 import 'package:festenao_audio_player/player.dart';
 import 'package:festenao_audio_player/src/import.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A widget that displays the audio player controls and the current position of the audio.
 class AppAudioPlayerWidget extends StatefulWidget {

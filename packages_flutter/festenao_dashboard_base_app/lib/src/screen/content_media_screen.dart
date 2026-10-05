@@ -10,9 +10,9 @@ import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dar
 import 'package:festenao_dashboard_base_app/src/screen/content_media_edit_screen.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_url_launcher_flutter/web_launch_uri.dart';
 import 'package:tekartik_browser_utils/blob_utils.dart';
 

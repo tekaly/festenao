@@ -1,9 +1,9 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_dashboard_base_app/provider.dart';
 import 'package:festenao_dashboard_base_app/screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// A notifier with a fixed state, recording what is accepted and declined.

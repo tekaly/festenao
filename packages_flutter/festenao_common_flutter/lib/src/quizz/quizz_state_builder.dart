@@ -1,5 +1,5 @@
 import 'package:festenao_common/festenao_quizz.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_rx_utils/app_rx_utils.dart';
 
 import 'quizz_periodic_builder.dart';

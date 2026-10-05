@@ -2,8 +2,8 @@ import 'package:festenao_cms_flutter/src/provider/cms_page_providers.dart';
 import 'package:festenao_cms_flutter/src/screen/cms_page_edit_screen.dart';
 import 'package:festenao_cms_flutter/src/screen/cms_site_browser_screen.dart';
 import 'package:festenao_common/festenao_cms.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The pages of a content database: open, publish, create, delete.
 ///

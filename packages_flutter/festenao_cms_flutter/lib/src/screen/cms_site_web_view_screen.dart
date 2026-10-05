@@ -5,7 +5,7 @@ import 'package:festenao_cms_flutter/src/html_frame/cms_html_frame.dart';
 import 'package:festenao_cms_flutter/src/widget/cms_html_document.dart';
 import 'package:festenao_cms_flutter/src/widget/cms_site_browser_bars.dart';
 import 'package:festenao_common/festenao_cms.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The site the pages render to, drawn by the browser itself (css included),
 /// in a sandboxed iframe: on the web only, elsewhere it says so.

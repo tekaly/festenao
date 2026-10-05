@@ -4,9 +4,8 @@ import 'dart:math';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
-
-import 'package:flutter/material.dart';
 import 'package:flutter_blurhash/flutter_blurhash.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 
 import 'admin_image_edit_screen.dart';

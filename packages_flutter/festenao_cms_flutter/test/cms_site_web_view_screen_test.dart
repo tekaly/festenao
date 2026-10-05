@@ -2,8 +2,8 @@
 library;
 
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'cms_pages_screen_test.dart' show openTestSdb, pumpUntil;
 

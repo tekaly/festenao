@@ -1,6 +1,6 @@
 import 'package:festenao_common_flutter/firebase_users_explorer_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_firebase_auth_sdb/auth_sdb.dart';
 import 'package:tekartik_firebase_auth_sembast/auth_sembast.dart'
     show newFirebaseAuthMemory;

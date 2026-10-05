@@ -1,5 +1,5 @@
 import 'package:festenao_common_flutter/festenao_slug_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_firebase_firestore/firestore.dart';
 
 /// The root the demo slugs live under: `app/demo/slug/<slug>`, visible in the

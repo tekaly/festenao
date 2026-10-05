@@ -1,8 +1,8 @@
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common_flutter/app_user_access_flutter.dart';
 import 'package:festenao_common_flutter/firebase_users_explorer_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_firebase_auth_sdb/auth_sdb.dart';
 import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart';
 
@@ -54,9 +54,9 @@ void main() {
         await _settle(tester);
         expect(find.text('alice@example.com'), findsOneWidget);
         var alice = (await auth.getUserByEmail('alice@example.com'))!;
-        var ref = festenaoAppUserAccessCollection(
-          appId,
-        ).cast<TkCmsEditedFsUserAccess>().doc(alice.uid);
+        var ref = festenaoAppUserAccessCollection(appId)
+            .cast<TkCmsEditedFsUserAccess>()
+            .doc(alice.uid);
         var access = await ref.get(firestore);
         expect(access.isAdmin, isTrue);
         expect(access.isWrite, isTrue);

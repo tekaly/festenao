@@ -4,7 +4,7 @@ version: 0.1.0
 publish_to: none
 
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.13.0
   flutter: ">=3.35.0"
 
 dependencies:
@@ -25,6 +25,11 @@ dependencies:
   # The browser rendering of the generated html (a sandboxed iframe, web only).
   web: ">=1.1.0"
 
+  material_ui: ">=1.5.0"
+  festenao_theme:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_theme
 dev_dependencies:
   flutter_test:
     sdk: flutter

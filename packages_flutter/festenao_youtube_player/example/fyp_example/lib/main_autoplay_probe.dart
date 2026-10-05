@@ -4,7 +4,7 @@
 import 'dart:async';
 
 import 'package:festenao_youtube_player/yt_player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() => runApp(const ProbeApp());
 

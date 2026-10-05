@@ -1,8 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:extended_image/extended_image.dart';
-import 'package:flutter/material.dart';
-
+import 'package:festenao_theme/legacy_material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
 import 'package:tekartik_app_rx_bloc/state_base_bloc.dart';
 import 'package:tekartik_app_rx_utils/app_rx_utils.dart';
@@ -69,19 +69,21 @@ class _AdminImageDataEditScreenState extends State<AdminImageDataEditScreen> {
           ),
           body: Builder(
             builder: (context) {
-              return ExtendedImage.memory(
-                bloc.param.bytes,
-                fit: BoxFit.contain,
-                mode: ExtendedImageMode.editor,
-                extendedImageEditorKey: editorKey,
-                initEditorConfigHandler: (state) {
-                  return EditorConfig(
-                    maxScale: 8.0,
-                    cropRectPadding: const EdgeInsets.all(20.0),
-                    hitTestSize: 20.0,
-                    cropAspectRatio: bloc.param.aspectRatio,
-                  );
-                },
+              return legacyMaterialLeaf(
+                ExtendedImage.memory(
+                  bloc.param.bytes,
+                  fit: BoxFit.contain,
+                  mode: ExtendedImageMode.editor,
+                  extendedImageEditorKey: editorKey,
+                  initEditorConfigHandler: (state) {
+                    return EditorConfig(
+                      maxScale: 8.0,
+                      cropRectPadding: const EdgeInsets.all(20.0),
+                      hitTestSize: 20.0,
+                      cropAspectRatio: bloc.param.aspectRatio,
+                    );
+                  },
+                ),
               );
             },
           ),

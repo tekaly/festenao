@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:festenao_common/festenao_quizz.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_common_utils/num_utils.dart';
 
 /// A linear progress indicator.

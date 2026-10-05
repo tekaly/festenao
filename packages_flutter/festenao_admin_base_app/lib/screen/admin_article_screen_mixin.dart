@@ -7,7 +7,7 @@ import 'package:festenao_admin_base_app/view/tile_padding.dart';
 import 'package:festenao_common/app/app_options.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/text/text.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:festenao_markdown/markdown_plus.dart';
 
 import 'admin_image_edit_screen.dart';
 import 'admin_image_edit_screen_bloc.dart';
@@ -119,7 +119,7 @@ mixin AdminArticleScreenMixin implements AdminArticleScreen {
       return Container();
     }
     return TilePadding(
-      child: MarkdownBody(
+      child: FestenaoMarkdownWidget(
         onTapLink: (url, _, _) {
           //launch(url);
         },

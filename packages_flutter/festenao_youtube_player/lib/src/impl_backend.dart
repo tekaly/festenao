@@ -1,7 +1,7 @@
 import 'package:festenao_common_flutter/common_utils_flutter.dart';
 import 'package:festenao_youtube_player/player.dart';
 import 'package:festenao_youtube_player/yt_player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A [FestenaoYoutubeController] backed by a [YtPlayerBackend].
 ///

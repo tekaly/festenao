@@ -1,7 +1,7 @@
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/firebase/firebase_auth.dart';
 import 'package:festenao_common/firebase/firebase_users_explorer.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'firebase_users_explorer_flutter.dart';
 
@@ -9,9 +9,9 @@ import 'firebase_users_explorer_flutter.dart';
 /// (`app/<appId>/user_access`): one tkcms [TkCmsFsUserAccess] per user id.
 CvCollectionReference<TkCmsFsUserAccess> festenaoAppUserAccessCollection(
   String appId,
-) => fsAppRoot(
-  appId,
-).collection<TkCmsFsUserAccess>(tkCmsFsUserAccessCollectionId);
+) =>
+    fsAppRoot(appId)
+        .collection<TkCmsFsUserAccess>(tkCmsFsUserAccessCollectionId);
 
 /// Manages the app wide user access of [appId]
 /// (`app/<appId>/user_access/<userId>`, [TkCmsFsUserAccess]): who is an app
@@ -67,9 +67,8 @@ class _FestenaoAppUserAccessScreenState
     refreshDelay: const Duration(seconds: 5),
   );
 
-  late final _collection = festenaoAppUserAccessCollection(
-    widget.appId,
-  ).cast<TkCmsEditedFsUserAccess>();
+  late final _collection = festenaoAppUserAccessCollection(widget.appId)
+      .cast<TkCmsEditedFsUserAccess>();
 
   late final Stream<List<TkCmsEditedFsUserAccess>> _accesses = _collection
       .onSnapshotsSupport(widget.firestore, options: _refresh)

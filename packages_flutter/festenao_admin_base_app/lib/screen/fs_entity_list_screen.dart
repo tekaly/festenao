@@ -1,6 +1,6 @@
 import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_firebase_ui_firestore/firebase_ui_firestore.dart';
 
 /// Entity list screen

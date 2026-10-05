@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A [StatelessWidget] that wraps a [Scaffold] and provides an optional
 /// floating action button for a parent action.

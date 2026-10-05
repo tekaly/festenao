@@ -1,7 +1,7 @@
 import 'package:festenao_common_flutter/common_utils_widget.dart';
 import 'package:festenao_lyrics_player/src/lyrics_data_controller.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart'; // Import the package
 import 'package:tekaly_lyrics/utils/lyrics_data_located.dart';
 

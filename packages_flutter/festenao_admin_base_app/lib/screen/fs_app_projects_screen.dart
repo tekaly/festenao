@@ -3,7 +3,7 @@ import 'package:festenao_admin_base_app/screen/fs_app_project_view_screen.dart';
 import 'package:festenao_admin_base_app/screen/projects_screen.dart';
 import 'package:festenao_admin_base_app/view/app_path.dart';
 import 'package:festenao_admin_base_app/view/identity_info_tile.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
@@ -92,9 +92,8 @@ class _FsProjectsScreenState extends State<FsProjectsScreen> {
                       subtitle: Text(project.id),
                       onTap: () async {
                         if (bloc.selectMode) {
-                          Navigator.of(
-                            context,
-                          ).pop(SelectProjectResult(projectId: project.id));
+                          Navigator.of(context)
+                              .pop(SelectProjectResult(projectId: project.id));
                         } else {
                           await goToFsAppProjectViewScreen(
                             context,

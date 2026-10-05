@@ -7,8 +7,8 @@ import 'package:festenao_dashboard_base_app/src/screen/pending_email_invites_vie
 import 'package:festenao_dashboard_base_app/src/screen/project_leading.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_edit_screen.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
@@ -102,9 +102,8 @@ class _ProjectList extends StatelessWidget {
             onTap: () async {
               var projectId = project.fsId;
               if (selectMode) {
-                Navigator.of(
-                  context,
-                ).pop(SelectProjectResult(projectId: projectId));
+                Navigator.of(context)
+                    .pop(SelectProjectResult(projectId: projectId));
               } else {
                 await context.pushPath<void>(
                   projectAccessPath,

@@ -7,8 +7,8 @@ import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ContentMediaEditScreen extends ConsumerStatefulWidget {
   static const editRouteName = 'content_media_edit';
@@ -256,9 +256,8 @@ class _ContentMediaEditScreenState
   }
 
   void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
 

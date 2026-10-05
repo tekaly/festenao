@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.13.0
 
 dependencies:
   flutter:
@@ -42,7 +42,7 @@ dependencies:
   # The in memory backends the demo runs on.
   fs_shim: ">=2.5.5"
   idb_shim: ">=2.9.10-1"
-  sembast: ">=3.8.5+1"
+  sembast: ">=3.8.8"
   # The users of the users explorer, in an in memory sdb auth.
   tekartik_firebase_auth_sdb:
     git:
@@ -61,6 +61,7 @@ dependencies:
       url: https://github.com/tekartikprj/tkcms.git
       path: packages/tkcms_common
 
+  material_ui: ">=1.5.0"
 dev_dependencies:
   flutter_test:
     sdk: flutter

@@ -1,5 +1,5 @@
 import 'package:festenao_admin_base_app/theme/color.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 double get editLabelSmallFontSize => 13;
 double get labelSmallFontSize => editLabelSmallFontSize;

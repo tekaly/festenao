@@ -1,6 +1,6 @@
 import 'package:festenao_common/fs/file_system_explorer.dart';
-import 'package:flutter/material.dart';
 import 'package:idb_shim/sdb.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sembast/sembast.dart' as sembast;
 
 import 'object_editor/object_editor_dialogs.dart';

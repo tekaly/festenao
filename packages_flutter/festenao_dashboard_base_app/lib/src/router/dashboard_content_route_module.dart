@@ -8,7 +8,7 @@ import 'package:festenao_dashboard_base_app/src/screen/home_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_content_home_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_home_screen.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The main dashboard tree: `/`, then everything under
 /// `/project/:project_id/data/:data_id`.

@@ -1,1 +1,2 @@
-export 'src/markdown_widget_plus.dart' show FestenaoMarkdownWidget;
+export 'src/markdown_widget_plus.dart'
+    show FestenaoMarkdownWidget, MarkdownStyleSheet, MarkdownTapLinkCallback;

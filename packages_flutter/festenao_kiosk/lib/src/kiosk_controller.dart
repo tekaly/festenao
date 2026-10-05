@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:festenao_theme/legacy_material.dart';
 import 'package:flutter_screen_lock/flutter_screen_lock.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_prefs_sdb/prefs.dart';
 
 import 'kiosk_settings_screen.dart';
@@ -91,15 +92,24 @@ class FestenaoKioskController {
       return false;
     }
     var unlocked = false;
-    await screenLock(
-      context: context,
-      title: const Text('Enter code'),
-      cancelButton: const Text('Cancel'),
-      correctString: passcode,
-      onUnlocked: () {
-        unlocked = true;
-        Navigator.of(context).pop();
-      },
+    // What `screenLock()` pushes, pushed here so that the flutter material
+    // widgets of flutter_screen_lock sit under the bridge.
+    await Navigator.of(context).push<void>(
+      PageRouteBuilder<void>(
+        opaque: false,
+        pageBuilder: (routeContext, _, _) => legacyMaterialScreen(
+          ScreenLock(
+            title: const Text('Enter code'),
+            cancelButton: const Text('Cancel'),
+            correctString: passcode,
+            onCancelled: () => Navigator.of(routeContext).pop(),
+            onUnlocked: () {
+              unlocked = true;
+              Navigator.of(context).pop();
+            },
+          ),
+        ),
+      ),
     );
     return unlocked;
   }

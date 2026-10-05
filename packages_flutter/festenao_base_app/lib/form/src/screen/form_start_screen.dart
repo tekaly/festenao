@@ -1,7 +1,7 @@
 import 'package:festenao_base_app/form/src/view/app_scaffold.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/delayed_display.dart';
 import 'package:tekartik_common_utils/num_utils.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
@@ -30,8 +30,9 @@ class DebugOnInitState {
   }
 }
 
-typedef DebugOnInitBuildContextCallback =
-    FutureOr<void> Function(BuildContext context);
+typedef DebugOnInitBuildContextCallback = FutureOr<void> Function(
+  BuildContext context,
+);
 
 DebugOnInitState? startScreenDebugOnInit;
 
@@ -92,9 +93,9 @@ class _FormStartScreenState extends State<FormStartScreen> {
                                   Text(
                                     form.name,
                                     textAlign: TextAlign.center,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleLarge,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleLarge,
                                   ),
                                   const SizedBox(height: 32),
                                   Center(

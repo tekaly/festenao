@@ -10,7 +10,7 @@
 /// ```
 library;
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'src/demo_data.dart';
 import 'src/demo_home_page.dart';

@@ -1,7 +1,7 @@
 import 'package:festenao_common_flutter/common_utils_widget.dart';
 import 'package:festenao_common_flutter/dev_menu_flutter.dart';
 import 'package:flp_example/play_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<void> main() async {
   await mainTestMenu();

@@ -1,18 +1,17 @@
 import 'package:festenao_common/data/object_editor.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Builds the widget editing one value of an object tree.
 ///
 /// [onChanged] takes the new value; the builder calls it when the value is
 /// settled — on submit or when the field loses the focus — not on every
 /// keystroke, so the tree is not rebuilt while the user types.
-typedef ObjectValueEditorBuilder =
-    Widget Function(
-      BuildContext context,
-      ObjectValueTypeHandler type,
-      Object? value,
-      ValueChanged<Object?> onChanged,
-    );
+typedef ObjectValueEditorBuilder = Widget Function(
+  BuildContext context,
+  ObjectValueTypeHandler type,
+  Object? value,
+  ValueChanged<Object?> onChanged,
+);
 
 /// The widget each type is edited with, and the ones a custom type adds.
 ///

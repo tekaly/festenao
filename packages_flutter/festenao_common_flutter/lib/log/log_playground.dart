@@ -1,6 +1,8 @@
 import 'dart:math';
+
 import 'package:festenao_common/log/log.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
+
 import 'log_viewer.dart';
 
 /// Screen wrapper for [FestenaoLogPlayground].
@@ -245,15 +247,13 @@ class _FestenaoLogPlaygroundState extends State<FestenaoLogPlayground> {
                       ),
                       OutlinedButton(
                         onPressed: () {
-                          _messageController.text =
-                              'User borne-42 completed order #98231 with 3 items';
+                          _messageController.text = 'User borne-42 completed order #98231 with 3 items';
                         },
                         child: const Text('Preset Medium'),
                       ),
                       OutlinedButton(
                         onPressed: () {
-                          _messageController.text =
-                              'System Exception in Payment Gateway\nTraceback: Stack #0 payment_service.dart:45\nStack #1 checkout_bloc.dart:102';
+                          _messageController.text = 'System Exception in Payment Gateway\nTraceback: Stack #0 payment_service.dart:45\nStack #1 checkout_bloc.dart:102';
                         },
                         child: const Text('Preset Long'),
                       ),

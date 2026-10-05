@@ -6,8 +6,8 @@ import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dar
 import 'package:festenao_dashboard_base_app/src/screen/pending_email_invites_view.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 class DashboardHomePage extends ConsumerWidget {
   static String get routeName => 'home';

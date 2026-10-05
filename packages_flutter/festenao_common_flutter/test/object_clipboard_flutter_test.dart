@@ -1,7 +1,7 @@
 import 'package:festenao_common_flutter/object_editor_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The clipboard of the system, faked: the platform channel answers nothing in
 /// a test, so this stands in for it and lets both directions be checked.

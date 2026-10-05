@@ -1,6 +1,6 @@
 import 'package:festenao_common_flutter/common_utils.dart';
 import 'package:festenao_lyrics_player/lyrics_player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class PlayScreen extends StatefulWidget {
   final String lrc;

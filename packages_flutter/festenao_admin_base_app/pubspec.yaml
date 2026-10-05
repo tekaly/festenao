@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.12.0
+  sdk: ^3.13.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -33,12 +33,15 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   image:
-  fs_shim: ">=2.5.1-4"
+  fs_shim: ">=2.5.2"
   festenao_blur_hash:
     git:
       url: https://github.com/tekaly/festenao
       path: packages/festenao_blur_hash
-  flutter_markdown:
+  festenao_markdown:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_markdown
   flutter_blurhash:
   path: ">=1.9.1"
   extended_image:
@@ -47,7 +50,7 @@ dependencies:
     git:
       url: https://github.com/tekaly/festenao
       path: packages_flutter/festenao_audio_player
-  sembast: ">=3.8.5+1"
+  sembast: ">=3.8.8"
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ">=1.0.9"
@@ -168,9 +171,34 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_flutter_utils.dart
       path: app_sembast
+  material_ui: ">=1.5.0"
+  festenao_theme:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_theme
+  tekartik_firebase_auth_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: auth_flutter
+  tekartik_firebase_firestore_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: firestore_flutter
+  tekartik_firebase_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: firebase_flutter
+  tekartik_firebase_flutter_ui_auth:
+    git:
+      url: https://github.com/tekartik/firebase_ui.dart
+      path: packages/firebase_flutter_ui_auth
+  tekartik_firebase_storage_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: storage_flutter
 dev_dependencies:
 
-  dev_build: ">=1.1.7+3"
+  dev_build: ">=1.1.8+2"
   flutter_test:
     sdk: flutter
 

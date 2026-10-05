@@ -8,9 +8,8 @@ import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_provid
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
-
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ContentImageEditScreen extends StatefulHookConsumerWidget {
   static const editRouteName = 'content_image_edit';
@@ -348,9 +347,8 @@ class _ContentImageEditScreenState
   }
 
   void _showError(BuildContext context, String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
 

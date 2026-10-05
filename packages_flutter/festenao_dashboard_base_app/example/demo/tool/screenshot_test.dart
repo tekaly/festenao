@@ -17,10 +17,10 @@ import 'package:festenao_dashboard_app_demo/src/demo_data.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_home_page.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_theme.dart';
 import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Where the pngs land.
 const screenshotDirectory = '.local/screenshots_1';
@@ -401,9 +401,8 @@ void main() {
         await _back(tester);
       }
       // From inside the app, where the messenger lives.
-      ScaffoldMessenger.of(
-        tester.element(find.byType(DemoHomePage)),
-      ).clearSnackBars();
+      ScaffoldMessenger.of(tester.element(find.byType(DemoHomePage)))
+          .clearSnackBars();
       await _settle(tester);
 
       // The menu from its top.

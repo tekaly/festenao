@@ -1,6 +1,6 @@
 import 'package:festenao_common/log/log.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Screen wrapper for [FestenaoLogViewer].
 class FestenaoLogViewerScreen extends StatelessWidget {
@@ -568,9 +568,8 @@ class _FestenaoLogViewerState extends State<FestenaoLogViewer> {
                         child: FilterChip(
                           label: Text(level.name),
                           selected: _selectedLevel == level,
-                          selectedColor: _levelColor(
-                            level,
-                          ).withValues(alpha: 0.3),
+                          selectedColor: _levelColor(level)
+                              .withValues(alpha: 0.3),
                           onSelected: (val) {
                             setState(() => _selectedLevel = val ? level : null);
                             _reload();

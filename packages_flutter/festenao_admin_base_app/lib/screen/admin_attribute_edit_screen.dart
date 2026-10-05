@@ -10,7 +10,7 @@ import 'package:festenao_audio_player/player.dart';
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/text/text.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:tekartik_app_flutter_bloc/bloc_provider.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
@@ -292,9 +292,8 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
             snack(context, 'Nom ou type ou Lien ne doit pas etre vide');
             return;
           }
-          Navigator.of(
-            context,
-          ).pop(AdminAttributeEditScreenResult(attribute: attribute));
+          Navigator.of(context)
+              .pop(AdminAttributeEditScreenResult(attribute: attribute));
         } catch (e, st) {
           if (kDebugMode) {
             print(e);
@@ -309,9 +308,8 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
     if (!_saveLock.locked) {
       await _saveLock.synchronized(() async {
         try {
-          Navigator.of(
-            context,
-          ).pop(AdminAttributeEditScreenResult(deleted: true));
+          Navigator.of(context)
+              .pop(AdminAttributeEditScreenResult(deleted: true));
         } catch (e, st) {
           if (kDebugMode) {
             print(e);

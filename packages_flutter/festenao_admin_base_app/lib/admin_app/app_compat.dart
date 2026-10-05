@@ -8,7 +8,7 @@ import 'package:festenao_common/data/festenao_firebase.dart';
 import 'package:festenao_common/data/festenao_firestore.dart';
 import 'package:festenao_common/data/src/festenao_db.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 // ignore: depend_on_referenced_packages
 import 'package:tekartik_app_flutter_sembast/sembast.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';

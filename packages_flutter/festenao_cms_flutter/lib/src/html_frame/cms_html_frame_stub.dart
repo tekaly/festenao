@@ -1,6 +1,6 @@
 import 'package:festenao_cms_flutter/src/html_frame/cms_html_frame_common.dart';
 import 'package:festenao_cms_flutter/src/widget/cms_rendered_html_view.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// True where the browser renders the html itself: on the web only.
 const cmsHtmlFrameSupported = false;

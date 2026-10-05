@@ -12,7 +12,7 @@ import 'package:festenao_common/data/src/festenao/sync/sync_source_options.dart'
 import 'package:festenao_common/data/src/festenao_synced_db.dart';
 import 'package:festenao_common/data/src/model/db_models.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
 import 'package:tekartik_app_flutter_fs/fs.dart';
 import 'package:tekartik_app_flutter_sembast/sembast.dart';
@@ -342,13 +342,11 @@ Future<void> festenaoRunAdminApp({
     parentAppController: parentAppController,
   );
 
-  var appWidget =
-      FestenaoAdminApp(
-            contentNavigatorDef: contentNavigatorDef,
-            localizationsDelegates: localizationsDelegates,
-            supportedLocales: supportedLocales,
-          )
-          as Widget;
+  var appWidget = FestenaoAdminApp(
+    contentNavigatorDef: contentNavigatorDef,
+    localizationsDelegates: localizationsDelegates,
+    supportedLocales: supportedLocales,
+  ) as Widget;
   if (wrapperBuilder != null) {
     appWidget = wrapperBuilder(appWidget);
   }

@@ -1,8 +1,8 @@
 import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:fs_shim/fs_memory.dart';
 import 'package:idb_shim/sdb.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:sembast/sembast.dart' as sembast;
 
 Future<FileSystem> _newFileSystem() async {
@@ -211,9 +211,8 @@ void main() {
     ) async {
       var fileSystem = newFileSystemMemory();
       var store = sembast.stringMapStoreFactory.store('config');
-      var database = await getDatabaseFactoryFsShim(
-        fileSystem,
-      ).openDatabase('root/data.db');
+      var database = await getDatabaseFactoryFsShim(fileSystem)
+          .openDatabase('root/data.db');
       await store.record('main').put(database, {'name': 'test'});
       await database.close();
 

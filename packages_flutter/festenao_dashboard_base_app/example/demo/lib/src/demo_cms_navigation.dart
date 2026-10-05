@@ -1,7 +1,7 @@
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
 import 'package:festenao_common_flutter/file_system_explorer_flutter.dart';
 import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'demo_cms.dart';
 

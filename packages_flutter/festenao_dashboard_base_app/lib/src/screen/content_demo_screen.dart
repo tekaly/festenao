@@ -3,8 +3,8 @@ import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_provid
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Screen for managing [SdfArtist], [SdfLocation], [SdfEvent], [SdfImage]
 /// entities stored in a synced SDB at

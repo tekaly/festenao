@@ -1,5 +1,5 @@
 import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// One theme the demo can be looked at in.
 ///

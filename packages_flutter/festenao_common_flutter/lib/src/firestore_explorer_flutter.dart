@@ -1,6 +1,6 @@
 import 'package:festenao_common/data/object_editor.dart';
 import 'package:festenao_common/fs/file_system_explorer.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_firebase_firestore/firestore.dart';
 
 import 'explorer_ui/explorer_chip.dart';

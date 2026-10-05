@@ -2,7 +2,7 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_admin_base_app/utils/db_utils.dart';
 import 'package:festenao_common/data/festenao_storage.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 
@@ -13,9 +13,8 @@ String getImageStoragePath(String imageName) {
 }
 
 String getImageUrl(String imageName, {required String storageBucket}) {
-  return getUnauthenticatedStorageApi(
-    storageBucket: storageBucket,
-  ).getMediaUrl(url.join(getImageStoragePath(imageName)));
+  return getUnauthenticatedStorageApi(storageBucket: storageBucket)
+      .getMediaUrl(url.join(getImageStoragePath(imageName)));
 }
 
 class DbImagePreview extends StatelessWidget {
