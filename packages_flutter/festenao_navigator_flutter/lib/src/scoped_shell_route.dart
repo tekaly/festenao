@@ -9,8 +9,11 @@ typedef ScopedShellOverrides = List<Override> Function(GoRouterState state);
 
 /// Builds the layout shared by the children of a scoped shell route. It is
 /// built **inside** the scope, so it can read the overridden providers.
-typedef ScopedShellBuilder =
-    Widget Function(BuildContext context, GoRouterState state, Widget child);
+typedef ScopedShellBuilder = Widget Function(
+  BuildContext context,
+  GoRouterState state,
+  Widget child,
+);
 
 /// Builds the identity of a scope: when the returned value changes, the whole
 /// [ProviderScope] (and every provider it holds) is disposed and recreated.

@@ -178,9 +178,8 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
           var bloc = BlocProvider.of<AdminArtistEditScreenBloc>(context);
           await bloc.delete();
           if (context.mounted) {
-            Navigator.of(
-              context,
-            ).pop(AdminArtistEditScreenResult(deleted: true));
+            Navigator.of(context)
+                .pop(AdminArtistEditScreenResult(deleted: true));
           }
         } catch (e, st) {
           if (kDebugMode) {

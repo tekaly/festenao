@@ -59,15 +59,14 @@ extension FestenaoNavigatorContextExt on BuildContext {
 
   /// Goes deeper, appending [path] to the active location
   /// (`student/456` from `/school/124`).
-  void goDeeper(String path, {Object? extra}) => GoRouter.of(
-    this,
-  ).go(routeLocationAppend(routeLocation, path), extra: extra);
+  void goDeeper(String path, {Object? extra}) =>
+      GoRouter.of(this)
+          .go(routeLocationAppend(routeLocation, path), extra: extra);
 
   /// Pushes [path], appended to the active location.
   Future<T?> pushDeeper<T extends Object?>(String path, {Object? extra}) =>
-      GoRouter.of(
-        this,
-      ).push<T>(routeLocationAppend(routeLocation, path), extra: extra);
+      GoRouter.of(this)
+          .push<T>(routeLocationAppend(routeLocation, path), extra: extra);
 
   /// Jumps sideways: replaces the last [count] segments of the active
   /// location by [path].

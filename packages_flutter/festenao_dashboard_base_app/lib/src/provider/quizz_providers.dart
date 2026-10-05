@@ -173,8 +173,10 @@ final quizzUserControllerProvider = FutureProvider.autoDispose
 
 /// Builds the link a player opens to play a quiz (the qr code of the control
 /// and tv screens).
-typedef QuizzUserPlayUriBuilder =
-    Uri Function({required String projectId, required String quizId});
+typedef QuizzUserPlayUriBuilder = Uri Function({
+  required String projectId,
+  required String quizId,
+});
 
 /// The player link builder, `<origin>/project/<projectId>/quizz/<quizId>` on
 /// the current host by default; a dashboard app hosted apart from its player

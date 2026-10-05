@@ -290,9 +290,9 @@ Future<FesteanoAppDbDataContext> initWithAssetAndStorage({
       },
       fetchExportMeta: () async {
         try {
-          var map =
-              jsonDecode(await rootBundle.loadString(assetsDataExportMetaPath))
-                  as Map;
+          var map = jsonDecode(
+            await rootBundle.loadString(assetsDataExportMetaPath),
+          ) as Map;
           return map.cast<String, Object?>();
         } catch (e, st) {
           if (kDebugMode) {

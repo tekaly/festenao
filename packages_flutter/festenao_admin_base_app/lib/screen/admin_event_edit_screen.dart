@@ -327,9 +327,8 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
           var bloc = BlocProvider.of<AdminEventEditScreenBloc>(context);
           await bloc.delete();
           if (context.mounted) {
-            Navigator.of(
-              context,
-            ).pop(AdminEventEditScreenResult(deleted: true));
+            Navigator.of(context)
+                .pop(AdminEventEditScreenResult(deleted: true));
           }
         } catch (e, st) {
           if (kDebugMode) {

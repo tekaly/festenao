@@ -53,9 +53,8 @@ class DebugAppBar extends StatelessWidget implements PreferredSizeWidget {
   const DebugAppBar({super.key, required this.appBar});
 
   Future<void> _goToPath(BuildContext context, String path) async {
-    await ContentNavigator.of(
-      context,
-    ).pushPath<void>(ContentPath.fromString(path));
+    await ContentNavigator.of(context)
+        .pushPath<void>(ContentPath.fromString(path));
   }
 
   @override

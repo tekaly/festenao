@@ -356,9 +356,8 @@ class _AdminProjectUserEditScreenState
       await param0();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error $e')));
       }
       return false;
     }

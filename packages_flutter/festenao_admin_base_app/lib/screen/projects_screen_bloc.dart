@@ -118,109 +118,117 @@ class ProjectsScreenBloc
                               return;
                             }
                             // Some error might happen (access) so handle it.
-                            _projectDetailsSubscription = audiAddStreamSubscription(
-                              streamJoinAllOrError(
-                                fsProjectUids
-                                    .map(
-                                      (id) => (fsDb.fsEntityCollectionRef
-                                          .doc(id)
-                                          .onSnapshotSupport(fsDb.firestore)),
-                                    )
-                                    .toList(),
-                              ).listen(
-                                (items) {
-                                  _fsLock.synchronized(() async {
-                                    // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
-                                    var dbProjects = await projectsDb
-                                        .getProjectsQuery(userId: identityId)
-                                        .getRecords(projectsDb.db);
-                                    var projectMap = {
-                                      for (var project in dbProjects)
-                                        if (project.uid.isNotNull)
-                                          project.fsId: project,
-                                    };
-                                    var toDelete = dbProjects
-                                        .map((e) => e.id)
-                                        .toSet();
-                                    var toSet = <DbProject>[];
-                                    for (var item in items) {
-                                      if (item.error == null) {
-                                        var fsProject = item.value!;
-                                        var uid = fsProject.id;
-                                        var existing = projectMap[uid];
-                                        var userProjectAccess =
-                                            fsProjectAccessMap[uid];
-                                        if (userProjectAccess == null) {
-                                          // ? this might delete id
-                                          continue;
-                                        }
-                                        if (existing != null) {
-                                          if (fsProject.deleted.v != true) {
-                                            toDelete.remove(existing.id);
-                                            var newDbProject = DbProject()
-                                              ..fromFirestore(
-                                                fsProject: fsProject,
-                                                projectAccess:
-                                                    userProjectAccess,
-                                                userId: identityId,
-                                              );
-                                            if (existing.needUpdate(
-                                              newDbProject,
-                                            )) {
-                                              existing.copyFrom(newDbProject);
-                                              toSet.add(existing);
+                            _projectDetailsSubscription =
+                                audiAddStreamSubscription(
+                                  streamJoinAllOrError(
+                                    fsProjectUids
+                                        .map(
+                                          (id) => (fsDb.fsEntityCollectionRef
+                                              .doc(id)
+                                              .onSnapshotSupport(
+                                                fsDb.firestore,
+                                              )),
+                                        )
+                                        .toList(),
+                                  ).listen(
+                                    (items) {
+                                      _fsLock.synchronized(() async {
+                                        // var ProjectsUser = await dbProjectUserStore.record(userId).get(ProjectsDb.db);
+                                        var dbProjects = await projectsDb
+                                            .getProjectsQuery(
+                                              userId: identityId,
+                                            )
+                                            .getRecords(projectsDb.db);
+                                        var projectMap = {
+                                          for (var project in dbProjects)
+                                            if (project.uid.isNotNull)
+                                              project.fsId: project,
+                                        };
+                                        var toDelete = dbProjects
+                                            .map((e) => e.id)
+                                            .toSet();
+                                        var toSet = <DbProject>[];
+                                        for (var item in items) {
+                                          if (item.error == null) {
+                                            var fsProject = item.value!;
+                                            var uid = fsProject.id;
+                                            var existing = projectMap[uid];
+                                            var userProjectAccess =
+                                                fsProjectAccessMap[uid];
+                                            if (userProjectAccess == null) {
+                                              // ? this might delete id
+                                              continue;
+                                            }
+                                            if (existing != null) {
+                                              if (fsProject.deleted.v != true) {
+                                                toDelete.remove(existing.id);
+                                                var newDbProject = DbProject()
+                                                  ..fromFirestore(
+                                                    fsProject: fsProject,
+                                                    projectAccess:
+                                                        userProjectAccess,
+                                                    userId: identityId,
+                                                  );
+                                                if (existing.needUpdate(
+                                                  newDbProject,
+                                                )) {
+                                                  existing.copyFrom(
+                                                    newDbProject,
+                                                  );
+                                                  toSet.add(existing);
+                                                }
+                                              }
+                                            } else {
+                                              var newDbProject = DbProject()
+                                                ..fromFirestore(
+                                                  fsProject: fsProject,
+                                                  projectAccess:
+                                                      userProjectAccess,
+                                                  userId: identityId,
+                                                );
+                                              toSet.add(newDbProject);
                                             }
                                           }
-                                        } else {
-                                          var newDbProject = DbProject()
-                                            ..fromFirestore(
-                                              fsProject: fsProject,
-                                              projectAccess: userProjectAccess,
-                                              userId: identityId,
-                                            );
-                                          toSet.add(newDbProject);
                                         }
-                                      }
-                                    }
 
-                                    await projectsDb.db.transaction((
-                                      txn,
-                                    ) async {
-                                      for (var id in toDelete) {
-                                        await dbProjectStore
-                                            .record(id)
-                                            .delete(txn);
+                                        await projectsDb.db.transaction((
+                                          txn,
+                                        ) async {
+                                          for (var id in toDelete) {
+                                            await dbProjectStore
+                                                .record(id)
+                                                .delete(txn);
+                                          }
+                                          for (var project in toSet) {
+                                            if (project.idOrNull == null) {
+                                              await dbProjectStore.add(
+                                                txn,
+                                                project,
+                                              );
+                                            } else {
+                                              await dbProjectStore
+                                                  .record(project.id)
+                                                  .put(txn, project);
+                                            }
+                                            await dbProjectStore
+                                                .record(project.id)
+                                                .put(txn, project);
+                                          }
+                                          await projectsDb
+                                              .clientSetCurrentIdentityId(
+                                                txn,
+                                                userId,
+                                              );
+                                        });
+                                      });
+                                    },
+                                    onError: (error) {
+                                      if (kDebugMode) {
+                                        print('error getting Project details');
                                       }
-                                      for (var project in toSet) {
-                                        if (project.idOrNull == null) {
-                                          await dbProjectStore.add(
-                                            txn,
-                                            project,
-                                          );
-                                        } else {
-                                          await dbProjectStore
-                                              .record(project.id)
-                                              .put(txn, project);
-                                        }
-                                        await dbProjectStore
-                                            .record(project.id)
-                                            .put(txn, project);
-                                      }
-                                      await projectsDb
-                                          .clientSetCurrentIdentityId(
-                                            txn,
-                                            userId,
-                                          );
-                                    });
-                                  });
-                                },
-                                onError: (error) {
-                                  if (kDebugMode) {
-                                    print('error getting Project details');
-                                  }
-                                },
-                              ),
-                            );
+                                    },
+                                  ),
+                                );
                           },
                           onError: (error) {
                             if (kDebugMode) {

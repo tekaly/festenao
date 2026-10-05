@@ -89,9 +89,8 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
                 ),
                 onTap: () {
                   if (widget.param?.selectMode ?? false) {
-                    Navigator.of(
-                      context,
-                    ).pop(AdminInfoScreenResult(info: info));
+                    Navigator.of(context)
+                        .pop(AdminInfoScreenResult(info: info));
                   } else {
                     goToAdminInfoScreen(
                       context,

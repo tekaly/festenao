@@ -24,107 +24,104 @@ void appEmailInviteRulesTestRunner(
     context = await initAllContext();
   });
 
-  test(
-    'nobody reads or writes an email invite, not even the entity admin or '
-    'the invitee',
-    () async {
-      var client = context.projectApiClient;
-      var auth = context.clientContext.firebaseAuth!;
-      var firestore = context.clientContext.firestore!;
-      var projectDb = context.fsDatabase.projectDb;
-      var adminEmail = 'emailinviteadmin@festenao-rules-test.local';
-      var invitedEmail = 'emailinvitee@festenao-rules-test.local';
-      var strangerEmail = 'emailinvitestranger@festenao-rules-test.local';
-      var password = 'test1234';
+  test('nobody reads or writes an email invite, not even the entity admin or '
+      'the invitee', () async {
+    var client = context.projectApiClient;
+    var auth = context.clientContext.firebaseAuth!;
+    var firestore = context.clientContext.firestore!;
+    var projectDb = context.fsDatabase.projectDb;
+    var adminEmail = 'emailinviteadmin@festenao-rules-test.local';
+    var invitedEmail = 'emailinvitee@festenao-rules-test.local';
+    var strangerEmail = 'emailinvitestranger@festenao-rules-test.local';
+    var password = 'test1234';
 
-      Future<void> signIn(String email) async {
-        await auth.signOut();
-        await auth.signInOrUpWithEmailAndPassword(
-          email: email,
-          password: password,
-        );
+    Future<void> signIn(String email) async {
+      await auth.signOut();
+      await auth.signInOrUpWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+    }
+
+    // The admin creates the entity and sends an invite, through the api:
+    // the server writes with its admin credentials.
+    await signIn(adminEmail);
+    var entityId = (await client.createEntity(
+      entity: FsProject()..name.v = 'email invite rules',
+    )).id;
+    var inviteId = await client.createEntityEmailInvite(
+      entityId: entityId,
+      email: invitedEmail,
+      fsUserAccess: TkCmsFsUserAccess()..read.v = true,
+    );
+    var inviteRef = projectDb.fsEmailInviteRef(inviteId).raw(firestore);
+    var collectionRef = projectDb.fsEmailInviteCollectionRef.raw(firestore);
+
+    Future<void> expectDenied(
+      Future<void> Function() action,
+      String what,
+    ) async {
+      try {
+        await action();
+      } catch (e) {
+        expect(_isPermissionDenied(e), isTrue, reason: '$what: $e');
+        return;
       }
+      fail('$what should have been denied');
+    }
 
-      // The admin creates the entity and sends an invite, through the api:
-      // the server writes with its admin credentials.
-      await signIn(adminEmail);
-      var entityId = (await client.createEntity(
-        entity: FsProject()..name.v = 'email invite rules',
-      )).id;
-      var inviteId = await client.createEntityEmailInvite(
+    Future<void> expectAllDenied(String email) async {
+      await signIn(email);
+      await expectDenied(() => inviteRef.get(), '$email get');
+      await expectDenied(
+        () => collectionRef.where('email', isEqualTo: email).get(),
+        '$email query by email',
+      );
+      await expectDenied(
+        () => collectionRef.where('entityId', isEqualTo: entityId).get(),
+        '$email query by entity',
+      );
+      await expectDenied(
+        () => inviteRef.update({'status': 'accepted'}),
+        '$email update',
+      );
+      await expectDenied(
+        () => inviteRef.set({
+          'entityId': entityId,
+          'email': email,
+          'status': 'pending',
+        }),
+        '$email set',
+      );
+      await expectDenied(
+        () => collectionRef.doc('other_invite').set({
+          'entityId': entityId,
+          'email': email,
+          'status': 'pending',
+        }),
+        '$email create',
+      );
+      await expectDenied(() => inviteRef.delete(), '$email delete');
+    }
+
+    // The admin of the entity, a stranger, the invitee: all denied.
+    await expectAllDenied(adminEmail);
+    await expectAllDenied(strangerEmail);
+    await expectAllDenied(invitedEmail);
+
+    // The api still works for the admin, and cleans up.
+    await signIn(adminEmail);
+    expect(
+      (await client.listEntityEmailInvites(
         entityId: entityId,
-        email: invitedEmail,
-        fsUserAccess: TkCmsFsUserAccess()..read.v = true,
-      );
-      var inviteRef = projectDb.fsEmailInviteRef(inviteId).raw(firestore);
-      var collectionRef = projectDb.fsEmailInviteCollectionRef.raw(firestore);
-
-      Future<void> expectDenied(
-        Future<void> Function() action,
-        String what,
-      ) async {
-        try {
-          await action();
-        } catch (e) {
-          expect(_isPermissionDenied(e), isTrue, reason: '$what: $e');
-          return;
-        }
-        fail('$what should have been denied');
-      }
-
-      Future<void> expectAllDenied(String email) async {
-        await signIn(email);
-        await expectDenied(() => inviteRef.get(), '$email get');
-        await expectDenied(
-          () => collectionRef.where('email', isEqualTo: email).get(),
-          '$email query by email',
-        );
-        await expectDenied(
-          () => collectionRef.where('entityId', isEqualTo: entityId).get(),
-          '$email query by entity',
-        );
-        await expectDenied(
-          () => inviteRef.update({'status': 'accepted'}),
-          '$email update',
-        );
-        await expectDenied(
-          () => inviteRef.set({
-            'entityId': entityId,
-            'email': email,
-            'status': 'pending',
-          }),
-          '$email set',
-        );
-        await expectDenied(
-          () => collectionRef.doc('other_invite').set({
-            'entityId': entityId,
-            'email': email,
-            'status': 'pending',
-          }),
-          '$email create',
-        );
-        await expectDenied(() => inviteRef.delete(), '$email delete');
-      }
-
-      // The admin of the entity, a stranger, the invitee: all denied.
-      await expectAllDenied(adminEmail);
-      await expectAllDenied(strangerEmail);
-      await expectAllDenied(invitedEmail);
-
-      // The api still works for the admin, and cleans up.
-      await signIn(adminEmail);
-      expect(
-        (await client.listEntityEmailInvites(entityId: entityId)).map(
-          (e) => e.inviteId.v,
-        ),
-        [inviteId],
-      );
-      await client.deleteEntityEmailInvite(
-        entityId: entityId,
-        inviteId: inviteId,
-      );
-      await client.deleteEntity(entityId: entityId);
-      await client.purgeEntity(entityId: entityId);
-    },
-  );
+      )).map((e) => e.inviteId.v),
+      [inviteId],
+    );
+    await client.deleteEntityEmailInvite(
+      entityId: entityId,
+      inviteId: inviteId,
+    );
+    await client.deleteEntity(entityId: entityId);
+    await client.purgeEntity(entityId: entityId);
+  });
 }

@@ -370,9 +370,8 @@ class _AdminMediaEditScreenState
           var bloc = BlocProvider.of<AdminMediaEditScreenBloc>(context);
           await bloc.delete();
           if (context.mounted) {
-            Navigator.of(
-              context,
-            ).pop(AdminMediaEditScreenResult(deleted: true));
+            Navigator.of(context)
+                .pop(AdminMediaEditScreenResult(deleted: true));
           }
         } catch (e, st) {
           if (kDebugMode) {

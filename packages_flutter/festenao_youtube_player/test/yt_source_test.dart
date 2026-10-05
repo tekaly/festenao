@@ -83,19 +83,17 @@ void main() {
       var video =
           parseYtSource('https://youtu.be/dQw4w9WgXcQ?t=42') as YtVideoSource;
       expect(video.start, const Duration(seconds: 42));
-      video =
-          parseYtSource('https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1m2s')
-              as YtVideoSource;
+      video = parseYtSource(
+        'https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=1m2s',
+      ) as YtVideoSource;
       expect(video.start, const Duration(seconds: 62));
-      video =
-          parseYtSource('https://www.youtube.com/embed/dQw4w9WgXcQ?start=10')
-              as YtVideoSource;
+      video = parseYtSource(
+        'https://www.youtube.com/embed/dQw4w9WgXcQ?start=10',
+      ) as YtVideoSource;
       expect(video.start, const Duration(seconds: 10));
-      var playlist =
-          parseYtSource(
-                'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG&t=5',
-              )
-              as YtPlaylistSource;
+      var playlist = parseYtSource(
+        'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=PLx0sYbCqOb8TBPRdmBHs5Iftvv9TPboYG&t=5',
+      ) as YtPlaylistSource;
       expect(playlist.start, const Duration(seconds: 5));
       expect((parseYtSource('dQw4w9WgXcQ') as YtVideoSource).start, isNull);
     });

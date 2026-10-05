@@ -382,9 +382,8 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
           var bloc = BlocProvider.of<AdminImageEditScreenBloc>(context);
           await bloc.delete();
           if (context.mounted) {
-            Navigator.of(
-              context,
-            ).pop(AdminImageEditScreenResult(deleted: true));
+            Navigator.of(context)
+                .pop(AdminImageEditScreenResult(deleted: true));
           }
         } catch (e, st) {
           if (kDebugMode) {

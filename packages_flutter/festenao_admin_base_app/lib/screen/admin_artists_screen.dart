@@ -128,9 +128,8 @@ class _AdminArtistsScreenState extends State<AdminArtistsScreen>
                 //  title: Text(artist.name.v ?? '?'),
                 onTap: () {
                   if (widget.param?.selectMode ?? false) {
-                    Navigator.of(
-                      context,
-                    ).pop(AdminArtistScreenResult(artist: artist));
+                    Navigator.of(context)
+                        .pop(AdminArtistScreenResult(artist: artist));
                   } else {
                     goToAdminArtistScreen(
                       context,
