@@ -45,6 +45,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous avez des modifications non enregistrées\n\nVous pouvez continuer l\'édition en choisissant d\'annuler ou de quitter l\'édition, en sauvegardant ou en supprimant vos modifications';
 
   @override
+  String get emailLabel => 'E-mail';
+
+  @override
   String get festenaoTitle => 'Festenao';
 
   @override

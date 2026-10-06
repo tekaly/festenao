@@ -164,6 +164,12 @@ abstract class AppLocalizations {
   /// **'You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition, saving or discarding your changes'**
   String get editYouHaveUnsavedChanges;
 
+  /// Email label
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get emailLabel;
+
   /// App title
   ///
   /// In en, this message translates to:

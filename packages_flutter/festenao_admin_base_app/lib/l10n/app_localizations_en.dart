@@ -45,6 +45,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition, saving or discarding your changes';
 
   @override
+  String get emailLabel => 'Email';
+
+  @override
   String get festenaoTitle => 'Festenao';
 
   @override

@@ -23,6 +23,7 @@ class _ProjectSdbUserEditScreenState
   final _idController = TextEditingController();
   final _roleController = TextEditingController();
   final _nameController = TextEditingController();
+  final _emailController = TextEditingController();
 
   bool _read = false;
   bool _write = false;
@@ -35,6 +36,7 @@ class _ProjectSdbUserEditScreenState
     _idController.dispose();
     _roleController.dispose();
     _nameController.dispose();
+    _emailController.dispose();
     super.dispose();
   }
 
@@ -42,6 +44,7 @@ class _ProjectSdbUserEditScreenState
     _idController.text = userId ?? '';
     _roleController.text = user?.role.v ?? '';
     _nameController.text = user?.name.v ?? '';
+    _emailController.text = user?.email.v ?? '';
     _read = user?.read.v ?? false;
     _write = user?.write.v ?? false;
     _admin = user?.admin.v ?? false;
@@ -106,6 +109,12 @@ class _ProjectSdbUserEditScreenState
                   decoration: InputDecoration(labelText: intl.nameLabel),
                 ),
                 const SizedBox(height: 16),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(labelText: intl.emailLabel),
+                ),
+                const SizedBox(height: 16),
                 SwitchListTile(
                   title: Text(intl.projectAccessAdmin),
                   value: _admin,
@@ -165,6 +174,7 @@ class _ProjectSdbUserEditScreenState
       ..admin.v = _admin
       ..read.v = _read
       ..name.v = _nameController.text.trimmedNonEmpty()
+      ..email.v = _emailController.text.trimmedNonEmpty()
       ..role.v = _roleController.text.trimmedNonEmpty();
   }
 

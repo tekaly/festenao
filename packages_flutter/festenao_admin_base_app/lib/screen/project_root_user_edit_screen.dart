@@ -31,6 +31,7 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
   late final TextEditingController idController;
   late final TextEditingController roleController;
   late final TextEditingController nameController;
+  late final TextEditingController emailController;
   late final BehaviorSubject<bool> read;
   late final BehaviorSubject<bool> write;
   late final BehaviorSubject<bool> admin;
@@ -56,6 +57,9 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
     );
     nameController = audiAddTextEditingController(
       TextEditingController(text: user?.name.v),
+    );
+    emailController = audiAddTextEditingController(
+      TextEditingController(text: user?.email.v),
     );
     var role = user?.role.v;
     role = allRoles.contains(role) ? role : null;
@@ -141,6 +145,19 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
             ],
           ),
         ),
+        BodyContainer(
+          child: Row(
+            children: [
+              Expanded(
+                child: AppTextFieldTile(
+                  labelText: intl.emailLabel,
+                  controller: emailController,
+                  emptyAllowed: true,
+                ),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: 16),
         BodyContainer(
           child: BehaviorSubjectBuilder(
@@ -207,33 +224,38 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
           ),
         ),
 
-        StreamBuilder(
-          stream: globalTkCmsFbIdentityBloc.state,
-          builder: (_, snapshot) {
-            var user = snapshot.data;
-            if (user == null) {
-              return Container();
-            }
+        // Creation only: an existing user id cannot be changed.
+        if (_initialUserId == null)
+          StreamBuilder(
+            stream: globalTkCmsFbIdentityBloc.state,
+            builder: (_, snapshot) {
+              var user = snapshot.data;
+              if (user == null) {
+                return Container();
+              }
 
-            return BodyContainer(
-              child: Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      admin.value = true;
-                      write.value = true;
-                      read.value = true;
-                      roleController.text = tkCmsUserAccessRoleAdmin;
-                      nameController.text = 'Me as admin';
-                      idController.text = user.identity?.userOrAccountId ?? '';
-                    },
-                    child: const Text('Fill with me as admin'),
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
+              return BodyContainer(
+                child: Column(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        admin.value = true;
+                        write.value = true;
+                        read.value = true;
+                        roleController.text = tkCmsUserAccessRoleAdmin;
+                        nameController.text = 'Me as admin';
+                        emailController.text =
+                            user.identity?.user?.email ?? emailController.text;
+                        idController.text =
+                            user.identity?.userOrAccountId ?? '';
+                      },
+                      child: const Text('Fill with me as admin'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
       ],
     );
   }
@@ -244,6 +266,7 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
       ..admin.v = admin.value
       ..read.v = read.value
       ..name.v = nameController.text.trimmedNonEmpty()
+      ..email.v = emailController.text.trimmedNonEmpty()
       ..role.v = roleController.text.trimmedNonEmpty();
   }
 }

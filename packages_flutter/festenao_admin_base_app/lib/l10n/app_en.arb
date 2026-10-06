@@ -43,6 +43,10 @@
   "@editYouHaveUnsavedChanges": {
     "description": "Edit unsaved changes"
   },
+  "emailLabel": "Email",
+  "@emailLabel": {
+    "description": "Email label"
+  },
   "festenaoTitle": "Festenao",
   "@festenaoTitle": {
     "description": "App title"
