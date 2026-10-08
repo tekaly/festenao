@@ -8,6 +8,10 @@
 /// ```sh
 /// flutter test tool/screenshot_test.dart
 /// ```
+///
+/// The users explorer screens go to their own folder when
+/// `FESTENAO_DEMO_USER_SCREENSHOT_DIR` is defined (the user management
+/// screens, kept apart).
 library;
 
 import 'dart:io';
@@ -23,7 +27,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// Where the pngs land.
-const screenshotDirectory = '.local/screenshots_1';
+const screenshotDirectory = String.fromEnvironment(
+  'FESTENAO_DEMO_SCREENSHOT_DIR',
+  defaultValue: '.local/screenshots_1',
+);
+
+/// Where the users explorer pngs land, [screenshotDirectory] when empty.
+const userScreenshotDirectory = String.fromEnvironment(
+  'FESTENAO_DEMO_USER_SCREENSHOT_DIR',
+);
 
 /// The window the screens are rendered in.
 const screenshotSize = Size(1100, 800);
@@ -31,6 +43,7 @@ const screenshotSize = Size(1100, 800);
 final _rootKey = GlobalKey();
 
 var _index = 0;
+var _userIndex = 0;
 
 /// Where the flutter sdk keeps the fonts a running app is given.
 ///
@@ -118,16 +131,22 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
-/// Writes what is on screen as `NN_name.png`.
-Future<void> _shot(WidgetTester tester, String name) async {
+/// Writes what is on screen as `NN_name.png`, in [userScreenshotDirectory]
+/// for a [user] management screen when it is defined.
+Future<void> _shot(
+  WidgetTester tester,
+  String name, {
+  bool user = false,
+}) async {
   await _settle(tester);
   var boundary =
       tester.renderObject(find.byKey(_rootKey)) as RenderRepaintBoundary;
   var image = await boundary.toImage(pixelRatio: 2);
   var bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-  var file = File(
-    '$screenshotDirectory/${(++_index).toString().padLeft(2, '0')}_$name.png',
-  );
+  var apart = user && userScreenshotDirectory.isNotEmpty;
+  var directory = apart ? userScreenshotDirectory : screenshotDirectory;
+  var index = apart ? ++_userIndex : ++_index;
+  var file = File('$directory/${index.toString().padLeft(2, '0')}_$name.png');
   await file.parent.create(recursive: true);
   await file.writeAsBytes(bytes!.buffer.asUint8List());
   // ignore: avoid_print
@@ -244,14 +263,14 @@ void main() {
 
       // ---- users ----
       await _tap(tester, find.text('Users explorer'));
-      await _shot(tester, 'users_list');
+      await _shot(tester, 'users_list', user: true);
 
       await _tap(tester, find.text('Alice'));
-      await _shot(tester, 'user_fields');
+      await _shot(tester, 'user_fields', user: true);
       await _back(tester);
 
       await _tap(tester, find.byTooltip('New user'));
-      await _shot(tester, 'user_new_dialog');
+      await _shot(tester, 'user_new_dialog', user: true);
       await _tap(tester, find.text('Cancel'));
       await _back(tester);
 
