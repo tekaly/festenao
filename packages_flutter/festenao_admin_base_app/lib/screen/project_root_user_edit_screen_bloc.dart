@@ -1,6 +1,8 @@
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/project_root_users_screen_bloc.dart';
-
+import 'package:festenao_common/api/festenao_api_client.dart';
+import 'package:festenao_common/api/festenao_api_fs_entity.dart';
+import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
@@ -54,6 +56,19 @@ class AdminProjectUserEditScreenBloc
   /// The entity access in use.
   TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity> get _fsDb =>
       entityAccess ?? globalFestenaoFirestoreDatabase.projectDb;
+
+  /// Whether the account information of a user can be read (through the
+  /// secured api: an app admin reads any user, an admin of the entity its
+  /// members).
+  bool get userInfoSupported => globalFestenaoApiServiceOrNull != null;
+
+  /// The account information (name, email) of [userId], to fill the form.
+  Future<FsCmsEntityGetUserInfoApiResult<TkCmsFsEntity>> fetchUserInfo(
+    String userId,
+  ) => FestenaoApiFsEntityClient<TkCmsFsEntity>(
+    apiService: globalFestenaoApiServiceOrNull!,
+    entityAccess: _fsDb,
+  ).getEntityUserInfo(entityId: projectId, userId: userId);
 
   /// The compat id fix only makes sense for the festenao project entity.
   late final projectId = entityAccess == null

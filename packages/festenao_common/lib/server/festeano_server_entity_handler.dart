@@ -103,6 +103,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     } else if (command ==
         festenaoEntityDiscardEmailInviteCommand(_entityType)) {
       return await onDiscardEmailInviteCommand(apiRequest);
+    } else if (command == festenaoEntityGetUserInfoCommand(_entityType)) {
+      return await onGetUserInfoCommand(apiRequest);
     }
 
     // compat
@@ -420,10 +422,11 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     return userId;
   }
 
-  /// A required query field.
+  /// A required query field, neither null nor empty (an empty id would
+  /// otherwise reach Firestore as an invalid document path).
   String _requireField(CvField<String> field) {
     var value = field.v;
-    if (value == null) {
+    if (value == null || value.isEmpty) {
       throw (ApiError()
             ..code.v = HttpsErrorCode.invalidArgument
             ..message.v = 'Missing ${field.name}'
@@ -601,6 +604,49 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       print('email invite $inviteId mail error: $e');
       return false;
     }
+  }
+
+  /// Handles the get user info command: the account information (name,
+  /// email) of a user, to fill an access being edited.
+  ///
+  /// An app admin reads any user. An admin of the entity reads only the
+  /// users that have an access to it, so that an entity admin cannot look up
+  /// the email of an arbitrary account. Anyone else gets `permission-denied`;
+  /// an unknown user `not-found`.
+  Future<FsCmsEntityGetUserInfoApiResult<T>> onGetUserInfoCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntityGetUserInfoApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var callerUserId = _requireUserId(apiRequest);
+    var entityId = _requireField(query.entityId);
+    var userId = _requireField(query.userId);
+    var access = await entityAccess
+        .fsEntityUserAccessRef(entityId, userId)
+        .get(firestore);
+    var hasAccess = access.exists;
+    var allowed = false;
+    if (await _isEntityAdmin(entityId, callerUserId)) {
+      allowed = hasAccess;
+    }
+    if (!allowed && await _isAppAdmin(callerUserId)) {
+      allowed = true;
+    }
+    if (!allowed) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.permissionDenied
+            ..message.v = 'Not allowed to read this user'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var user = await _requireUser(userId);
+    return FsCmsEntityGetUserInfoApiResult<T>()
+      ..userId.v = userId
+      ..name.setValue(user.displayName)
+      ..email.setValue(user.email)
+      ..emailVerified.v = user.emailVerified
+      ..disabled.v = user.disabled
+      ..hasAccess.v = hasAccess;
   }
 
   /// Handles the list email invites command (entity admin or app admin):

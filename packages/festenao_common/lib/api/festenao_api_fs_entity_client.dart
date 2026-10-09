@@ -161,6 +161,23 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     return result.invites.v ?? <TkCmsCvEmailInvite>[];
   }
 
+  /// The account information of [userId] (name, email) to fill an access
+  /// being edited: an app admin reads any user, an admin of [entityId] the
+  /// users that have an access to it (`permission-denied` otherwise,
+  /// `not-found` for an unknown user).
+  Future<FsCmsEntityGetUserInfoApiResult<T>> getEntityUserInfo({
+    required String entityId,
+    required String userId,
+  }) async {
+    return await apiService.getApiResult<FsCmsEntityGetUserInfoApiResult<T>>(
+      ApiRequest(command: entityAccess.info.getUserInfoCommand)..setQuery(
+        FsCmsEntityGetUserInfoApiQuery<T>()
+          ..entityId.setValue(entityId)
+          ..userId.setValue(userId),
+      ),
+    );
+  }
+
   /// Deletes (revokes) an email invite of the entity (admin side), whatever
   /// its status.
   Future<void> deleteEntityEmailInvite({

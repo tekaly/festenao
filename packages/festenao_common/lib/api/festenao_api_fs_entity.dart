@@ -109,6 +109,14 @@ const festenaoDiscardEmailInviteCommand = 'discard-email-invite';
 String festenaoEntityDiscardEmailInviteCommand(String entityType) =>
     '${festenaoEntityCommandPrefix(entityType)}$festenaoDiscardEmailInviteCommand';
 
+/// Command name for reading the account information of a user (name, email)
+/// to fill an access being edited.
+const festenaoGetUserInfoCommand = 'get-user-info';
+
+/// Command name for reading the account information of a user.
+String festenaoEntityGetUserInfoCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}$festenaoGetUserInfoCommand';
+
 /// Initializes API builders for Festenao file system entities.
 void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
   initTkCmsFsUserAccessBuilders();
@@ -131,6 +139,8 @@ void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
     FsCmsEntityEmailInviteIdApiResult<T>.new,
     FsCmsEntityCheckEmailInvitesApiQuery<T>.new,
     FsCmsEntityCheckEmailInvitesApiResult<T>.new,
+    FsCmsEntityGetUserInfoApiQuery<T>.new,
+    FsCmsEntityGetUserInfoApiResult<T>.new,
   ]);
 }
 
@@ -192,6 +202,9 @@ extension FestenaoFirestoreDatabaseEntityCollectionInfoApiExt<
   /// Command for discarding an email invite.
   String get discardEmailInviteCommand =>
       festenaoEntityDiscardEmailInviteCommand(entityType);
+
+  /// Command for reading the account information of a user.
+  String get getUserInfoCommand => festenaoEntityGetUserInfoCommand(entityType);
 }
 
 /// API query for creating a CMS entity.
@@ -493,4 +506,51 @@ class FsCmsEntityCheckEmailInvitesApiResult<T extends TkCmsFsEntity>
 
   @override
   late final CvFields fields = [email, emailVerified, invites];
+}
+
+/// API query for reading the account information of [userId] (its name and
+/// email in the auth service) to fill an access being edited.
+///
+/// Server side: an app admin reads any user; an admin of [entityId] reads the
+/// users that have an access to it; anyone else gets `permission-denied`.
+class FsCmsEntityGetUserInfoApiQuery<T extends TkCmsFsEntity>
+    extends FsCmsEntityEntityIdBaseApiCommon<T>
+    implements ApiQuery {
+  /// The user whose information is read.
+  final userId = CvField<String>('userId');
+
+  @override
+  CvFields get fields => [...super.fields, userId];
+}
+
+/// API result for reading the account information of a user.
+class FsCmsEntityGetUserInfoApiResult<T extends TkCmsFsEntity>
+    extends ApiResult {
+  /// The user.
+  final userId = CvField<String>('userId');
+
+  /// Its display name, null when none is set.
+  final name = CvField<String>('name');
+
+  /// Its email, null when none is set.
+  final email = CvField<String>('email');
+
+  /// Whether its email is verified.
+  final emailVerified = CvField<bool>('emailVerified');
+
+  /// Whether the account is disabled.
+  final disabled = CvField<bool>('disabled');
+
+  /// Whether the user has an access to the entity.
+  final hasAccess = CvField<bool>('hasAccess');
+
+  @override
+  late final CvFields fields = [
+    userId,
+    name,
+    email,
+    emailVerified,
+    disabled,
+    hasAccess,
+  ];
 }

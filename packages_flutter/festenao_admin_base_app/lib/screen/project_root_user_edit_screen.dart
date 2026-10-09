@@ -9,6 +9,7 @@ import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
 import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
+import 'package:tkcms_common/tkcms_api.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
 
@@ -37,6 +38,49 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
   late final BehaviorSubject<bool> admin;
   late final BehaviorSubject<String?> selectedRole;
   String? _initialUserId;
+
+  /// Reads the account information of a user (name, email), null when the
+  /// screen cannot (no secured api): then no fill button.
+  Future<({String? name, String? email})> Function(String userId)?
+  get userInfoReader => null;
+
+  /// Fill the name and the email from the account of the user id typed.
+  ///
+  /// [onlyEmpty] keeps what is already typed (the automatic fill of an
+  /// existing access); [quiet] reports nothing (the same).
+  Future<void> fillFromAccount(
+    BuildContext context, {
+    bool onlyEmpty = false,
+    bool quiet = false,
+  }) async {
+    var reader = userInfoReader;
+    var userId = idController.text.trim();
+    if (reader == null || userId.isEmpty) {
+      return;
+    }
+    try {
+      var info = await reader(userId);
+      if (info.name != null &&
+          (!onlyEmpty || nameController.text.trim().isEmpty)) {
+        nameController.text = info.name!;
+      }
+      if (info.email != null &&
+          (!onlyEmpty || emailController.text.trim().isEmpty)) {
+        emailController.text = info.email!;
+      }
+    } catch (e) {
+      if (!quiet && context.mounted) {
+        var code = e is ApiException ? e.error?.code.v : null;
+        var message = switch (code) {
+          'permission-denied' => 'Not allowed to read this user',
+          'not-found' => 'Unknown user $userId',
+          _ => 'Cannot read the account: $e',
+        };
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(message)));
+      }
+    }
+  }
 
   void initControllers({String? userId, TkCmsEditedFsUserAccess? user}) {
     read = audiAddBehaviorSubject(
@@ -85,6 +129,15 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
                   ),
                 ],
               ),
+              if (userInfoReader != null)
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: TextButton.icon(
+                    onPressed: () => fillFromAccount(context),
+                    icon: const Icon(Icons.person_search),
+                    label: const Text('Fill from the account'),
+                  ),
+                ),
             ],
           ),
         ),
@@ -276,6 +329,19 @@ class _AdminProjectUserEditScreenState
     with AdminUserEditScreenMixin {
   var _initialized = false;
 
+  @override
+  Future<({String? name, String? email})> Function(String userId)?
+  get userInfoReader {
+    var bloc = BlocProvider.of<AdminProjectUserEditScreenBloc>(context);
+    if (!bloc.userInfoSupported) {
+      return null;
+    }
+    return (userId) async {
+      var info = await bloc.fetchUserInfo(userId);
+      return (name: info.name.v, email: info.email.v);
+    };
+  }
+
   var formKey = GlobalKey<FormState>();
 
   @override
@@ -317,6 +383,11 @@ class _AdminProjectUserEditScreenState
           if (!_initialized) {
             _initialized = true;
             initControllers(userId: userId, user: user);
+            // An existing access missing its name or email: from the account.
+            if (userId != null &&
+                (nameController.text.isEmpty || emailController.text.isEmpty)) {
+              fillFromAccount(context, onlyEmpty: true, quiet: true);
+            }
           }
 
           return Stack(
