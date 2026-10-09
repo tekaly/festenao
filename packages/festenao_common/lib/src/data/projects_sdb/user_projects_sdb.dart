@@ -2,6 +2,7 @@ import 'package:festenao_common/festenao_audi.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/festenao_sembast.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
+import 'package:festenao_common/src/data/project_modules.dart';
 import 'package:tekaly_sdb_synced/synced_sdb_firestore.dart';
 import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 import 'package:tekartik_common_utils/env_utils.dart';
@@ -30,8 +31,12 @@ class SdbUserProject extends ScvStringRecordBase with TkCmsCvUserAccessMixin {
   /// User ID associated with the project.
   final userId = CvField<String>('userId');
 
+  /// The modules on in the project, every module when null (copy of
+  /// [FsProject.modules]).
+  final modules = CvListField<String>('modules');
+
   @override
-  CvFields get fields => [name, userId, uid, ...userAccessMixinfields];
+  CvFields get fields => [name, userId, uid, modules, ...userAccessMixinfields];
 
   /// True if the user has write access.
   bool get isWrite => TkCmsCvUserAccessCommonExt(this).isWrite;
@@ -61,6 +66,7 @@ extension SdbUserProjectUtils on SdbUserProject {
     required String userId,
   }) {
     name.v = fsProject.name.v;
+    modules.v = fsProject.modules.v;
     uid.v = projectId ?? fsProject.id;
     this.userId.setValue(userId);
     if (projectAccess != null) {
@@ -71,6 +77,7 @@ extension SdbUserProjectUtils on SdbUserProject {
   /// Check if the [DbProject] need to be updated from another [DbProject]
   bool needUpdate(SdbUserProject project) {
     return name.v != project.name.v ||
+        !festenaoProjectModulesEquals(modules.v, project.modules.v) ||
         uid.v != project.uid.v ||
         userId.v != project.userId.v ||
         admin.v != project.admin.v ||
@@ -78,6 +85,13 @@ extension SdbUserProjectUtils on SdbUserProject {
         read.v != project.read.v ||
         role.v != project.role.v;
   }
+}
+
+/// The modules of a local project.
+extension SdbUserProjectModulesExt on SdbUserProject {
+  /// Whether [module] is on in the project (every module when
+  /// [SdbUserProject.modules] is null).
+  bool hasModule(String module) => festenaoProjectHasModule(modules.v, module);
 }
 
 /// The model for DbProject.

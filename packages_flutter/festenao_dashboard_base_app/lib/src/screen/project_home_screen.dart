@@ -1,6 +1,7 @@
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
+import 'package:festenao_dashboard_base_app/src/provider/project_modules_providers.dart';
 import 'package:festenao_dashboard_base_app/src/provider/route_scope_providers.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_providers.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
@@ -67,78 +68,84 @@ class _DashboardProjectHomeScreenBody extends StatelessWidget {
                         ],
                       ),
                     ),
-                    ListTile(
-                      title: const Text('Blog demo'),
-                      subtitle: const Text('Ids from the route scope'),
-                      onTap: () {
-                        context.pushPath(
-                          blogDemoPath,
-                          parameters: {
-                            DashboardRouteParams.projectId: projectId,
-                          },
-                        );
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('Blog demo (legacy)'),
-                      subtitle: const Text('Ids passed as arguments'),
-                      onTap: () {
-                        context.pushPath(
-                          legacyBlogDemoPath,
-                          parameters: {
-                            DashboardRouteParams.projectId: projectId,
-                          },
-                        );
-                      },
-                    ),
-                    ListTile(
-                      title: const Text(
-                        'Content (artist / location / event / image)',
+                    if (project.hasModule(dashboardModuleBlog)) ...[
+                      ListTile(
+                        title: const Text('Blog demo'),
+                        subtitle: const Text('Ids from the route scope'),
+                        onTap: () {
+                          context.pushPath(
+                            blogDemoPath,
+                            parameters: {
+                              DashboardRouteParams.projectId: projectId,
+                            },
+                          );
+                        },
                       ),
-                      onTap: () {
-                        context.pushPath(
-                          contentDemoPath,
-                          parameters: {
-                            DashboardRouteParams.projectId: projectId,
-                          },
-                        );
-                      },
-                    ),
+                      ListTile(
+                        title: const Text('Blog demo (legacy)'),
+                        subtitle: const Text('Ids passed as arguments'),
+                        onTap: () {
+                          context.pushPath(
+                            legacyBlogDemoPath,
+                            parameters: {
+                              DashboardRouteParams.projectId: projectId,
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                    if (project.hasModule(dashboardModuleContent))
+                      ListTile(
+                        title: const Text(
+                          'Content (artist / location / event / image)',
+                        ),
+                        onTap: () {
+                          context.pushPath(
+                            contentDemoPath,
+                            parameters: {
+                              DashboardRouteParams.projectId: projectId,
+                            },
+                          );
+                        },
+                      ),
 
-                    ListTile(
-                      title: const Text('Quizz'),
-                      subtitle: const Text(
-                        'Questions, quizzes, admin control and tv display',
+                    if (project.hasModule(dashboardModuleQuizz))
+                      ListTile(
+                        title: const Text('Quizz'),
+                        subtitle: const Text(
+                          'Questions, quizzes, admin control and tv display',
+                        ),
+                        onTap: () {
+                          context.pushPath(
+                            quizzHomePath,
+                            parameters: {
+                              DashboardRouteParams.projectId: projectId,
+                            },
+                          );
+                        },
                       ),
-                      onTap: () {
-                        context.pushPath(
-                          quizzHomePath,
-                          parameters: {
-                            DashboardRouteParams.projectId: projectId,
-                          },
-                        );
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('Content Images'),
-                      onTap: () {
-                        goToContentImagesScreen(
-                          context,
-                          projectId: projectId,
-                          dataId: SdbProjectContent.defaultDataId,
-                        );
-                      },
-                    ),
-                    ListTile(
-                      title: const Text('Content Medias'),
-                      onTap: () {
-                        goToContentMediasScreen(
-                          context,
-                          projectId: projectId,
-                          dataId: SdbProjectContent.defaultDataId,
-                        );
-                      },
-                    ),
+                    if (project.hasModule(dashboardModuleContent)) ...[
+                      ListTile(
+                        title: const Text('Content Images'),
+                        onTap: () {
+                          goToContentImagesScreen(
+                            context,
+                            projectId: projectId,
+                            dataId: SdbProjectContent.defaultDataId,
+                          );
+                        },
+                      ),
+                      ListTile(
+                        title: const Text('Content Medias'),
+                        onTap: () {
+                          goToContentMediasScreen(
+                            context,
+                            projectId: projectId,
+                            dataId: SdbProjectContent.defaultDataId,
+                          );
+                        },
+                      ),
+                    ],
                   ],
                 );
               }

@@ -79,6 +79,14 @@ it into the `FirebaseContext` the rest of the code receives.
   (`FsProject`, the festenao entity), `appDb`, `fsProjectCollection`,
   `copyWithAppId(other)`. Call `initFestenaoFsBuilders()` once before
   reading any model (it registers the tkcms and festenao cv models).
+* Modules per project (`package:festenao_common/festenao_modules.dart`):
+  `FsProject.modules` lists the features an app shows for the project,
+  every one when null (`hasModule(id)`, `festenaoProjectHasModule`); the
+  project admins write it with `db.setProjectModules(projectId, modules)`
+  (or `setProjectModulesAndMirror` to update the local
+  `SdbUserProject.modules` right away; the user projects synchronizer
+  mirrors it otherwise). The app picks the module ids (the dashboard uses
+  `blog`, `content`, `quizz`).
 * Typed documents are cv models: `ref.get(firestore)`, `ref.set(firestore,
   doc)`, `ref.onSnapshot(firestore)` on a `CvDocumentReference<T>`, the
   `Firestore` instance always passed in. Check the `FirestoreService`

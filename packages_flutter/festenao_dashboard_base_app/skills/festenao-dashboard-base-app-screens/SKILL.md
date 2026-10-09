@@ -113,6 +113,12 @@ class MyDebugScreen extends StatelessWidget {
   (`hasPendingChanges`, optional `saveAndLeave`, `wrapUnsavedChanges(child:)`)
   showing the festenao unsaved changes dialog, without its save button when
   `saveAndLeave` is null. See `test/shared_views_test.dart`.
+* Modules: `DashboardProjectHomeScreen` shows the blog, content and quizz
+  tiles of the modules on in the project (`dashboardModuleBlog`,
+  `dashboardModuleContent`, `dashboardModuleQuizz`; all when the project has
+  no list). An app reads `projectModulesProvider(projectId)` (null: every
+  module) and writes with `dashboardSetProjectModules(ref, projectId,
+  modules)`, which updates the local mirror too.
 * Name clashes with festenao_admin_base_app: `ProjectViewScreen`,
   `ProjectViewResult`, `SelectProjectResult`, `selectProject`,
   `ProjectLeading`, `goToProjectEditScreen`, `goToProjectViewScreen` exist

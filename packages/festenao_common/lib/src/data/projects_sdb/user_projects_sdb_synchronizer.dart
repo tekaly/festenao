@@ -180,7 +180,12 @@ class UserProjectsSdbSynchronizer with AutoDisposeMixin {
         var dbProject = dbProjects.firstOrNull;
         var needUpdate = dbProject == null;
         if (dbProject != null) {
-          var nameDifferent = dbProject.name.v != fsProject.name.v;
+          var nameDifferent =
+              dbProject.name.v != fsProject.name.v ||
+              !festenaoProjectModulesEquals(
+                dbProject.modules.v,
+                fsProject.modules.v,
+              );
           var rightsDifferent = !TkCmsCvUserAccessCommon.equals(
             fsUserAccess,
             dbProject,
@@ -205,6 +210,7 @@ class UserProjectsSdbSynchronizer with AutoDisposeMixin {
             ..uid.v = projectId
             ..userId.v = userId
             ..name.v = fsProject.name.v
+            ..modules.v = fsProject.modules.v
             ..copyFrom(fsUserAccess);
           if (dbProject != null) {
             await dbProjectStore.record(dbProject.id).put(txn, newDbProject);
