@@ -65,6 +65,10 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  festenao_screenshot:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_screenshot
   # The servers served in memory, in the tests.
   tekartik_http:
     git:

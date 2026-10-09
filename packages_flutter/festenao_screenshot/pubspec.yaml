@@ -1,0 +1,25 @@
+name: festenao_screenshot
+description: "Screenshots of Flutter apps in flutter test: real fonts (text, icons, festenao_theme families), font fallbacks, a session opening screens and writing numbered pngs, a name filter."
+publish_to: 'none'
+
+version: 1.0.0
+
+environment:
+  sdk: ^3.13.0
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # The screenshots run as widget tests: an app adds this package as a dev
+  # dependency, next to flutter_test.
+  flutter_test:
+    sdk: flutter
+
+dev_dependencies:
+  tekartik_lints_flutter:
+    git:
+      url: https://github.com/tekartik/common_flutter.dart
+      path: packages/lints_flutter
+
+resolution: workspace

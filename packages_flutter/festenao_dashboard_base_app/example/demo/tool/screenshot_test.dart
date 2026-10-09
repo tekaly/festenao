@@ -11,18 +11,16 @@
 ///
 /// The users explorer screens go to their own folder when
 /// `FESTENAO_DEMO_USER_SCREENSHOT_DIR` is defined (the user management
-/// screens, kept apart).
+/// screens, kept apart). The fonts and the session come from
+/// `festenao_screenshot`.
 library;
 
 import 'dart:io';
-import 'dart:ui' as ui;
 
 import 'package:festenao_dashboard_app_demo/src/demo_data.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_home_page.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_theme.dart';
-import 'package:festenao_theme/theme.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
+import 'package:festenao_screenshot/festenao_screenshot.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -40,96 +38,11 @@ const userScreenshotDirectory = String.fromEnvironment(
 /// The window the screens are rendered in.
 const screenshotSize = Size(1100, 800);
 
-final _rootKey = GlobalKey();
-
-var _index = 0;
-var _userIndex = 0;
-
-/// Where the flutter sdk keeps the fonts a running app is given.
-///
-/// The test harness draws with a font that shows every glyph as a box, so the
-/// real ones are loaded here: the text reads as text, and the icons as icons.
-String get _flutterFontsPath {
-  var executable = Platform.resolvedExecutable;
-  var root = Platform.environment['FLUTTER_ROOT'];
-  if (root == null) {
-    // dart is `<flutter>/bin/cache/dart-sdk/bin/dart`.
-    var directory = File(executable).parent.parent.parent.parent.parent;
-    root = directory.path;
-  }
-  return '$root/bin/cache/artifacts/material_fonts';
-}
-
-/// Where festenao_theme keeps the bundled poppins family.
-///
-/// `flutter test` runs from the package directory, and festenao_theme is three
-/// levels up beside `festenao_dashboard_base_app`.
-String get _poppinsFontsPath =>
-    '${Directory.current.path}/../../../festenao_theme/lib/fonts/poppins';
-
-/// Where festenao_theme keeps the bundled monospace family.
-String get _monospaceFontsPath =>
-    '${Directory.current.path}/../../../festenao_theme/lib/fonts/jetbrains_mono';
-
-/// Loads the real text and icon fonts.
-Future<void> _loadFonts() async {
-  Future<void> load(String family, List<String> paths) async {
-    var loader = FontLoader(family);
-    var loaded = false;
-    for (var path in paths) {
-      var file = File(path);
-      if (file.existsSync()) {
-        loader.addFont(
-          file.readAsBytes().then((bytes) => ByteData.view(bytes.buffer)),
-        );
-        loaded = true;
-      }
-    }
-    if (loaded) {
-      await loader.load();
-    } else {
-      // ignore: avoid_print
-      print('no font for $family, it will draw as boxes');
-    }
-  }
-
-  var fonts = _flutterFontsPath;
-  // Under `Roboto`, the family the material text styles ask for, so every
-  // default style picks it up.
-  await load('Roboto', [
-    '$fonts/Roboto-Regular.ttf',
-    '$fonts/Roboto-Medium.ttf',
-    '$fonts/Roboto-Bold.ttf',
-    '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',
-  ]);
-  await load('MaterialIcons', ['$fonts/MaterialIcons-Regular.otf']);
-
-  // Poppins and the explorers' monospace font are plain Flutter fonts
-  // declared by festenao_theme's own pubspec, under the family names its
-  // constants name — no google_fonts runtime lookup involved, so there is no
-  // family name to guess here.
-  await load(festenaoPoppinsFontFamily, [
-    '$_poppinsFontsPath/Poppins-Regular.ttf',
-    '$_poppinsFontsPath/Poppins-Medium.ttf',
-    '$_poppinsFontsPath/Poppins-SemiBold.ttf',
-  ]);
-  var monospaceFonts = [
-    '$_monospaceFontsPath/JetBrainsMonoNL-Regular.ttf',
-    '$_monospaceFontsPath/JetBrainsMonoNL-Medium.ttf',
-    '$_monospaceFontsPath/JetBrainsMonoNL-SemiBold.ttf',
-  ];
-  await load(festenaoMonospaceFontFamily, monospaceFonts);
-  // The generic family the rendered html asks for in `<pre>` and `<code>`.
-  await load('monospace', monospaceFonts);
-}
+/// The session of the run.
+late ScreenshotSession _session;
 
 /// Lets the really asynchronous backends settle, pumping between real delays.
-Future<void> _settle(WidgetTester tester) async {
-  for (var i = 0; i < 25; i++) {
-    await tester.pump(const Duration(milliseconds: 50));
-    await Future<void>.delayed(const Duration(milliseconds: 10));
-  }
-}
+Future<void> _settle(WidgetTester tester) => _session.settle();
 
 /// Writes what is on screen as `NN_name.png`, in [userScreenshotDirectory]
 /// for a [user] management screen when it is defined.
@@ -138,19 +51,11 @@ Future<void> _shot(
   String name, {
   bool user = false,
 }) async {
-  await _settle(tester);
-  var boundary =
-      tester.renderObject(find.byKey(_rootKey)) as RenderRepaintBoundary;
-  var image = await boundary.toImage(pixelRatio: 2);
-  var bytes = await image.toByteData(format: ui.ImageByteFormat.png);
   var apart = user && userScreenshotDirectory.isNotEmpty;
-  var directory = apart ? userScreenshotDirectory : screenshotDirectory;
-  var index = apart ? ++_userIndex : ++_index;
-  var file = File('$directory/${index.toString().padLeft(2, '0')}_$name.png');
-  await file.parent.create(recursive: true);
-  await file.writeAsBytes(bytes!.buffer.asUint8List());
-  // ignore: avoid_print
-  print('wrote ${file.path}');
+  await _session.shot(
+    name,
+    directory: apart ? Directory(userScreenshotDirectory) : null,
+  );
 }
 
 /// Taps [finder] and lets things settle.
@@ -177,19 +82,20 @@ Future<void> _back(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('every screen', (tester) async {
-    await tester.runAsync(() async {
-      await _loadFonts();
-      await tester.binding.setSurfaceSize(screenshotSize);
+  runScreenshots(
+    'every screen',
+    (session) async {
+      _session = session;
+      var tester = session.tester;
+      await session.setSize(screenshotSize);
       var data = await DemoData.create();
       var themes = demoThemes();
       var themeIndex = 0;
       late StateSetter setTheme;
 
       await tester.pumpWidget(
-        RepaintBoundary(
-          key: _rootKey,
-          child: StatefulBuilder(
+        session.wrap(
+          StatefulBuilder(
             builder: (context, setState) {
               setTheme = setState;
               return MaterialApp(
@@ -435,8 +341,12 @@ void main() {
         );
       }
       setTheme(() => themeIndex = 0);
-
-      await tester.binding.setSurfaceSize(null);
-    });
-  });
+    },
+    directory: Directory(screenshotDirectory),
+    clear: [
+      if (userScreenshotDirectory.isNotEmpty)
+        Directory(userScreenshotDirectory),
+    ],
+    settleRounds: 25,
+  );
 }
