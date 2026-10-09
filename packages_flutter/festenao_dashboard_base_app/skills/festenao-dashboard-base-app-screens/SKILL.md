@@ -14,8 +14,9 @@ description: >-
   DashboardProjectSlugField), the debug screen (DashboardDebugScreen,
   dashboardDebugMenuContent), the demos (BlogDemoScreen, ContentDemoScreen)
   and the quizz screens (QuizzHomeScreen, QuizzQuestionEditScreen,
-  QuizzControlScreen, QuizzTvScreen). Not the route assembly nor the
-  providers.
+  QuizzControlScreen, QuizzTvScreen) and the shared views of any app
+  (ProjectContentSyncButton, DataExportViewScreen,
+  UnsavedChangesStateMixin). Not the route assembly nor the providers.
 ---
 
 # festenao_dashboard_base_app screens
@@ -102,6 +103,16 @@ class MyDebugScreen extends StatelessWidget {
 * Demos: `BlogDemoScreen` (ids from the scope, data id `blog`),
   `LegacyBlogDemoScreen(projectId:)`, `ContentDemoScreen(projectId:, dataId:)`
   with the artist, location, event and image tabs.
+* Shared views for an app's own screens: `ProjectContentSyncButton(projectId:,
+  dataId:)`, an app bar action showing the synchronization of a project
+  content (`projectContentSyncStatusProvider`: spinner while it runs,
+  `Icons.sync_problem` once it failed) and synchronizing on tap;
+  `DataExportViewScreen(title:, content:, filename:)`, a monospace text
+  export (wrap toggle, pinch zoom, download, `.jsonl` for a database
+  export); `UnsavedChangesStateMixin` on an edit screen's `State`
+  (`hasPendingChanges`, optional `saveAndLeave`, `wrapUnsavedChanges(child:)`)
+  showing the festenao unsaved changes dialog, without its save button when
+  `saveAndLeave` is null. See `test/shared_views_test.dart`.
 * Name clashes with festenao_admin_base_app: `ProjectViewScreen`,
   `ProjectViewResult`, `SelectProjectResult`, `selectProject`,
   `ProjectLeading`, `goToProjectEditScreen`, `goToProjectViewScreen` exist

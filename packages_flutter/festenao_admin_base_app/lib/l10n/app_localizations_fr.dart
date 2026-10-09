@@ -432,4 +432,30 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get accessRawData => 'Données brutes';
+
+  @override
+  String get syncNow => 'Synchroniser';
+
+  @override
+  String get syncInProgress => 'Synchronisation…';
+
+  @override
+  String get syncFailed =>
+      'Échec de la synchronisation, toucher pour réessayer';
+
+  @override
+  String get exportWrapOn => 'Activer le retour à la ligne';
+
+  @override
+  String get exportWrapOff => 'Désactiver le retour à la ligne';
+
+  @override
+  String get exportDownload => 'Télécharger';
+
+  @override
+  String get exportDownloadStarted => 'Téléchargement lancé.';
+
+  @override
+  String get editLeaveWithoutSaving =>
+      'Vous avez des modifications non enregistrées\n\nVous pouvez continuer l\'édition en choisissant d\'annuler ou quitter l\'édition en supprimant vos modifications';
 }

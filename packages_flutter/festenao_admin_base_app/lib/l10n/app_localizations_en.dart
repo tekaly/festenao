@@ -428,4 +428,29 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accessRawData => 'Raw data';
+
+  @override
+  String get syncNow => 'Synchronize';
+
+  @override
+  String get syncInProgress => 'Synchronizing…';
+
+  @override
+  String get syncFailed => 'Synchronization failed, tap to retry';
+
+  @override
+  String get exportWrapOn => 'Wrap lines';
+
+  @override
+  String get exportWrapOff => 'Do not wrap lines';
+
+  @override
+  String get exportDownload => 'Download';
+
+  @override
+  String get exportDownloadStarted => 'Download started';
+
+  @override
+  String get editLeaveWithoutSaving =>
+      'You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition and discard your changes';
 }

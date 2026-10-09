@@ -131,5 +131,13 @@
   "accessCopyId": "Copier l'identifiant",
   "accessIdCopied": "Identifiant copié",
   "accessEdit": "Modifier",
-  "accessRawData": "Données brutes"
+  "accessRawData": "Données brutes",
+  "syncNow": "Synchroniser",
+  "syncInProgress": "Synchronisation…",
+  "syncFailed": "Échec de la synchronisation, toucher pour réessayer",
+  "exportWrapOn": "Activer le retour à la ligne",
+  "exportWrapOff": "Désactiver le retour à la ligne",
+  "exportDownload": "Télécharger",
+  "exportDownloadStarted": "Téléchargement lancé.",
+  "editLeaveWithoutSaving": "Vous avez des modifications non enregistrées\n\nVous pouvez continuer l'édition en choisissant d'annuler ou quitter l'édition en supprimant vos modifications"
 }

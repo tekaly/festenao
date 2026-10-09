@@ -578,5 +578,37 @@
   "accessRawData": "Raw data",
   "@accessRawData": {
     "description": "Title of the raw record"
+  },
+  "syncNow": "Synchronize",
+  "@syncNow": {
+    "description": "Button synchronizing the content now"
+  },
+  "syncInProgress": "Synchronizing…",
+  "@syncInProgress": {
+    "description": "Tooltip while the content synchronizes"
+  },
+  "syncFailed": "Synchronization failed, tap to retry",
+  "@syncFailed": {
+    "description": "Tooltip after a failed synchronization"
+  },
+  "exportWrapOn": "Wrap lines",
+  "@exportWrapOn": {
+    "description": "Button turning line wrap on in a text export"
+  },
+  "exportWrapOff": "Do not wrap lines",
+  "@exportWrapOff": {
+    "description": "Button turning line wrap off in a text export"
+  },
+  "exportDownload": "Download",
+  "@exportDownload": {
+    "description": "Button downloading a text export"
+  },
+  "exportDownloadStarted": "Download started",
+  "@exportDownloadStarted": {
+    "description": "Snack bar once a download started"
+  },
+  "editLeaveWithoutSaving": "You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition and discard your changes",
+  "@editLeaveWithoutSaving": {
+    "description": "Unsaved changes dialog content when the screen cannot save from the dialog"
   }
 }

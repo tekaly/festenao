@@ -33,3 +33,6 @@ export 'src/screen/quizz/quizz_control_screen.dart';
 export 'src/screen/quizz/quizz_home_screen.dart';
 export 'src/screen/quizz/quizz_question_edit_screen.dart';
 export 'src/screen/quizz/quizz_tv_screen.dart';
+export 'src/view/data_export_view_screen.dart';
+export 'src/view/project_content_sync_button.dart';
+export 'src/view/unsaved_changes_state_mixin.dart';

@@ -122,6 +122,14 @@ dependencies:
       path: packages_flutter/festenao_riverpod_flutter
 
   material_ui: ">=1.5.0"
+  festenao_theme:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_theme
+  tekaly_file_download:
+    git:
+      url: https://github.com/tekartikprj/tekaly
+      path: flutter_packages/file_download
 dev_dependencies:
   build_runner: ">=2.15.0"
   flutter_test:

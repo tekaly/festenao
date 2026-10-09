@@ -195,6 +195,13 @@ class SdbProjectContent {
 
   Future<SyncedSyncStat> synchronize() => _festenaoSyncedSdb.synchronize();
 
+  /// The synchronization status of the content database as it changes, once
+  /// open.
+  Stream<SyncedDbSyncStatus> onSyncStatus() async* {
+    await ready;
+    yield* _festenaoSyncedSdb.onSyncStatus();
+  }
+
   void dispose() {
     _festenaoSyncedSdb.dispose();
   }
@@ -239,6 +246,19 @@ Stream<SdbProjectContent> sdbProjectContent(
     projectContentProvider(projectId, dataId).future,
   );
   yield content;
+}
+
+/// The synchronization status of the content of `(projectId, dataId)`.
+@riverpod
+Stream<SyncedDbSyncStatus> projectContentSyncStatus(
+  Ref ref,
+  String projectId,
+  String dataId,
+) async* {
+  var content = await ref.watch(
+    projectContentProvider(projectId, dataId).future,
+  );
+  yield* content.onSyncStatus();
 }
 
 @riverpod

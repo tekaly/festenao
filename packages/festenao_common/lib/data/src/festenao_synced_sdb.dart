@@ -113,6 +113,14 @@ class FestenaoSyncedSdb {
     return _syncedDbSynchronizer.lazySync();
   }
 
+  /// The synchronization status of the database (not of the medias).
+  SyncedDbSyncStatus get syncStatus => _syncedDbSynchronizer.syncStatus;
+
+  /// The synchronization status of the database as it changes, starting
+  /// with the current one.
+  Stream<SyncedDbSyncStatus> onSyncStatus() =>
+      _syncedDbSynchronizer.onSyncStatus();
+
   /// Log message
   static void log(Object? message) {
     // ignore: avoid_print

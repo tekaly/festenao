@@ -877,6 +877,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Raw data'**
   String get accessRawData;
+
+  /// Button synchronizing the content now
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronize'**
+  String get syncNow;
+
+  /// Tooltip while the content synchronizes
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronizing…'**
+  String get syncInProgress;
+
+  /// Tooltip after a failed synchronization
+  ///
+  /// In en, this message translates to:
+  /// **'Synchronization failed, tap to retry'**
+  String get syncFailed;
+
+  /// Button turning line wrap on in a text export
+  ///
+  /// In en, this message translates to:
+  /// **'Wrap lines'**
+  String get exportWrapOn;
+
+  /// Button turning line wrap off in a text export
+  ///
+  /// In en, this message translates to:
+  /// **'Do not wrap lines'**
+  String get exportWrapOff;
+
+  /// Button downloading a text export
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get exportDownload;
+
+  /// Snack bar once a download started
+  ///
+  /// In en, this message translates to:
+  /// **'Download started'**
+  String get exportDownloadStarted;
+
+  /// Unsaved changes dialog content when the screen cannot save from the dialog
+  ///
+  /// In en, this message translates to:
+  /// **'You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition and discard your changes'**
+  String get editLeaveWithoutSaving;
 }
 
 class _AppLocalizationsDelegate

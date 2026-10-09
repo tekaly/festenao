@@ -215,6 +215,101 @@ final class SdbProjectContentFamily extends $Family
   String toString() => r'sdbProjectContentProvider';
 }
 
+/// The synchronization status of the content of `(projectId, dataId)`.
+
+@ProviderFor(projectContentSyncStatus)
+final projectContentSyncStatusProvider = ProjectContentSyncStatusFamily._();
+
+/// The synchronization status of the content of `(projectId, dataId)`.
+
+final class ProjectContentSyncStatusProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<SyncedDbSyncStatus>,
+          SyncedDbSyncStatus,
+          Stream<SyncedDbSyncStatus>
+        >
+    with
+        $FutureModifier<SyncedDbSyncStatus>,
+        $StreamProvider<SyncedDbSyncStatus> {
+  /// The synchronization status of the content of `(projectId, dataId)`.
+  ProjectContentSyncStatusProvider._({
+    required ProjectContentSyncStatusFamily super.from,
+    required (String, String) super.argument,
+  }) : super(
+         retry: null,
+         name: r'projectContentSyncStatusProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$projectContentSyncStatusHash();
+
+  @override
+  String toString() {
+    return r'projectContentSyncStatusProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<SyncedDbSyncStatus> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<SyncedDbSyncStatus> create(Ref ref) {
+    final argument = this.argument as (String, String);
+    return projectContentSyncStatus(ref, argument.$1, argument.$2);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is ProjectContentSyncStatusProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$projectContentSyncStatusHash() =>
+    r'9fdd209f098b361e773eef9b9ad1d29380a77d70';
+
+/// The synchronization status of the content of `(projectId, dataId)`.
+
+final class ProjectContentSyncStatusFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          Stream<SyncedDbSyncStatus>,
+          (String, String)
+        > {
+  ProjectContentSyncStatusFamily._()
+    : super(
+        retry: null,
+        name: r'projectContentSyncStatusProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  /// The synchronization status of the content of `(projectId, dataId)`.
+
+  ProjectContentSyncStatusProvider call(String projectId, String dataId) =>
+      ProjectContentSyncStatusProvider._(
+        argument: (projectId, dataId),
+        from: this,
+      );
+
+  @override
+  String toString() => r'projectContentSyncStatusProvider';
+}
+
 @ProviderFor(contentSdb)
 final contentSdbProvider = ContentSdbFamily._();
 
