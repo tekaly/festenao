@@ -26,7 +26,13 @@ class FestenaoAdminAppScaffold extends StatefulWidget {
 }
 
 const _appBarHeight = 32.0;
-const _useAppBar = !kIsWeb;
+
+/// Whether the admin screens show the route path bar above their app bar:
+/// a developer tool, so debug builds only (never on the web, where the
+/// browser shows the url). A screenshot harness can turn it off.
+var festenaoAdminAppShowPathBar = !kIsWeb && kDebugMode;
+
+bool get _useAppBar => festenaoAdminAppShowPathBar;
 
 //final _useAppBar = devWarning(false); // !kIsWeb;
 

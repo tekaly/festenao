@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
@@ -34,7 +35,7 @@ class _AppUserEditScreenState extends AutoDisposeBaseState<AppUserEditScreen>
     var bloc = this.bloc;
 
     return FestenaoAdminAppScaffold(
-      appBar: AppBar(title: const Text('User')),
+      appBar: AppBar(title: Text(festenaoAdminAppIntl(context).userTitle)),
       body: ValueStreamBuilder<FsAppUserEditScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {

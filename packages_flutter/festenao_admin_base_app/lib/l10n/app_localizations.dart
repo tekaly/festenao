@@ -685,6 +685,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'User'**
   String get userTitle;
+
+  /// Title of the access screens
+  ///
+  /// In en, this message translates to:
+  /// **'Access'**
+  String get accessTitle;
+
+  /// Subtitle of the project access screen
+  ///
+  /// In en, this message translates to:
+  /// **'Who can open and edit this project'**
+  String get accessSubtitle;
+
+  /// Subtitle of the app access screen
+  ///
+  /// In en, this message translates to:
+  /// **'The users of the app and their role'**
+  String get accessAppSubtitle;
+
+  /// Section title of the members, with their count
+  ///
+  /// In en, this message translates to:
+  /// **'Members · {count}'**
+  String accessMembers(int count);
+
+  /// Button adding a user access
+  ///
+  /// In en, this message translates to:
+  /// **'Add a user'**
+  String get accessAddUser;
+
+  /// Empty list of users
+  ///
+  /// In en, this message translates to:
+  /// **'No user yet'**
+  String get accessNoUser;
+
+  /// Search with no result
+  ///
+  /// In en, this message translates to:
+  /// **'No user matches'**
+  String get accessNoMatch;
+
+  /// Hint of the user search field
+  ///
+  /// In en, this message translates to:
+  /// **'Search a user'**
+  String get accessSearchHint;
+
+  /// Tag of the signed in user in a list
+  ///
+  /// In en, this message translates to:
+  /// **'you'**
+  String get accessYou;
+
+  /// Short label of the reader role
+  ///
+  /// In en, this message translates to:
+  /// **'Reader'**
+  String get accessRoleReader;
+
+  /// Short label of the editor role
+  ///
+  /// In en, this message translates to:
+  /// **'Editor'**
+  String get accessRoleEditor;
+
+  /// Short label of the admin role
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get accessRoleAdmin;
+
+  /// What the reader role allows
+  ///
+  /// In en, this message translates to:
+  /// **'Reads the content and the reports'**
+  String get accessRoleReaderDetail;
+
+  /// What the editor role allows
+  ///
+  /// In en, this message translates to:
+  /// **'Edits the content'**
+  String get accessRoleEditorDetail;
+
+  /// What the admin role allows
+  ///
+  /// In en, this message translates to:
+  /// **'Also manages the access and the project'**
+  String get accessRoleAdminDetail;
+
+  /// No role selected yet
+  ///
+  /// In en, this message translates to:
+  /// **'No access: pick a role'**
+  String get accessRoleNoneDetail;
+
+  /// Section of the account fields
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get accessAccountSection;
+
+  /// Section of the advanced fields
+  ///
+  /// In en, this message translates to:
+  /// **'Advanced'**
+  String get accessAdvancedSection;
+
+  /// Label of the app wide role
+  ///
+  /// In en, this message translates to:
+  /// **'App role'**
+  String get accessAppRole;
+
+  /// Helper of the app wide role
+  ///
+  /// In en, this message translates to:
+  /// **'Optional, for the roles of the whole app'**
+  String get accessAppRoleHelper;
+
+  /// Label of the free role field
+  ///
+  /// In en, this message translates to:
+  /// **'Custom role'**
+  String get accessCustomRole;
+
+  /// Label of the user id
+  ///
+  /// In en, this message translates to:
+  /// **'User ID'**
+  String get accessUserId;
+
+  /// User id validation
+  ///
+  /// In en, this message translates to:
+  /// **'The user ID is required'**
+  String get accessUserIdRequired;
+
+  /// Button filling the name and email from the account
+  ///
+  /// In en, this message translates to:
+  /// **'Fill from the account'**
+  String get accessFillFromAccount;
+
+  /// Refused account read
+  ///
+  /// In en, this message translates to:
+  /// **'Not allowed to read this account'**
+  String get accessFillNotAllowed;
+
+  /// Unknown account
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown account: {userId}'**
+  String accessFillUnknown(String userId);
+
+  /// Other account read failure
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot read the account'**
+  String get accessFillError;
+
+  /// Button filling the form with the signed in user as admin
+  ///
+  /// In en, this message translates to:
+  /// **'Add me as admin'**
+  String get accessFillMeAsAdmin;
+
+  /// Button copying the user id
+  ///
+  /// In en, this message translates to:
+  /// **'Copy the ID'**
+  String get accessCopyId;
+
+  /// Snack bar after copying the user id
+  ///
+  /// In en, this message translates to:
+  /// **'User ID copied'**
+  String get accessIdCopied;
+
+  /// Button editing an access
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get accessEdit;
+
+  /// Title of the raw record
+  ///
+  /// In en, this message translates to:
+  /// **'Raw data'**
+  String get accessRawData;
 }
 
 class _AppLocalizationsDelegate

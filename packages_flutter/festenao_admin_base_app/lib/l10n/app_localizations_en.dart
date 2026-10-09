@@ -328,4 +328,104 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get userTitle => 'User';
+
+  @override
+  String get accessTitle => 'Access';
+
+  @override
+  String get accessSubtitle => 'Who can open and edit this project';
+
+  @override
+  String get accessAppSubtitle => 'The users of the app and their role';
+
+  @override
+  String accessMembers(int count) {
+    return 'Members · $count';
+  }
+
+  @override
+  String get accessAddUser => 'Add a user';
+
+  @override
+  String get accessNoUser => 'No user yet';
+
+  @override
+  String get accessNoMatch => 'No user matches';
+
+  @override
+  String get accessSearchHint => 'Search a user';
+
+  @override
+  String get accessYou => 'you';
+
+  @override
+  String get accessRoleReader => 'Reader';
+
+  @override
+  String get accessRoleEditor => 'Editor';
+
+  @override
+  String get accessRoleAdmin => 'Admin';
+
+  @override
+  String get accessRoleReaderDetail => 'Reads the content and the reports';
+
+  @override
+  String get accessRoleEditorDetail => 'Edits the content';
+
+  @override
+  String get accessRoleAdminDetail => 'Also manages the access and the project';
+
+  @override
+  String get accessRoleNoneDetail => 'No access: pick a role';
+
+  @override
+  String get accessAccountSection => 'Account';
+
+  @override
+  String get accessAdvancedSection => 'Advanced';
+
+  @override
+  String get accessAppRole => 'App role';
+
+  @override
+  String get accessAppRoleHelper => 'Optional, for the roles of the whole app';
+
+  @override
+  String get accessCustomRole => 'Custom role';
+
+  @override
+  String get accessUserId => 'User ID';
+
+  @override
+  String get accessUserIdRequired => 'The user ID is required';
+
+  @override
+  String get accessFillFromAccount => 'Fill from the account';
+
+  @override
+  String get accessFillNotAllowed => 'Not allowed to read this account';
+
+  @override
+  String accessFillUnknown(String userId) {
+    return 'Unknown account: $userId';
+  }
+
+  @override
+  String get accessFillError => 'Cannot read the account';
+
+  @override
+  String get accessFillMeAsAdmin => 'Add me as admin';
+
+  @override
+  String get accessCopyId => 'Copy the ID';
+
+  @override
+  String get accessIdCopied => 'User ID copied';
+
+  @override
+  String get accessEdit => 'Edit';
+
+  @override
+  String get accessRawData => 'Raw data';
 }

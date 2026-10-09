@@ -2,15 +2,12 @@ import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/admin_app_scaffold.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_user_edit_screen.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_users_screen_bloc.dart';
-import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
-import 'package:festenao_admin_base_app/view/app_path.dart';
+import 'package:festenao_admin_base_app/view/access_view.dart';
 import 'package:festenao_admin_base_app/view/identity_info_tile.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:tekartik_app_flutter_widget/view/body_container.dart';
-import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
-import 'package:tekartik_app_flutter_widget/view/with_header_footer_list_view.dart';
-import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
+import 'package:tkcms_common/tkcms_auth.dart';
 
 import 'fs_app_user_edit_screen_bloc.dart';
 
@@ -44,9 +41,7 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
 
         return FestenaoAdminAppScaffold(
           appBar: AppBar(
-            title: const Text(
-              'FsApp Users',
-            ), // appIntl(context).ProjectsTitle),
+            title: Text(intl.accessTitle),
             /*actions: [
                 IconButton(
                     onPressed: () {
@@ -62,102 +57,59 @@ class _FsAppUsersScreenState extends State<FsAppUsersScreen> {
               if (state == null) {
                 return const Center(child: CircularProgressIndicator());
               }
-              var userAccessList = state.userAccessList;
-              return WithHeaderFooterListView.builder(
-                header: BodyContainer(
-                  child: Column(children: [AppPathTile(appPath: bloc.appPath)]),
-                ),
-                footer: state.identity == null
-                    ? const BodyContainer(
-                        child: BodyHPadding(
-                          child: Center(
-                            child: Column(
-                              children: [
-                                IdentityWarningTile(),
-                                // appIntl(context).notSignedInInfo),
-                                SizedBox(height: 8),
-                                /*
-                            ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).push<void>(
-                                      MaterialPageRoute(
-                                          builder: (_) =>
-                                              globalAuthFlutterUiService
-                                                  .loginScreen(
-                                                      firebaseAuth:
-                                                          globalFirebaseContext
-                                                              .auth)));
-                                },
-                                child:
-                                    Text(appIntl(context).signInButtonLabel)),*/
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                    : null,
-                itemCount: userAccessList.length,
-                itemBuilder: (context, index) {
-                  var userAccess = userAccessList[index];
-                  var userId = userAccess.id;
-                  var userName = userAccess.name.v?.trimmedNonEmpty();
-                  return BodyContainer(
-                    child: ListTile(
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if (userName != null)
-                            Text(
-                              userName,
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          Text(userAccess.id),
-                        ],
-                      ),
-                      subtitle: Text(accessString(intl, userAccess)),
-                      onTap: () async {
-                        if (bloc.selectMode) {
-                          Navigator.of(context)
-                              .pop(FsAppUserSelectResult(userId: userId));
-                        } else {
-                          var result = await goToAppUserEditScreen(
-                            context,
-                            param: FsAppUserEditScreenParam(
-                              userId: userId,
-                              appId: bloc.appId,
-                              projectId: bloc.projectId,
-                            ),
-                          );
-                          if (result?.modified ?? false) {
-                            bloc.refresh();
-                          }
-                        }
-                        //  await goToNotesScreen(context, Project.ref);
-                      },
+              Future<void> add() async {
+                await goToAppUserEditScreen(
+                  context,
+                  param: FsAppUserEditScreenParam(
+                    userId: null,
+                    appId: bloc.appId,
+                    projectId: bloc.projectId,
+                  ),
+                );
+                bloc.refresh();
+              }
+
+              return AdminAccessMembersView(
+                users: state.userAccessList,
+                subtitle: intl.accessAppSubtitle,
+                currentUserId: state.identity?.userOrAccountId,
+                actions: [
+                  if (state.identity != null && !bloc.selectMode)
+                    FilledButton.icon(
+                      onPressed: add,
+                      icon: const Icon(Icons.person_add_alt_1),
+                      label: Text(intl.accessAddUser),
                     ),
-                  );
-                },
-              );
-            },
-          ),
-          floatingActionButton: (state?.identity != null)
-              ? FloatingActionButton(
-                  onPressed: () async {
-                    // ignore: unused_local_variable
+                ],
+                onTap: (userAccess) async {
+                  var userId = userAccess.id;
+                  if (bloc.selectMode) {
+                    Navigator.of(context)
+                        .pop(FsAppUserSelectResult(userId: userId));
+                  } else {
                     var result = await goToAppUserEditScreen(
                       context,
                       param: FsAppUserEditScreenParam(
-                        userId: null,
+                        userId: userId,
                         appId: bloc.appId,
                         projectId: bloc.projectId,
                       ),
                     );
-
-                    bloc.refresh();
-                  },
-                  child: const Icon(Icons.add),
-                )
-              : null,
+                    if (result?.modified ?? false) {
+                      bloc.refresh();
+                    }
+                  }
+                },
+                footer: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    if (state.identity == null) const IdentityWarningTile(),
+                    if (kDebugMode) AdminAccessPathNote(bloc.appPath),
+                  ],
+                ),
+              );
+            },
+          ),
         );
       },
     );

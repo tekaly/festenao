@@ -11,6 +11,7 @@ import 'package:festenao_common/app/src/app_init_options.dart';
 import 'package:festenao_common/data/src/festenao/sync/sync_source_options.dart';
 import 'package:festenao_common/data/src/festenao_synced_db.dart';
 import 'package:festenao_common/data/src/model/db_models.dart';
+import 'package:festenao_theme/design.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_common_utils/common_utils_import.dart';
@@ -27,7 +28,6 @@ import 'package:tkcms_common/tkcms_firebase.dart';
 import 'package:tkcms_common/tkcms_firestore_v2.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
 import 'package:tkcms_common/tkcms_sembast.dart';
-import 'package:tkcms_user_app/theme/theme1.dart';
 
 import 'admin_app/festenao_admin_app.dart';
 import 'data/file_system.dart';
@@ -382,7 +382,7 @@ class FestenaoAdminApp extends StatelessWidget {
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,
             title: 'Festenao admin',
-            theme: themeData1(),
+            theme: festenaoThemeFestenao.themeData(Brightness.dark),
             //navigatorObservers: [cn.routeObserver],
             routerDelegate: cn.routerDelegate,
             routeInformationParser: cn.routeInformationParser,

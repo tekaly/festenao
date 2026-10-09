@@ -330,4 +330,106 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get userTitle => 'Utilisateur';
+
+  @override
+  String get accessTitle => 'Accès';
+
+  @override
+  String get accessSubtitle => 'Qui peut ouvrir et modifier ce projet';
+
+  @override
+  String get accessAppSubtitle =>
+      'Les utilisateurs de l\'application et leur rôle';
+
+  @override
+  String accessMembers(int count) {
+    return 'Membres · $count';
+  }
+
+  @override
+  String get accessAddUser => 'Ajouter un utilisateur';
+
+  @override
+  String get accessNoUser => 'Aucun utilisateur';
+
+  @override
+  String get accessNoMatch => 'Aucun utilisateur ne correspond';
+
+  @override
+  String get accessSearchHint => 'Rechercher un utilisateur';
+
+  @override
+  String get accessYou => 'vous';
+
+  @override
+  String get accessRoleReader => 'Lecteur';
+
+  @override
+  String get accessRoleEditor => 'Éditeur';
+
+  @override
+  String get accessRoleAdmin => 'Admin';
+
+  @override
+  String get accessRoleReaderDetail => 'Consulte le contenu et les rapports';
+
+  @override
+  String get accessRoleEditorDetail => 'Modifie le contenu';
+
+  @override
+  String get accessRoleAdminDetail => 'Gère aussi les accès et le projet';
+
+  @override
+  String get accessRoleNoneDetail => 'Aucun accès : choisissez un rôle';
+
+  @override
+  String get accessAccountSection => 'Compte';
+
+  @override
+  String get accessAdvancedSection => 'Avancé';
+
+  @override
+  String get accessAppRole => 'Rôle dans l\'application';
+
+  @override
+  String get accessAppRoleHelper =>
+      'Facultatif, pour les rôles de toute l\'application';
+
+  @override
+  String get accessCustomRole => 'Rôle personnalisé';
+
+  @override
+  String get accessUserId => 'Identifiant';
+
+  @override
+  String get accessUserIdRequired => 'L\'identifiant est requis';
+
+  @override
+  String get accessFillFromAccount => 'Remplir depuis le compte';
+
+  @override
+  String get accessFillNotAllowed => 'Vous ne pouvez pas lire ce compte';
+
+  @override
+  String accessFillUnknown(String userId) {
+    return 'Compte inconnu : $userId';
+  }
+
+  @override
+  String get accessFillError => 'Lecture du compte impossible';
+
+  @override
+  String get accessFillMeAsAdmin => 'M\'ajouter comme admin';
+
+  @override
+  String get accessCopyId => 'Copier l\'identifiant';
+
+  @override
+  String get accessIdCopied => 'Identifiant copié';
+
+  @override
+  String get accessEdit => 'Modifier';
+
+  @override
+  String get accessRawData => 'Données brutes';
 }

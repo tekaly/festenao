@@ -438,5 +438,145 @@
   "userTitle": "User",
   "@userTitle": {
     "description": "User title"
+  },
+  "accessTitle": "Access",
+  "@accessTitle": {
+    "description": "Title of the access screens"
+  },
+  "accessSubtitle": "Who can open and edit this project",
+  "@accessSubtitle": {
+    "description": "Subtitle of the project access screen"
+  },
+  "accessAppSubtitle": "The users of the app and their role",
+  "@accessAppSubtitle": {
+    "description": "Subtitle of the app access screen"
+  },
+  "accessMembers": "Members · {count}",
+  "@accessMembers": {
+    "description": "Section title of the members, with their count",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "accessAddUser": "Add a user",
+  "@accessAddUser": {
+    "description": "Button adding a user access"
+  },
+  "accessNoUser": "No user yet",
+  "@accessNoUser": {
+    "description": "Empty list of users"
+  },
+  "accessNoMatch": "No user matches",
+  "@accessNoMatch": {
+    "description": "Search with no result"
+  },
+  "accessSearchHint": "Search a user",
+  "@accessSearchHint": {
+    "description": "Hint of the user search field"
+  },
+  "accessYou": "you",
+  "@accessYou": {
+    "description": "Tag of the signed in user in a list"
+  },
+  "accessRoleReader": "Reader",
+  "@accessRoleReader": {
+    "description": "Short label of the reader role"
+  },
+  "accessRoleEditor": "Editor",
+  "@accessRoleEditor": {
+    "description": "Short label of the editor role"
+  },
+  "accessRoleAdmin": "Admin",
+  "@accessRoleAdmin": {
+    "description": "Short label of the admin role"
+  },
+  "accessRoleReaderDetail": "Reads the content and the reports",
+  "@accessRoleReaderDetail": {
+    "description": "What the reader role allows"
+  },
+  "accessRoleEditorDetail": "Edits the content",
+  "@accessRoleEditorDetail": {
+    "description": "What the editor role allows"
+  },
+  "accessRoleAdminDetail": "Also manages the access and the project",
+  "@accessRoleAdminDetail": {
+    "description": "What the admin role allows"
+  },
+  "accessRoleNoneDetail": "No access: pick a role",
+  "@accessRoleNoneDetail": {
+    "description": "No role selected yet"
+  },
+  "accessAccountSection": "Account",
+  "@accessAccountSection": {
+    "description": "Section of the account fields"
+  },
+  "accessAdvancedSection": "Advanced",
+  "@accessAdvancedSection": {
+    "description": "Section of the advanced fields"
+  },
+  "accessAppRole": "App role",
+  "@accessAppRole": {
+    "description": "Label of the app wide role"
+  },
+  "accessAppRoleHelper": "Optional, for the roles of the whole app",
+  "@accessAppRoleHelper": {
+    "description": "Helper of the app wide role"
+  },
+  "accessCustomRole": "Custom role",
+  "@accessCustomRole": {
+    "description": "Label of the free role field"
+  },
+  "accessUserId": "User ID",
+  "@accessUserId": {
+    "description": "Label of the user id"
+  },
+  "accessUserIdRequired": "The user ID is required",
+  "@accessUserIdRequired": {
+    "description": "User id validation"
+  },
+  "accessFillFromAccount": "Fill from the account",
+  "@accessFillFromAccount": {
+    "description": "Button filling the name and email from the account"
+  },
+  "accessFillNotAllowed": "Not allowed to read this account",
+  "@accessFillNotAllowed": {
+    "description": "Refused account read"
+  },
+  "accessFillUnknown": "Unknown account: {userId}",
+  "@accessFillUnknown": {
+    "description": "Unknown account",
+    "placeholders": {
+      "userId": {
+        "type": "String",
+        "example": "abc123"
+      }
+    }
+  },
+  "accessFillError": "Cannot read the account",
+  "@accessFillError": {
+    "description": "Other account read failure"
+  },
+  "accessFillMeAsAdmin": "Add me as admin",
+  "@accessFillMeAsAdmin": {
+    "description": "Button filling the form with the signed in user as admin"
+  },
+  "accessCopyId": "Copy the ID",
+  "@accessCopyId": {
+    "description": "Button copying the user id"
+  },
+  "accessIdCopied": "User ID copied",
+  "@accessIdCopied": {
+    "description": "Snack bar after copying the user id"
+  },
+  "accessEdit": "Edit",
+  "@accessEdit": {
+    "description": "Button editing an access"
+  },
+  "accessRawData": "Raw data",
+  "@accessRawData": {
+    "description": "Title of the raw record"
   }
 }

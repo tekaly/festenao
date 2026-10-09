@@ -2,12 +2,12 @@ import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/layout/admin_screen_layout.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/screen_import.dart';
-import 'package:festenao_admin_base_app/utils/text_validator.dart';
-import 'package:festenao_admin_base_app/view/text_field.dart';
+import 'package:festenao_admin_base_app/view/access_view.dart';
 import 'package:festenao_base_app/import/ui.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
+import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/kit.dart';
 import 'package:tekartik_app_flutter_widget/app_widget.dart';
-import 'package:tekartik_app_flutter_widget/view/body_container.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_common/tkcms_api.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
@@ -117,11 +117,11 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
       onlyEmpty: onlyEmpty,
     );
     if (error != null && !quiet && context.mounted) {
+      var intl = festenaoAdminAppIntl(context);
       var message = switch (error.code) {
-        festenaoFillUserErrorPermissionDenied =>
-          'Not allowed to read this user',
-        festenaoFillUserErrorNotFound => 'Unknown user $userId',
-        _ => 'Cannot read the account: ${error.cause}',
+        festenaoFillUserErrorPermissionDenied => intl.accessFillNotAllowed,
+        festenaoFillUserErrorNotFound => intl.accessFillUnknown(userId),
+        _ => '${intl.accessFillError}: ${error.cause}',
       };
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(message)));
@@ -156,205 +156,196 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
     selectedRole = audiAddBehaviorSubject(BehaviorSubject.seeded(role));
   }
 
+  /// Set the read, write and admin flags of [role].
+  void setRole(AdminAccessRole role) {
+    var flags = role.flags;
+    admin.value = flags.admin;
+    write.value = flags.write;
+    read.value = flags.read;
+  }
+
+  /// The account, the role and the advanced fields of an access, on the
+  /// festenao kit: one role per person instead of three switches.
   Column buildDataWidget(BuildContext context) {
     var intl = festenaoAdminAppIntl(context);
+    var t = context.festenao;
+    var text = Theme.of(context).textTheme;
+    var isCreate = _initialUserId == null;
+    var roleStream = Rx.combineLatest3<bool, bool, bool, AdminAccessRole>(
+      admin,
+      write,
+      read,
+      (admin, write, read) =>
+          AdminAccessRole.ofFlags(admin: admin, write: write, read: read),
+    );
+    var initialRole = AdminAccessRole.ofFlags(
+      admin: admin.value,
+      write: write.value,
+      read: read.value,
+    );
     return Column(
       children: [
-        BodyContainer(
-          child: Column(
-            children: [
-              Row(
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: FestenaoSpace.formWidth,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: AppTextFieldTile(
-                      readOnly: _initialUserId != null,
-                      labelText: 'User ID',
-                      controller: idController,
-                      validator: fieldNonEmptyValidator,
+                  FkSectionTitle(intl.accessAccountSection),
+                  FkCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        TextFormField(
+                          controller: idController,
+                          readOnly: !isCreate,
+                          decoration: InputDecoration(
+                            labelText: intl.accessUserId,
+                            prefixIcon: const Icon(Icons.badge_outlined),
+                          ),
+                          style: text.bodyLarge?.copyWith(
+                            fontFamily: t.monoFamily,
+                            fontSize: 14,
+                          ),
+                          validator: (value) =>
+                              (value == null || value.trim().isEmpty)
+                              ? intl.accessUserIdRequired
+                              : null,
+                        ),
+                        Wrap(
+                          alignment: WrapAlignment.end,
+                          children: [
+                            if (isCreate) _MeAsAdminButton(form: this),
+                            if (userInfoReader != null)
+                              TextButton.icon(
+                                onPressed: () => fillFromAccount(context),
+                                icon: const Icon(Icons.person_search),
+                                label: Text(intl.accessFillFromAccount),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: nameController,
+                          decoration: InputDecoration(
+                            labelText: intl.nameLabel,
+                            prefixIcon: const Icon(Icons.person_outline),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            labelText: intl.emailLabel,
+                            prefixIcon: const Icon(Icons.alternate_email),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+                  const SizedBox(height: FestenaoSpace.xl),
+                  FkSectionTitle(intl.projectAccessRole),
+                  FkCard(
+                    child: StreamBuilder<AdminAccessRole>(
+                      stream: roleStream,
+                      initialData: initialRole,
+                      builder: (context, snapshot) {
+                        var role = snapshot.data ?? initialRole;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SegmentedButton<AdminAccessRole>(
+                              showSelectedIcon: false,
+                              emptySelectionAllowed: true,
+                              segments: [
+                                for (var choice in AdminAccessRole.assignable)
+                                  ButtonSegment(
+                                    value: choice,
+                                    label: Text(choice.label(intl)),
+                                  ),
+                              ],
+                              selected: {
+                                if (role != AdminAccessRole.none) role,
+                              },
+                              onSelectionChanged: (selection) => setRole(
+                                selection.isEmpty
+                                    ? AdminAccessRole.none
+                                    : selection.first,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: role == AdminAccessRole.none
+                                      ? t.warn
+                                      : t.ink3,
+                                ),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    role.detail(intl),
+                                    style: text.bodySmall?.copyWith(
+                                      color: role == AdminAccessRole.none
+                                          ? t.warn
+                                          : t.ink2,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: FestenaoSpace.xl),
+                  FkSectionTitle(intl.accessAdvancedSection),
+                  FkCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        DropdownButtonFormField<String?>(
+                          decoration: InputDecoration(
+                            labelText: intl.accessAppRole,
+                            helperText: intl.accessAppRoleHelper,
+                          ),
+                          initialValue: selectedRole.valueOrNull,
+                          items: [
+                            for (var option in allRoles)
+                              DropdownMenuItem(
+                                value: option,
+                                child: Text(option ?? '—'),
+                              ),
+                          ],
+                          onChanged: (value) {
+                            selectedRole.add(value);
+                            roleController.text = value ?? '';
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: roleController,
+                          decoration: InputDecoration(
+                            labelText: intl.accessCustomRole,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 96),
                 ],
               ),
-              if (userInfoReader != null)
-                Align(
-                  alignment: AlignmentDirectional.centerEnd,
-                  child: TextButton.icon(
-                    onPressed: () => fillFromAccount(context),
-                    icon: const Icon(Icons.person_search),
-                    label: const Text('Fill from the account'),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        BodyContainer(
-          child: Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String?>(
-                    decoration: const InputDecoration(
-                      labelText: 'Select an option',
-                      border: OutlineInputBorder(),
-                    ),
-                    initialValue: selectedRole.valueOrNull,
-                    items: [...allRoles]
-                        .map(
-                          (option) => DropdownMenuItem(
-                            value: option,
-                            child: Text(option ?? '<None>'),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      selectedRole.add(value);
-                      roleController.text = value ?? '';
-                    },
-                    validator: (value) {
-                      return null;
-                    },
-                  ),
-                ),
-                Expanded(
-                  child: AppTextFieldTile(
-                    //readOnly: !globalTkCmsFbIdentityBloc.hasAdminCredentials,
-                    labelText: intl.projectAccessRole,
-                    controller: roleController,
-                    emptyAllowed: true,
-                  ),
-                ),
-              ],
             ),
           ),
         ),
-        const SizedBox(height: 16),
-        BodyContainer(
-          child: Row(
-            children: [
-              Expanded(
-                child: AppTextFieldTile(
-                  //readOnly: !globalTkCmsFbIdentityBloc.hasAdminCredentials,
-                  labelText: intl.nameLabel,
-                  controller: nameController,
-                  emptyAllowed: true,
-                ),
-              ),
-            ],
-          ),
-        ),
-        BodyContainer(
-          child: Row(
-            children: [
-              Expanded(
-                child: AppTextFieldTile(
-                  labelText: intl.emailLabel,
-                  controller: emailController,
-                  emptyAllowed: true,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        BodyContainer(
-          child: BehaviorSubjectBuilder(
-            subject: admin,
-            builder: (_, snapshot) {
-              var isAdmin = snapshot.data;
-              return SwitchListTile(
-                value: snapshot.data ?? false,
-                onChanged: isAdmin == null
-                    ? null
-                    : (bool value) {
-                        admin.value = value;
-                        if (value) {
-                          write.value = true;
-                          read.value = true;
-                        }
-                      },
-                title: Text(intl.projectAccessAdmin),
-              );
-            },
-          ),
-        ),
-        BodyContainer(
-          child: BehaviorSubjectBuilder(
-            subject: write,
-            builder: (_, snapshot) {
-              var write = snapshot.data;
-              return SwitchListTile(
-                value: snapshot.data ?? false,
-                onChanged: write == null
-                    ? null
-                    : (bool value) {
-                        this.write.value = value;
-                        if (!value) {
-                          admin.value = false;
-                        } else {
-                          read.value = true;
-                        }
-                      },
-                title: Text(intl.projectAccessWrite),
-              );
-            },
-          ),
-        ),
-        BodyContainer(
-          child: BehaviorSubjectBuilder(
-            subject: read,
-            builder: (_, snapshot) {
-              var read = snapshot.data;
-              return SwitchListTile(
-                value: snapshot.data ?? false,
-                onChanged: read == null
-                    ? null
-                    : (bool value) {
-                        this.read.value = value;
-                        if (!value) {
-                          write.value = false;
-                          admin.value = false;
-                        }
-                      },
-                title: Text(intl.projectAccessRead),
-              );
-            },
-          ),
-        ),
-
-        // Creation only: an existing user id cannot be changed.
-        if (_initialUserId == null)
-          StreamBuilder(
-            stream: globalTkCmsFbIdentityBloc.state,
-            builder: (_, snapshot) {
-              var user = snapshot.data;
-              if (user == null) {
-                return Container();
-              }
-
-              return BodyContainer(
-                child: Column(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        admin.value = true;
-                        write.value = true;
-                        read.value = true;
-                        roleController.text = tkCmsUserAccessRoleAdmin;
-                        nameController.text = 'Me as admin';
-                        emailController.text =
-                            user.identity?.user?.email ?? emailController.text;
-                        idController.text =
-                            user.identity?.userOrAccountId ?? '';
-                      },
-                      child: const Text('Fill with me as admin'),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
       ],
     );
   }
@@ -367,6 +358,45 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
       ..name.v = nameController.text.trimmedNonEmpty()
       ..email.v = emailController.text.trimmedNonEmpty()
       ..role.v = roleController.text.trimmedNonEmpty();
+  }
+}
+
+/// Fills the form with the signed in user as admin (creation only).
+class _MeAsAdminButton extends StatelessWidget {
+  final AdminUserEditScreenMixin form;
+
+  const _MeAsAdminButton({required this.form});
+
+  @override
+  Widget build(BuildContext context) {
+    var intl = festenaoAdminAppIntl(context);
+    Stream<TkCmsFbIdentityBlocState>? stream;
+    try {
+      stream = globalTkCmsFbIdentityBloc.state;
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
+    return StreamBuilder<TkCmsFbIdentityBlocState>(
+      stream: stream,
+      builder: (context, snapshot) {
+        var identity = snapshot.data?.identity;
+        if (identity == null) {
+          return const SizedBox.shrink();
+        }
+        return TextButton.icon(
+          onPressed: () {
+            form.setRole(AdminAccessRole.admin);
+            form.roleController.text = tkCmsUserAccessRoleAdmin;
+            form.selectedRole.add(tkCmsUserAccessRoleAdmin);
+            form.emailController.text =
+                identity.user?.email ?? form.emailController.text;
+            form.idController.text = identity.userOrAccountId;
+          },
+          icon: const Icon(Icons.admin_panel_settings_outlined),
+          label: Text(intl.accessFillMeAsAdmin),
+        );
+      },
+    );
   }
 }
 
@@ -388,7 +418,7 @@ class _AdminProjectUserEditScreenState
     var userId = bloc.param.userId;
     return AdminScreenLayout(
       appBar: AppBar(
-        title: const Text('User'),
+        title: Text(userId == null ? intl.accessAddUser : intl.userTitle),
         actions: [
           if (userId != null)
             IconButton(

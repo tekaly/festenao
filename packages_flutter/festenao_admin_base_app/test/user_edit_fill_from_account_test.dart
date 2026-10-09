@@ -110,7 +110,7 @@ void main() {
     );
     await tester.tap(find.text('Fill from the account'));
     await tester.pumpAndSettle();
-    expect(find.text('Not allowed to read this user'), findsOneWidget);
+    expect(find.text('Not allowed to read this account'), findsOneWidget);
     expect(state.emailController.text, 'kept@test.local');
   });
 
@@ -125,6 +125,6 @@ void main() {
     );
     await tester.tap(find.text('Fill from the account'));
     await tester.pumpAndSettle();
-    expect(find.text('Unknown user camille'), findsOneWidget);
+    expect(find.text('Unknown account: camille'), findsOneWidget);
   });
 }

@@ -11,6 +11,7 @@ import 'package:festenao_admin_base_app/screen/project_root_screen.dart';
 import 'package:festenao_admin_base_app/screen/project_root_users_screen.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db.dart';
 import 'package:festenao_admin_base_app/sembast/projects_db_bloc.dart';
+import 'package:festenao_theme/design.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:sembast_db_explorer/sembast_db_explorer.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
@@ -72,33 +73,8 @@ class _ListDrawerState extends State<ListDrawer> {
     return ListView(
       shrinkWrap: widget.content ?? false,
       children: [
-        InkWell(
-          onTap: () {
-            // goToHomeScreen(context);
-          },
-          child: Card(
-            margin: EdgeInsets.zero,
-            elevation: 5,
-            child: Container(
-              color: Theme.of(context).colorScheme.secondary,
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 48,
-                    vertical: 64,
-                  ),
-                  child: IconButton(
-                    onPressed: () async {
-                      ContentNavigator.popToRoot(context);
-                    },
-                    icon: const Icon(Icons.home),
-                  ),
-                  //child: Image(image: assetGaelLogo718.image),
-                ),
-              ),
-            ),
-          ),
-        ),
+        // The brand: back to the root screen.
+        _DrawerBrand(onTap: () => ContentNavigator.popToRoot(context)),
         /*
         if (adminGoToAppParentAction != null)
           ListTile(
@@ -545,4 +521,47 @@ class _ListDrawerState extends State<ListDrawer> {
 
      */
   }*/
+}
+
+/// The top of the drawer: the festenao mark, the app name, home on tap.
+class _DrawerBrand extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const _DrawerBrand({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    var t = context.festenao;
+    var text = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                gradient: t.heroGradient,
+                borderRadius: BorderRadius.circular(t.radii.control),
+              ),
+              child: Icon(Icons.festival, color: t.onAccent, size: 24),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Festenao', style: text.titleMedium),
+                  Text('Admin', style: text.bodySmall),
+                ],
+              ),
+            ),
+            Icon(Icons.home_outlined, color: t.ink3, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
 }

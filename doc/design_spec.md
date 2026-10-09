@@ -226,11 +226,25 @@ public material only:
   130 pngs (13 presets, light and dark, 3 desk pages, 2 phone pages) into
   `.local/themes`, `tool/contact_sheet.py` builds side by side sheets and an
   `index.html`.
-- Not done: Inter (open question 1), the kit moved into a package (the
-  gallery's `lib/src/kit.dart` is its first draft), the dashboard and admin
-  apps on the presets (phases 2 and 3), the user access screens rebuilt on
-  the access page design, with the user's name and email prefilled from the
-  server (see [user_info.md](user_info.md)).
+- **Kit** (phase 1, 2026-10-09): `package:festenao_theme/kit.dart`, prefix
+  `Fk` (open question 4): `FkPage`, `FkHeader`, `FkSectionTitle`, `FkCard`,
+  `FkListCard`, `FkRow`, `FkStatusPill`, `FkIconBox`, `FkAvatar`
+  (`fkInitials`), `FkStatTile`, `FkTimeTile`, `FkGrid`, `FkTwoPanes`,
+  `FkEmpty`; `test/kit_test.dart`. The gallery uses it.
+- **Admin access screens** rebuilt on the kit (2026-10-09): the project
+  members and the app users (`AdminAccessMembersView`: search, name and
+  email instead of ids, avatar, role pill, *you*, empty states, the
+  Firestore path as a discreet note in debug builds only), the user page
+  (profile card, *Edit* and *Copy the ID*, account card, raw data folded),
+  the edit form shared by project and app users (Account, Role as one
+  Reader / Editor / Admin choice with what it allows, Advanced for the app
+  role); strings in English and French. The admin app now runs on the
+  *Festenao* dark preset, its route path bar shows in debug builds only
+  (`festenaoAdminAppShowPathBar`), the drawer opens on a brand row.
+  `festenao_admin_base_app/test/access_view_test.dart`.
+- Not done: Inter (open question 1), the dashboard base app on the presets
+  and the kit (phase 2), the other admin screens (lists and forms of the
+  content: phase 3), the drawer items.
 
 ## Sources
 
