@@ -16,6 +16,21 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
+/// Pump until [finder] finds something (an asynchronous answer of the memory
+/// backends), [timeout] at most: a slow CI runner needs more than the fixed
+/// rounds of [_settle].
+Future<void> _settleUntil(
+  WidgetTester tester,
+  Finder finder, {
+  Duration timeout = const Duration(seconds: 10),
+}) async {
+  var stopwatch = Stopwatch()..start();
+  while (finder.evaluate().isEmpty && stopwatch.elapsed < timeout) {
+    await tester.pump(const Duration(milliseconds: 50));
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+  }
+}
+
 void _testWidgets(
   String description,
   Future<void> Function(WidgetTester) body,
@@ -393,14 +408,14 @@ void main() {
 
       var slugField = find.byType(TextField).first;
       await tester.enterText(slugField, 'festival');
-      await _settle(tester);
+      await _settleUntil(tester, find.text('Already taken'));
       expect(find.text('Already taken'), findsOneWidget);
 
       await tester.enterText(slugField, 'My URL');
-      await _settle(tester);
+      await _settleUntil(tester, find.text('Available'));
       expect(find.text('Available'), findsOneWidget);
       await tester.tap(find.text('Use this url'));
-      await _settle(tester);
+      await _settleUntil(tester, find.text('/p/my-url'));
       expect(find.text('/p/my-url'), findsOneWidget);
       expect(find.text('Current url'), findsOneWidget);
 
@@ -409,7 +424,7 @@ void main() {
         'https://my-app.web.app/p/festival',
       );
       await tester.tap(find.text('Resolve'));
-      await _settle(tester);
+      await _settleUntil(tester, find.text('Project fest (an old url of it)'));
       expect(find.text('Project fest (an old url of it)'), findsOneWidget);
     });
   });

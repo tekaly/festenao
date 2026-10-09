@@ -963,14 +963,14 @@ class SendResultController {
   /// The api query of a local status.
   ApiQuizzSendResultQuery resultFromLocalStatus(PrefsQuizLocalStatus status) {
     var quizType = status.quizType.v;
+    // The fields of the TV quiz (username, avatar), of the GD one only (the
+    // local device id), then the common ones. No comment inside the cascade:
+    // the stable and beta formatters lay it out differently.
     var resultRequest = ApiQuizzSendResultQuery()
       ..quizType.v = quizType
-      // TV
       ..username.setValue(status.username.v)
       ..avatar.setValue(status.avatar.v)
-      // GD only
       ..localDeviceId.setValue(status.deviceId.v)
-      // Common
       ..quizId.v = status.quizId.v
       ..sessionId.v = status.sessionId.v
       ..answers.v = status.toApiAnswers()

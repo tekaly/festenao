@@ -183,8 +183,6 @@ void main() {
     test('syncOneFromRemote', () async {
       var sourceRecord = (await source.putSourceRecord(
         SyncedSourceRecord()
-          //..syncId.v = sourceRecord.syncId.v
-          // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..record.v = (SyncedSourceRecordData()
             ..store.v = dbArtistStoreRef.name
             ..key.v = 'a1'
@@ -216,8 +214,6 @@ void main() {
     test('syncOneImageFromRemote', () async {
       var sourceRecord = (await source.putSourceRecord(
         SyncedSourceRecord()
-          //..syncId.v = sourceRecord.syncId.v
-          // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..record.v = (SyncedSourceRecordData()
             ..store.v = dbImageStoreRef.name
             ..key.v = 'a1'
@@ -264,8 +260,6 @@ void main() {
     test('syncUpdateFromRemote', () async {
       await source.putSourceRecord(
         SyncedSourceRecord()
-          //..syncId.v = sourceRecord.syncId.v
-          // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..record.v = (SyncedSourceRecordData()
             ..store.v = dbArtistStoreRef.name
             ..key.v = 'a1'
@@ -279,8 +273,6 @@ void main() {
       /// update
       await source.putSourceRecord(
         SyncedSourceRecord()
-          //..syncId.v = sourceRecord.syncId.v
-          // ..syncTimestamp.v = sourceRecord.syncTimestamp.v
           ..record.v = (SyncedSourceRecordData()
             ..store.v = dbArtistStoreRef.name
             ..key.v = 'a1'
