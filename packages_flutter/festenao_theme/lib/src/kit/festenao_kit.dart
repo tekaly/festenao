@@ -1,13 +1,8 @@
-/// A small kit on the festenao tokens, the shape the shared kit of the
-/// design spec could take: every colour, radius and label style comes from
-/// `context.festenao`, so the widgets follow every preset.
-library;
-
-import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/src/design/festenao_tokens.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// The width classes of the screens.
-enum KitWidth {
+enum FkWidth {
   /// A phone.
   compact,
 
@@ -18,7 +13,7 @@ enum KitWidth {
   expanded;
 
   /// The class of [width].
-  static KitWidth of(double width) {
+  static FkWidth of(double width) {
     if (width >= FestenaoSpace.expanded) {
       return expanded;
     }
@@ -34,7 +29,7 @@ enum KitWidth {
 }
 
 /// A page body: scrolls, pads, caps the width.
-class KitPage extends StatelessWidget {
+class FkPage extends StatelessWidget {
   /// The content.
   final List<Widget> children;
 
@@ -42,13 +37,13 @@ class KitPage extends StatelessWidget {
   final double maxWidth;
 
   /// A page body.
-  const KitPage({super.key, required this.children, this.maxWidth = 1240});
+  const FkPage({super.key, required this.children, this.maxWidth = 1240});
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        var width = KitWidth.of(constraints.maxWidth);
+        var width = FkWidth.of(constraints.maxWidth);
         return SingleChildScrollView(
           padding: EdgeInsets.fromLTRB(
             width.padding,
@@ -72,9 +67,9 @@ class KitPage extends StatelessWidget {
 }
 
 /// A page header: title, subtitle, actions on the right (below on a phone).
-class KitHeader extends StatelessWidget {
-  /// Title.
-  final String title;
+class FkHeader extends StatelessWidget {
+  /// Title, none when the app bar already shows it.
+  final String? title;
 
   /// Subtitle.
   final String? subtitle;
@@ -86,9 +81,9 @@ class KitHeader extends StatelessWidget {
   final List<Widget> actions;
 
   /// A page header.
-  const KitHeader({
+  const FkHeader({
     super.key,
-    required this.title,
+    this.title,
     this.subtitle,
     this.badge,
     this.actions = const [],
@@ -101,17 +96,18 @@ class KitHeader extends StatelessWidget {
     var titles = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(
-          spacing: 12,
-          runSpacing: 6,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          children: [
-            Text(title, style: text.headlineSmall),
-            ?badge,
-          ],
-        ),
+        if (title != null || badge != null)
+          Wrap(
+            spacing: 12,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              if (title != null) Text(title!, style: text.headlineSmall),
+              ?badge,
+            ],
+          ),
         if (subtitle != null) ...[
-          const SizedBox(height: 4),
+          if (title != null || badge != null) const SizedBox(height: 4),
           Text(subtitle!, style: text.bodyMedium?.copyWith(color: t.ink2)),
         ],
       ],
@@ -148,7 +144,7 @@ class KitHeader extends StatelessWidget {
 }
 
 /// A section title, uppercase monospace in the themes that want it.
-class KitSectionTitle extends StatelessWidget {
+class FkSectionTitle extends StatelessWidget {
   /// The title.
   final String title;
 
@@ -156,7 +152,7 @@ class KitSectionTitle extends StatelessWidget {
   final Widget? trailing;
 
   /// A section title.
-  const KitSectionTitle(this.title, {super.key, this.trailing});
+  const FkSectionTitle(this.title, {super.key, this.trailing});
 
   @override
   Widget build(BuildContext context) {
@@ -179,7 +175,7 @@ class KitSectionTitle extends StatelessWidget {
 }
 
 /// A card on the card colour with the line of the theme.
-class KitCard extends StatelessWidget {
+class FkCard extends StatelessWidget {
   /// Content.
   final Widget child;
 
@@ -190,7 +186,7 @@ class KitCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   /// A card.
-  const KitCard({
+  const FkCard({
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(FestenaoSpace.l),
@@ -216,7 +212,7 @@ class KitCard extends StatelessWidget {
 }
 
 /// The meaning of a status pill.
-enum KitStatus {
+enum FkStatus {
   /// Done, arrived.
   ok,
 
@@ -247,21 +243,21 @@ enum KitStatus {
 }
 
 /// A status pill: a word on the soft tint of its colour.
-class KitStatusPill extends StatelessWidget {
+class FkStatusPill extends StatelessWidget {
   /// The words.
   final String label;
 
   /// The meaning.
-  final KitStatus status;
+  final FkStatus status;
 
   /// A leading dot (live).
   final bool dot;
 
   /// A status pill.
-  const KitStatusPill(
+  const FkStatusPill(
     this.label, {
     super.key,
-    this.status = KitStatus.muted,
+    this.status = FkStatus.muted,
     this.dot = false,
   });
 
@@ -272,7 +268,7 @@ class KitStatusPill extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: t.soft(status == KitStatus.accent ? t.accent : color),
+        color: t.soft(status == FkStatus.accent ? t.accent : color),
         borderRadius: BorderRadius.circular(t.radii.pill),
       ),
       child: Row(
@@ -302,7 +298,7 @@ class KitStatusPill extends StatelessWidget {
 }
 
 /// An icon on the soft tint of its colour.
-class KitIconBox extends StatelessWidget {
+class FkIconBox extends StatelessWidget {
   /// The icon.
   final IconData icon;
 
@@ -313,7 +309,7 @@ class KitIconBox extends StatelessWidget {
   final double size;
 
   /// An icon box.
-  const KitIconBox(this.icon, {super.key, this.color, this.size = 40});
+  const FkIconBox(this.icon, {super.key, this.color, this.size = 40});
 
   @override
   Widget build(BuildContext context) {
@@ -332,7 +328,7 @@ class KitIconBox extends StatelessWidget {
 }
 
 /// Initials in a circle of a category colour.
-class KitAvatar extends StatelessWidget {
+class FkAvatar extends StatelessWidget {
   /// The name.
   final String name;
 
@@ -343,18 +339,13 @@ class KitAvatar extends StatelessWidget {
   final double size;
 
   /// An avatar.
-  const KitAvatar(this.name, {super.key, this.category = 0, this.size = 40});
+  const FkAvatar(this.name, {super.key, this.category = 0, this.size = 40});
 
   @override
   Widget build(BuildContext context) {
     var t = context.festenao;
     var color = t.category(category);
-    var initials = name
-        .split(' ')
-        .where((part) => part.isNotEmpty)
-        .take(2)
-        .map((part) => part[0].toUpperCase())
-        .join();
+    var initials = fkInitials(name);
     return Container(
       width: size,
       height: size,
@@ -370,7 +361,7 @@ class KitAvatar extends StatelessWidget {
 }
 
 /// A number with its label and an optional progress.
-class KitStatTile extends StatelessWidget {
+class FkStatTile extends StatelessWidget {
   /// The label.
   final String label;
 
@@ -387,13 +378,13 @@ class KitStatTile extends StatelessWidget {
   final double? progress;
 
   /// The meaning of the number.
-  final KitStatus status;
+  final FkStatus status;
 
   /// An icon.
   final IconData icon;
 
   /// A stat tile.
-  const KitStatTile({
+  const FkStatTile({
     super.key,
     required this.label,
     required this.value,
@@ -401,7 +392,7 @@ class KitStatTile extends StatelessWidget {
     this.suffix,
     this.detail,
     this.progress,
-    this.status = KitStatus.accent,
+    this.status = FkStatus.accent,
   });
 
   @override
@@ -409,7 +400,7 @@ class KitStatTile extends StatelessWidget {
     var t = context.festenao;
     var text = Theme.of(context).textTheme;
     var color = status.color(t);
-    return KitCard(
+    return FkCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -464,7 +455,7 @@ class KitStatTile extends StatelessWidget {
 }
 
 /// A day and a time in a tile, the spine of a schedule.
-class KitTimeTile extends StatelessWidget {
+class FkTimeTile extends StatelessWidget {
   /// The time (`19:00`).
   final String time;
 
@@ -475,7 +466,7 @@ class KitTimeTile extends StatelessWidget {
   final bool live;
 
   /// A time tile.
-  const KitTimeTile({
+  const FkTimeTile({
     super.key,
     required this.time,
     required this.day,
@@ -516,7 +507,7 @@ class KitTimeTile extends StatelessWidget {
 }
 
 /// A grid that turns its children into 1 to [maxColumns] columns.
-class KitGrid extends StatelessWidget {
+class FkGrid extends StatelessWidget {
   /// The tiles.
   final List<Widget> children;
 
@@ -527,7 +518,7 @@ class KitGrid extends StatelessWidget {
   final int maxColumns;
 
   /// A responsive grid.
-  const KitGrid({
+  const FkGrid({
     super.key,
     required this.children,
     this.minTileWidth = 220,
@@ -556,7 +547,7 @@ class KitGrid extends StatelessWidget {
 }
 
 /// Two panes side by side on a wide page, stacked on a narrow one.
-class KitTwoPanes extends StatelessWidget {
+class FkTwoPanes extends StatelessWidget {
   /// The main pane.
   final Widget main;
 
@@ -573,7 +564,7 @@ class KitTwoPanes extends StatelessWidget {
   final bool sideFirst;
 
   /// Two panes.
-  const KitTwoPanes({
+  const FkTwoPanes({
     super.key,
     required this.main,
     required this.side,
@@ -603,6 +594,189 @@ class KitTwoPanes extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// The initials of a name (`Camille Martin`: `CM`), of the local part of an
+/// email (`camille.martin@x`: `CM`), or the first letter of an id.
+String fkInitials(String name) {
+  var text = name.trim();
+  var at = text.indexOf('@');
+  if (at > 0) {
+    text = text.substring(0, at);
+  }
+  var parts = text
+      .split(RegExp(r'[\s._-]+'))
+      .where((part) => part.isNotEmpty)
+      .take(2)
+      .toList();
+  if (parts.isEmpty) {
+    return '?';
+  }
+  return parts.map((part) => part.characters.first.toUpperCase()).join();
+}
+
+/// A card holding rows separated by lines (members, settings).
+class FkListCard extends StatelessWidget {
+  /// The rows.
+  final List<Widget> children;
+
+  /// A list card.
+  const FkListCard({super.key, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    var t = context.festenao;
+    return FkCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var (index, child) in children.indexed) ...[
+            if (index > 0) Divider(color: t.line),
+            child,
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// A row of a list card: a leading widget, a title, a subtitle, trailing
+/// widgets; the trailing ones go under the subtitle on a narrow row.
+class FkRow extends StatelessWidget {
+  /// Leading (an avatar, an icon box).
+  final Widget? leading;
+
+  /// Title.
+  final String title;
+
+  /// A widget next to the title (a "you" tag).
+  final Widget? titleTrailing;
+
+  /// Subtitle.
+  final String? subtitle;
+
+  /// Trailing widgets (status pills).
+  final List<Widget> badges;
+
+  /// The last widget (a chevron, a menu), always on the right.
+  final Widget? trailing;
+
+  /// Tap.
+  final VoidCallback? onTap;
+
+  /// Width under which the badges go under the subtitle.
+  final double narrowWidth;
+
+  /// A list row.
+  const FkRow({
+    super.key,
+    this.leading,
+    required this.title,
+    this.titleTrailing,
+    this.subtitle,
+    this.badges = const [],
+    this.trailing,
+    this.onTap,
+    this.narrowWidth = 440,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var t = context.festenao;
+    var text = Theme.of(context).textTheme;
+    return InkWell(
+      onTap: onTap,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          var narrow = constraints.maxWidth < narrowWidth;
+          var badgeWrap = Wrap(spacing: 6, runSpacing: 6, children: badges);
+          return Padding(
+            padding: EdgeInsets.fromLTRB(16, 12, trailing == null ? 16 : 4, 12),
+            child: Row(
+              children: [
+                if (leading != null) ...[leading!, const SizedBox(width: 14)],
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(title, style: text.titleSmall),
+                          ?titleTrailing,
+                        ],
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 2),
+                        Text(
+                          subtitle!,
+                          style: text.bodySmall?.copyWith(color: t.ink2),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      if (narrow && badges.isNotEmpty) ...[
+                        const SizedBox(height: 6),
+                        badgeWrap,
+                      ],
+                    ],
+                  ),
+                ),
+                if (!narrow && badges.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  badgeWrap,
+                ],
+                ?trailing,
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// An empty state: an icon, a line, an optional action.
+class FkEmpty extends StatelessWidget {
+  /// The icon.
+  final IconData icon;
+
+  /// The line.
+  final String message;
+
+  /// An action under it.
+  final Widget? action;
+
+  /// An empty state.
+  const FkEmpty({
+    super.key,
+    required this.icon,
+    required this.message,
+    this.action,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var t = context.festenao;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 16),
+      child: Column(
+        children: [
+          FkIconBox(icon, color: t.muted, size: 56),
+          const SizedBox(height: 12),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium
+                ?.copyWith(color: t.ink2),
+          ),
+          if (action != null) ...[const SizedBox(height: 16), action!],
+        ],
+      ),
     );
   }
 }

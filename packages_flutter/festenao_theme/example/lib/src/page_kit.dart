@@ -1,22 +1,22 @@
 import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/kit.dart';
 import 'package:festenao_theme_example/src/gallery_app.dart';
 import 'package:festenao_theme_example/src/gallery_shell.dart';
-import 'package:festenao_theme_example/src/kit.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// The palette, the type and the components of the current preset.
-class KitPageView extends StatelessWidget {
+class FkPageView extends StatelessWidget {
   /// The kit page.
-  const KitPageView({super.key});
+  const FkPageView({super.key});
 
   @override
   Widget build(BuildContext context) {
     var controller = GalleryScope.of(context);
     var state = controller.value;
-    return KitPage(
+    return FkPage(
       children: [
-        KitHeader(title: state.preset.name, subtitle: state.preset.description),
-        const KitSectionTitle('Thèmes'),
+        FkHeader(title: state.preset.name, subtitle: state.preset.description),
+        const FkSectionTitle('Thèmes'),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -36,22 +36,22 @@ class KitPageView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: FestenaoSpace.xl),
-        const KitTwoPanes(
+        const FkTwoPanes(
           mainFlex: 1,
           sideFlex: 1,
           main: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              KitSectionTitle('Palette'),
+              FkSectionTitle('Palette'),
               _PaletteCard(),
               SizedBox(height: FestenaoSpace.xl),
-              KitSectionTitle('Texte'),
+              FkSectionTitle('Texte'),
               _TypeCard(),
             ],
           ),
           side: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [KitSectionTitle('Composants'), _ComponentsCard()],
+            children: [FkSectionTitle('Composants'), _ComponentsCard()],
           ),
         ),
       ],
@@ -83,7 +83,7 @@ class _PaletteCard extends StatelessWidget {
         ],
       ),
     );
-    return KitCard(
+    return FkCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -157,7 +157,7 @@ class _TypeCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var text = Theme.of(context).textTheme;
     var t = context.festenao;
-    return KitCard(
+    return FkCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -206,7 +206,7 @@ class _ComponentsCardState extends State<_ComponentsCard> {
   @override
   Widget build(BuildContext context) {
     var text = Theme.of(context).textTheme;
-    return KitCard(
+    return FkCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -287,12 +287,12 @@ class _ComponentsCardState extends State<_ComponentsCard> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              KitStatusPill('Arrivé', status: KitStatus.ok),
-              KitStatusPill('À vérifier', status: KitStatus.warn),
-              KitStatusPill('Allergie', status: KitStatus.bad),
-              KitStatusPill('Info', status: KitStatus.info),
-              KitStatusPill('Brouillon'),
-              KitStatusPill('En direct', status: KitStatus.accent, dot: true),
+              FkStatusPill('Arrivé', status: FkStatus.ok),
+              FkStatusPill('À vérifier', status: FkStatus.warn),
+              FkStatusPill('Allergie', status: FkStatus.bad),
+              FkStatusPill('Info', status: FkStatus.info),
+              FkStatusPill('Brouillon'),
+              FkStatusPill('En direct', status: FkStatus.accent, dot: true),
             ],
           ),
           const SizedBox(height: 16),

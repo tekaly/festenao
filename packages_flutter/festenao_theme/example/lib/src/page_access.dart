@@ -1,5 +1,5 @@
 import 'package:festenao_theme/design.dart';
-import 'package:festenao_theme_example/src/kit.dart';
+import 'package:festenao_theme/kit.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// The access of a project as the design spec proposes it: one role per
@@ -12,10 +12,10 @@ class AccessPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return KitPage(
+    return FkPage(
       maxWidth: 1180,
       children: [
-        KitHeader(
+        FkHeader(
           title: 'Accès',
           subtitle: 'Qui peut ouvrir et modifier Festival des Tilleuls 2026',
           actions: [
@@ -26,21 +26,21 @@ class AccessPage extends StatelessWidget {
             ),
           ],
         ),
-        const KitTwoPanes(
+        const FkTwoPanes(
           sideFirst: true,
           main: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              KitSectionTitle('Membres · 5'),
+              FkSectionTitle('Membres · 5'),
               _MembersCard(),
               SizedBox(height: FestenaoSpace.xl),
-              KitSectionTitle('Invitations en attente · 2'),
+              FkSectionTitle('Invitations en attente · 2'),
               _PendingCard(),
             ],
           ),
           side: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [KitSectionTitle('Inviter'), _InviteCard()],
+            children: [FkSectionTitle('Inviter'), _InviteCard()],
           ),
         ),
       ],
@@ -50,13 +50,13 @@ class AccessPage extends StatelessWidget {
 
 /// A role and what it allows.
 enum _Role {
-  reader('Lecteur', 'Consulte les listes et les rapports', KitStatus.muted),
-  editor('Éditeur', 'Pointe et modifie les données', KitStatus.info),
-  admin('Admin', 'Gère aussi les accès et le festival', KitStatus.accent);
+  reader('Lecteur', 'Consulte les listes et les rapports', FkStatus.muted),
+  editor('Éditeur', 'Pointe et modifie les données', FkStatus.info),
+  admin('Admin', 'Gère aussi les accès et le festival', FkStatus.accent);
 
   final String label;
   final String detail;
-  final KitStatus status;
+  final FkStatus status;
 
   const _Role(this.label, this.detail, this.status);
 }
@@ -96,7 +96,7 @@ class _MembersCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var t = context.festenao;
-    return KitCard(
+    return FkCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
@@ -130,7 +130,7 @@ class _MemberRow extends StatelessWidget {
   Widget build(BuildContext context) {
     var t = context.festenao;
     var text = Theme.of(context).textTheme;
-    var pill = KitStatusPill(member.role.label, status: member.role.status);
+    var pill = FkStatusPill(member.role.label, status: member.role.status);
     return InkWell(
       onTap: () {},
       child: LayoutBuilder(
@@ -141,7 +141,7 @@ class _MemberRow extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(16, 12, 4, 12),
             child: Row(
               children: [
-                KitAvatar(member.name, category: category),
+                FkAvatar(member.name, category: category),
                 const SizedBox(width: 14),
                 Expanded(
                   child: Column(
@@ -212,7 +212,7 @@ class _PendingCard extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 12, 4, 12),
       child: Row(
         children: [
-          KitIconBox(Icons.mail_outline_rounded, color: t.warn),
+          FkIconBox(Icons.mail_outline_rounded, color: t.warn),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -229,7 +229,7 @@ class _PendingCard extends StatelessWidget {
                   runSpacing: 4,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    const KitStatusPill('En attente', status: KitStatus.warn),
+                    const FkStatusPill('En attente', status: FkStatus.warn),
                     Text(
                       '${role.label} · envoyée $sent',
                       style: text.bodySmall,
@@ -247,7 +247,7 @@ class _PendingCard extends StatelessWidget {
         ],
       ),
     );
-    return KitCard(
+    return FkCard(
       padding: EdgeInsets.zero,
       child: Column(
         children: [
@@ -274,7 +274,7 @@ class _InviteCardState extends State<_InviteCard> {
   Widget build(BuildContext context) {
     var t = context.festenao;
     var text = Theme.of(context).textTheme;
-    return KitCard(
+    return FkCard(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,

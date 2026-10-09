@@ -1,6 +1,6 @@
 import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/kit.dart';
 import 'package:festenao_theme_example/src/gallery_app.dart';
-import 'package:festenao_theme_example/src/kit.dart';
 import 'package:festenao_theme_example/src/page_access.dart';
 import 'package:festenao_theme_example/src/page_kit.dart';
 import 'package:festenao_theme_example/src/page_overview.dart';
@@ -19,23 +19,23 @@ class GalleryShell extends StatelessWidget {
     var body = switch (state.page) {
       GalleryPage.overview => const OverviewPage(),
       GalleryPage.access => const AccessPage(),
-      GalleryPage.kit => const KitPageView(),
+      GalleryPage.kit => const FkPageView(),
     };
     return LayoutBuilder(
       builder: (context, constraints) {
-        var width = KitWidth.of(constraints.maxWidth);
+        var width = FkWidth.of(constraints.maxWidth);
         var appBar = AppBar(
-          titleSpacing: width == KitWidth.compact ? 16 : 24,
-          title: width == KitWidth.expanded
+          titleSpacing: width == FkWidth.compact ? 16 : 24,
+          title: width == FkWidth.expanded
               ? Text(state.page.label)
               : const _AppTitle(),
           actions: [
-            ThemeActions(compact: width == KitWidth.compact),
+            ThemeActions(compact: width == FkWidth.compact),
             const SizedBox(width: 8),
           ],
         );
         switch (width) {
-          case KitWidth.compact:
+          case FkWidth.compact:
             return Scaffold(
               appBar: appBar,
               body: body,
@@ -52,7 +52,7 @@ class GalleryShell extends StatelessWidget {
                 ],
               ),
             );
-          case KitWidth.medium:
+          case FkWidth.medium:
             return Scaffold(
               appBar: appBar,
               body: Row(
@@ -75,7 +75,7 @@ class GalleryShell extends StatelessWidget {
                 ],
               ),
             );
-          case KitWidth.expanded:
+          case FkWidth.expanded:
             return Scaffold(
               body: Row(
                 children: [
@@ -184,7 +184,7 @@ class _SidePanel extends StatelessWidget {
               ),
             ),
           const Spacer(),
-          KitCard(
+          FkCard(
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [

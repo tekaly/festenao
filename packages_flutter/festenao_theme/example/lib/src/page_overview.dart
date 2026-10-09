@@ -1,5 +1,5 @@
 import 'package:festenao_theme/design.dart';
-import 'package:festenao_theme_example/src/kit.dart';
+import 'package:festenao_theme/kit.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// A festival day: what is live, the counts, the modules, tonight.
@@ -9,14 +9,14 @@ class OverviewPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return KitPage(
+    return FkPage(
       children: [
-        KitHeader(
+        FkHeader(
           title: 'Festival des Tilleuls 2026',
           subtitle: 'Vendredi 3 juillet · jour 4 sur 5',
-          badge: const KitStatusPill(
+          badge: const FkStatusPill(
             'Déjeuner en cours',
-            status: KitStatus.ok,
+            status: FkStatus.ok,
             dot: true,
           ),
           actions: [
@@ -37,10 +37,10 @@ class OverviewPage extends StatelessWidget {
             ),
           ],
         ),
-        const KitGrid(
+        const FkGrid(
           minTileWidth: 200,
           children: [
-            KitStatTile(
+            FkStatTile(
               label: 'Couverts midi',
               value: '96',
               suffix: '/ 128',
@@ -48,37 +48,37 @@ class OverviewPage extends StatelessWidget {
               progress: 0.75,
               detail: '32 encore attendus',
             ),
-            KitStatTile(
+            FkStatTile(
               label: 'Arrivées',
               value: '12',
               icon: Icons.luggage_rounded,
-              status: KitStatus.info,
+              status: FkStatus.info,
               detail: 'dont 3 après 22:00',
             ),
-            KitStatTile(
+            FkStatTile(
               label: 'Créneaux',
               value: '3',
               suffix: 'à pourvoir',
               icon: Icons.schedule_rounded,
-              status: KitStatus.warn,
+              status: FkStatus.warn,
               detail: 'Bar ce soir, parking demain',
             ),
-            KitStatTile(
+            FkStatTile(
               label: 'Allergies',
               value: '7',
               icon: Icons.warning_amber_rounded,
-              status: KitStatus.bad,
+              status: FkStatus.bad,
               detail: 'Arachide, gluten, lactose',
             ),
           ],
         ),
         const SizedBox(height: FestenaoSpace.xl),
-        KitTwoPanes(
+        FkTwoPanes(
           main: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const KitSectionTitle('Modules'),
-              KitGrid(
+              const FkSectionTitle('Modules'),
+              FkGrid(
                 minTileWidth: 230,
                 maxColumns: 3,
                 children: [
@@ -90,7 +90,7 @@ class OverviewPage extends StatelessWidget {
           ),
           side: const Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [KitSectionTitle('Ce soir sur scène'), _ShowsCard()],
+            children: [FkSectionTitle('Ce soir sur scène'), _ShowsCard()],
           ),
         ),
       ],
@@ -136,11 +136,11 @@ class _ModuleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var t = context.festenao;
     var text = Theme.of(context).textTheme;
-    return KitCard(
+    return FkCard(
       onTap: () {},
       child: Row(
         children: [
-          KitIconBox(module.icon, color: t.category(category), size: 44),
+          FkIconBox(module.icon, color: t.category(category), size: 44),
           const SizedBox(width: 14),
           Expanded(
             child: Column(
@@ -178,7 +178,7 @@ class _Show {
   final String place;
   final int category;
   final String status;
-  final KitStatus kind;
+  final FkStatus kind;
   final bool live;
 
   const _Show(
@@ -199,7 +199,7 @@ const _shows = [
     'Place du marché',
     0,
     'En cours',
-    KitStatus.ok,
+    FkStatus.ok,
     live: true,
   ),
   _Show(
@@ -208,7 +208,7 @@ const _shows = [
     'Rue haute',
     1,
     'À l\'heure',
-    KitStatus.muted,
+    FkStatus.muted,
   ),
   _Show(
     '20:30',
@@ -216,16 +216,16 @@ const _shows = [
     'Grande scène',
     2,
     'Retard 15 min',
-    KitStatus.warn,
+    FkStatus.warn,
   ),
-  _Show('21:45', 'Cirque Opale', 'Chapiteau', 3, 'À l\'heure', KitStatus.muted),
+  _Show('21:45', 'Cirque Opale', 'Chapiteau', 3, 'À l\'heure', FkStatus.muted),
   _Show(
     '23:00',
     'Collectif Fil Rouge',
     'Cour du lycée',
     4,
     'Annulé',
-    KitStatus.bad,
+    FkStatus.bad,
   ),
 ];
 
@@ -236,7 +236,7 @@ class _ShowsCard extends StatelessWidget {
   Widget build(BuildContext context) {
     var t = context.festenao;
     var text = Theme.of(context).textTheme;
-    return KitCard(
+    return FkCard(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Column(
         children: [
@@ -246,7 +246,7 @@ class _ShowsCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: [
-                  KitTimeTile(time: show.time, day: 'ven.', live: show.live),
+                  FkTimeTile(time: show.time, day: 'ven.', live: show.live),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -282,7 +282,7 @@ class _ShowsCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  KitStatusPill(show.status, status: show.kind, dot: show.live),
+                  FkStatusPill(show.status, status: show.kind, dot: show.live),
                 ],
               ),
             ),
