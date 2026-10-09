@@ -23,6 +23,16 @@ account instead of typing them.
   the user id when the secured api is there (`globalFestenaoApiServiceOrNull`),
   and fills an existing access missing its name or email when it opens
   (keeping what is typed, quietly).
+- Dashboard: `ProjectSdbUserEditScreen` does the same (*Remplir depuis le
+  compte*, French messages), on the bloc of the admin app, whose
+  `userInfoReader` uses the secured api of the dashboard providers
+  (`emailInviteApiServiceProvider`, passed by `goToProjectSdbUserEditScreen`)
+  or the global one.
+- Shared: `festenaoFillUserFromAccount` (fills the two fields, returns the
+  error code for each screen to word), `FestenaoUserInfoReader`,
+  `AdminProjectUserEditScreenBloc.userInfoReader` (optional `apiService`).
 - Tests: `festenao_common/lib/test/festenao_user_info_test_runner.dart` (on
-  the in memory server: `test/festenao_user_info_test.dart`), the form in
-  `festenao_admin_base_app/test/user_edit_fill_from_account_test.dart`.
+  the in memory server: `test/festenao_user_info_test.dart`), the admin form
+  in `festenao_admin_base_app/test/user_edit_fill_from_account_test.dart`,
+  the dashboard bloc and screen end to end on the in memory server in
+  `festenao_dashboard_base_app/test/project_sdb_user_edit_screen_test.dart`.

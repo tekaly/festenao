@@ -4,7 +4,13 @@ import 'package:festenao_common/api/festenao_api_client.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 import 'package:tekartik_app_rx_bloc/auto_dispose_state_base_bloc.dart';
+import 'package:tkcms_common/tkcms_api.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
+
+/// Reads the account information of a user (name, email), see
+/// [AdminProjectUserEditScreenBloc.userInfoReader].
+typedef FestenaoUserInfoReader =
+    Future<({String? name, String? email})> Function(String userId);
 
 class AdminProjectUserEditScreenResult {
   final bool deleted;
@@ -57,18 +63,36 @@ class AdminProjectUserEditScreenBloc
   TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity> get _fsDb =>
       entityAccess ?? globalFestenaoFirestoreDatabase.projectDb;
 
+  /// The secured api, the global one by default.
+  final TkCmsApiServiceBaseV2? apiService;
+
+  TkCmsApiServiceBaseV2? get _apiService =>
+      apiService ?? globalFestenaoApiServiceOrNull;
+
   /// Whether the account information of a user can be read (through the
   /// secured api: an app admin reads any user, an admin of the entity its
   /// members).
-  bool get userInfoSupported => globalFestenaoApiServiceOrNull != null;
+  bool get userInfoSupported => _apiService != null;
 
   /// The account information (name, email) of [userId], to fill the form.
   Future<FsCmsEntityGetUserInfoApiResult<TkCmsFsEntity>> fetchUserInfo(
     String userId,
   ) => FestenaoApiFsEntityClient<TkCmsFsEntity>(
-    apiService: globalFestenaoApiServiceOrNull!,
+    apiService: _apiService!,
     entityAccess: _fsDb,
   ).getEntityUserInfo(entityId: projectId, userId: userId);
+
+  /// Reads the name and the email of a user for the edit screens, null when
+  /// not [userInfoSupported].
+  FestenaoUserInfoReader? get userInfoReader {
+    if (!userInfoSupported) {
+      return null;
+    }
+    return (userId) async {
+      var info = await fetchUserInfo(userId);
+      return (name: info.name.v, email: info.email.v);
+    };
+  }
 
   /// The compat id fix only makes sense for the festenao project entity.
   late final projectId = entityAccess == null
@@ -76,7 +100,11 @@ class AdminProjectUserEditScreenBloc
       : param.projectId;
   //late StreamSubscription _studiesSubscription;
 
-  AdminProjectUserEditScreenBloc({required this.param, this.entityAccess}) {
+  AdminProjectUserEditScreenBloc({
+    required this.param,
+    this.entityAccess,
+    this.apiService,
+  }) {
     () async {
       if (!disposed) {
         var userId = param.userId;

@@ -21,6 +21,58 @@ class AdminProjectUserEditScreen extends StatefulWidget {
       _AdminProjectUserEditScreenState();
 }
 
+/// [festenaoFillUserFromAccount] refused: not an admin allowed to read the
+/// user.
+const festenaoFillUserErrorPermissionDenied = 'permission-denied';
+
+/// [festenaoFillUserFromAccount] refused: no such user.
+const festenaoFillUserErrorNotFound = 'not-found';
+
+/// Why [festenaoFillUserFromAccount] filled nothing.
+class FestenaoFillUserError {
+  /// The api error code ([festenaoFillUserErrorPermissionDenied],
+  /// [festenaoFillUserErrorNotFound]...), null for another failure.
+  final String? code;
+
+  /// The failure.
+  final Object cause;
+
+  /// Why nothing was filled.
+  const FestenaoFillUserError(this.code, this.cause);
+}
+
+/// Fill [nameController] and [emailController] from the account of [userId]
+/// read by [reader] (the user edit screens of the admin app and of the
+/// dashboard); [onlyEmpty] keeps what is already typed.
+///
+/// Returns null when read (an empty [userId] reads nothing), the error
+/// otherwise, for the screen to report it in its own words.
+Future<FestenaoFillUserError?> festenaoFillUserFromAccount({
+  required FestenaoUserInfoReader reader,
+  required String userId,
+  required TextEditingController nameController,
+  required TextEditingController emailController,
+  bool onlyEmpty = false,
+}) async {
+  if (userId.isEmpty) {
+    return null;
+  }
+  try {
+    var info = await reader(userId);
+    if (info.name != null &&
+        (!onlyEmpty || nameController.text.trim().isEmpty)) {
+      nameController.text = info.name!;
+    }
+    if (info.email != null &&
+        (!onlyEmpty || emailController.text.trim().isEmpty)) {
+      emailController.text = info.email!;
+    }
+    return null;
+  } catch (e) {
+    return FestenaoFillUserError(e is ApiException ? e.error?.code.v : null, e);
+  }
+}
+
 final allRoles = [
   tkCmsUserAccessRoleUser,
   tkCmsUserAccessRoleAdmin,
@@ -41,8 +93,7 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
 
   /// Reads the account information of a user (name, email), null when the
   /// screen cannot (no secured api): then no fill button.
-  Future<({String? name, String? email})> Function(String userId)?
-  get userInfoReader => null;
+  FestenaoUserInfoReader? get userInfoReader => null;
 
   /// Fill the name and the email from the account of the user id typed.
   ///
@@ -54,31 +105,26 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
     bool quiet = false,
   }) async {
     var reader = userInfoReader;
-    var userId = idController.text.trim();
-    if (reader == null || userId.isEmpty) {
+    if (reader == null) {
       return;
     }
-    try {
-      var info = await reader(userId);
-      if (info.name != null &&
-          (!onlyEmpty || nameController.text.trim().isEmpty)) {
-        nameController.text = info.name!;
-      }
-      if (info.email != null &&
-          (!onlyEmpty || emailController.text.trim().isEmpty)) {
-        emailController.text = info.email!;
-      }
-    } catch (e) {
-      if (!quiet && context.mounted) {
-        var code = e is ApiException ? e.error?.code.v : null;
-        var message = switch (code) {
-          'permission-denied' => 'Not allowed to read this user',
-          'not-found' => 'Unknown user $userId',
-          _ => 'Cannot read the account: $e',
-        };
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(message)));
-      }
+    var userId = idController.text.trim();
+    var error = await festenaoFillUserFromAccount(
+      reader: reader,
+      userId: userId,
+      nameController: nameController,
+      emailController: emailController,
+      onlyEmpty: onlyEmpty,
+    );
+    if (error != null && !quiet && context.mounted) {
+      var message = switch (error.code) {
+        festenaoFillUserErrorPermissionDenied =>
+          'Not allowed to read this user',
+        festenaoFillUserErrorNotFound => 'Unknown user $userId',
+        _ => 'Cannot read the account: ${error.cause}',
+      };
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
@@ -330,17 +376,8 @@ class _AdminProjectUserEditScreenState
   var _initialized = false;
 
   @override
-  Future<({String? name, String? email})> Function(String userId)?
-  get userInfoReader {
-    var bloc = BlocProvider.of<AdminProjectUserEditScreenBloc>(context);
-    if (!bloc.userInfoSupported) {
-      return null;
-    }
-    return (userId) async {
-      var info = await bloc.fetchUserInfo(userId);
-      return (name: info.name.v, email: info.email.v);
-    };
-  }
+  FestenaoUserInfoReader? get userInfoReader =>
+      BlocProvider.of<AdminProjectUserEditScreenBloc>(context).userInfoReader;
 
   var formKey = GlobalKey<FormState>();
 

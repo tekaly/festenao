@@ -1,8 +1,16 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
+import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen.dart'
+    show
+        festenaoFillUserErrorNotFound,
+        festenaoFillUserErrorPermissionDenied,
+        festenaoFillUserFromAccount;
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
+import 'package:festenao_dashboard_base_app/src/provider/email_invite_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
+import 'package:tkcms_common/tkcms_api.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// Dashboard counterpart of the admin user edit screen.
@@ -51,6 +59,41 @@ class _ProjectSdbUserEditScreenState
     _initialized = true;
   }
 
+  /// Fill the name and the email from the account of the user id typed
+  /// (through the secured api, see the get-user-info command).
+  ///
+  /// [onlyEmpty] keeps what is already typed and [quiet] reports nothing:
+  /// the automatic fill of an existing access missing them.
+  Future<void> _fillFromAccount(
+    BuildContext context,
+    AdminProjectUserEditScreenBloc bloc, {
+    bool onlyEmpty = false,
+    bool quiet = false,
+  }) async {
+    var reader = bloc.userInfoReader;
+    if (reader == null) {
+      return;
+    }
+    var userId = _idController.text.trim();
+    var error = await festenaoFillUserFromAccount(
+      reader: reader,
+      userId: userId,
+      nameController: _nameController,
+      emailController: _emailController,
+      onlyEmpty: onlyEmpty,
+    );
+    if (error != null && !quiet && context.mounted) {
+      var message = switch (error.code) {
+        festenaoFillUserErrorPermissionDenied =>
+          'Vous ne pouvez pas lire ce compte',
+        festenaoFillUserErrorNotFound => 'Compte inconnu : $userId',
+        _ => 'Lecture du compte impossible : ${error.cause}',
+      };
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var intl = festenaoAdminAppIntl(context);
@@ -78,6 +121,12 @@ class _ProjectSdbUserEditScreenState
           }
           if (!_initialized) {
             _fillFrom(userId, snapshot.data!.user);
+            // An existing access missing its name or email: from the account.
+            if (!isCreate &&
+                (_nameController.text.isEmpty ||
+                    _emailController.text.isEmpty)) {
+              _fillFromAccount(context, bloc, onlyEmpty: true, quiet: true);
+            }
           }
           return Form(
             key: _formKey,
@@ -96,6 +145,15 @@ class _ProjectSdbUserEditScreenState
                     return null;
                   },
                 ),
+                if (bloc.userInfoSupported)
+                  Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: TextButton.icon(
+                      onPressed: () => _fillFromAccount(context, bloc),
+                      icon: const Icon(Icons.person_search),
+                      label: const Text('Remplir depuis le compte'),
+                    ),
+                  ),
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: _roleController,
@@ -235,11 +293,24 @@ class _ProjectSdbUserEditScreenState
 }
 
 /// Navigate to the user create/edit screen, returning the edit result.
+///
+/// The secured api (to fill a user from its account) is the one of the
+/// dashboard providers ([emailInviteApiServiceProvider]) when the context
+/// has a provider scope, the global one otherwise.
 Future<AdminProjectUserEditScreenResult?> goToProjectSdbUserEditScreen(
   BuildContext context, {
   required AdminProjectUserEditScreenParam param,
   TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity>? entityAccess,
 }) async {
+  TkCmsApiServiceBaseV2? apiService;
+  try {
+    apiService = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(emailInviteApiServiceProvider);
+  } catch (_) {
+    // No provider scope: the bloc uses the global api service.
+  }
   return await Navigator.of(context).push(
     MaterialPageRoute<AdminProjectUserEditScreenResult>(
       builder: (_) {
@@ -247,6 +318,7 @@ Future<AdminProjectUserEditScreenResult?> goToProjectSdbUserEditScreen(
           blocBuilder: () => AdminProjectUserEditScreenBloc(
             param: param,
             entityAccess: entityAccess,
+            apiService: apiService,
           ),
           child: const ProjectSdbUserEditScreen(),
         );
