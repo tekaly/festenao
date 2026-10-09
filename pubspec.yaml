@@ -17,6 +17,7 @@ workspace:
   - packages_flutter/festenao_base_app
   - packages_flutter/festenao_firebase_flutter
   - packages_flutter/festenao_theme
+  - packages_flutter/festenao_theme/example
   - packages_flutter/festenao_icon
   - packages_flutter/festenao_icon/example
   - packages_flutter/festenao_markdown
