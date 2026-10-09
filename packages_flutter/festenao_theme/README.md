@@ -9,6 +9,8 @@
 
 ## Design: presets, palettes, tokens
 
+The design spec behind it: [`doc/design_spec.md`](../../doc/design_spec.md).
+
 `package:festenao_theme/design.dart` builds the look shared by the festenao
 apps: a neutral paper and ink, one accent for the action, the selection and
 what is live, fixed status and category colours.
