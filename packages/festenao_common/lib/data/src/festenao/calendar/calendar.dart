@@ -32,7 +32,7 @@ extension CalendarTimeCompatExt on CalendarTime {
     var month = day.dateTime.month;
     var monthDay = day.dateTime.day;
     var hours = (seconds ~/ 3600) % 24;
-    var minutes = seconds % 60;
+    var minutes = (seconds ~/ 60) % 60;
 
     DateTime dateTime;
     if (isLocal ?? false) {
@@ -125,7 +125,7 @@ class CalendarTimeCompat implements Comparable<CalendarTimeCompat> {
     var month = day.dateTime.month;
     var monthDay = day.dateTime.day;
     var hours = (_seconds ~/ 3600) % 24;
-    var minutes = _seconds % 60;
+    var minutes = (_seconds ~/ 60) % 60;
 
     DateTime dateTime;
     if (isLocal ?? false) {

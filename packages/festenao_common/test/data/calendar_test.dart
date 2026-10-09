@@ -52,6 +52,31 @@ void main() {
         day.toDateTime(time).toIso8601String(),
         '2023-07-27T01:00:00.000Z',
       );
+      // The minutes are kept.
+      time = CalendarTime(text: '10:30');
+      expect(
+        day.toDateTime(time).toIso8601String(),
+        '2023-07-25T10:30:00.000Z',
+      );
+      time = CalendarTime(text: '24:45');
+      expect(
+        day.toDateTime(time).toIso8601String(),
+        '2023-07-26T00:45:00.000Z',
+      );
+      expect(day.toDateTime(time, isLocal: true), DateTime(2023, 7, 26, 0, 45));
+    });
+    test('toDayTime compat', () {
+      var day = CalendarDayCompat(text: '2023-07-25');
+      var time = CalendarTimeCompat(text: '10:30');
+      expect(
+        day.toDateTime(time).toIso8601String(),
+        '2023-07-25T10:30:00.000Z',
+      );
+      time = CalendarTimeCompat(text: '24:45');
+      expect(
+        day.toDateTime(time).toIso8601String(),
+        '2023-07-26T00:45:00.000Z',
+      );
     });
   });
 }
