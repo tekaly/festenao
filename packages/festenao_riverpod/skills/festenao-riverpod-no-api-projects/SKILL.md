@@ -45,7 +45,10 @@ commands.
   (`fsEntityRef(id)`, `fsUserEntityAccessRef(userId, id)`,
   `fsEntityPublicAccessRef(id)`, `firestore`).
 * `festenaoProjectsSdbProvider` (`UserProjectsSdb?`, null until the manager
-  has one), `festenaoProjectsSynchronizerProvider`
+  has one, and null while the manager still holds the database of the
+  previous user: right after a sign in the user id is known before the
+  manager has switched, and a sync started on the old database failed when
+  the manager closed it), `festenaoProjectsSynchronizerProvider`
   (`UserProjectsSdbSynchronizer?`, disposed with the provider) and
   `festenaoProjectsBootstrapProvider` (`FutureProvider<void>`, runs
   `syncUserProjects(userId:)` once per signed in user; it marks the local

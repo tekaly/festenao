@@ -47,10 +47,20 @@ final festenaoProjectsFsProvider =
 /// a per user database synchronized to
 /// `app/<appId>/user_prv/<userId>/data/projects`, which the no-api rules grant
 /// to that user only.
-final festenaoProjectsSdbProvider = Provider<UserProjectsSdb?>(
-  (ref) => ref.watch(festenaoUserProjectsSdbProvider).value,
-  name: 'festenaoProjectsSdb',
-);
+///
+/// The manager follows the auth on its own: right after a sign in (or at
+/// startup, a restored user) the user id is known while the manager still
+/// holds the previous database, which it closes as soon as the user one is
+/// ready. That database is never handed out (null meanwhile), a sync started
+/// on it would fail half way.
+final festenaoProjectsSdbProvider = Provider<UserProjectsSdb?>((ref) {
+  var projectsSdb = ref.watch(festenaoUserProjectsSdbProvider).value;
+  if (projectsSdb == null ||
+      projectsSdb.userId != ref.watch(festenaoFirebaseUserIdProvider)) {
+    return null;
+  }
+  return projectsSdb;
+}, name: 'festenaoProjectsSdb');
 
 /// Rebuilds the local project list from the firestore access documents.
 final festenaoProjectsSynchronizerProvider =

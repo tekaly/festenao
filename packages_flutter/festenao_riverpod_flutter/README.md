@@ -10,6 +10,10 @@ Flutter overrides for [`festenao_riverpod`](../../packages/festenao_riverpod):
 - `festenaoFlutterProviderOverrides` — builds the riverpod `Override`s for
   `festenaoAppFlavorContextProvider`, `festenaoFileSystemProvider` and
   `festenaoSdbFactoryProvider` in one call.
+- `festenaoProviderOverrides` — the same overrides from a `FileSystem` and an
+  `SdbFactory` already resolved by the two helpers above, for an app that
+  needs them first (its own databases, a local firebase). Passing those to
+  `festenaoFlutterProviderOverrides` would sandbox them twice.
 
 Usage:
 

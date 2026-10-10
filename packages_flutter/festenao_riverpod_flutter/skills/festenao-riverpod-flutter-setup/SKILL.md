@@ -59,6 +59,15 @@ sandboxed per app flavor, plus the one call that turns them into riverpod
   `festenaoUserProjectsSdbManagerOverride(factory:, app: appFlavorContext.appId)`).
   `identityBloc` is accepted but **not forwarded** by the current
   implementation, so passing it changes nothing today.
+* `List<Override> festenaoProviderOverrides({required FestenaoAppFlavorContext
+  appFlavorContext, required FileSystem fileSystem, required SdbFactory
+  sdbFactory})` builds the same overrides from an already resolved
+  `festenaoFlutterFileSystem(...)` and `festenaoFlutterSdbFactory(...)`: use
+  it when the app needs the factory before building the overrides (its own
+  databases, a local firebase). Never pass resolved ones to
+  `festenaoFlutterProviderOverrides` as `applicationFileSystem` /
+  `rawSdbFactory`: they get sandboxed a second time and the databases land in
+  a doubled path (`<support>/<app>/home/.../<app>/...`).
 * It does **not** override firebase. The projects manager override reads
   `festenaoFirebaseAppProvider`, so an app that uses the per user projects
   database must add `...festenaoFirebaseContextOverrides(firebaseContext)`

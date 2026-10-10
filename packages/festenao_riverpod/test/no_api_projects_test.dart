@@ -100,6 +100,29 @@ void main() {
     fail('projects never satisfied the condition');
   }
 
+  test(
+    'the projects database of the previous user is never handed out',
+    () async {
+      // The bootstrap watched from the start, as an app does: on sign in the
+      // user id is known before the manager has switched databases, a sync
+      // started on the previous one failed once the manager closed it.
+      var mismatches = <String>[];
+      container.listen(festenaoProjectsSdbProvider, (previous, next) {
+        var userId = container.read(festenaoFirebaseUserIdProvider);
+        if (next != null && next.userId != userId) {
+          mismatches.add('${next.userId} handed out for $userId');
+        }
+      }, fireImmediately: true);
+      listen(festenaoProjectsBootstrapProvider);
+      var userId = await signIn('first@festenao-riverpod-test.local');
+      await container.read(festenaoProjectsBootstrapProvider.future);
+      expect(container.read(festenaoProjectsSdbProvider)!.userId, userId);
+      await signIn('second@festenao-riverpod-test.local');
+      await container.read(festenaoProjectsBootstrapProvider.future);
+      expect(mismatches, isEmpty);
+    },
+  );
+
   test('create, rename, publish and delete a project', () async {
     var userId = await signIn('admin@festenao-riverpod-test.local');
     var commands = container.read(festenaoNoApiProjectsProvider);

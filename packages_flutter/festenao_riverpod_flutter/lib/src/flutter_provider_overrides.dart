@@ -17,7 +17,8 @@ import 'flutter_sdb_factory.dart';
 /// `ProviderScope(overrides: ...)`.
 ///
 /// [applicationFileSystem] and [rawSdbFactory] can be overridden in tests
-/// (e.g. with `fsMemory` and `sdbFactoryMemory`).
+/// (e.g. with `fsMemory` and `sdbFactoryMemory`). They are the raw ones, not
+/// sandboxed yet: see [festenaoProviderOverrides] for already resolved ones.
 ///
 /// [projectsApp] is only needed when the app uses the per user projects
 /// database; see [festenaoUserProjectsSdbManagerOverride] for details on
@@ -37,18 +38,31 @@ Future<List<Override>> festenaoFlutterProviderOverrides({
     fileSystem,
     factory: rawSdbFactory,
   );
-  var appId = appFlavorContext.appId;
+  return festenaoProviderOverrides(
+    appFlavorContext: appFlavorContext,
+    fileSystem: fileSystem,
+    sdbFactory: sdbFactory,
+  );
+}
 
+/// The same [Override]s as [festenaoFlutterProviderOverrides], from a
+/// [fileSystem] and an [sdbFactory] already resolved for [appFlavorContext]
+/// (by [festenaoFlutterFileSystem] and [festenaoFlutterSdbFactory]).
+///
+/// For an app that needs them before building its overrides (its own
+/// databases, a local firebase): passing them to
+/// [festenaoFlutterProviderOverrides] instead would sandbox them a second
+/// time, and the databases would end up in a doubled path.
+List<Override> festenaoProviderOverrides({
+  required FestenaoAppFlavorContext appFlavorContext,
+  required FileSystem fileSystem,
+  required SdbFactory sdbFactory,
+}) {
+  var appId = appFlavorContext.appId;
   return [
     festenaoAppFlavorContextProvider.overrideWithValue(appFlavorContext),
     festenaoFileSystemProvider.overrideWithValue(fileSystem),
     festenaoSdbFactoryProvider.overrideWithValue(sdbFactory),
     festenaoUserProjectsSdbManagerOverride(factory: sdbFactory, app: appId),
-    /*
-    festenaoUserProjectsSdbManagerOverride(
-      factory: sdbFactory,
-      app: appId,
-      identityBloc: identityBloc,
-    ),*/
   ];
 }
