@@ -43,6 +43,9 @@ display. A harness is a `tool/screenshot_test.dart` run with `flutter test`.
 * `session.settle()` alternates 50 ms pumps and 10 ms real delays,
   `settleRounds` times (20 by default): raise it for slow backends.
   `waitFor(finder)` settles until something is found.
+* `back()` taps the material_ui `BackButton` of the app bar, whatever its
+  tooltip language; without one it falls back to the navigator, which only
+  finds an English "Back" tooltip.
 * Files: `shot(name, prefix: 'phone')` writes `phone_NN_<name>.png`, NN
   counted per directory and prefix (`resetIndex` restarts it, `skip`
   counts one without writing); `shotNamed('phone_05b_variant')` writes the
@@ -66,8 +69,8 @@ display. A harness is a `tool/screenshot_test.dart` run with `flutter test`.
 import 'dart:io';
 
 import 'package:festenao_screenshot/festenao_screenshot.dart';
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
 
 const _only = String.fromEnvironment('APP_SCREENSHOT_ONLY');
 

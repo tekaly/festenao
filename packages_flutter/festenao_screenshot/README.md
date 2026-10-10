@@ -24,7 +24,7 @@ the festenao harnesses (`festenao_theme/example`,
 import 'dart:io';
 
 import 'package:festenao_screenshot/festenao_screenshot.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   runScreenshots('my app', (session) async {

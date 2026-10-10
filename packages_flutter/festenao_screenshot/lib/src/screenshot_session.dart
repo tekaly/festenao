@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart' show BackButton;
 
 import 'screenshot_fonts.dart';
 
@@ -135,6 +136,9 @@ class ScreenshotSession {
       tap(find.byTooltip(tooltip), settleRounds: settleRounds);
 
   /// Goes back (the back button of the app bar, or the navigator).
+  ///
+  /// The back button is the one of material_ui, what the festenao apps
+  /// build; the navigator fallback only finds an English "Back" tooltip.
   Future<void> back({int? settleRounds}) async {
     var backButton = find.byType(BackButton);
     if (backButton.evaluate().isNotEmpty) {

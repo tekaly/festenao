@@ -2,9 +2,10 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:festenao_screenshot/festenao_screenshot.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show SynchronousFuture;
 import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The width and height of a png.
 (int, int) _pngSize(File file) {
@@ -20,6 +21,26 @@ Widget _screen(String text) => MaterialApp(
     body: const Center(child: Icon(Icons.home)),
   ),
 );
+
+/// A back button that does not say "Back", as in a French app.
+class _RetourLocalizations extends DefaultMaterialLocalizations {
+  @override
+  String get backButtonTooltip => 'Retour';
+}
+
+class _RetourDelegate extends LocalizationsDelegate<MaterialLocalizations> {
+  const _RetourDelegate();
+
+  @override
+  bool isSupported(Locale locale) => true;
+
+  @override
+  Future<MaterialLocalizations> load(Locale locale) =>
+      SynchronousFuture(_RetourLocalizations());
+
+  @override
+  bool shouldReload(_RetourDelegate old) => false;
+}
 
 void main() {
   tearDownAll(() => _directory.deleteSync(recursive: true));
@@ -87,6 +108,36 @@ void main() {
     expect(session.files, hasLength(5));
     expect(session.errors, isEmpty);
   }, directory: _directory);
+
+  runScreenshots('back taps the back button of the app bar', (session) async {
+    await session.open(
+      MaterialApp(
+        localizationsDelegates: const [_RetourDelegate()],
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        Scaffold(appBar: AppBar(title: const Text('Detail'))),
+                  ),
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+      size: const Size(200, 200),
+    );
+    await session.tapText('Open');
+    expect(find.byTooltip('Retour'), findsOneWidget);
+    // Not the English "Back" the navigator fallback looks for.
+    await session.back();
+    expect(find.text('Detail'), findsNothing);
+    expect(find.text('Open'), findsOneWidget);
+  }, directory: Directory('${_directory.path}/back'));
 
   runScreenshots(
     'only',
