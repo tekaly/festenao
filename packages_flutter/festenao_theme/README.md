@@ -35,11 +35,67 @@ Container(color: t.soft(t.ok), child: Text('Arrivé', style: TextStyle(color: t.
   component themed from it, `FestenaoTokens` attached as an extension.
 - `FestenaoThemePreset`: a named theme, light and dark. `festenaoThemePresets`
   holds the hand made ones (Festenao, Basalte · Plein jour, Arcade,
-  Obsidian, Guinguette, Nocturne) and seed ones (Violet, Teal, Coral, Forest,
-  Ocean, Graphite, Lagon).
+  Obsidian, Guinguette, Nocturne, Contraste, Papier, Ardoise) and seed ones
+  (Violet, Teal, Coral, Forest, Ocean, Graphite, Lagon).
+  - Contraste: black on white (white on black, yellow accent), for the sun
+    or a low vision;
+  - Papier: cream paper, brown ink, terracotta, for long reading;
+  - Ardoise: cool slate and teal, a calm tool (admin, dashboards).
+- `festenaoThemePresetsByIds(['festenao', 'obsidian'])`: the presets of
+  those ids, in that order, to build the list an app offers.
 
 Apps declare the `Poppins` and `JetBrains Mono` fonts in their own pubspec
 (see `example/pubspec.yaml`).
+
+## Theme switcher
+
+`package:festenao_theme/switcher.dart` lets the user choose among the
+presets the app offers (all by default, or its own list, its own presets
+included), and light, dark or the system mode, kept in the app's
+preferences.
+
+```dart
+import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/switcher.dart';
+
+var controller = FestenaoThemeController(
+  presets: festenaoThemePresetsByIds(['festenao', 'ardoise', 'contrast']),
+  // One string (`ardoise|dark`), here in tekartik prefs.
+  store: FestenaoThemeStore.from(
+    read: () => prefs.getString('theme'),
+    write: (value) => prefs.setString('theme', value),
+  ),
+);
+await controller.load(); // before runApp: no flash of the default theme
+
+runApp(
+  FestenaoThemeBuilder(
+    controller: controller,
+    builder: (context, controller) => MaterialApp(
+      theme: controller.theme,
+      darkTheme: controller.darkTheme,
+      themeMode: controller.mode,
+      home: const HomeScreen(),
+    ),
+  ),
+);
+
+// Anywhere below (the controller comes from the FestenaoThemeScope):
+AppBar(actions: const [FestenaoThemeButton()]);  // presets and modes in a menu
+const FestenaoThemeModeButton();                 // system → light → dark
+const FestenaoThemeSettings();                   // chips and segments, for a settings screen
+```
+
+- `FestenaoThemeController`: `presets` (never empty), `preset` (the chosen
+  one, the first offered when the stored one is not offered any more),
+  `mode`, `theme` / `darkTheme` (built once per preset), `selectPreset`,
+  `nextPreset`, `selectMode`, `nextMode`, `load`.
+- `FestenaoThemeStore`: `from(read:, write:)` on any preferences, `memory()`
+  for tests and demos.
+- The widgets speak English, or French under a French locale
+  (`FestenaoThemeSwitcherTexts.en` / `.fr`, or `texts:`).
+- With a single preset offered, the widgets only offer the mode.
+- `FestenaoPresetSwatch`: the accent of a preset on its paper.
 
 ## Gallery
 

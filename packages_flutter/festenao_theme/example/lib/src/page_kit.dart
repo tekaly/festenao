@@ -1,7 +1,7 @@
 import 'package:festenao_theme/design.dart';
 import 'package:festenao_theme/kit.dart';
+import 'package:festenao_theme/switcher.dart' show FestenaoPresetSwatch;
 import 'package:festenao_theme_example/src/gallery_app.dart';
-import 'package:festenao_theme_example/src/gallery_shell.dart';
 import 'package:material_ui/material_ui.dart';
 
 /// The palette, the type and the components of the current preset.
@@ -23,7 +23,7 @@ class FkPageView extends StatelessWidget {
           children: [
             for (var preset in festenaoThemePresets)
               ChoiceChip(
-                avatar: PresetSwatch(
+                avatar: FestenaoPresetSwatch(
                   preset: preset,
                   brightness: state.brightness,
                   size: 20,

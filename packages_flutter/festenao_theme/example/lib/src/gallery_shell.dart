@@ -1,5 +1,6 @@
 import 'package:festenao_theme/design.dart';
 import 'package:festenao_theme/kit.dart';
+import 'package:festenao_theme/switcher.dart' show FestenaoPresetSwatch;
 import 'package:festenao_theme_example/src/gallery_app.dart';
 import 'package:festenao_theme_example/src/page_access.dart';
 import 'package:festenao_theme_example/src/page_kit.dart';
@@ -275,7 +276,10 @@ class ThemeActions extends StatelessWidget {
                 value: preset,
                 child: Row(
                   children: [
-                    PresetSwatch(preset: preset, brightness: state.brightness),
+                    FestenaoPresetSwatch(
+                      preset: preset,
+                      brightness: state.brightness,
+                    ),
                     const SizedBox(width: 12),
                     Text(preset.name),
                   ],
@@ -287,7 +291,7 @@ class ThemeActions extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                PresetSwatch(
+                FestenaoPresetSwatch(
                   preset: state.preset,
                   brightness: state.brightness,
                 ),
@@ -316,47 +320,6 @@ class ThemeActions extends StatelessWidget {
           onPressed: controller.toggleBrightness,
         ),
       ],
-    );
-  }
-}
-
-/// The accent of [preset] on its paper.
-class PresetSwatch extends StatelessWidget {
-  /// The preset.
-  final FestenaoThemePreset preset;
-
-  /// The brightness shown.
-  final Brightness brightness;
-
-  /// Diameter.
-  final double size;
-
-  /// A swatch.
-  const PresetSwatch({
-    super.key,
-    required this.preset,
-    required this.brightness,
-    this.size = 22,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    var palette = preset.palette(brightness);
-    return Container(
-      width: size,
-      height: size,
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: palette.paper,
-        shape: BoxShape.circle,
-        border: Border.all(color: palette.lineStrong),
-      ),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: palette.accent,
-          shape: BoxShape.circle,
-        ),
-      ),
     );
   }
 }

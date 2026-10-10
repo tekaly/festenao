@@ -204,7 +204,7 @@ public material only:
   `festenaoThemeDataFromPalette` (every component themed from the palette,
   no seed tint on surfaces), `FestenaoTokens` (`context.festenao`: colours,
   soft tints, radii, card shadow, hero gradient, label style),
-  `FestenaoThemePreset` and 13 presets:
+  `FestenaoThemePreset` and 13 presets (16 since 2026-10-10, see below):
   - hand made, light and dark: **Festenao** (neutral, blue), **Basalte ·
     Plein jour** (bp), **Arcade** (buzzerelio, plus a light version),
     **Obsidian** (cronelio, plus a light version), **Guinguette** (new:
@@ -242,6 +242,20 @@ public material only:
   *Festenao* dark preset, its route path bar shows in debug builds only
   (`festenaoAdminAppShowPathBar`), the drawer opens on a brand row.
   `festenao_admin_base_app/test/access_view_test.dart`.
+- **Shared presets and theme switcher** (2026-10-10): three more hand made
+  presets, 16 in all: **Contraste** (black on white, white on black with a
+  yellow accent, heavier headings: accessibility), **Papier** (cream paper,
+  brown ink, terracotta: long reading), **Ardoise** (cool slate and teal: a
+  calm tool), checked by the same contrast tests.
+  `package:festenao_theme/switcher.dart`: `FestenaoThemeController` (the
+  presets an app offers, `festenaoThemePresetsByIds` or its own presets; the
+  chosen one and light, dark or system; `load` and a save on each change
+  through a `FestenaoThemeStore` on the app's preferences),
+  `FestenaoThemeScope` / `FestenaoThemeBuilder`, and the widgets
+  `FestenaoThemeButton` (presets and modes in an app bar menu),
+  `FestenaoThemeModeButton`, `FestenaoThemeSettings` (chips and segments
+  for a settings screen), `FestenaoPresetSwatch`; English or French from
+  the locale. `test/switcher_test.dart`. First app: tkhostelio.
 - Not done: Inter (open question 1), the dashboard base app on the presets
   and the kit (phase 2), the other admin screens (lists and forms of the
   content: phase 3), the drawer items.
