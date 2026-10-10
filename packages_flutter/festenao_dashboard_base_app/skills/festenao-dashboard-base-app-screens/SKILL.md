@@ -119,6 +119,11 @@ class MyDebugScreen extends StatelessWidget {
   no list). An app reads `projectModulesProvider(projectId)` (null: every
   module) and writes with `dashboardSetProjectModules(ref, projectId,
   modules)`, which updates the local mirror too.
+* Self-serve creation: `dashboardCreateProject(ref, name:, slug:, modules:)`
+  creates the project for the signed in user (admin), with its modules and
+  its url (`FestenaoSlugTakenException` before anything is created when the
+  slug is taken), adds it to the local projects and returns its id; the app
+  then seeds its own content.
 * Name clashes with festenao_admin_base_app: `ProjectViewScreen`,
   `ProjectViewResult`, `SelectProjectResult`, `selectProject`,
   `ProjectLeading`, `goToProjectEditScreen`, `goToProjectViewScreen` exist

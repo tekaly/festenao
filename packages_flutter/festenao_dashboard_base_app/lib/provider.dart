@@ -12,6 +12,7 @@ export 'src/provider/festenao_user_projects.dart';
 export 'src/provider/firebase_app_rpd.dart';
 export 'src/provider/fs_providers.dart';
 export 'src/provider/project_access_providers.dart';
+export 'src/provider/project_create.dart';
 export 'src/provider/project_modules_providers.dart';
 export 'src/provider/project_slug_providers.dart';
 export 'src/provider/quizz_providers.dart';
