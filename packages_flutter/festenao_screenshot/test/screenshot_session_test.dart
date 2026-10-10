@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:festenao_screenshot/festenao_screenshot.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
 
 /// The width and height of a png.
@@ -26,6 +27,34 @@ void main() {
   test('names', () {
     expect(screenshotNames(''), isEmpty);
     expect(screenshotNames(' a, b ,,c'), {'a', 'b', 'c'});
+  });
+
+  testWidgets('font fallbacks keep the package of a family', (tester) async {
+    await tester.pumpWidget(
+      const Directionality(
+        textDirection: TextDirection.ltr,
+        child: Column(
+          children: [
+            Text(
+              'package',
+              style: TextStyle(fontFamily: 'Poppins', package: 'my_theme'),
+            ),
+            Text('bare', style: TextStyle(fontSize: 12)),
+          ],
+        ),
+      ),
+    );
+    patchFontFallbacks(tester);
+    TextStyle style(String text) => tester
+        .renderObjectList<RenderParagraph>(find.text(text))
+        .single
+        .text
+        .style!;
+    expect(style('package').fontFamily, 'packages/my_theme/Poppins');
+    expect(style('package').fontFamilyFallback, ['DejaVu Sans']);
+    expect(style('bare').fontFamily, 'Roboto');
+    expect(style('bare').fontFamilyFallback, ['DejaVu Sans']);
+    expect(style('bare').fontSize, 12);
   });
 
   runScreenshots('numbered per prefix, filtered, at the pixel ratio', (

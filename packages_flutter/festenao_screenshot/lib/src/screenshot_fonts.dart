@@ -199,14 +199,10 @@ void patchFontFallbacks(WidgetTester tester) {
     if (object is RenderParagraph) {
       var text = object.text;
       if (text is TextSpan && text.style?.fontFamilyFallback == null) {
-        var style = text.style ?? const TextStyle();
         object.text = TextSpan(
           text: text.text,
           children: text.children,
-          style: style.copyWith(
-            fontFamily: style.fontFamily ?? _platformFontFamily,
-            fontFamilyFallback: [_fallbackFontFamily],
-          ),
+          style: _withFallbacks(text.style ?? const TextStyle()),
           recognizer: text.recognizer,
           mouseCursor: text.mouseCursor,
           onEnter: text.onEnter,
@@ -219,3 +215,41 @@ void patchFontFallbacks(WidgetTester tester) {
     }
   }
 }
+
+/// [style] with [_platformFontFamily] when it names no family, and the
+/// [_fallbackFontFamily] fallback.
+///
+/// Built anew rather than with `copyWith`: the style of a package font
+/// (`TextStyle(fontFamily: 'Poppins', package: 'festenao_theme')`, the text
+/// of a `ThemeData(fontFamily:, package:)` theme) keeps its package through
+/// `copyWith`, which prefixes the family it is given again
+/// (`packages/festenao_theme/packages/festenao_theme/Poppins`), and the
+/// fallback too: every glyph a box.
+TextStyle _withFallbacks(TextStyle style) => TextStyle(
+  inherit: style.inherit,
+  color: style.color,
+  backgroundColor: style.backgroundColor,
+  fontSize: style.fontSize,
+  fontWeight: style.fontWeight,
+  fontStyle: style.fontStyle,
+  letterSpacing: style.letterSpacing,
+  wordSpacing: style.wordSpacing,
+  textBaseline: style.textBaseline,
+  height: style.height,
+  leadingDistribution: style.leadingDistribution,
+  locale: style.locale,
+  foreground: style.foreground,
+  background: style.background,
+  shadows: style.shadows,
+  fontFeatures: style.fontFeatures,
+  fontVariations: style.fontVariations,
+  decoration: style.decoration,
+  decorationColor: style.decorationColor,
+  decorationStyle: style.decorationStyle,
+  decorationThickness: style.decorationThickness,
+  debugLabel: style.debugLabel,
+  // Already prefixed with its package, if any.
+  fontFamily: style.fontFamily ?? _platformFontFamily,
+  fontFamilyFallback: const [_fallbackFontFamily],
+  overflow: style.overflow,
+);
