@@ -13,6 +13,24 @@ Future<void> _settle(WidgetTester tester) async {
   }
 }
 
+/// Settles until [done], failing after [timeout]: on a loaded runner,
+/// creating and opening a database takes longer than a fixed [_settle].
+Future<void> _settleUntil(
+  WidgetTester tester,
+  String what,
+  bool Function() done, {
+  Duration timeout = const Duration(minutes: 2),
+}) async {
+  var watch = Stopwatch()..start();
+  while (!done()) {
+    if (watch.elapsed > timeout) {
+      fail('$what: not done after ${watch.elapsed}');
+    }
+    await tester.pump(const Duration(milliseconds: 50));
+    await Future<void>.delayed(const Duration(milliseconds: 10));
+  }
+}
+
 void _testWidgets(
   String description,
   Future<void> Function(WidgetTester) body,
@@ -98,9 +116,12 @@ void main() {
       await _create(tester, 'New sembast database');
       await tester.enterText(find.byType(TextField), 'made');
       await tester.tap(find.text('Ok'));
-      await _settle(tester);
-
       // It opened in the object explorer, on the store it was seeded with.
+      await _settleUntil(
+        tester,
+        'sembast database opened',
+        () => find.text('config').evaluate().isNotEmpty,
+      );
       expect(find.text('config'), findsOneWidget);
       expect(
         await explorer.databaseKind('made.db'),
@@ -128,8 +149,11 @@ void main() {
       await _create(tester, 'New notes database');
       await tester.enterText(find.byType(TextField), 'notes');
       await tester.tap(find.text('Ok'));
-      await _settle(tester);
-
+      await _settleUntil(
+        tester,
+        'sdb database opened',
+        () => find.text('app_note').evaluate().isNotEmpty,
+      );
       expect(find.text('app_note'), findsOneWidget);
       expect(
         await explorer.databaseKind('notes.db'),
