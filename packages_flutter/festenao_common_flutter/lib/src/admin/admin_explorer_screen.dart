@@ -1,5 +1,5 @@
+import 'package:festenao_common/admin/festenao_apps_admin.dart';
 import 'package:festenao_common/festenao_firebase.dart' show FirebaseContext;
-import 'package:festenao_common/firebase/firebase_service_account.dart';
 import 'package:festenao_common/fs/file_system_explorer.dart';
 import 'package:fs_shim/fs.dart';
 import 'package:material_ui/material_ui.dart';
@@ -12,6 +12,7 @@ import '../firestore_explorer_flutter.dart';
 import '../object_editor/object_editor_dialogs.dart';
 import '../object_editor/object_explorer_screen.dart';
 import '../object_editor/object_value_editor.dart';
+import 'admin_apps_screen.dart';
 import 'admin_credentials.dart';
 import 'admin_credentials_screen.dart';
 
@@ -67,9 +68,18 @@ List<FileSystemRoot> adminFileSystemRoots({
 ///
 /// It is the whole of what an admin build is for, so an app shows it behind
 /// one item of its start page.
+///
+/// The apps of the project ([AdminAppsScreen]) list who may do what on each
+/// app and project, and make an admin or a super admin.
 class AdminExplorerScreen extends StatefulWidget {
   /// Where the credentials live.
   final AdminCredentialsDb credentialsDb;
+
+  /// How firebase is reached with the credentials: the rest apis
+  /// ([festenaoAdminFirebaseRest], the default, web compatible) or the admin
+  /// sdk (`festenaoAdminFirebaseAdminSdk`, io only, which also lists the apps
+  /// whose document was never written).
+  final FestenaoAdminFirebase? firebase;
 
   /// The roots the file system explorer offers, [adminFileSystemRoots] by
   /// default.
@@ -110,6 +120,7 @@ class AdminExplorerScreen extends StatefulWidget {
   const AdminExplorerScreen({
     super.key,
     required this.credentialsDb,
+    this.firebase,
     this.roots,
     this.fileSystem,
     this.createActions,
@@ -127,6 +138,9 @@ class AdminExplorerScreen extends StatefulWidget {
 
 class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
   AdminCredentialsDb get credentialsDb => widget.credentialsDb;
+
+  FestenaoAdminFirebase get _firebaseAccess =>
+      widget.firebase ?? festenaoAdminFirebaseRest;
 
   late Future<AdminCredentials?> _loading = credentialsDb.current();
 
@@ -153,9 +167,7 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
       _firebase = null;
       await _deleteFirebase(current.$2);
     }
-    var context = festenaoInitFirebaseWithServiceAccount(
-      serviceAccountMap: serviceAccountMap,
-    );
+    var context = _firebaseAccess.initWithServiceAccount(serviceAccountMap);
     _firebase = (serviceAccount, context);
     try {
       return await context;
@@ -247,6 +259,42 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
         this.context,
         auth: context.auth,
         title: credentials.projectId.v ?? credentials.displayName,
+        userActions: [adminUserAccessAction(admin: _appsAdmin(context))],
+      );
+    } catch (e) {
+      _snack('$e');
+    }
+  }
+
+  /// The apps of the firestore of [context].
+  FestenaoAppsAdmin _appsAdmin(FirebaseContext context) {
+    var firestore = context.firestore;
+    var firebase = _firebaseAccess;
+    return FestenaoAppsAdmin(
+      firestore: firestore,
+      listDocumentIds: (path) => firebase.listDocumentIds(firestore, path),
+    );
+  }
+
+  /// The apps of the project, and who may do what on them.
+  Future<void> _openApps(AdminCredentials? credentials) async {
+    var serviceAccountMap = _serviceAccountMap(credentials);
+    if (credentials == null || serviceAccountMap == null) {
+      return;
+    }
+    try {
+      var context = await _firebaseContext(
+        credentials.serviceAccount.v!,
+        serviceAccountMap,
+      );
+      if (!mounted) {
+        return;
+      }
+      await goToAdminAppsScreen(
+        this.context,
+        admin: _appsAdmin(context),
+        auth: context.auth,
+        title: 'Apps of ${credentials.projectId.v ?? credentials.displayName}',
       );
     } catch (e) {
       _snack('$e');
@@ -355,7 +403,8 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
                 credentials == null
                     ? 'None selected'
                     : '${credentials.displayName} '
-                          '(${credentials.projectId.v ?? 'no project'})',
+                          '(${credentials.projectId.v ?? 'no project'}), '
+                          'through the ${_firebaseAccess.name}',
               ),
               onTap: () async {
                 await goToAdminCredentialsScreen(
@@ -366,6 +415,17 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
               },
             ),
             const Divider(),
+            ListTile(
+              leading: const Icon(Icons.apps_outlined),
+              title: const Text('Apps'),
+              subtitle: Text(
+                credentials == null
+                    ? 'Pick a set of credentials first'
+                    : 'Every app and project, its admins and super admins',
+              ),
+              enabled: credentials != null,
+              onTap: () => _openApps(credentials),
+            ),
             ListTile(
               leading: const Icon(Icons.cloud_outlined),
               title: const Text('Firestore explorer'),
@@ -423,6 +483,7 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
 Future<void> goToAdminExplorerScreen(
   BuildContext context, {
   required AdminCredentialsDb credentialsDb,
+  FestenaoAdminFirebase? firebase,
   List<FileSystemRoot>? roots,
   FileSystem? fileSystem,
   List<FileSystemCreateAction>? createActions,
@@ -436,6 +497,7 @@ Future<void> goToAdminExplorerScreen(
   MaterialPageRoute(
     builder: (_) => AdminExplorerScreen(
       credentialsDb: credentialsDb,
+      firebase: firebase,
       roots: roots,
       fileSystem: fileSystem,
       createActions: createActions,

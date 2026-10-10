@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:festenao_common/firebase/festenao_service_account_io.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_support/festenao_firebase_admin_sdk.dart';
 import 'package:path/path.dart';
@@ -8,6 +9,9 @@ import 'package:tekartik_firebase_admin_sdk/firestore_admin_sdk.dart';
 import 'package:tekartik_firebase_auth/auth.dart';
 import 'package:tekartik_firebase_auth/auth_admin.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
+
+export 'package:festenao_common/admin/festenao_apps_admin.dart'
+    show FestenaoUserAccessGrant;
 
 /// The firebase project id a firebase folder deploys to, i.e. the `default`
 /// project of its `.firebaserc`.
@@ -125,6 +129,28 @@ class FestenaoFbAppProject {
             ? null
             : FirebaseAppOptions(storageBucket: storageBucket),
       ),
+    );
+  }
+
+  /// A firebase project reached through the admin sdk with the service
+  /// account of `FESTENAO_SERVICE_ACCOUNT` (the json or a file path, from the
+  /// environment or the ds env user file), see
+  /// `festenaoServiceAccountFromEnv`.
+  ///
+  /// Throws a [StateError] when the variable is not set or does not read as a
+  /// service account.
+  static Future<FestenaoFbAppProject> serviceAccountFromEnv({
+    String? appId,
+    String? storageBucket,
+  }) async {
+    var account = await festenaoServiceAccountFromEnv();
+    if (account == null) {
+      throw StateError('\$festenaoServiceAccountEnvKey is not set');
+    }
+    return FestenaoFbAppProject.serviceAccountMap(
+      serviceAccountMap: account.map,
+      appId: appId,
+      storageBucket: storageBucket,
     );
   }
 
@@ -428,36 +454,4 @@ class FestenaoFbAppDocument {
       '$appId${exists ? '' : ' (no document)'}'
       '${name == null ? '' : ' $name'}'
       '${collectionIds.isEmpty ? '' : ' [${collectionIds.join(', ')}]'}';
-}
-
-/// The access to grant on a project, as the dev menu offers them.
-enum FestenaoUserAccessGrant {
-  /// Read only.
-  read,
-
-  /// Read and write.
-  write,
-
-  /// Read, write and admin.
-  admin,
-
-  /// Admin plus the super admin role.
-  superAdmin;
-
-  /// The matching entity user access.
-  TkCmsFsUserAccess toUserAccess() {
-    var userAccess = TkCmsFsUserAccess();
-    switch (this) {
-      case FestenaoUserAccessGrant.read:
-        userAccess.read.v = true;
-      case FestenaoUserAccessGrant.write:
-        userAccess.write.v = true;
-      case FestenaoUserAccessGrant.admin:
-        userAccess.grantAdminAccess();
-      case FestenaoUserAccessGrant.superAdmin:
-        userAccess.grantSuperAdminAccess();
-    }
-    userAccess.fixAccess();
-    return userAccess;
-  }
 }

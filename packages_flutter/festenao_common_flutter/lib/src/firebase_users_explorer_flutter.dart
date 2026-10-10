@@ -40,6 +40,28 @@ Future<void> _copyUid(BuildContext context, String uid) async {
   }
 }
 
+/// An action the users explorer offers on a user besides its own (copy the
+/// uid, delete): what the app hangs on a user, its access to the apps
+/// typically.
+class FirebaseUserAction {
+  /// What the menu says.
+  final String label;
+
+  /// The icon of the user screen button.
+  final IconData icon;
+
+  /// Runs the action on [user].
+  final Future<void> Function(BuildContext context, FirebaseUserEntry user)
+  onSelected;
+
+  /// An action labelled [label].
+  const FirebaseUserAction({
+    required this.label,
+    required this.icon,
+    required this.onSelected,
+  });
+}
+
 /// A screen browsing the users of a [FirebaseUsersExplorer].
 ///
 /// It lists them page by page when the backend can, and finds one by uid or
@@ -60,11 +82,15 @@ class FirebaseUsersExplorerScreen extends StatefulWidget {
   /// The title of the screen, the project the users belong to.
   final String title;
 
+  /// The actions offered on each user, on top of the explorer ones.
+  final List<FirebaseUserAction> userActions;
+
   /// Explorer of the users of [explorer].
   const FirebaseUsersExplorerScreen({
     super.key,
     required this.explorer,
     this.title = 'Users',
+    this.userActions = const [],
   });
 
   @override
@@ -131,6 +157,7 @@ class _FirebaseUsersExplorerScreenState
       explorer: explorer,
       user: user,
       title: widget.title,
+      userActions: widget.userActions,
     );
     _reload();
   }
@@ -211,6 +238,8 @@ class _FirebaseUsersExplorerScreenState
       trailing: PopupMenuButton<String>(
         icon: const Icon(Icons.more_vert, size: 20),
         itemBuilder: (context) => [
+          for (var (index, action) in widget.userActions.indexed)
+            PopupMenuItem(value: 'action_$index', child: Text(action.label)),
           const PopupMenuItem(value: 'copy_uid', child: Text('Copy uid')),
           if (explorer.canWrite)
             const PopupMenuItem(value: 'delete', child: Text('Delete')),
@@ -218,6 +247,9 @@ class _FirebaseUsersExplorerScreenState
         onSelected: (action) => switch (action) {
           'copy_uid' => _copyUid(context, user.uid),
           'delete' => _delete(user),
+          _ when action.startsWith('action_') =>
+            widget.userActions[int.parse(action.substring('action_'.length))]
+                .onSelected(context, user),
           _ => null,
         },
       ),
@@ -370,12 +402,16 @@ class FirebaseUserScreen extends StatefulWidget {
   /// The title of the users screen, the first step of the path.
   final String title;
 
+  /// The actions offered on the user, as buttons.
+  final List<FirebaseUserAction> userActions;
+
   /// Screen of [user].
   const FirebaseUserScreen({
     super.key,
     required this.explorer,
     required this.user,
     this.title = 'Users',
+    this.userActions = const [],
   });
 
   @override
@@ -460,6 +496,13 @@ class _FirebaseUserScreenState extends State<FirebaseUserScreen> {
           ExplorerCrumb(_uid),
         ],
         actions: [
+          if (user != null)
+            for (var action in widget.userActions)
+              IconButton(
+                icon: Icon(action.icon),
+                tooltip: action.label,
+                onPressed: () => action.onSelected(context, user),
+              ),
           IconButton(
             icon: const Icon(Icons.copy_outlined),
             tooltip: 'Copy uid',
@@ -594,11 +637,13 @@ Future<void> goToFirebaseUsersExplorerScreen(
   required FirebaseAuth auth,
   bool isReadOnly = false,
   String title = 'Users',
+  List<FirebaseUserAction> userActions = const [],
 }) => Navigator.of(context).push<void>(
   MaterialPageRoute(
     builder: (_) => FirebaseUsersExplorerScreen(
       explorer: FirebaseUsersExplorer(auth: auth, isReadOnly: isReadOnly),
       title: title,
+      userActions: userActions,
     ),
   ),
 );
@@ -609,9 +654,14 @@ Future<void> goToFirebaseUserScreen(
   required FirebaseUsersExplorer explorer,
   required FirebaseUserEntry user,
   String title = 'Users',
+  List<FirebaseUserAction> userActions = const [],
 }) => Navigator.of(context).push<void>(
   MaterialPageRoute(
-    builder: (_) =>
-        FirebaseUserScreen(explorer: explorer, user: user, title: title),
+    builder: (_) => FirebaseUserScreen(
+      explorer: explorer,
+      user: user,
+      title: title,
+      userActions: userActions,
+    ),
   ),
 );

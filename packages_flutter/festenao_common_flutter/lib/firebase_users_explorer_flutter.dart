@@ -20,6 +20,7 @@ export 'src/file_system_debug_menu.dart'
     show festenaoFirebaseUsersExplorerMenuItem;
 export 'src/firebase_users_explorer_flutter.dart'
     show
+        FirebaseUserAction,
         FirebaseUserCreateDialog,
         FirebaseUserScreen,
         FirebaseUsersExplorerScreen,

@@ -7,7 +7,9 @@ description: >-
   festenaoInitFirebaseMemory, festenaoInitFirebaseSim,
   festenaoInitFirebaseRest / festenaoInitFirebaseServicesContextRest,
   festenaoInitFirebaseRestIoWithServiceAccount,
-  festenaoInitFirebaseAdminSdkWithServiceAccount, the tkcms local ones
+  festenaoInitFirebaseAdminSdkWithServiceAccount, the service account of
+  FESTENAO_SERVICE_ACCOUNT (festenaoServiceAccountFromEnv), the apps and
+  their access (FestenaoAppsAdmin), the tkcms local ones
   initFirebaseServicesLocalMemory / initFirebaseServicesLocalSembast, the
   flavors (FlavorContext, AppFlavorContext, toAppFlavorContext) and the
   FestenaoFirestoreDatabase (projectDb, fsAppRoot, app/<appId> layout).
@@ -62,6 +64,22 @@ it into the `FirebaseContext` the rest of the code receives.
   Either initializes the default app: once per process, keep the context.
   Flutter apps use the flutterfire context of `festenao_firebase_flutter`
   instead.
+* The service account of an admin build or tool comes from the machine, never
+  from the code: `firebase/festenao_service_account_io.dart` (io only) reads
+  `FESTENAO_SERVICE_ACCOUNT` (the json or a file path, the environment then
+  the ds env user file) with `festenaoServiceAccountFromEnv()`, and every
+  account (that one plus the files of
+  `~/.config/tekartik/festenao/service_accounts/<project_id>.json`) with
+  `festenaoFindServiceAccounts()`. The `festenao_service_account` command of
+  `festenao_support` writes them; errors never quote the key.
+* `admin/festenao_apps_admin.dart`: `FestenaoAppsAdmin(firestore:,
+  listDocumentIds:)` lists the apps (`apps()`, the ids without a document
+  included when `listDocumentIds` can, i.e. the admin sdk
+  `festenaoAdminFirebaseAdminSdk.listDocumentIds`) and their projects, and
+  grants `FestenaoUserAccessGrant.read` / `write` / `admin` / `superAdmin`
+  with `setUserAccess(entityAccess, entityId, userId, grant:)` on
+  `appAccess` (`access/app/entity_id/<appId>/user_access/<uid>`, what the
+  server checks for an app admin) or `projectAccess(appId)`, both sides.
 * Flavors: `FlavorContext.dev`, `devx`, `prod`, `prodx`, `test` with
   `isDev`, `isProd` and `ifNotProdFlavor` (`''` in prod, the flavor name
   otherwise, what suffixes function names and app ids).

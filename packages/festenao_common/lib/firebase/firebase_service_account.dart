@@ -1,6 +1,12 @@
 import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
+export '../src/firebase/festenao_service_account.dart'
+    show
+        festenaoServiceAccountMapError,
+        festenaoServiceAccountMapFromText,
+        festenaoServiceAccountTextError;
+
 /// Initializes Firebase using a service account credentials map [serviceAccountMap].
 ///
 /// [serviceAccountMap] map containing service account credentials JSON.

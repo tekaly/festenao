@@ -7,6 +7,20 @@
       path: packages/festenao_support
 ```
 
+## Commands
+
+- `festenao_service_account`: stores the service account of the admin builds
+  and tools where they look for it, a file of
+  `~/.config/tekartik/festenao/service_accounts` and/or the
+  `FESTENAO_SERVICE_ACCOUNT` variable of the ds env user file:
+
+  ```sh
+  dart run festenao_support:festenao_service_account write ~/Downloads/sa.json --ds-env
+  dart run festenao_support:festenao_service_account list
+  ```
+
+  See `doc/admin_service_account.md` of the festenao repository.
+
 ## Libraries
 
 - `festenao_build_menu_flutter.dart`: build/deploy menus of the flutter apps.

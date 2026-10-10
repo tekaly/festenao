@@ -74,7 +74,8 @@ class _FestenaoAppUserAccessScreenState
       .onSnapshotsSupport(widget.firestore, options: _refresh)
       .map(
         (accesses) =>
-            accesses..sort((a, b) => _nameOf(a).compareTo(_nameOf(b))),
+            // A copy: the admin sdk answers a read only list.
+            [...accesses]..sort((a, b) => _nameOf(a).compareTo(_nameOf(b))),
       );
 
   @override

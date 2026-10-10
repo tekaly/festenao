@@ -1,5 +1,4 @@
-import 'dart:convert';
-
+import 'package:festenao_common/firebase/firebase_service_account.dart';
 import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 
 /// One set of admin credentials: a service account, and what it reaches.
@@ -75,17 +74,8 @@ SdbDatabaseSchema adminCredentialsDatabaseSchema() => SdbDatabaseSchema(
 );
 
 /// The service account json [text] as a map, null when it is not one.
-Map<String, Object?>? adminServiceAccountMap(String? text) {
-  if (text == null || text.trim().isEmpty) {
-    return null;
-  }
-  try {
-    var decoded = jsonDecode(text);
-    return decoded is Map ? decoded.cast<String, Object?>() : null;
-  } catch (_) {
-    return null;
-  }
-}
+Map<String, Object?>? adminServiceAccountMap(String? text) =>
+    festenaoServiceAccountMapFromText(text);
 
 /// The `project_id` of the service account json [text], null when it has none.
 String? adminServiceAccountProjectId(String? text) =>
@@ -95,22 +85,8 @@ String? adminServiceAccountProjectId(String? text) =>
 ///
 /// It checks the fields a service account is unusable without, so a typo is
 /// caught when it is pasted rather than on the first request.
-String? adminServiceAccountError(String? text) {
-  if (text == null || text.trim().isEmpty) {
-    return 'The service account json is empty';
-  }
-  var map = adminServiceAccountMap(text);
-  if (map == null) {
-    return 'The service account is not a json object';
-  }
-  for (var key in ['project_id', 'client_email', 'private_key']) {
-    var value = map[key];
-    if (value is! String || value.isEmpty) {
-      return 'The service account has no $key';
-    }
-  }
-  return null;
-}
+String? adminServiceAccountError(String? text) =>
+    festenaoServiceAccountTextError(text);
 
 /// The credentials the admin app holds, in an sdb database of its own.
 ///

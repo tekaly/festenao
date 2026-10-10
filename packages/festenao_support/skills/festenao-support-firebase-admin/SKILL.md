@@ -4,7 +4,8 @@ description: >-
   Use when a festenao dev tool acts on a firebase project with admin
   credentials through festenao_support: festenaoInitFirebaseAdminSdk /
   festenaoInitFirebaseAdminSdkWithServiceAccount, FestenaoFbAppProject (its
-  firebaseFolder, firebaseProjectId, serviceAccountMap and context factories)
+  firebaseFolder, firebaseProjectId, serviceAccountMap, serviceAccountFromEnv
+  and context factories, the festenao_service_account command)
   and its three levels — the auth users (listUsers, findUserByEmail,
   createUserWithEmailAndPassword), the app (grantAppAdmin,
   grantAppSuperAdmin, appUserAccessList, apps, appDocuments) and an app
@@ -39,8 +40,15 @@ app: nothing here is subject to the rules.
   * `FestenaoFbAppProject.firebaseProjectId(firebaseProjectId:)` — same
     credentials, project named explicitly.
   * `FestenaoFbAppProject.serviceAccountMap(serviceAccountMap:)` — the parsed
-    service account json of a private repository, what a standalone tool uses
-    (it needs no firebase folder and no gcloud login).
+    service account json, what a standalone tool uses (it needs no firebase
+    folder and no gcloud login).
+  * `await FestenaoFbAppProject.serviceAccountFromEnv(appId:)` — the service
+    account of `FESTENAO_SERVICE_ACCOUNT` (the json or a file path, from the
+    environment or the ds env user file); throws a `StateError` when it is
+    not set. Store it once with the command of this package:
+    `dart run festenao_support:festenao_service_account write sa.json --ds-env`
+    (the file in `~/.config/tekartik/festenao/service_accounts`, the variable
+    pointing to it; `list`, `delete <project_id>`, `unset`).
   * `FestenaoFbAppProject.context(context:)` — on top of a context already
     built, which must be admin sdk backed to manage users.
   * `festenaoInitFirebaseAdminSdk(projectId:, storageBucket:)` and
@@ -55,10 +63,14 @@ app: nothing here is subject to the rules.
   `findUserByEmail(email)`, `findUser(userId)`,
   `createUserWithEmailAndPassword(email:, password:, displayName:)`. They need
   a `FirebaseAuthAdmin`, i.e. the admin sdk; anything else throws.
-* App level (`app/<appId>/user_access/<userId>`, an admin of the whole app):
+* App level (`app/<appId>/user_access/<userId>`, the legacy app access):
   `getAppUserAccess`, `appUserAccessList`, `setAppUserAccess`,
   `grantAppAdmin(userId, name:)`, `grantAppSuperAdmin`, `revokeAppAccess`.
   `name` is informative, for whoever reads the document later — the email.
+  The server checks an app admin on the tkcms entity access instead
+  (`access/app/entity_id/<appId>/user_access/<userId>`): grant that one with
+  `FestenaoAppsAdmin.setUserAccess(admin.appAccess, ...)` of
+  `festenao_common/admin/festenao_apps_admin.dart`.
 * `apps()` lists the documents of the `app` collection; `appDocuments()` lists
   every id, the documents that do not exist included — firestore keeps an id
   alive as soon as something hangs below it, so `app/<appId>` routinely has

@@ -2,8 +2,10 @@
 /// the web.
 library;
 
+import 'package:festenao_common/admin/festenao_apps_admin.dart';
 import 'package:festenao_common/festenao_firebase.dart';
 import 'package:tekartik_firebase_admin_sdk/firebase_admin_sdk.dart';
+import 'package:tekartik_firebase_admin_sdk/firestore_admin_sdk.dart';
 import 'package:tkcms_common/firebase/admin_sdk.dart';
 
 export 'package:tkcms_common/firebase/admin_sdk.dart'
@@ -29,3 +31,33 @@ Future<FirebaseContext> festenaoInitFirebaseAdminSdkWithServiceAccount({
       .copyWith(firebaseApp: firebaseApp)
       .initSync();
 }
+
+class _FestenaoAdminFirebaseAdminSdk implements FestenaoAdminFirebase {
+  @override
+  String get name => 'admin sdk';
+
+  @override
+  Future<FirebaseContext> initWithServiceAccount(Map serviceAccountMap) =>
+      festenaoInitFirebaseAdminSdkWithServiceAccount(
+        serviceAccountMap: serviceAccountMap,
+      );
+
+  @override
+  Future<List<String>?> listDocumentIds(
+    Firestore firestore,
+    String collectionPath,
+  ) async {
+    if (firestore is! FirestoreAdminSdk) {
+      return null;
+    }
+    var refs = await firestore.nativeInstance
+        .collection(collectionPath)
+        .listDocuments();
+    return refs.map((ref) => ref.id).toList();
+  }
+}
+
+/// The admin sdk (io only): it also lists the documents that do not exist,
+/// the ids that only hold sub collections.
+final FestenaoAdminFirebase festenaoAdminFirebaseAdminSdk =
+    _FestenaoAdminFirebaseAdminSdk();

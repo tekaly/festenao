@@ -54,6 +54,15 @@ class _AdminCredentialsScreenState extends State<AdminCredentialsScreen> {
     }
   }
 
+  /// Puts the service account json on the clipboard, to paste it in another
+  /// admin build or in `festenao_service_account write -`.
+  Future<void> _copy(AdminCredentials credentials) async {
+    await Clipboard.setData(
+      ClipboardData(text: credentials.serviceAccount.v ?? ''),
+    );
+    _snack('Service account of ${credentials.displayName} copied');
+  }
+
   Future<void> _delete(String id, String name) async {
     var confirmed = await objectEditorPromptConfirm(
       context,
@@ -114,10 +123,12 @@ class _AdminCredentialsScreenState extends State<AdminCredentialsScreen> {
                 icon: const Icon(Icons.more_vert, size: 20),
                 itemBuilder: (context) => const [
                   PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  PopupMenuItem(value: 'copy', child: Text('Copy the json')),
                   PopupMenuItem(value: 'delete', child: Text('Delete')),
                 ],
                 onSelected: (action) => switch (action) {
                   'edit' => _edit(credentials: credentials, id: id),
+                  'copy' => _copy(credentials),
                   'delete' => _delete(id, credentials.displayName),
                   _ => null,
                 },
