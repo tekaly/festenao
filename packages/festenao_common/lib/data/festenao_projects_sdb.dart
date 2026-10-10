@@ -1,6 +1,7 @@
 export 'package:festenao_common/src/data/project_modules.dart';
 export 'package:festenao_common/src/data/projects_sdb/festenao_user_project_sdb_bloc.dart';
 export 'package:festenao_common/src/data/projects_sdb/festenao_user_projects_sdb_bloc.dart';
+export 'package:festenao_common/src/data/projects_sdb/project_synced_sdb.dart';
 export 'package:festenao_common/src/data/projects_sdb/sdf_content_sdb.dart';
 export 'package:festenao_common/src/data/projects_sdb/user_projects_sdb.dart';
 export 'package:festenao_common/src/data/projects_sdb/user_projects_sdb_manager.dart';
