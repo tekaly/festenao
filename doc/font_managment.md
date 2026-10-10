@@ -40,16 +40,25 @@ read in the Flutter sources say so.
 Phase 1 (§7) touches festenao_theme only, needs no new package, and fixes
 the seven apps that ask for Poppins but draw Roboto.
 
-**Status (2026-10-10).** Phase 1 started: festenao_theme declares the font
-files as assets and has `loadFestenaoFonts()` (`package:festenao_theme/fonts.dart`,
-also exported by `theme.dart` and `design.dart`; `test/fonts_test.dart`), the
-admin runner init, the base app, the dashboard demo and the theme gallery
-call it, and the screenshot harness no longer loads the packaged names. A
-release web build of an app calling it has only `MaterialIcons` in its
-`FontManifest.json` and draws Poppins (400 to 800) and JetBrains Mono.
-`poppinsExtraBoldFont` (800) is an `extra:`: a second `FontLoader` of the
-same family adds its weights (verified on the VM and the web). The apps
-come next (step 4).
+**Status (2026-10-10).** Phase 1 done locally (committed, not pushed):
+
+- festenao_theme declares the font files as assets and has
+  `loadFestenaoFonts()` (`package:festenao_theme/fonts.dart`, also exported
+  by `theme.dart` and `design.dart`; `test/fonts_test.dart`).
+  `poppinsExtraBoldFont` (800) is an `extra:`, since a second `FontLoader`
+  of the same family adds its weights (verified on the VM and the web).
+- `festenaoAdminAppInit` loads the fonts, so every app going through it
+  (admin, dashboards, orga) gets them. So do the base app, the dashboard
+  demo and the theme gallery. The screenshot harness no longer loads the
+  packaged names.
+- Every app of the census calls it (directly or through that init), and the
+  pubspec font blocks are gone. Left out: one app about to be retired, and
+  one finished event app in a client repository.
+- A release web build of an app calling it has only `MaterialIcons` in its
+  `FontManifest.json`, and draws Poppins (400 to 800) and JetBrains Mono.
+- Push festenao first: the apps need the new festenao_theme. A package that
+  ran its tests before may keep a stale `build/unit_test_assets` without the
+  new assets; delete it.
 
 ## 1. Today
 
