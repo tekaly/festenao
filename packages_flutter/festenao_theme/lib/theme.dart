@@ -1,3 +1,12 @@
+export 'fonts.dart'
+    show
+        loadFestenaoFonts,
+        loadFestenaoFont,
+        festenaoFonts,
+        FestenaoFontFamily,
+        poppinsFont,
+        poppinsExtraBoldFont,
+        jetBrainsMonoFont;
 export 'fonts/jetbrains_mono/jetbrains_mono_font.dart'
     show addJetBrainsMonoLicense;
 export 'fonts/poppins/poppins_font.dart' show addPoppinsLicense;

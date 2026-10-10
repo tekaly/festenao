@@ -10,6 +10,7 @@
 /// ```
 library;
 
+import 'package:festenao_theme/theme.dart' show loadFestenaoFonts;
 import 'package:material_ui/material_ui.dart';
 
 import 'src/demo_data.dart';
@@ -18,6 +19,7 @@ import 'src/demo_theme.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await loadFestenaoFonts();
   runApp(const FestenaoExplorersDemoApp());
 }
 

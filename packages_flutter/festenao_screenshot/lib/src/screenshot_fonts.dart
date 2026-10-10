@@ -61,9 +61,9 @@ var _fontsLoaded = false;
 ///   icons from the flutter sdk, the cupertino icons when the app depends on
 ///   `cupertino_icons`;
 /// - the families of festenao_theme when the app depends on it, under their
-///   bare names (`Poppins`, `JetBrains Mono`, which only resolve in a running
-///   app that declares them) and their package names, JetBrains Mono also as
-///   `monospace` and `Courier New`;
+///   bare names (`Poppins`, `JetBrains Mono`, which a running app registers
+///   with `loadFestenaoFonts()`), more Poppins weights than it loads,
+///   JetBrains Mono also as `monospace` and `Courier New`;
 /// - DejaVu Sans (from the system, when installed) for the glyphs the app
 ///   fonts lack, see [patchFontFallbacks].
 Future<void> loadScreenshotFonts() async {
@@ -156,19 +156,12 @@ Future<void> loadScreenshotFonts() async {
       ])
         '$fonts/poppins/Poppins-$style.ttf',
     ];
-    for (var family in ['Poppins', 'packages/festenao_theme/Poppins']) {
-      await loadFiles(family, poppins);
-    }
+    await loadFiles('Poppins', poppins);
     var mono = [
       for (var weight in ['Regular', 'Medium', 'SemiBold', 'Bold'])
         '$fonts/jetbrains_mono/JetBrainsMonoNL-$weight.ttf',
     ];
-    for (var family in [
-      'monospace',
-      'Courier New',
-      'JetBrains Mono',
-      'packages/festenao_theme/JetBrains Mono',
-    ]) {
+    for (var family in ['monospace', 'Courier New', 'JetBrains Mono']) {
       await loadFiles(family, mono);
     }
   }

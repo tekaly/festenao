@@ -40,6 +40,17 @@ read in the Flutter sources say so.
 Phase 1 (§7) touches festenao_theme only, needs no new package, and fixes
 the seven apps that ask for Poppins but draw Roboto.
 
+**Status (2026-10-10).** Phase 1 started: festenao_theme declares the font
+files as assets and has `loadFestenaoFonts()` (`package:festenao_theme/fonts.dart`,
+also exported by `theme.dart` and `design.dart`; `test/fonts_test.dart`), the
+admin runner init, the base app, the dashboard demo and the theme gallery
+call it, and the screenshot harness no longer loads the packaged names. A
+release web build of an app calling it has only `MaterialIcons` in its
+`FontManifest.json` and draws Poppins (400 to 800) and JetBrains Mono.
+`poppinsExtraBoldFont` (800) is an `extra:`: a second `FontLoader` of the
+same family adds its weights (verified on the VM and the web). The apps
+come next (step 4).
+
 ## 1. Today
 
 festenao_theme holds:
@@ -509,6 +520,10 @@ Flutter 3.47; otherwise ship static files.
   - `flutter test` kept a stale `build/unit_test_assets` after a
     dependency's pubspec changed (deleting the folder fixes it);
   - under `flutter test --platform chrome`, `rootBundle.load` of a package
-    asset never completed (timeout), so the web check used a real build.
+    asset never completed (timeout), so the web check used a real build;
+  - under `flutter test`, `rootBundle.load` returns a `SynchronousFuture`,
+    and `Future.wait` over such futures completes with an **empty list**
+    (they complete during its loop): the loader goes through an `async`
+    helper, which always returns a real future.
 - Sizes: `pyftsubset` (fonttools 4.61.1) with the §6 ranges, `gzip -9`, and
   the buzzerelio web build for §1.1.

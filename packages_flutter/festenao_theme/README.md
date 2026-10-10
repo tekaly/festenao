@@ -44,8 +44,37 @@ Container(color: t.soft(t.ok), child: Text('Arrivé', style: TextStyle(color: t.
 - `festenaoThemePresetsByIds(['festenao', 'obsidian'])`: the presets of
   those ids, in that order, to build the list an app offers.
 
-Apps declare the `Poppins` and `JetBrains Mono` fonts in their own pubspec
-(see `example/pubspec.yaml`).
+## Fonts
+
+The themes ask for the bare `Poppins` and `JetBrains Mono` families. The
+files are assets of this package: `loadFestenaoFonts()` registers them
+under those names at runtime (and adds their licenses). Nothing to declare
+in the app pubspec, await it before `runApp`:
+
+```dart
+import 'package:festenao_theme/design.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  var fonts = loadFestenaoFonts(); // started early, overlaps the other init
+  // ... firebase, databases
+  await fonts;
+  runApp(const MyApp());
+}
+```
+
+- `loadFestenaoFonts(extra: [poppinsExtraBoldFont])` adds Poppins 800.
+- `loadFestenaoFont(jetBrainsMonoFont, family: 'monospace')` registers a
+  font under another family name too.
+- Text drawn before the load completes uses the platform font; a failure is
+  reported (`FlutterError.reportError`), never thrown.
+- `flutter test` draws every family as squares until fonts are loaded:
+  widget tests are unchanged, a test wanting the real fonts awaits
+  `loadFestenaoFonts()` (`test/fonts_test.dart`).
+
+Why not a `fonts:` section: a family declared by a package is only reachable
+as `packages/festenao_theme/<family>`, and on the web every declared family is
+downloaded before the first frame ([`doc/font_managment.md`](../../doc/font_managment.md)).
 
 ## Theme switcher
 

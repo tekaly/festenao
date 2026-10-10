@@ -4,8 +4,10 @@ description: >-
   Use when giving a Festenao/Tekaly Flutter app its ThemeData: themeData1
   (dark) and themeDataLight1 (light), their Poppins variants
   poppinsThemeData1 / poppinsThemeDataLight1, the seedColor, fontFamily,
-  textTheme and brightness parameters, the festenaoPoppinsFontFamily getter
-  (google_fonts), colorFestenaoFormBlueSelected, and
+  textTheme and brightness parameters, the festenaoPoppinsFontFamily
+  constant, loadFestenaoFonts() registering the bundled Poppins and
+  JetBrains Mono under their bare names at runtime (nothing in the app
+  pubspec), colorFestenaoFormBlueSelected, and
   addPoppinsLicense()/poppinsFontFamily from
   package:festenao_theme/theme.dart and
   package:festenao_theme/fonts/poppins/poppins_font.dart.
@@ -35,9 +37,11 @@ buttons — in a light and a dark flavour, optionally with the Poppins font.
   `poppinsFontFamily` and `addPoppinsLicense()`. Never import
   `package:festenao_theme/src/...`; `theme.dart` deliberately exports only
   `themeData1`, `themeDataLight1`, `poppinsThemeData1`,
-  `poppinsThemeDataLight1`, `festenaoPoppinsFontFamily` and
-  `colorFestenaoFormBlueSelected` — the other color constants of the source
-  are private to the package.
+  `poppinsThemeDataLight1`, `festenaoPoppinsFontFamily`,
+  `colorFestenaoFormBlueSelected` and the font loader (`loadFestenaoFonts`,
+  `loadFestenaoFont`, `poppinsFont`, `poppinsExtraBoldFont`,
+  `jetBrainsMonoFont`) — the other color constants of the source are
+  private to the package.
 * `ThemeData themeData1({TextTheme? textTheme, String? fontFamily, Brightness?
   brightness, Color? seedColor})` is the one builder; `brightness` defaults to
   `Brightness.dark` and `seedColor` to `Colors.blue`.
@@ -59,30 +63,35 @@ buttons — in a light and a dark flavour, optionally with the Poppins font.
   `VisualDensity.adaptivePlatformDensity`.
 * Poppins: `poppinsThemeData1({seedColor})` /
   `poppinsThemeDataLight1({seedColor})` are `themeData1` /`themeDataLight1`
-  with `fontFamily: festenaoPoppinsFontFamily`. `festenaoPoppinsFontFamily` is
-  `GoogleFonts.poppins().fontFamily`, i.e. a *google_fonts* family — by default
-  google_fonts downloads the font at runtime and caches it, so the first frames
-  can fall back to the default font and an offline first launch keeps it. Use
-  it when you build your own `ThemeData` but want the same family.
-* `poppinsFontFamily` (the `'Poppins'` constant in
-  `fonts/poppins/poppins_font.dart`) is the plain family name for a
-  `fonts:` section registering the `.ttf` files the package ships under
-  `lib/fonts/poppins/`; it is **not** interchangeable with
-  `festenaoPoppinsFontFamily`, which is whatever google_fonts resolved.
+  with `fontFamily: festenaoPoppinsFontFamily`, the bare `'Poppins'` family
+  (same constant as `poppinsFontFamily`). Use it when you build your own
+  `ThemeData` but want the same family.
+* Fonts: the package ships Poppins (400, italic, 500, 600, 700, and 800 on
+  demand) and JetBrains Mono NL (400 to 700) as plain assets.
+  `await loadFestenaoFonts()` in `main`, after
+  `WidgetsFlutterBinding.ensureInitialized()` and before `runApp`, registers
+  them under the bare names `Poppins` and `JetBrains Mono` (one
+  `FontLoader` per family, once) and adds their licenses. The app pubspec
+  declares nothing. Until it completes text uses the platform font; a
+  failure is reported with `FlutterError.reportError`, never thrown.
+  `loadFestenaoFonts(extra: [poppinsExtraBoldFont])` adds weight 800,
+  `loadFestenaoFont(jetBrainsMonoFont, family: 'monospace')` registers a
+  font under another name too.
 * `addPoppinsLicense()` registers the OFL license text with
   `LicenseRegistry` by reading
   `packages/festenao_theme/fonts/poppins/OFL.txt` from the root bundle (the
-  package declares that asset). Call it once in `main`, after
-  `WidgetsFlutterBinding.ensureInitialized()`, whenever the app ships Poppins.
+  package declares that asset). `loadFestenaoFonts()` calls it; it adds the
+  license once however often it is called.
 * `colorFestenaoFormBlueSelected` is `Colors.blue[300]` and is nullable
   (`Color?`) — it is the highlight of a selected form answer; use `??` or `!`
   where a non-null `Color` is required.
 * Anti-patterns: hardcoding `Colors.blue` in widgets instead of reading
   `Theme.of(context).colorScheme`; rebuilding a theme inside `build()` on
   every frame (build it once, e.g. in a final field or a provider);
-  calling `poppinsThemeData1()` in a pure `flutter_test` unit test that has no
-  asset bundle for google_fonts — use `themeData1(fontFamily: 'Poppins')` or a
-  widget test instead.
+  declaring Poppins in the app pubspec `fonts:` (the loader does it) or
+  using `TextStyle(fontFamily: 'Poppins', package: 'festenao_theme')`: a
+  package prefix leaks into every bare family merged under it
+  (`'monospace'` becomes `packages/festenao_theme/monospace`).
 * Testing: the builders are plain functions, so a `flutter_test` `test()` is
   enough — assert on `theme.brightness`, `theme.snackBarTheme.backgroundColor`,
   `theme.inputDecorationTheme.border`, `theme.textTheme.bodyMedium?.fontFamily`
@@ -153,15 +162,15 @@ class HomeScreen extends StatelessWidget {
 ### Poppins and a custom seed color
 
 ```dart
-import 'package:festenao_theme/fonts/poppins/poppins_font.dart';
 import 'package:festenao_theme/theme.dart';
 import 'package:flutter/material.dart';
 
 Future<void> main() async {
-  // rootBundle is used to read the license text.
+  // rootBundle is used to read the font files and the license text.
   WidgetsFlutterBinding.ensureInitialized();
-  // Register the OFL license of the shipped Poppins font.
-  addPoppinsLicense();
+  // Register Poppins and JetBrains Mono under their bare names, with their
+  // OFL licenses: nothing to declare in the app pubspec.
+  await loadFestenaoFonts();
   runApp(const MyApp());
 }
 
@@ -193,7 +202,7 @@ import 'package:flutter/material.dart';
 /// Same font and rules, but a text theme of your own and a green seed.
 ThemeData buildAppTheme() => themeDataLight1(
   seedColor: Colors.green,
-  // The google_fonts family behind the poppins themes.
+  // The bare Poppins family, registered by loadFestenaoFonts().
   fontFamily: festenaoPoppinsFontFamily,
   textTheme: const TextTheme(
     bodyMedium: TextStyle(fontSize: 15),
@@ -250,7 +259,7 @@ void main() {
   });
 
   test('the seed color drives the accents', () {
-    // No google_fonts here: a plain family name keeps the test offline.
+    // A plain family name: the theme only records it.
     var theme = themeDataLight1(seedColor: Colors.green, fontFamily: 'Custom');
     expect(theme.snackBarTheme.backgroundColor, Colors.green);
     expect(theme.textTheme.bodyMedium?.fontFamily, 'Custom');

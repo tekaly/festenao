@@ -111,6 +111,8 @@ Future<FestenaoAppInitResult> festenaoAdminAppInit({
   // festenaoUseContentPathNavigation = devWarning(true);
   WidgetsFlutterBinding.ensureInitialized();
   webSplashReady();
+  // The fonts of the festenao themes, awaited at the end of the init.
+  var fonts = loadFestenaoFonts();
   packageName ??=
       'festenao.admin_base_app${appFlavorContext.ifNotProdFlavorExtension}';
   if (kDebugMode) {
@@ -317,6 +319,7 @@ Future<FestenaoAppInitResult> festenaoAdminAppInit({
     );
     print('storageBucket: ${globalFestenaoAppFirebaseContext.storageBucket}');
   }
+  await fonts;
   return FestenaoAppInitResult(packageName: packageName);
 }
 

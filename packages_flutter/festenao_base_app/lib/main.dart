@@ -19,8 +19,10 @@ var initialized = () async {
   );*/
 }();
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   appFlavorContext = AppFlavorContext.testLocal;
+  await loadFestenaoFonts();
   runApp(const MyApp());
 }
 

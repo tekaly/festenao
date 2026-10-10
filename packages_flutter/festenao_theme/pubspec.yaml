@@ -31,42 +31,31 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
+  # The font files are plain assets, registered at runtime under their bare
+  # family names (`Poppins`, `JetBrains Mono`) by `loadFestenaoFonts()`: a
+  # family declared here would only be reachable as
+  # `packages/festenao_theme/<family>`, and on the web every declared family
+  # is downloaded before the first frame, used or not
+  # (`doc/font_managment.md`). The self-prefixed form gives the same asset
+  # keys as an app declaring these files itself, so they are bundled once.
+  # The files sit under `lib/`, `packages/festenao_theme/` maps to it.
   assets:
     - packages/festenao_theme/fonts/poppins/OFL.txt
-    - packages/festenao_theme/fonts/jetbrains_mono/OFL.txt
-
-  # Bundled as plain Flutter fonts, not through google_fonts: a weight asks
-  # the engine for the matching file directly, offline and without the
-  # runtime fetch (and its "not found in assets" failure) google_fonts hits
-  # when network access is off. The font files sit under `lib/` (so
-  # `rootBundle` can also serve them to another package as
-  # `packages/festenao_theme/fonts/...`), so the path here needs the `lib/`
-  # a package's own pubspec doesn't add for you.
-  fonts:
-    - family: Poppins
-      fonts:
-        - asset: lib/fonts/poppins/Poppins-Regular.ttf
-        - asset: lib/fonts/poppins/Poppins-Italic.ttf
-          style: italic
-        - asset: lib/fonts/poppins/Poppins-Medium.ttf
-          weight: 500
-        - asset: lib/fonts/poppins/Poppins-SemiBold.ttf
-          weight: 600
-        - asset: lib/fonts/poppins/Poppins-Bold.ttf
-          weight: 700
+    - packages/festenao_theme/fonts/poppins/Poppins-Regular.ttf
+    - packages/festenao_theme/fonts/poppins/Poppins-Italic.ttf
+    - packages/festenao_theme/fonts/poppins/Poppins-Medium.ttf
+    - packages/festenao_theme/fonts/poppins/Poppins-SemiBold.ttf
+    - packages/festenao_theme/fonts/poppins/Poppins-Bold.ttf
+    - packages/festenao_theme/fonts/poppins/Poppins-ExtraBold.ttf
     # The monospace family the explorers draw hex dumps and raw text with:
     # JetBrains Mono, built for reading code and bytes — a slashed zero and
     # a dotted one so `0`/`O` and `1`/`l`/`I` never get mistaken for each
     # other. The "NL" (no ligatures) cut is used on purpose: a hex dump
     # wants every byte pair drawn as itself, not merged into a ligature.
-    - family: JetBrains Mono
-      fonts:
-        - asset: lib/fonts/jetbrains_mono/JetBrainsMonoNL-Regular.ttf
-        - asset: lib/fonts/jetbrains_mono/JetBrainsMonoNL-Medium.ttf
-          weight: 500
-        - asset: lib/fonts/jetbrains_mono/JetBrainsMonoNL-SemiBold.ttf
-          weight: 600
-        - asset: lib/fonts/jetbrains_mono/JetBrainsMonoNL-Bold.ttf
-          weight: 700
+    - packages/festenao_theme/fonts/jetbrains_mono/OFL.txt
+    - packages/festenao_theme/fonts/jetbrains_mono/JetBrainsMonoNL-Regular.ttf
+    - packages/festenao_theme/fonts/jetbrains_mono/JetBrainsMonoNL-Medium.ttf
+    - packages/festenao_theme/fonts/jetbrains_mono/JetBrainsMonoNL-SemiBold.ttf
+    - packages/festenao_theme/fonts/jetbrains_mono/JetBrainsMonoNL-Bold.ttf
 
 resolution: workspace
