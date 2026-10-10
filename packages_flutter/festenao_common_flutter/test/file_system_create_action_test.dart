@@ -196,7 +196,14 @@ void main() {
         await _settle(tester);
       }
 
-      await _create(tester, 'Demo json document');
+      /// Picks the demo [label], then waits until the demo has written and
+      /// opened what it made, [shown] being on screen.
+      Future<void> createDemo(String label, Finder shown) async {
+        await _create(tester, label);
+        await _settleUntil(tester, label, () => shown.evaluate().isNotEmpty);
+      }
+
+      await createDemo('Demo json document', find.text('name'));
       expect(find.text('name'), findsOneWidget);
       // The date and the blob of the demo decoded into real values: a date
       // gets its picker, a blob edits as base64 rather than as a list of
@@ -208,25 +215,28 @@ void main() {
       expect(find.text('AQIDBA=='), findsOneWidget);
       await back();
 
-      await _create(tester, 'Demo yaml document');
+      await createDemo('Demo yaml document', find.text('count'));
       expect(find.text('count'), findsOneWidget);
       expect(find.text('nested'), findsOneWidget);
       await back();
 
-      await _create(tester, 'Demo text file');
+      await createDemo(
+        'Demo text file',
+        find.textContaining('A demo text file.'),
+      );
       expect(find.textContaining('A demo text file.'), findsOneWidget);
       await back();
 
-      await _create(tester, 'Demo binary file');
+      await createDemo('Demo binary file', find.textContaining('|DEMO'));
       expect(find.textContaining('|DEMO'), findsOneWidget);
       await back();
 
-      await _create(tester, 'Demo sembast database');
+      await createDemo('Demo sembast database', find.text('settings'));
       expect(find.text('settings'), findsOneWidget);
       expect(find.text('event'), findsOneWidget);
       await back();
 
-      await _create(tester, 'Demo sdb database');
+      await createDemo('Demo sdb database', find.text('note'));
       expect(find.text('note'), findsOneWidget);
       expect(find.text('tag'), findsOneWidget);
       await back();
