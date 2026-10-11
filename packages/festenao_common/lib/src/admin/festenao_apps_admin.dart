@@ -16,6 +16,13 @@ abstract class FestenaoAdminFirebase {
   /// [serviceAccountMap].
   Future<FirebaseContext> initWithServiceAccount(Map serviceAccountMap);
 
+  /// Firestore, auth (an admin) and storage of [projectId], as the
+  /// application default credentials of the machine: the gcloud user of
+  /// `gcloud auth application-default login`, no service account needed.
+  ///
+  /// The admin sdk only (io), an [UnsupportedError] for the rest apis.
+  Future<FirebaseContext> initWithApplicationDefault(String projectId);
+
   /// The ids of the documents of [collectionPath], the ones that do not exist
   /// but hold sub collections included; null when [firestore] cannot list
   /// them (a query only returns the existing ones).
@@ -33,6 +40,13 @@ class _FestenaoAdminFirebaseRest implements FestenaoAdminFirebase {
   Future<FirebaseContext> initWithServiceAccount(Map serviceAccountMap) =>
       festenaoInitFirebaseWithServiceAccount(
         serviceAccountMap: serviceAccountMap,
+      );
+
+  @override
+  Future<FirebaseContext> initWithApplicationDefault(String projectId) =>
+      throw UnsupportedError(
+        'The gcloud credentials of $projectId need the admin sdk, '
+        'the rest apis take a service account',
       );
 
   @override

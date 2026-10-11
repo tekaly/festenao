@@ -178,4 +178,46 @@ void main() {
     expect(festenaoExpandHomePath('/a/b'), '/a/b');
     expect(festenaoExpandHomePath('~/a'), isNot(startsWith('~')));
   });
+
+  test('gcloud project', () async {
+    expect(festenaoGcloudProjectFromEnv(environment: {}), isNull);
+    expect(
+      festenaoGcloudProjectFromEnv(
+        environment: {festenaoGcloudProjectEnvKey: ' p1 '},
+      ),
+      'p1',
+    );
+
+    // No application default credentials: said, the project still found.
+    var adcPath = join(tempDir.path, 'adc.json');
+    var environment = {
+      festenaoGcloudProjectEnvKey: 'p1',
+      'GOOGLE_APPLICATION_CREDENTIALS': adcPath,
+    };
+    expect(
+      festenaoApplicationDefaultCredentialsPath(environment: environment),
+      adcPath,
+    );
+    var found = await festenaoFindServiceAccounts(
+      environment: environment,
+      dirPath: dirPath,
+    );
+    expect(found.gcloudProjectId, 'p1');
+    expect(found.accounts, isEmpty);
+    expect(found.errors, [contains('gcloud auth application-default login')]);
+
+    File(adcPath).writeAsStringSync('{"type": "authorized_user"}');
+    found = await festenaoFindServiceAccounts(
+      environment: environment,
+      dirPath: dirPath,
+    );
+    expect(found.gcloudProjectId, 'p1');
+    expect(found.errors, isEmpty);
+
+    found = await festenaoFindServiceAccounts(
+      environment: {},
+      dirPath: dirPath,
+    );
+    expect(found.gcloudProjectId, isNull);
+  });
 }

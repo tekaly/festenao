@@ -10,7 +10,8 @@ import 'admin_credentials.dart';
 ///
 /// The service account is pasted as its json, and what is wrong with it is
 /// said when it is saved rather than on the first request, see
-/// [adminServiceAccountError].
+/// [adminServiceAccountError]; or only a project id is given, reached as the
+/// gcloud user ([AdminCredentials.gcloud]).
 class AdminCredentialsScreen extends StatefulWidget {
   /// Where the credentials live.
   final AdminCredentialsDb credentialsDb;
@@ -63,11 +64,14 @@ class _AdminCredentialsScreenState extends State<AdminCredentialsScreen> {
     _snack('Service account of ${credentials.displayName} copied');
   }
 
-  Future<void> _delete(String id, String name) async {
+  Future<void> _delete(String id, String name, {required bool gcloud}) async {
     var confirmed = await objectEditorPromptConfirm(
       context,
       title: 'Delete $name',
-      message: 'The service account is removed from this device.',
+      message: gcloud
+          ? 'The project is removed from this device, the gcloud user stays '
+                'logged in.'
+          : 'The service account is removed from this device.',
       confirmText: 'Delete',
     );
     if (!confirmed) {
@@ -102,7 +106,9 @@ class _AdminCredentialsScreenState extends State<AdminCredentialsScreen> {
         var (list, currentId) = data;
         if (list.isEmpty) {
           return const Center(
-            child: Text('No credentials yet, add a service account'),
+            child: Text(
+              'No credentials yet, add a service account or a gcloud project',
+            ),
           );
         }
         return ListView.builder(
@@ -118,18 +124,30 @@ class _AdminCredentialsScreenState extends State<AdminCredentialsScreen> {
                     : Icons.radio_button_unchecked,
               ),
               title: Text(credentials.displayName),
-              subtitle: Text(credentials.projectId.v ?? ''),
+              subtitle: Text(
+                credentials.isGcloud
+                    ? '${credentials.projectId.v ?? ''} (gcloud user)'
+                    : credentials.projectId.v ?? '',
+              ),
               trailing: PopupMenuButton<String>(
                 icon: const Icon(Icons.more_vert, size: 20),
-                itemBuilder: (context) => const [
-                  PopupMenuItem(value: 'edit', child: Text('Edit')),
-                  PopupMenuItem(value: 'copy', child: Text('Copy the json')),
-                  PopupMenuItem(value: 'delete', child: Text('Delete')),
+                itemBuilder: (context) => [
+                  const PopupMenuItem(value: 'edit', child: Text('Edit')),
+                  if (!credentials.isGcloud)
+                    const PopupMenuItem(
+                      value: 'copy',
+                      child: Text('Copy the json'),
+                    ),
+                  const PopupMenuItem(value: 'delete', child: Text('Delete')),
                 ],
                 onSelected: (action) => switch (action) {
                   'edit' => _edit(credentials: credentials, id: id),
                   'copy' => _copy(credentials),
-                  'delete' => _delete(id, credentials.displayName),
+                  'delete' => _delete(
+                    id,
+                    credentials.displayName,
+                    gcloud: credentials.isGcloud,
+                  ),
                   _ => null,
                 },
               ),
@@ -148,7 +166,7 @@ class _AdminCredentialsScreenState extends State<AdminCredentialsScreen> {
       },
     ),
     floatingActionButton: FloatingActionButton(
-      tooltip: 'Add a service account',
+      tooltip: 'Add credentials',
       onPressed: _edit,
       child: const Icon(Icons.add),
     ),
@@ -156,7 +174,7 @@ class _AdminCredentialsScreenState extends State<AdminCredentialsScreen> {
 }
 
 /// A screen entering one set of credentials: a label and the service account
-/// json.
+/// json, or a label and the project id reached as the gcloud user.
 class AdminCredentialsEditScreen extends StatefulWidget {
   /// Where the credentials live.
   final AdminCredentialsDb credentialsDb;
@@ -188,12 +206,22 @@ class _AdminCredentialsEditScreenState
   late final _serviceAccountController = TextEditingController(
     text: widget.credentials?.serviceAccount.v ?? '',
   );
+  late final _projectIdController = TextEditingController(
+    text: (widget.credentials?.isGcloud ?? false)
+        ? widget.credentials?.projectId.v ?? ''
+        : '',
+  );
+
+  /// Whether a project id reached as the gcloud user is entered, rather than
+  /// a service account.
+  late var _gcloud = widget.credentials?.isGcloud ?? false;
   String? _error;
 
   @override
   void dispose() {
     _labelController.dispose();
     _serviceAccountController.dispose();
+    _projectIdController.dispose();
     super.dispose();
   }
 
@@ -221,7 +249,35 @@ class _AdminCredentialsEditScreenState
     }
   }
 
+  Future<void> _saveGcloud() async {
+    var projectId = _projectIdController.text.trim();
+    var error = adminGcloudProjectIdError(projectId);
+    if (error != null) {
+      setState(() => _error = error);
+      return;
+    }
+    var id = widget.id;
+    if (id == null) {
+      await widget.credentialsDb.addGcloud(
+        label: _labelController.text,
+        projectId: projectId,
+      );
+    } else {
+      await widget.credentialsDb.putGcloud(
+        id,
+        label: _labelController.text,
+        projectId: projectId,
+      );
+    }
+    if (mounted) {
+      Navigator.of(context).pop(true);
+    }
+  }
+
   Future<void> _save() async {
+    if (_gcloud) {
+      return _saveGcloud();
+    }
     var serviceAccount = _serviceAccountController.text;
     var error = adminServiceAccountError(serviceAccount);
     if (error != null) {
@@ -255,11 +311,12 @@ class _AdminCredentialsEditScreenState
       appBar: AppBar(
         title: Text(widget.id == null ? 'New credentials' : 'Credentials'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.paste),
-            tooltip: 'Paste the service account',
-            onPressed: _paste,
-          ),
+          if (!_gcloud)
+            IconButton(
+              icon: const Icon(Icons.paste),
+              tooltip: 'Paste the service account',
+              onPressed: _paste,
+            ),
         ],
       ),
       body: ListView(
@@ -273,25 +330,50 @@ class _AdminCredentialsEditScreenState
               border: OutlineInputBorder(),
             ),
           ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _serviceAccountController,
-            maxLines: 12,
-            minLines: 6,
-            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-            decoration: InputDecoration(
-              labelText: 'Service account json',
-              errorText: _error,
-              border: const OutlineInputBorder(),
+          SwitchListTile(
+            title: const Text('As the gcloud user'),
+            subtitle: const Text(
+              'A project id only, through the application default credentials '
+              '(gcloud auth application-default login); the admin sdk only',
             ),
-            onChanged: (_) => setState(() => _error = null),
+            value: _gcloud,
+            onChanged: (value) => setState(() {
+              _gcloud = value;
+              _error = null;
+            }),
           ),
           const SizedBox(height: 16),
-          ListTile(
-            leading: const Icon(Icons.cloud_outlined),
-            title: const Text('Project'),
-            subtitle: Text(projectId ?? 'read from the service account'),
-          ),
+          if (_gcloud)
+            TextField(
+              controller: _projectIdController,
+              decoration: InputDecoration(
+                labelText: 'Project id',
+                helperText: 'The firebase project, my-project',
+                errorText: _error,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() => _error = null),
+            )
+          else ...[
+            TextField(
+              controller: _serviceAccountController,
+              maxLines: 12,
+              minLines: 6,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+              decoration: InputDecoration(
+                labelText: 'Service account json',
+                errorText: _error,
+                border: const OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() => _error = null),
+            ),
+            const SizedBox(height: 16),
+            ListTile(
+              leading: const Icon(Icons.cloud_outlined),
+              title: const Text('Project'),
+              subtitle: Text(projectId ?? 'read from the service account'),
+            ),
+          ],
         ],
       ),
       floatingActionButton: FloatingActionButton(

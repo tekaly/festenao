@@ -14,6 +14,44 @@ import 'festenao_service_account.dart';
 /// it works from a terminal, an IDE launch configuration or neither.
 const festenaoServiceAccountEnvKey = 'FESTENAO_SERVICE_ACCOUNT';
 
+/// The variable naming the firebase project an admin build reaches as the
+/// gcloud user, through the application default credentials: only the
+/// project id, no service account (`FESTENAO_GCLOUD_PROJECT=my-project`).
+///
+/// Read as [festenaoServiceAccountEnvKey] is: the process environment first,
+/// then the ds env user file.
+const festenaoGcloudProjectEnvKey = 'FESTENAO_GCLOUD_PROJECT';
+
+/// The application default credentials file the admin sdk reads: the one of
+/// `GOOGLE_APPLICATION_CREDENTIALS`, or else the one
+/// `gcloud auth application-default login` writes
+/// (`~/.config/gcloud/application_default_credentials.json`, under
+/// `%APPDATA%` on windows).
+///
+/// [environment] replaces the process environment, for tests.
+String festenaoApplicationDefaultCredentialsPath({
+  Map<String, String>? environment,
+}) {
+  var env = environment ?? Platform.environment;
+  var fromEnv = env['GOOGLE_APPLICATION_CREDENTIALS'];
+  if (fromEnv != null && fromEnv.isNotEmpty) {
+    return fromEnv;
+  }
+  if (Platform.isWindows) {
+    return join(
+      env['APPDATA'] ?? userAppDataPath,
+      'gcloud',
+      'application_default_credentials.json',
+    );
+  }
+  return join(
+    env['HOME'] ?? userHomePath,
+    '.config',
+    'gcloud',
+    'application_default_credentials.json',
+  );
+}
+
 /// The directory the service account files are written in, one
 /// `<project_id>.json` per firebase project:
 /// `~/.config/tekartik/festenao/service_accounts` on linux, next to the ds
@@ -77,8 +115,16 @@ class FestenaoServiceAccountsFound {
   /// What went wrong, one line each (a missing file, a json without key...).
   final List<String> errors;
 
+  /// The project of [festenaoGcloudProjectEnvKey], reached as the gcloud
+  /// user; null when it is not set.
+  final String? gcloudProjectId;
+
   /// The accounts read and the errors met.
-  FestenaoServiceAccountsFound({required this.accounts, required this.errors});
+  FestenaoServiceAccountsFound({
+    required this.accounts,
+    required this.errors,
+    this.gcloudProjectId,
+  });
 
   /// The one of [festenaoServiceAccountEnvKey], null when it is not set.
   FestenaoServiceAccount? get fromEnv => accounts
@@ -104,19 +150,30 @@ String festenaoExpandHomePath(String path) {
 /// file, for tests.
 ({String value, String where})? festenaoServiceAccountEnvValue({
   Map<String, String>? environment,
+}) => _envValue(festenaoServiceAccountEnvKey, environment: environment);
+
+/// The project of [festenaoGcloudProjectEnvKey], null when it is not set.
+///
+/// [environment] replaces both the process environment and the ds env user
+/// file, for tests.
+String? festenaoGcloudProjectFromEnv({Map<String, String>? environment}) =>
+    _envValue(festenaoGcloudProjectEnvKey, environment: environment)?.value;
+
+/// The value of the variable [key], from the process environment or else the
+/// ds env user file, and where it was read; null when it is not set.
+({String value, String where})? _envValue(
+  String key, {
+  Map<String, String>? environment,
 }) {
   ({String value, String where})? valueOf(String? value, String where) =>
       (value == null || value.trim().isEmpty)
       ? null
       : (value: value.trim(), where: where);
   if (environment != null) {
-    return valueOf(environment[festenaoServiceAccountEnvKey], 'environment');
+    return valueOf(environment[key], 'environment');
   }
-  return valueOf(
-        Platform.environment[festenaoServiceAccountEnvKey],
-        'environment',
-      ) ??
-      valueOf(userEnvironment[festenaoServiceAccountEnvKey], 'ds env');
+  return valueOf(Platform.environment[key], 'environment') ??
+      valueOf(userEnvironment[key], 'ds env');
 }
 
 /// Reads the service account file [path], throwing a [StateError] naming the
@@ -204,11 +261,26 @@ Future<List<FestenaoServiceAccount>> festenaoServiceAccountsFromDir({
 /// Every service account this machine holds: the one of
 /// [festenaoServiceAccountEnvKey] first, then the files of [dirPath], a file
 /// the variable already points to (or holding the same key) only once.
+///
+/// The project of [festenaoGcloudProjectEnvKey] comes along, an error said
+/// when there are no application default credentials to reach it with.
 Future<FestenaoServiceAccountsFound> festenaoFindServiceAccounts({
   Map<String, String>? environment,
   String? dirPath,
 }) async {
   var errors = <String>[];
+  var gcloudProjectId = festenaoGcloudProjectFromEnv(environment: environment);
+  if (gcloudProjectId != null) {
+    var path = festenaoApplicationDefaultCredentialsPath(
+      environment: environment,
+    );
+    if (!File(path).existsSync()) {
+      errors.add(
+        '\$$festenaoGcloudProjectEnvKey $gcloudProjectId: no gcloud '
+        'credentials at $path, run gcloud auth application-default login',
+      );
+    }
+  }
   var accounts = <FestenaoServiceAccount>[];
   try {
     var fromEnv = await festenaoServiceAccountFromEnv(environment: environment);
@@ -234,7 +306,11 @@ Future<FestenaoServiceAccountsFound> festenaoFindServiceAccounts({
       accounts.add(account);
     }
   }
-  return FestenaoServiceAccountsFound(accounts: accounts, errors: errors);
+  return FestenaoServiceAccountsFound(
+    accounts: accounts,
+    errors: errors,
+    gcloudProjectId: gcloudProjectId,
+  );
 }
 
 /// Writes the service account [map] as `<project_id>.json` in [dirPath]

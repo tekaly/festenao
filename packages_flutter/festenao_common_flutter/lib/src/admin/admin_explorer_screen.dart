@@ -148,27 +148,28 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
     _loading = credentialsDb.current();
   });
 
-  /// The firebase of the service account last opened, and that account.
+  /// The firebase of the credentials last opened, and what tells them apart
+  /// (the service account json, the gcloud project).
   ///
   /// Firebase has one default app per process, so the explorers share it
-  /// while the account stays the same; it is deleted when another one is
+  /// while the credentials stay the same; it is deleted when other ones are
   /// opened, and when the screen goes.
   (String, Future<FirebaseContext>)? _firebase;
 
   Future<FirebaseContext> _firebaseContext(
-    String serviceAccount,
-    Map serviceAccountMap,
+    String key,
+    Future<FirebaseContext> Function() init,
   ) async {
     var current = _firebase;
     if (current != null) {
-      if (current.$1 == serviceAccount) {
+      if (current.$1 == key) {
         return current.$2;
       }
       _firebase = null;
       await _deleteFirebase(current.$2);
     }
-    var context = _firebaseAccess.initWithServiceAccount(serviceAccountMap);
-    _firebase = (serviceAccount, context);
+    var context = init();
+    _firebase = (key, context);
     try {
       return await context;
     } catch (_) {
@@ -226,33 +227,43 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
         .replaceAll(r'\\', '/');
   }
 
-  /// The service account of [credentials], null (and said so) when there is
-  /// none to use.
-  Map? _serviceAccountMap(AdminCredentials? credentials) {
+  /// The firebase of [credentials], null (and said so) when there is nothing
+  /// to open it with.
+  Future<FirebaseContext?> _credentialsFirebaseContext(
+    AdminCredentials? credentials,
+  ) async {
     if (credentials == null) {
       _snack('Pick a set of credentials first');
       return null;
     }
+    if (credentials.isGcloud) {
+      var projectId = credentials.projectId.v ?? '';
+      if (projectId.isEmpty) {
+        _snack('No project for ${credentials.displayName}');
+        return null;
+      }
+      return _firebaseContext(
+        'gcloud:$projectId',
+        () => _firebaseAccess.initWithApplicationDefault(projectId),
+      );
+    }
     var serviceAccountMap = credentials.serviceAccountMap;
     if (serviceAccountMap == null) {
       _snack('The service account of ${credentials.displayName} is not json');
+      return null;
     }
-    return serviceAccountMap;
+    return _firebaseContext(
+      credentials.serviceAccount.v!,
+      () => _firebaseAccess.initWithServiceAccount(serviceAccountMap),
+    );
   }
 
-  /// The users of the project, through the auth of the service account,
-  /// which lists them.
+  /// The users of the project, through the auth of the credentials, which
+  /// lists them.
   Future<void> _openUsers(AdminCredentials? credentials) async {
-    var serviceAccountMap = _serviceAccountMap(credentials);
-    if (credentials == null || serviceAccountMap == null) {
-      return;
-    }
     try {
-      var context = await _firebaseContext(
-        credentials.serviceAccount.v!,
-        serviceAccountMap,
-      );
-      if (!mounted) {
+      var context = await _credentialsFirebaseContext(credentials);
+      if (credentials == null || context == null || !mounted) {
         return;
       }
       await goToFirebaseUsersExplorerScreen(
@@ -278,16 +289,9 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
 
   /// The apps of the project, and who may do what on them.
   Future<void> _openApps(AdminCredentials? credentials) async {
-    var serviceAccountMap = _serviceAccountMap(credentials);
-    if (credentials == null || serviceAccountMap == null) {
-      return;
-    }
     try {
-      var context = await _firebaseContext(
-        credentials.serviceAccount.v!,
-        serviceAccountMap,
-      );
-      if (!mounted) {
+      var context = await _credentialsFirebaseContext(credentials);
+      if (credentials == null || context == null || !mounted) {
         return;
       }
       await goToAdminAppsScreen(
@@ -302,16 +306,9 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
   }
 
   Future<void> _openFirestore(AdminCredentials? credentials) async {
-    var serviceAccountMap = _serviceAccountMap(credentials);
-    if (credentials == null || serviceAccountMap == null) {
-      return;
-    }
     try {
-      var context = await _firebaseContext(
-        credentials.serviceAccount.v!,
-        serviceAccountMap,
-      );
-      if (!mounted) {
+      var context = await _credentialsFirebaseContext(credentials);
+      if (credentials == null || context == null || !mounted) {
         return;
       }
       await goToFirestoreExplorerScreen(
@@ -404,6 +401,7 @@ class _AdminExplorerScreenState extends State<AdminExplorerScreen> {
                     ? 'None selected'
                     : '${credentials.displayName} '
                           '(${credentials.projectId.v ?? 'no project'}), '
+                          '${credentials.isGcloud ? 'as the gcloud user, ' : ''}'
                           'through the ${_firebaseAccess.name}',
               ),
               onTap: () async {

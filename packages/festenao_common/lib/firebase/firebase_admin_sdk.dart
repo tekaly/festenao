@@ -32,6 +32,34 @@ Future<FirebaseContext> festenaoInitFirebaseAdminSdkWithServiceAccount({
       .initSync();
 }
 
+/// Initializes Firebase of [projectId] through the admin sdk, as the
+/// application default credentials of the machine.
+///
+/// No service account: the admin sdk finds the credentials itself, the json
+/// of `GOOGLE_APPLICATION_CREDENTIALS` or else the gcloud user of
+/// `gcloud auth application-default login`
+/// (`~/.config/gcloud/application_default_credentials.json`), who needs the
+/// rights on the project (an owner, an editor).
+///
+/// As a gcloud user, auth needs a quota project:
+/// `GOOGLE_CLOUD_QUOTA_PROJECT=<projectId>` in the environment, or
+/// `gcloud auth application-default set-quota-project <projectId>`.
+/// [options] overrides app options such as the storage bucket.
+Future<FirebaseContext> festenaoInitFirebaseAdminSdkWithApplicationDefault({
+  FirebaseAppOptions? options,
+  required String projectId,
+}) async {
+  var firebaseApp = firebaseAdminSdk.initializeApp(
+    options: FirebaseAppOptions(
+      projectId: projectId,
+      storageBucket: options?.storageBucket,
+    ),
+  );
+  return initFirebaseServicesAdminSdk()
+      .copyWith(firebaseApp: firebaseApp)
+      .initSync();
+}
+
 class _FestenaoAdminFirebaseAdminSdk implements FestenaoAdminFirebase {
   @override
   String get name => 'admin sdk';
@@ -41,6 +69,10 @@ class _FestenaoAdminFirebaseAdminSdk implements FestenaoAdminFirebase {
       festenaoInitFirebaseAdminSdkWithServiceAccount(
         serviceAccountMap: serviceAccountMap,
       );
+
+  @override
+  Future<FirebaseContext> initWithApplicationDefault(String projectId) =>
+      festenaoInitFirebaseAdminSdkWithApplicationDefault(projectId: projectId);
 
   @override
   Future<List<String>?> listDocumentIds(

@@ -61,6 +61,7 @@ export 'src/admin/admin_credentials.dart'
         adminCredentialsProjectIdIndex,
         adminCredentialsStore,
         adminCurrentCredentialsKey,
+        adminGcloudProjectIdError,
         adminServiceAccountError,
         adminServiceAccountMap,
         adminServiceAccountProjectId,

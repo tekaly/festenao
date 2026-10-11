@@ -100,4 +100,30 @@ void main() {
     await adminCredentialsImportFound(db, environment: {}, dirPath: dirPath);
     expect(await db.currentId(), id);
   });
+
+  test('the gcloud project, selected over the variable', () async {
+    var adcPath = '${tempDir.path}${Platform.pathSeparator}adc.json';
+    File(adcPath).writeAsStringSync('{"type": "authorized_user"}');
+    var found = await adminCredentialsImportFound(
+      db,
+      environment: {
+        festenaoGcloudProjectEnvKey: 'p1',
+        'GOOGLE_APPLICATION_CREDENTIALS': adcPath,
+        festenaoServiceAccountEnvKey: jsonEncode(_serviceAccount('p2')),
+      },
+      dirPath: dirPath,
+    );
+    expect(found.errors, isEmpty);
+    expect(found.gcloudProjectId, 'p1');
+    var list = await db.list();
+    expect(list.map((credentials) => credentials.displayName), [
+      'p1 (\$FESTENAO_GCLOUD_PROJECT)',
+      'p2 (\$FESTENAO_SERVICE_ACCOUNT)',
+    ]);
+    expect(await db.currentId(), adminCredentialsGcloudEnvId);
+    var current = (await db.current())!;
+    expect(current.isGcloud, isTrue);
+    expect(current.projectId.v, 'p1');
+    expect(current.serviceAccount.v, isEmpty);
+  });
 }

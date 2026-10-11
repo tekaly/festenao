@@ -1,7 +1,8 @@
 import 'package:festenao_common/firebase/firebase_service_account.dart';
 import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 
-/// One set of admin credentials: a service account, and what it reaches.
+/// One set of admin credentials: a service account, and what it reaches; or
+/// a project only, reached as the gcloud user ([gcloud]).
 ///
 /// The service account is kept as the json text it was pasted as, so nothing
 /// of it is lost to a round trip through a model.
@@ -15,11 +16,19 @@ class AdminCredentials extends ScvStringRecordBase {
   /// The service account json, as it was pasted.
   final serviceAccount = CvField<String>('serviceAccount');
 
+  /// True when [projectId] is reached as the gcloud user of the machine (the
+  /// application default credentials, `gcloud auth application-default
+  /// login`), [serviceAccount] then empty; the admin sdk only.
+  final gcloud = CvField<bool>('gcloud');
+
   /// When it was last written.
   final updatedAt = CvField<SdbTimestamp>('updatedAt');
 
   @override
-  CvFields get fields => [label, projectId, serviceAccount, updatedAt];
+  CvFields get fields => [label, projectId, serviceAccount, gcloud, updatedAt];
+
+  /// Whether the project is reached as the gcloud user, see [gcloud].
+  bool get isGcloud => gcloud.v ?? false;
 
   /// What the list displays: the label, or the project id when there is none.
   String get displayName {
@@ -87,6 +96,20 @@ String? adminServiceAccountProjectId(String? text) =>
 /// caught when it is pasted rather than on the first request.
 String? adminServiceAccountError(String? text) =>
     festenaoServiceAccountTextError(text);
+
+/// What is wrong with the project id [text] of gcloud credentials, null when
+/// nothing is: a google cloud one, 6 to 30 lowercase letters, digits and
+/// hyphens, starting with a letter.
+String? adminGcloudProjectIdError(String? text) {
+  var projectId = text?.trim() ?? '';
+  if (projectId.isEmpty) {
+    return 'A project id is needed';
+  }
+  if (!RegExp(r'^[a-z][a-z0-9-]{4,28}[a-z0-9]$').hasMatch(projectId)) {
+    return 'Not a project id: 6 to 30 lowercase letters, digits and hyphens';
+  }
+  return null;
+}
 
 /// The credentials the admin app holds, in an sdb database of its own.
 ///
@@ -159,6 +182,30 @@ class AdminCredentialsDb {
       ..serviceAccount.v = serviceAccount
       ..projectId.v =
           projectId ?? adminServiceAccountProjectId(serviceAccount) ?? ''
+      ..updatedAt.v = SdbTimestamp.now();
+    await adminCredentialsStore.record(id).put(database, credentials);
+  }
+
+  /// Adds the project [projectId] reached as the gcloud user, answering the
+  /// id it took.
+  Future<String> addGcloud({String? label, required String projectId}) async {
+    var id = 'credentials_${DateTime.now().millisecondsSinceEpoch}';
+    await putGcloud(id, label: label, projectId: projectId);
+    return id;
+  }
+
+  /// Writes the credentials of id [id] as the project [projectId] reached as
+  /// the gcloud user, see [AdminCredentials.gcloud].
+  Future<void> putGcloud(
+    String id, {
+    String? label,
+    required String projectId,
+  }) async {
+    var credentials = AdminCredentials()
+      ..label.v = label ?? ''
+      ..serviceAccount.v = ''
+      ..projectId.v = projectId
+      ..gcloud.v = true
       ..updatedAt.v = SdbTimestamp.now();
     await adminCredentialsStore.record(id).put(database, credentials);
   }

@@ -8,6 +8,10 @@
 /// database, so they show with the pasted ones; the `festenao_service_account`
 /// command of `festenao_support` writes them.
 ///
+/// `FESTENAO_GCLOUD_PROJECT` names a project reached as the gcloud user
+/// instead (`gcloud auth application-default login`), no service account
+/// needed: it is copied too, and selected.
+///
 /// ```dart
 /// var credentialsDb = await AdminCredentialsDb.open(sdbFactory);
 /// var found = await adminCredentialsImportFound(credentialsDb);
@@ -28,6 +32,8 @@ export 'package:festenao_common/firebase/festenao_service_account_io.dart'
         FestenaoServiceAccount,
         FestenaoServiceAccountOrigin,
         FestenaoServiceAccountsFound,
+        festenaoApplicationDefaultCredentialsPath,
+        festenaoGcloudProjectEnvKey,
         festenaoServiceAccountDirPath,
         festenaoServiceAccountEnvKey;
 export 'package:festenao_common/firebase/firebase_admin_sdk.dart'
@@ -35,6 +41,9 @@ export 'package:festenao_common/firebase/firebase_admin_sdk.dart'
 
 /// The id the credentials of `FESTENAO_SERVICE_ACCOUNT` are kept under.
 const adminCredentialsEnvId = 'found_env';
+
+/// The id the project of `FESTENAO_GCLOUD_PROJECT` is kept under.
+const adminCredentialsGcloudEnvId = 'found_gcloud_env';
 
 /// The id the credentials of the service account file of [projectId] are kept
 /// under.
@@ -45,10 +54,12 @@ String adminCredentialsFileId(String projectId) => 'found_file_$projectId';
 /// found (and what could not be read).
 ///
 /// Each source has an id of its own, rewritten on every call: the variable
-/// ([adminCredentialsEnvId]) and each file ([adminCredentialsFileId]). The
-/// variable is selected when it is set, the first one found when nothing is
-/// selected yet; the copies stay in the database (unencrypted, it is a local
-/// build) until deleted there.
+/// ([adminCredentialsEnvId]), each file ([adminCredentialsFileId]) and the
+/// gcloud project ([adminCredentialsGcloudEnvId]). The gcloud project is
+/// selected when it is set (what a launcher passes), else the variable when it
+/// is set, else the first one found when nothing is selected yet; the copies
+/// stay in the database (unencrypted, it is a local build) until deleted
+/// there.
 ///
 /// [environment] and [dirPath] replace the variables and the directory, for
 /// tests.
@@ -76,7 +87,15 @@ Future<FestenaoServiceAccountsFound> adminCredentialsImportFound(
       serviceAccount: account.json,
     );
   }
-  if (found.fromEnv != null) {
+  var gcloudProjectId = found.gcloudProjectId;
+  if (gcloudProjectId != null) {
+    await credentialsDb.putGcloud(
+      adminCredentialsGcloudEnvId,
+      label: '$gcloudProjectId (\$$festenaoGcloudProjectEnvKey)',
+      projectId: gcloudProjectId,
+    );
+    await credentialsDb.setCurrentId(adminCredentialsGcloudEnvId);
+  } else if (found.fromEnv != null) {
     await credentialsDb.setCurrentId(adminCredentialsEnvId);
   } else if (firstId != null && await credentialsDb.current() == null) {
     await credentialsDb.setCurrentId(firstId);

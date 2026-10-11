@@ -63,6 +63,16 @@ void main() {
     });
   });
 
+  test('a gcloud project id', () {
+    expect(adminGcloudProjectIdError('demo-project'), isNull);
+    expect(adminGcloudProjectIdError(' contaktly '), isNull);
+    expect(adminGcloudProjectIdError(''), 'A project id is needed');
+    expect(adminGcloudProjectIdError(null), 'A project id is needed');
+    for (var wrong in ['Demo', 'short', '1project', 'ends-', 'a_b_c_d']) {
+      expect(adminGcloudProjectIdError(wrong), isNotNull, reason: wrong);
+    }
+  });
+
   group('AdminCredentialsDb', () {
     test('adds, reads, updates and deletes', () async {
       var db = await _newDb();
@@ -88,6 +98,20 @@ void main() {
       expect((await db.list()).length, 1);
       await db.delete(id);
       expect(await db.list(), isEmpty);
+      await db.close();
+    });
+
+    test('holds a gcloud project, no service account', () async {
+      var db = await _newDb();
+      var id = await db.addGcloud(projectId: 'demo-project');
+      var credentials = (await db.get(id))!;
+      expect(credentials.isGcloud, isTrue);
+      expect(credentials.displayName, 'demo-project');
+      expect(credentials.serviceAccountMap, isNull);
+
+      // A service account written over it is one again.
+      await db.put(id, serviceAccount: _serviceAccount());
+      expect((await db.get(id))!.isGcloud, isFalse);
       await db.close();
     });
 
@@ -139,7 +163,9 @@ void main() {
       );
       await _settle(tester);
       expect(
-        find.text('No credentials yet, add a service account'),
+        find.text(
+          'No credentials yet, add a service account or a gcloud project',
+        ),
         findsOneWidget,
       );
 
@@ -159,6 +185,40 @@ void main() {
       await _settle(tester);
       expect(find.byIcon(Icons.radio_button_checked), findsOneWidget);
       expect((await db.current())!.label.v, 'Demo');
+      await db.close();
+    });
+
+    _testWidgets('adds a gcloud project', (tester) async {
+      var db = await _newDb();
+      await tester.pumpWidget(
+        MaterialApp(home: AdminCredentialsScreen(credentialsDb: db)),
+      );
+      await _settle(tester);
+
+      await tester.tap(find.byIcon(Icons.add));
+      await _settle(tester);
+      await tester.tap(find.text('As the gcloud user'));
+      await _settle(tester);
+      // The project id instead of the json, nothing to paste.
+      expect(find.text('Service account json'), findsNothing);
+      expect(find.byIcon(Icons.paste), findsNothing);
+      await tester.enterText(find.byType(TextField).last, 'Not one');
+      await tester.tap(find.byIcon(Icons.save));
+      await _settle(tester);
+      expect(await db.list(), isEmpty);
+
+      await tester.enterText(find.byType(TextField).last, 'demo-project');
+      await tester.tap(find.byIcon(Icons.save));
+      await _settle(tester);
+      expect(find.text('demo-project (gcloud user)'), findsOneWidget);
+      var credentials = (await db.list()).single;
+      expect(credentials.isGcloud, isTrue);
+      expect(credentials.projectId.v, 'demo-project');
+
+      // No json to copy.
+      await tester.tap(find.byIcon(Icons.more_vert));
+      await _settle(tester);
+      expect(find.text('Copy the json'), findsNothing);
       await db.close();
     });
 
