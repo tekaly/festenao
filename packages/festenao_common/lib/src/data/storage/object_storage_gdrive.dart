@@ -83,10 +83,10 @@ class ObjectStorageGdrive extends ObjectStorage {
   /// Constructor
   ObjectStorageGdrive({required this.gdrive});
 
-  /// The `webContentLink` of a file serves its content: a download stream
-  /// fetches it in one request rather than through [downloadPart] (which
-  /// downloads the whole file for each part). It only works for whoever may
-  /// read the file, anyone for a public one.
+  /// The `webContentLink` of a file ([getDownloadUrl]) serves its content
+  /// to whoever may read the file, anyone for a public one. [downloadStream]
+  /// does not use it: the http client of a server is not signed in, Google
+  /// answers its sign-in page for a file shared with the service account.
   @override
   bool get supportDownloadUrl => true;
   /*
@@ -247,14 +247,55 @@ class ObjectStorageGdrive extends ObjectStorage {
     return Uint8List.fromList(bytes);
   }
 
+  /// One request to the Drive api with the access of the [gdrive] client
+  /// (the service account), a `Range` one for a part: [start] (0 by
+  /// default) and [size] bytes, up to the end of the file. A part starting
+  /// past the end is empty.
+  @override
+  Stream<Uint8List> downloadStream(
+    String path, {
+    int? start,
+    int? size,
+    int? chunkSize,
+  }) async* {
+    await gdrive.ready;
+    var fileId = path;
+    gd.DownloadOptions options = gd.DownloadOptions.fullMedia;
+    var first = start ?? 0;
+    if (first > 0 || size != null) {
+      // The exact range: the api client refuses a response shorter than
+      // asked, the end of the file is needed.
+      var meta = await getItem(path);
+      fileId = meta.path;
+      var total = meta.size;
+      if (total == null) {
+        throw StateError('No content: $path');
+      }
+      var last = size == null ? total - 1 : first + size - 1;
+      if (last >= total) {
+        last = total - 1;
+      }
+      if (last < first) {
+        return;
+      }
+      options = gd.PartialDownloadOptions(gd.ByteRange(first, last));
+    }
+    var media =
+        await gdrive.driveApi.files.get(fileId, downloadOptions: options)
+            as gd.Media;
+    yield* media.stream.map(
+      (chunk) => chunk is Uint8List ? chunk : Uint8List.fromList(chunk),
+    );
+  }
+
+  /// A part only, see [downloadStream].
   @override
   Future<Uint8List> downloadPart(String path, int start, int size) async {
-    var allBytes = await download(path);
-    var end = start + size;
-    if (end > allBytes.length) {
-      end = allBytes.length;
+    var builder = BytesBuilder(copy: false);
+    await for (var chunk in downloadStream(path, start: start, size: size)) {
+      builder.add(chunk);
     }
-    return Uint8List.fromList(allBytes.sublist(start, end));
+    return builder.takeBytes();
   }
 
   @override
