@@ -4,7 +4,7 @@ description: >-
   language texts, the page head (canonical, hreflang, OpenGraph, JSON-LD),
   the language link with the Firebase Hosting language cookie, markdown
   pages, FAQ list, inline rich text, images and store badges.
-version: 0.1.0
+version: 0.1.1
 publish_to: none
 
 resolution: workspace

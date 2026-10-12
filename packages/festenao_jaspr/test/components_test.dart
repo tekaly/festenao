@@ -172,6 +172,28 @@ void main() {
       faq.querySelector('.faq-answer p')?.text,
       'No. Tap Create or read the guide.',
     );
+    expect(faq.attributes.containsKey('open'), isFalse);
+  });
+
+  testServer('FAQ, the first ones open', (tester) async {
+    var response = await _render(
+      tester,
+      body: [
+        const FaqList(
+          open: 1,
+          items: [
+            (id: 'a', question: 'A?', answer: 'A.'),
+            (id: 'b', question: 'B?', answer: 'B.'),
+          ],
+        ),
+      ],
+    );
+    var document = response.document!;
+    expect(document.querySelector('#faq-a')!.attributes['open'], '');
+    expect(
+      document.querySelector('#faq-b')!.attributes.containsKey('open'),
+      isFalse,
+    );
   });
 
   testServer('images and store badges', (tester) async {

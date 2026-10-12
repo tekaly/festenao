@@ -11,7 +11,7 @@ left to each site.
 - `LanguageLink`: the link to the other language that also sets the
   `firebase-language-override` cookie, so that Firebase Hosting i18n
   rewrites keep serving the chosen language.
-- `FaqList` (native `details`), `rich` (`**bold**` and `[text](url)`),
+- `FaqList` (native `details`, `open:` for the first ones), `rich` (`**bold**` and `[text](url)`),
   `siteImage` (sized, lazy, 2x), `StoreBadges`, `jsonLdScript`.
 - `package:festenao_jaspr/server.dart` (server only, `dart:io`):
   `siteDocument` (theme colour, fonts preload, stylesheet inlined) and
