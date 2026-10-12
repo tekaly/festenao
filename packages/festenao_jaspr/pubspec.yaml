@@ -1,0 +1,30 @@
+name: festenao_jaspr
+description: >-
+  Shared jaspr components of the festenao and youpi static sites: two
+  language texts, the page head (canonical, hreflang, OpenGraph, JSON-LD),
+  the language link with the Firebase Hosting language cookie, markdown
+  pages, FAQ list, inline rich text, images and store badges.
+version: 0.1.0
+publish_to: none
+
+resolution: workspace
+environment:
+  sdk: ^3.12.0
+
+# Light on purpose: the sites using it are standalone packages resolving
+# jaspr_builder (analyzer 12). Never add festenao_common, tkcms_common or
+# anything pulling the Firebase admin sdk (analyzer 13). No @client
+# component here: islands need jaspr_builder in the declaring package.
+dependencies:
+  jaspr: ^0.23.5
+  markdown: ">=7.3.0"
+  path: ">=1.9.1"
+
+dev_dependencies:
+  jaspr_test: ^0.23.5
+  test: ">=1.31.0"
+  tekartik_lints:
+    git:
+      url: https://github.com/tekartik/common.dart
+      path: packages/lints
+    version: '>=0.1.0'
