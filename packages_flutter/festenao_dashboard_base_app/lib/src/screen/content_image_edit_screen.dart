@@ -56,10 +56,15 @@ class _ContentImageEditScreenState
   int? _pickedWidth;
   int? _pickedHeight;
 
+  /// Preview bytes of the current media, loaded once per media id.
+  Future<Uint8List?>? _mediaBytesFuture;
+  String? _mediaBytesId;
+
   @override
   void dispose() {
     _nameCtrl.dispose();
     _copyrightCtrl.dispose();
+    imageIdCtrl.dispose();
     super.dispose();
   }
 
@@ -90,23 +95,17 @@ class _ContentImageEditScreenState
       }
     }
 
-    // Initialize form fields from existing image on first load
+    // Initialize form fields from the existing image once loaded (a listen
+    // does not fire when the image is already loaded, i.e. opened from the
+    // view screen).
     if (!isNew) {
-      ref.listen(
-        imageEntryProvider(widget.projectId, widget.dataId, widget.imageId!),
-        (_, next) {
-          next.whenData((img) {
-            if (img != null && !_initialized) {
-              _nameCtrl.text = img.name.v ?? '';
-              _copyrightCtrl.text = img.copyright.v ?? '';
-              imageIdCtrl.text = img.id;
-              setState(() {
-                _initialized = true;
-              });
-            }
-          });
-        },
-      );
+      final img = imageAsync.value;
+      if (img != null && !_initialized) {
+        _nameCtrl.text = img.name.v ?? '';
+        _copyrightCtrl.text = img.copyright.v ?? '';
+        imageIdCtrl.text = img.id;
+        _initialized = true;
+      }
     } else {
       _initialized = true;
     }
@@ -166,7 +165,7 @@ class _ContentImageEditScreenState
                   label: const Text('Pick Image'),
                 ),
                 const SizedBox(height: 12),
-                _buildPreview(contentSdbAsync.value),
+                _buildPreview(contentSdbAsync.value, currentImage),
                 const SizedBox(height: 80),
               ],
             ],
@@ -181,7 +180,8 @@ class _ContentImageEditScreenState
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: contentSdbAsync.hasValue && !_isSaving
+        // Not before the form is initialized (it would save empty values).
+        onPressed: isValid && contentSdbAsync.hasValue && !_isSaving
             ? () => _onSave(context, contentSdbAsync.value!)
             : null,
         child: const Icon(Icons.save),
@@ -189,15 +189,21 @@ class _ContentImageEditScreenState
     );
   }
 
-  Widget _buildPreview(SdfContentSdb? sdb) {
+  Widget _buildPreview(SdfContentSdb? sdb, SdfImage? image) {
     if (_pickedBytes != null) {
       return _imagePreview(_pickedBytes!);
     }
-    if (sdb == null || widget.imageId == null) {
+    if (sdb == null || widget.imageId == null || image == null) {
       return const SizedBox.shrink();
     }
+    // The media of the image (its id for older images).
+    final mediaId = image.mediaId.v ?? widget.imageId!;
+    if (_mediaBytesId != mediaId) {
+      _mediaBytesId = mediaId;
+      _mediaBytesFuture = _loadMediaBytes(sdb, mediaId);
+    }
     return FutureBuilder<Uint8List?>(
-      future: _loadMediaBytes(sdb, widget.imageId!),
+      future: _mediaBytesFuture,
       builder: (context, snapshot) {
         final bytes = snapshot.data;
         if (bytes == null) return const SizedBox.shrink();
@@ -337,7 +343,10 @@ class _ContentImageEditScreenState
     if (confirmed != true || !mounted) return;
     setState(() => _isSaving = true);
     try {
+      final image = await sdb.getImage(widget.imageId!);
       await sdb.deleteImage(widget.imageId!);
+      // Its media too, like the list delete.
+      await sdb.mediaDb.deleteMediaFile(image?.mediaId.v ?? widget.imageId!);
       if (context.mounted) Navigator.of(context).pop();
     } catch (e) {
       if (context.mounted) _showError(context, 'Delete failed: $e');
@@ -352,9 +361,9 @@ class _ContentImageEditScreenState
   }
 }
 
-Future<Uint8List?> _loadMediaBytes(SdfContentSdb sdb, String imageId) async {
+Future<Uint8List?> _loadMediaBytes(SdfContentSdb sdb, String mediaId) async {
   try {
-    return await sdb.mediaDb.readMediaFileBytes(imageId);
+    return await sdb.mediaDb.readMediaFileBytes(mediaId);
   } catch (_) {
     return null;
   }

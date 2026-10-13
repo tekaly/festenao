@@ -4,7 +4,6 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_blur_hash/blur_hash.dart';
 import 'package:image/image.dart' as img;
-import 'package:path/path.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 
 class AdminArticleEditData {
@@ -74,9 +73,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
         ..height.v = image.height
         ..blurHash.v = blurHash;
 
-      var path = url.join(
-        globalFestenaoAppFirebaseContext.storageRootPath,
-        'image',
+      var path = globalFestenaoAppFirebaseContext.getImageDirStoragePath(
         imageName,
       );
       await globalFestenaoAdminAppFirebaseContext.storage
@@ -89,6 +86,8 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
       article.thumbnail.v = imageId;
     }
 
-    await data.article.put(db);
+    // Merged: the fields not edited by the screen (sort, squareImage,
+    // location, artists...) are kept.
+    await data.article.put(db, merge: true);
   }
 }

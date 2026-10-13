@@ -4,6 +4,7 @@ import 'package:festenao_dashboard_app_demo/main.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_cms.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_data.dart';
 import 'package:festenao_dashboard_app_demo/src/demo_theme.dart';
+import 'package:festenao_theme/fonts/poppins/poppins_font.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 
@@ -242,7 +243,8 @@ void main() {
       // The poppins themes carry the rules of themeData1: floating snack
       // bars, and a font family of their own.
       expect(theme.snackBarTheme.behavior, SnackBarBehavior.floating);
-      expect(theme.textTheme.bodyMedium?.fontFamily, isNotNull);
+      // (isNotNull passed with the default Roboto too)
+      expect(theme.textTheme.bodyMedium?.fontFamily, poppinsFontFamily);
     });
 
     _testWidgets('opens the firestore explorer on the demo tree', (

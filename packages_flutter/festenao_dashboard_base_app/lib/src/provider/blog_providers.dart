@@ -201,11 +201,14 @@ SdbProjectsContentBlogCache blogCache(Ref ref) {
   var appFlavorContext = ref
       .watch(festenaoAppFlavorContextProvider)
       .appFlavorContext;
-  return SdbProjectsContentBlogCache(
+  var cache = SdbProjectsContentBlogCache(
     firestore,
     userProjectsSdb: userProjectSdb,
     appFlavorContext: appFlavorContext,
   );
+  // Close the synced dbs it opened (the lru disposes them on clear).
+  ref.onDispose(cache._lru.clear);
+  return cache;
 }
 
 @riverpod

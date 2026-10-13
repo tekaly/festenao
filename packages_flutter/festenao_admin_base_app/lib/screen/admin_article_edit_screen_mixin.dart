@@ -120,8 +120,10 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
     idController?.dispose();
     contentController?.dispose();
     subtitleController?.dispose();
+    quareImageController?.dispose();
     imageBytes?.dispose();
     thumbnailImageBytes?.dispose();
+    squareImageBytes?.dispose();
     attributesValueNotifier?.dispose();
     typeController?.dispose();
     tagsController?.dispose();
@@ -179,10 +181,10 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
 
   Widget getSquareNameWidget(DbArticleMixin? article) => AppTextFieldTile(
     emptyAllowed: true,
-    controller: thumbnailController ??= TextEditingController(
-      text: article?.thumbnail.v,
+    controller: quareImageController ??= TextEditingController(
+      text: article?.squareImage.v,
     ),
-    labelText: textThumbnailLabel,
+    labelText: 'Square',
   );
 
   Widget getImageNameWidget(DbArticleMixin? article) => AppTextFieldTile(
@@ -257,7 +259,7 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
             controller: sortController ??= TextEditingController(
               text: article?.sort.v,
             ),
-            labelText: textTypeLabel,
+            labelText: 'Sort',
           ),
         ],
       );
@@ -317,33 +319,37 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
     );
   }
 
-  //DbArticleCommon().
-  Widget getThumbnailPreviewTile(DbArticle? article) => Padding(
+  /// Notifier with the bytes of the image [imageId], loaded from storage.
+  ValueNotifier<Uint8List?> _imageBytesNotifier(String? imageId) {
+    var valueNotifier = ValueNotifier<Uint8List?>(null);
+    if (imageId != null && imageId.isNotEmpty) {
+      () async {
+        var db = await projectDb;
+        var image = await dbImageStoreRef.record(imageId).get(db);
+        if (image != null) {
+          var bytes = await httpClientFactory.newClient().readBytes(
+            Uri.parse(
+              getImageUrl(
+                image.name.v!,
+                storageBucket: projectContext.storageBucket,
+              ),
+            ),
+          );
+          if (mounted) {
+            valueNotifier.value = bytes;
+          }
+        }
+      }();
+    }
+    return valueNotifier;
+  }
+
+  /// Preview of the image [imageBytes].
+  Widget _imagePreviewTile(ValueNotifier<Uint8List?> imageBytes) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 4.0),
     child: TilePadding(
       child: ValueListenableBuilder<Uint8List?>(
-        valueListenable: squareImageBytes ??= () {
-          var valueNotifier = ValueNotifier<Uint8List?>(null);
-          var squareImage = article?.squareImage.v;
-          if (squareImage != null) {
-            () async {
-              var db = await projectDb;
-              var image = await dbImageStoreRef.record(squareImage).get(db);
-              if (image != null) {
-                var bytes = await httpClientFactory.newClient().readBytes(
-                  Uri.parse(
-                    getImageUrl(
-                      image.name.v!,
-                      storageBucket: projectContext.storageBucket,
-                    ),
-                  ),
-                );
-                valueNotifier.value = bytes;
-              }
-            }();
-          }
-          return valueNotifier;
-        }(),
+        valueListenable: imageBytes,
         builder: (context, snapshot, _) {
           if (snapshot == null) {
             return const Text('Pas d\'image');
@@ -352,6 +358,10 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
         },
       ),
     ),
+  );
+
+  Widget getThumbnailPreviewTile(DbArticle? article) => _imagePreviewTile(
+    thumbnailImageBytes ??= _imageBytesNotifier(article?.thumbnail.v),
   );
 
   Widget getHolderPreviewTile(ArticleImageHolder holder) => Padding(
@@ -369,77 +379,12 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
     ),
   );
 
-  Widget getSquarePreviewTile(DbArticle? article) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4.0),
-    child: TilePadding(
-      child: ValueListenableBuilder<Uint8List?>(
-        valueListenable: squareImageBytes ??= () {
-          var valueNotifier = ValueNotifier<Uint8List?>(null);
-          var thumbnailImage = article?.thumbnail.v;
-          if (thumbnailImage != null) {
-            () async {
-              var db = await projectDb;
-              var image = await dbImageStoreRef.record(thumbnailImage).get(db);
-              if (image != null) {
-                var bytes = await httpClientFactory.newClient().readBytes(
-                  Uri.parse(
-                    getImageUrl(
-                      image.name.v!,
-                      storageBucket: dbBloc.projectContext.storageBucket,
-                    ),
-                  ),
-                );
-                valueNotifier.value = bytes;
-              }
-            }();
-          }
-          return valueNotifier;
-        }(),
-        builder: (context, snapshot, _) {
-          if (snapshot == null) {
-            return const Text('Pas d\'image');
-          }
-          return Image.memory(snapshot);
-        },
-      ),
-    ),
+  Widget getSquarePreviewTile(DbArticle? article) => _imagePreviewTile(
+    squareImageBytes ??= _imageBytesNotifier(article?.squareImage.v),
   );
 
-  Widget getImagePreviewTile(DbArticle? article) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 4.0),
-    child: TilePadding(
-      child: ValueListenableBuilder<Uint8List?>(
-        valueListenable: imageBytes ??= () {
-          var valueNotifier = ValueNotifier<Uint8List?>(null);
-          var imageId = article?.image.v;
-          if (imageId != null) {
-            () async {
-              var db = await projectDb;
-              var image = await dbImageStoreRef.record(imageId).get(db);
-              if (image != null) {
-                var bytes = await httpClientFactory.newClient().readBytes(
-                  Uri.parse(
-                    getImageUrl(
-                      image.name.v!,
-                      storageBucket: projectContext.storageBucket,
-                    ),
-                  ),
-                );
-                valueNotifier.value = bytes;
-              }
-            }();
-          }
-          return valueNotifier;
-        }(),
-        builder: (context, snapshot, _) {
-          if (snapshot == null) {
-            return const Text('Pas d\'image');
-          }
-          return Image.memory(snapshot);
-        },
-      ),
-    ),
-  );
+  Widget getImagePreviewTile(DbArticle? article) =>
+      _imagePreviewTile(imageBytes ??= _imageBytesNotifier(article?.image.v));
 
   Widget getHolderSelectorTile(ArticleImageHolder holder) => TilePadding(
     child: Builder(
@@ -486,7 +431,10 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
                 ),
               );
               if (result != null) {
-                thumbnailImageBytes!.value = result.bytes;
+                (thumbnailImageBytes ??= ValueNotifier<Uint8List?>(
+                  null,
+                )).value = newThumbnailImageData =
+                    result.bytes;
               }
               return;
             }
@@ -502,23 +450,31 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
       builder: (context) {
         return ElevatedButton(
           onPressed: () async {
-            {
-              var options = globalFestenaoAppOptions.getOptionsByType(
-                imageTypeSquare,
-              );
-
-              var result = await pickCropImage(
-                context,
-                options: PickCropImageOptions(
-                  width: options?.width.v,
-                  height: options?.height.v,
-                  encoding: ImageEncodingJpg(quality: 50),
+            var imageId = articleKindToImageId(
+              articleKind,
+              imageTypeSquare,
+              idController!.text,
+            );
+            await goToAdminImageEditScreen(
+              context,
+              imageId: imageId,
+              param: AdminImageEditScreenParam(
+                options: globalFestenaoAppOptions.getOptionsByType(
+                  imageTypeSquare,
                 ),
-              );
-              if (result != null) {
-                squareImageBytes!.value = result.bytes;
+              ),
+              projectContext: projectContext,
+            );
+            if (mounted) {
+              // The image edit screen saved the image.
+              quareImageController?.text = imageId;
+              var bytes = _imageBytesNotifier(imageId);
+              void onBytes() {
+                squareImageBytes?.value = bytes.value;
+                bytes.dispose();
               }
-              return;
+
+              bytes.addListener(onBytes);
             }
           },
           child: const Text('Selection square'),
@@ -586,6 +542,9 @@ mixin AdminArticleEditScreenMixin implements AdminArticleEditScreen {
       ..image.v = imageController!.text
       ..attributes.v = attributesValueNotifier!.value
       ..author.v = authorController!.text;
+    if (quareImageController != null) {
+      article.squareImage.v = quareImageController!.text;
+    }
   }
 }
 

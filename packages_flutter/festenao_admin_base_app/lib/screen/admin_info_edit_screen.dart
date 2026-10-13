@@ -162,7 +162,11 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
             ..rawRef = dbInfoStoreRef.record(idController!.text).rawRef;
           articleFromForm(dbInfo);
           await bloc.save(
-            AdminArticleEditData(article: dbInfo, imageData: newImageData),
+            AdminArticleEditData(
+              article: dbInfo,
+              imageData: newImageData,
+              thumbailData: newThumbnailImageData,
+            ),
           );
           if (context.mounted) {
             Navigator.of(context).pop();

@@ -70,10 +70,15 @@ class _AdminInfosScreenState extends State<AdminInfosScreen> {
       body: ValueStreamBuilder<AdminInfosScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
-          var list = snapshot.data?.list;
-          if (list == null) {
+          var allInfos = snapshot.data?.list;
+          if (allInfos == null) {
             return const Center(child: CircularProgressIndicator());
           }
+          // Only the infos of the requested type (i.e. locations).
+          var infoType = widget.param?.infoType;
+          var list = infoType == null
+              ? allInfos
+              : allInfos.where((info) => info.type.v == infoType).toList();
           return ListView.builder(
             itemCount: list.length,
             itemBuilder: (context, index) {

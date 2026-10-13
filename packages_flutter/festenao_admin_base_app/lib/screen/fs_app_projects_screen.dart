@@ -11,7 +11,6 @@ import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
 import 'fs_app_project_edit_screen.dart';
 import 'fs_app_projects_screen_bloc.dart';
-import 'projects_screen_bloc.dart';
 
 /// Projects screen
 class FsProjectsScreen extends StatefulWidget {
@@ -145,7 +144,8 @@ Future<SelectProjectResult?> selectFsAppProject(BuildContext context) async {
   var result = await Navigator.of(context).push<Object?>(
     MaterialPageRoute(
       builder: (_) => BlocProvider(
-        blocBuilder: () => ProjectsScreenBloc(selectMode: true),
+        // The bloc the screen looks up (a ProjectsScreenBloc made it throw).
+        blocBuilder: () => FsAppProjectsScreenBloc(selectMode: true),
         child: const FsProjectsScreen(),
       ),
     ),

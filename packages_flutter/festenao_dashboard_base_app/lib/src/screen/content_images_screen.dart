@@ -90,7 +90,10 @@ class ContentImagesScreen extends ConsumerWidget {
                         .read(contentSdbProvider(projectId, dataId))
                         .value;
                     await sdb?.deleteImage(img.ref.key);
-                    await sdb?.mediaDb.deleteMediaFile(img.ref.key);
+                    // The media of the image (its id for older images).
+                    await sdb?.mediaDb.deleteMediaFile(
+                      img.mediaId.v ?? img.ref.key,
+                    );
                   },
                 ),
               );

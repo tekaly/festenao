@@ -302,7 +302,11 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
             ..endTime.v = endTimeController!.text;
           articleFromForm(dbEvent);
           await bloc.save(
-            AdminArticleEditData(article: dbEvent, imageData: newImageData),
+            AdminArticleEditData(
+              article: dbEvent,
+              imageData: newImageData,
+              thumbailData: newThumbnailImageData,
+            ),
           );
           if (context.mounted) {
             Navigator.of(context).pop();

@@ -916,15 +916,41 @@ Future<String?> _promptText(
   required String title,
   required String labelText,
 }) {
-  var controller = TextEditingController();
   return showDialog<String>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text(title),
+    builder: (context) => _PromptTextDialog(title: title, labelText: labelText),
+  );
+}
+
+/// Text prompt owning its controller (disposed with the dialog, not while it
+/// is closing).
+class _PromptTextDialog extends StatefulWidget {
+  final String title;
+  final String labelText;
+
+  const _PromptTextDialog({required this.title, required this.labelText});
+
+  @override
+  State<_PromptTextDialog> createState() => _PromptTextDialogState();
+}
+
+class _PromptTextDialogState extends State<_PromptTextDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(widget.title),
       content: TextField(
-        controller: controller,
+        controller: _controller,
         autofocus: true,
-        decoration: InputDecoration(labelText: labelText),
+        decoration: InputDecoration(labelText: widget.labelText),
         onSubmitted: (value) => Navigator.of(context).pop(value),
       ),
       actions: [
@@ -933,12 +959,12 @@ Future<String?> _promptText(
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: () => Navigator.of(context).pop(controller.text),
+          onPressed: () => Navigator.of(context).pop(_controller.text),
           child: const Text('Find'),
         ),
       ],
-    ),
-  ).whenComplete(controller.dispose);
+    );
+  }
 }
 
 Future<bool> _confirm(

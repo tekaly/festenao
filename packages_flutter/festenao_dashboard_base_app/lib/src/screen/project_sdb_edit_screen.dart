@@ -128,10 +128,10 @@ class ProjectSdbEditScreenState
           );
         }
 
-        var hasChanges = _hasChanges;
-
         return PopScope(
-          canPop: hasChanges,
+          // Always handled below (it was inverted: popped without asking
+          // with changes).
+          canPop: false,
           onPopInvokedWithResult: (didPop, result) async {
             if (didPop) {
               return;
