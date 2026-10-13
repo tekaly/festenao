@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:festenao_common/festenao_api.dart';
 
 import 'import.dart';
@@ -53,8 +55,9 @@ class QuizzServerHandlerOptions {
 }
 
 /// The quizz commands of a server app: [apiCommandQuizzSendResult] saves a
-/// player result (scored server side from the quiz correct answers, or from
-/// the client answers for a gd quiz, where a goodie can be won).
+/// player result, scored server side from the correct answers of the stored
+/// quiz (for a gd quiz too, where a goodie can be won from the quiz winning
+/// count: the client correct flags and winning count are not trusted).
 ///
 /// Sending the same result twice returns the same player id.
 class QuizzServerHandler implements FestenaoApiHandler {
@@ -123,58 +126,64 @@ class QuizzServerHandler implements FestenaoApiHandler {
     if (now.difference(localTimestamp.toDateTime()).inMinutes.abs() > 30) {
       throw ArgumentError('Invalid localTimestamp $localTimestamp');
     }
+    var quiz = await databaseService.fsQuiz(quizId).get(firestore);
+    if (!quiz.exists) {
+      throw ArgumentError('Missing quiz $quizId');
+    }
+    // The question count of a player: a gd player gets this many questions
+    // of the quiz, a tv one all of them.
+    var quizQuestionCount = quiz.questions.v?.length ?? 0;
+    var playerQuestionCount = quizType == quizTypeGd
+        ? min(
+            quiz.questionCount.v ?? quizConfigQuestionCountDefault,
+            quizQuestionCount,
+          )
+        : quizQuestionCount;
     if (quizType == quizTypeGd) {
       festenaoEnsureFields(
         query,
         fields: [
           apiQuizzSendResultQueryModel.sessionId,
-          apiQuizzSendResultQueryModel.winningCount,
           apiQuizzSendResultQueryModel.localDeviceId,
         ],
       );
-
-      var winningCount = query.winningCount.v!;
-
-      if (query.answers.isNotNull) {
-        for (var answer in query.answers.v!) {
-          // Correct?
-          if (answer.correct.v == true) {
-            score++;
-            elapsedMs += answer.elapsedMs.v!;
-          }
-        }
-      }
-
-      /// We need at least the wanted count to win.
-      if (score >= winningCount) {
-        gdWinning = true;
-      }
     } else {
       festenaoEnsureFields(
         query,
         fields: [apiQuizzSendResultQueryModel.username],
       );
-      var quiz = await databaseService.fsQuiz(quizId).get(firestore);
+    }
 
-      if (!quiz.exists) {
-        throw ArgumentError('Missing quiz $quizId');
+    // Scored from the correct answers of the stored quiz, each question once:
+    // the client `correct` flags (and its gd winning count) are ignored.
+    var answeredQuestionIds = <String>{};
+    for (var answer in query.answers.v ?? const <CvQuizPlayerAnswer>[]) {
+      var questionId = answer.questionId.v;
+      if (questionId == null || !answeredQuestionIds.add(questionId)) {
+        continue;
       }
+      if (answeredQuestionIds.length > playerQuestionCount) {
+        throw ArgumentError('Too many answers for quiz $quizId');
+      }
+      var correctAnswerId = quiz.getQuestionCorrectAnswerIdOrNull(questionId);
 
-      if (query.answers.isNotNull) {
-        for (var answer in query.answers.v!) {
-          var questionId = answer.questionId.v!;
-          var answerId = answer.answerId.v;
+      // Correct?
+      if (correctAnswerId != null && correctAnswerId == answer.answerId.v) {
+        score++;
+        elapsedMs += answer.elapsedMs.v ?? 0;
+      }
+    }
+    if (quizType == quizTypeGd) {
+      // The winning count of the quiz (as the player computes it), at least
+      // one correct answer.
+      var winningCount = max(
+        quiz.questionWinningCount.v ?? playerQuestionCount,
+        1,
+      );
 
-          var correctAnswerId = quiz.getQuestionCorrectAnswerIdOrNull(
-            questionId,
-          );
-
-          // Correct?
-          if (correctAnswerId != null && correctAnswerId == answerId) {
-            score++;
-            elapsedMs += answer.elapsedMs.v!;
-          }
-        }
+      /// We need at least the wanted count to win.
+      if (score >= winningCount) {
+        gdWinning = true;
       }
     }
     String playerId;

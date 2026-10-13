@@ -12,14 +12,26 @@ import 'package:tkcms_common/tkcms_server.dart';
 typedef FestenaoEntitySetPublicCheck =
     Future<bool> Function({required String userId, required String entityId});
 
+/// The condition an app may add to let [userId] join an entity with
+/// [userAccess] without being one of its members nor an app admin: an entity
+/// anyone may join, a game joined through its join code... Returning false
+/// keeps the default rule (see [FestenaoEntityHandler.onJoinCommand]).
+typedef FestenaoEntityJoinCheck =
+    Future<bool> Function({
+      required String userId,
+      required String entityId,
+      required TkCmsFsUserAccess userAccess,
+    });
+
 /// Options for entity handler.
 class FestenaoEntityHandlerOptions {
   /// Creates a new [FestenaoEntityHandlerOptions] with optional
-  /// [customIdGenerator] and [setPublicCheck].
+  /// [customIdGenerator], [setPublicCheck] and [joinCheck].
   const FestenaoEntityHandlerOptions({
     this.customIdGenerator,
     this.setPublicCheck,
     this.emailInviteMailer,
+    this.joinCheck,
   });
 
   /// Custom ID generator function.
@@ -32,6 +44,11 @@ class FestenaoEntityHandlerOptions {
   /// Sends the mail of a created email invite to its address; none by
   /// default, the invitee then only finds the invite in the app.
   final FestenaoEmailInviteMailer? emailInviteMailer;
+
+  /// The condition letting a user that is neither a member nor an app admin
+  /// join an entity; none by default: such a user is given access through an
+  /// invite only.
+  final FestenaoEntityJoinCheck? joinCheck;
 }
 
 /// Entity handler for Festenao entities.
@@ -145,14 +162,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     {
       var query = apiRequest.query<FsCmsEntityCreateApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
-      var userId = apiRequest.userId.v;
-      if (userId == null) {
-        throw (ApiError()
-              ..code.v = apiErrorCodeInternal
-              ..message.v = 'Missing userId'
-              ..noRetry.v = true)
-            .exception();
-      }
+      var userId = _requireUserId(apiRequest);
       var entityId = query.entityId.v;
       //var entity = entityAccess.fsEntityRef(entityId).cv()..fsDataFromJsonMap(firestore, query.data.v!);
       var model = documentDataMapFromJsonMap(firestore, asModel(query.data.v!));
@@ -172,45 +182,39 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     }
   }
 
-  /// Handles the delete entity command.
+  /// Handles the delete entity command (entity admin or app admin): marks
+  /// the entity as deleted.
   Future<FsCmsEntityDeleteApiResult> onDeleteCommand(
     ApiRequest apiRequest,
   ) async {
     {
       var query = apiRequest.query<FsCmsEntityDeleteApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
-      var userId = apiRequest.userId.v;
-      if (userId == null) {
-        throw (ApiError()
-              ..code.v = apiErrorCodeInternal
-              ..message.v = 'Missing userId'
-              ..noRetry.v = true)
-            .exception();
+      var userId = _requireUserId(apiRequest);
+      var entityId = _requireField(query.entityId);
+      var isAppAdmin = await _requireEntityOrAppAdmin(entityId, userId);
+      if (isAppAdmin) {
+        await entityAccess.adminDeleteEntity(entityId);
+      } else {
+        await entityAccess.deleteEntity(entityId, userId: userId);
       }
-      var entityId = query.entityId.v;
-      if (entityId == null) {
-        throw (ApiError()
-              ..code.v = apiErrorCodeInternal
-              ..message.v = 'Missing entityId'
-              ..noRetry.v = true)
-            .exception();
-      }
-      await entityAccess.deleteEntity(entityId, userId: userId);
 
       var result = FsCmsEntityDeleteApiResult()..entityId.setValue(entityId);
       return result;
     }
   }
 
-  /// Handles the purge entity command.
+  /// Handles the purge entity command (entity admin or app admin): removes
+  /// a deleted entity for good.
   Future<FsCmsEntityPurgeApiResult> onPurgeCommand(
     ApiRequest apiRequest,
   ) async {
     {
       var query = apiRequest.query<FsCmsEntityPurgeApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
-      var userId = apiRequest.userId.v!;
-      var entityId = query.entityId.v!;
+      var userId = _requireUserId(apiRequest);
+      var entityId = _requireField(query.entityId);
+      await _requireEntityOrAppAdmin(entityId, userId);
       await entityAccess.purgeEntity(entityId, userId: userId);
 
       var result = FsCmsEntityPurgeApiResult()..entityId.setValue(entityId);
@@ -218,18 +222,31 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     }
   }
 
-  /// Handles the join entity command.
+  /// Handles the join entity command: sets the caller's own access to the
+  /// entity.
+  ///
+  /// Joining never grants more than the caller already has: it is allowed
+  /// to an app admin (any access, as when joining from the admin app), to a
+  /// member of the entity within its current access, or when the app accepts
+  /// it ([FestenaoEntityHandlerOptions.joinCheck]); `permission-denied`
+  /// otherwise. Anyone else is given access through an invite.
   Future<FsCmsEntityJoinApiResult> onJoinCommand(ApiRequest apiRequest) async {
     {
       var query = apiRequest.query<FsCmsEntityJoinApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
-      var userId = apiRequest.userId.v!;
-      var entityId = query.entityId.v!;
-      var model = documentDataMapFromJsonMap(
-        firestore,
-        asModel(query.access.v!),
-      );
-      var userAccess = model.cv<TkCmsFsUserAccess>();
+      var userId = _requireUserId(apiRequest);
+      var entityId = _requireField(query.entityId);
+      var access = query.access.v;
+      if (access == null) {
+        throw (ApiError()
+              ..code.v = HttpsErrorCode.invalidArgument
+              ..message.v = 'Missing access'
+              ..noRetry.v = true)
+            .exception();
+      }
+      var model = documentDataMapFromJsonMap(firestore, asModel(access));
+      var userAccess = model.cv<TkCmsFsUserAccess>()..fixAccess();
+      await _requireJoinAllowed(entityId, userId, userAccess);
       await entityAccess.joinEntity(
         entityId: entityId,
         userId: userId,
@@ -248,8 +265,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     {
       var query = apiRequest.query<FsCmsEntityLeaveApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
-      var userId = apiRequest.userId.v!;
-      var entityId = query.entityId.v!;
+      var userId = _requireUserId(apiRequest);
+      var entityId = _requireField(query.entityId);
       await entityAccess.leaveEntity(entityId, userId: userId);
 
       var result = FsCmsEntityLeaveApiResult()..entityId.setValue(entityId);
@@ -263,14 +280,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
   ) async {
     var query = apiRequest.query<FsCmsEntityCreateInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
-    var userId = apiRequest.userId.v;
-    if (userId == null) {
-      throw (ApiError()
-            ..code.v = apiErrorCodeInternal
-            ..message.v = 'Missing userId'
-            ..noRetry.v = true)
-          .exception();
-    }
+    var userId = _requireUserId(apiRequest);
     var entityId = query.entityId.v!;
     var email = tkCmsNormalizeInviteEmail(query.email.v);
     var userAccess = TkCmsCvUserAccess()..copyAccessFrom(query);
@@ -296,14 +306,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
   ) async {
     var query = apiRequest.query<FsCmsEntityAcceptInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
-    var userId = apiRequest.userId.v;
-    if (userId == null) {
-      throw (ApiError()
-            ..code.v = apiErrorCodeInternal
-            ..message.v = 'Missing userId'
-            ..noRetry.v = true)
-          .exception();
-    }
+    var userId = _requireUserId(apiRequest);
     var entityId = query.entityId.v!;
     var inviteId = query.inviteId.v!;
     // The email comes from the client (the api request only carries a
@@ -320,22 +323,16 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       ..email.setValue(email);
   }
 
-  /// Handles the delete invite command.
+  /// Handles the delete invite command (entity admin or app admin).
   Future<FsCmsEntityDeleteInviteApiResult<T>> onDeleteInviteCommand(
     ApiRequest apiRequest,
   ) async {
     var query = apiRequest.query<FsCmsEntityDeleteInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
-    var userId = apiRequest.userId.v;
-    if (userId == null) {
-      throw (ApiError()
-            ..code.v = apiErrorCodeInternal
-            ..message.v = 'Missing userId'
-            ..noRetry.v = true)
-          .exception();
-    }
-    var entityId = query.entityId.v!;
-    var inviteId = query.inviteId.v!;
+    var userId = _requireUserId(apiRequest);
+    var entityId = _requireField(query.entityId);
+    var inviteId = _requireField(query.inviteId);
+    await _requireEntityOrAppAdmin(entityId, userId);
     await entityAccess.deleteInviteEntity(
       inviteId: inviteId,
       entityId: entityId,
@@ -501,11 +498,11 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     return access.exists && access.isAdmin;
   }
 
-  /// Only an admin of the entity or an app admin manages its email invites;
-  /// `permission-denied` otherwise. Returns true for an app admin that is
-  /// not an admin of the entity (the access escalation check does not apply
-  /// to them).
-  Future<bool> _requireEmailInviteAdmin(String entityId, String userId) async {
+  /// Only an admin of the entity or an app admin manages it (delete, purge,
+  /// invites, email invites); `permission-denied` otherwise. Returns true for
+  /// an app admin that is not an admin of the entity (the access escalation
+  /// check does not apply to them).
+  Future<bool> _requireEntityOrAppAdmin(String entityId, String userId) async {
     if (await _isEntityAdmin(entityId, userId)) {
       return false;
     }
@@ -515,6 +512,54 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     throw (ApiError()
           ..code.v = HttpsErrorCode.permissionDenied
           ..message.v = 'Not an admin of this entity'
+          ..noRetry.v = true)
+        .exception();
+  }
+
+  /// True when [access] has every right of [wanted]: read, write, admin and
+  /// each role (no escalation).
+  static bool _accessCovers(
+    TkCmsCvUserAccessCommon access,
+    TkCmsCvUserAccessCommon wanted,
+  ) {
+    if ((wanted.isRead && !access.isRead) ||
+        (wanted.isWrite && !access.isWrite) ||
+        (wanted.isAdmin && !access.isAdmin)) {
+      return false;
+    }
+    return wanted.roles.every(access.roles.contains);
+  }
+
+  /// [userId] may join the entity with [userAccess]: an app admin, a member
+  /// within its current access, or a user the app accepts
+  /// ([FestenaoEntityHandlerOptions.joinCheck]); `permission-denied`
+  /// otherwise.
+  Future<void> _requireJoinAllowed(
+    String entityId,
+    String userId,
+    TkCmsFsUserAccess userAccess,
+  ) async {
+    var current = await entityAccess
+        .fsEntityUserAccessRef(entityId, userId)
+        .get(firestore);
+    if (current.exists && _accessCovers(current..fixAccess(), userAccess)) {
+      return;
+    }
+    if (await _isAppAdmin(userId)) {
+      return;
+    }
+    var check = options.joinCheck;
+    if (check != null &&
+        await check(
+          userId: userId,
+          entityId: entityId,
+          userAccess: userAccess,
+        )) {
+      return;
+    }
+    throw (ApiError()
+          ..code.v = HttpsErrorCode.permissionDenied
+          ..message.v = 'Not allowed to join this entity with this access'
           ..noRetry.v = true)
         .exception();
   }
@@ -550,7 +595,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
             ..noRetry.v = true)
           .exception();
     }
-    var isAppAdmin = await _requireEmailInviteAdmin(entityId, userId);
+    var isAppAdmin = await _requireEntityOrAppAdmin(entityId, userId);
     var userAccess = TkCmsCvUserAccess()..copyAccessFrom(query);
     var inviteId = await entityAccess.createEmailInviteEntity(
       userId: userId,
@@ -658,7 +703,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       ..fromMap(apiRequest.data.v!);
     var userId = _requireUserId(apiRequest);
     var entityId = _requireField(query.entityId);
-    await _requireEmailInviteAdmin(entityId, userId);
+    await _requireEntityOrAppAdmin(entityId, userId);
     var invites = await entityAccess.listEntityEmailInvites(
       entityId,
       status: query.status.v,
@@ -677,7 +722,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var userId = _requireUserId(apiRequest);
     var entityId = _requireField(query.entityId);
     var inviteId = _requireField(query.inviteId);
-    await _requireEmailInviteAdmin(entityId, userId);
+    await _requireEntityOrAppAdmin(entityId, userId);
     await entityAccess.deleteEmailInviteEntity(
       inviteId: inviteId,
       entityId: entityId,

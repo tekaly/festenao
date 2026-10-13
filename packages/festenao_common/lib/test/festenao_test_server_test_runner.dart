@@ -5,13 +5,10 @@ import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/data/firestore_doc.dart';
 import 'package:festenao_common/data/object_storage.dart';
-import 'package:festenao_common/festenao_quizz.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
-import 'package:festenao_common/server/festeano_server_app.dart';
-import 'package:festenao_common/server/festeano_server_entity_handler.dart';
 import 'package:festenao_common/server/festeano_server_firestore_handler.dart';
 import 'package:festenao_common/server/festeano_server_object_storage_handler.dart';
-import 'package:festenao_common/server/festenao_email_invite_mailer.dart';
+import 'package:festenao_common/server/festenao_projects_server_app.dart';
 import 'package:festenao_common/test/entity_set_public_api_test_runner.dart';
 import 'package:tekartik_app_media/mime_type.dart';
 import 'package:tekartik_firebase_functions/ff_server.dart';
@@ -21,8 +18,12 @@ import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
-/// Festenao server app for test.
-class FestenaoServerAppTest extends FestenaoServerApp {
+/// Festenao server app for test: the projects app plus a raw firestore
+/// access (the doc api, get/set/delete any document with the server rights,
+/// for test setups) and an optional object storage.
+///
+/// Never deployed: a function runs `FestenaoProjectsServerApp`.
+class FestenaoServerAppTest extends FestenaoProjectsServerApp {
   /// Object storage.
   final ObjectStorage? objectStorage;
 
@@ -31,38 +32,7 @@ class FestenaoServerAppTest extends FestenaoServerApp {
     required super.context,
     super.app,
     this.objectStorage,
-  }) {
-    initFestenaoFsEntityApiBuilders<FsProject>();
-  }
-
-  /// Firestore database.
-  late var fsDatabase = FestenaoFirestoreDatabase(
-    firebaseContext: this.firebaseContext,
-    flavorContext: appFlavorContext,
-  );
-
-  /// The condition added to making a project public, none by default: a test
-  /// sets it to exercise [FestenaoEntityHandlerOptions.setPublicCheck].
-  FestenaoEntitySetPublicCheck? projectSetPublicCheck;
-
-  /// The mailer of the project email invites, none until its `mailer` is set
-  /// (a test, or the app at start: the invite mails then go).
-  final projectEmailInviteMailer = FestenaoEmailInviteMailerDelegate();
-
-  /// Project handler.
-  late final projectHandler = FestenaoEntityHandler(
-    app: this,
-    entityAccess: fsDatabase.projectDb,
-    options: FestenaoEntityHandlerOptions(
-      setPublicCheck: ({required userId, required entityId}) async =>
-          await projectSetPublicCheck?.call(
-            userId: userId,
-            entityId: entityId,
-          ) ??
-          true,
-      emailInviteMailer: projectEmailInviteMailer,
-    ),
-  );
+  });
 
   /// Object storage handler
   late final objectStorageHandler = objectStorage != null
@@ -78,50 +48,12 @@ class FestenaoServerAppTest extends FestenaoServerApp {
     options: FestenaoFirestoreHandlerOptions(firestore: fsDatabase.firestore),
   );
 
-  /// Quizz handler, the quizz data of a project living at
-  /// `app/<app>/project/<projectId>/data/<dataId>`.
-  late final quizzHandler = QuizzServerHandler(
-    options: QuizzServerHandlerOptions(
-      firestore: fsDatabase.firestore,
-      rootDocumentResolver: festenaoQuizzRootDocumentResolver(app: app),
-    ),
-  );
-
-  late final _handlers = <FestenaoApiHandler>[
+  @override
+  List<FestenaoApiHandler> get apiHandlers => [
     firestoreHandler,
     ?objectStorageHandler,
-    projectHandler,
-    quizzHandler,
+    ...super.apiHandlers,
   ];
-
-  @override
-  Future<ApiResult> onCommand(ApiRequest apiRequest) async {
-    var command = apiRequest.apiCommand;
-    for (var handler in _handlers) {
-      var result = await handler.onCommandOrNull(apiRequest);
-      if (result != null) {
-        return result;
-      }
-    }
-    if (FestenaoEntityHandler.isEntityCommand(
-      projectCollectionInfo.id,
-      command,
-    )) {
-      var result = await projectHandler.onCommandOrNull(apiRequest);
-      if (result != null) {
-        return result;
-      }
-    }
-    var result = await objectStorageHandler?.onCommandOrNull(apiRequest);
-    if (result != null) {
-      return result;
-    }
-    result = await firestoreHandler.onCommandOrNull(apiRequest);
-    if (result != null) {
-      return result;
-    }
-    return super.onCommand(apiRequest);
-  }
 }
 
 /// Test api context.
@@ -370,6 +302,19 @@ Future<void> main() async {
   );
 }
 
+/// Expect [call] to fail with the api error [code].
+Future<void> _expectApiErrorCode(
+  Future<Object?> Function() call,
+  String code,
+) async {
+  try {
+    await call();
+    fail('should fail with $code');
+  } on ApiException catch (e) {
+    expect(e.error?.code.v, code, reason: '$e');
+  }
+}
+
 /// Server group options
 class TestFestenaoServerGroupOptions {
   /// Requires auth and firestore doc function
@@ -529,39 +474,12 @@ void testFestenaoServerGroup(
     var entity = await createEntity();
     var entityId = entity.id;
 
-    if (!noFirestoreCheck && !noSignIn) {
-      // Leave first
-      await client.leaveEntity(entityId: entityId);
-      expect(
-        (await fsDatabase.projectDb
-                .fsEntityUserAccessRef(entityId, userId)
-                .get(fsDatabase.firestore))
-            .exists,
-        isFalse,
-      );
-
-      await client.joinEntity(entityId: entityId, fsUserAccess: fsUserAccess);
-      expect(
-        (await fsDatabase.projectDb
-                .fsEntityUserAccessRef(entityId, userId)
-                .get(fsDatabase.firestore))
-            .exists,
-        isTrue,
-      );
-    }
     // userId is the signed in user, set above. It used to be overwritten here
     // with `apiService.userIdOrNull`, an unauthenticated client side value the
     // server no longer honours.
-    await client.leaveEntity(entityId: entityId);
-    if (!noFirestoreCheck) {
-      expect(
-        (await fsDatabase.projectDb
-                .fsEntityUserAccessRef(entityId, userId)
-                .get(fsDatabase.firestore))
-            .exists,
-        isFalse,
-      );
-    }
+    //
+    // Joining within its own access (the creator is an admin) is allowed, a
+    // role it does not have is not (no escalation through join).
     await client.joinEntity(entityId: entityId, fsUserAccess: fsUserAccess);
     if (!noFirestoreCheck) {
       expect(
@@ -572,80 +490,13 @@ void testFestenaoServerGroup(
         isTrue,
       );
     }
-
-    // ignore: no_literal_bool_comparisons, dead_code
-    if (false && (!noFirestoreCheck && !noSignIn)) {
-      // Create invite
-      var fsUserAccessRead = TkCmsFsUserAccess()..read.v = true;
-      var inviteId = await client.createEntityInvite(
+    await _expectApiErrorCode(
+      () => client.joinEntity(
         entityId: entityId,
-        fsUserAccess: fsUserAccessRead,
-      );
-
-      var invite = await fsDatabase.projectDb
-          .fsInviteEntityRef(inviteId, entityId)
-          .get(fsDatabase.firestore);
-      var userAccess = invite.userAccess.v!;
-      expect(userAccess.isAdmin, isFalse);
-      expect(userAccess.isWrite, isFalse);
-      expect(userAccess.isRead, isTrue);
-      expect(invite.entity.v!.name.v, name);
-      expect(invite.entityId.v, entityId);
-      expect(invite.timestamp.v, isNotNull);
-
-      // Accept invite with a second user
-      var userId2 = await auth
-          .signInOrUpWithEmailAndPassword(email: 'test2', password: 'test2')
-          .then((credentials) => credentials.user.uid);
-
-      var inviteIdRef = fsDatabase.projectDb.fsInviteIdRef(inviteId);
-      var inviteIdDoc = await inviteIdRef.get(fsDatabase.firestore);
-      expect(inviteIdDoc.timestamp.v, isNotNull);
-
-      await client.acceptEntityInvite(entityId: entityId, inviteId: inviteId);
-
-      var entityUserAccessRef = fsDatabase.projectDb.fsEntityUserAccessRef(
-        entityId,
-        userId2,
-      );
-      var userEntityAccessRef = fsDatabase.projectDb.fsUserEntityAccessRef(
-        userId2,
-        entityId,
-      );
-      var entityUserAccess = await entityUserAccessRef.get(
-        fsDatabase.firestore,
-      );
-      var userEntityAccess = await userEntityAccessRef.get(
-        fsDatabase.firestore,
-      );
-
-      expect(entityUserAccess.inviteId.v, inviteId);
-      expect(entityUserAccess.admin.v, isFalse);
-      expect(entityUserAccess.write.v, isFalse);
-      expect(entityUserAccess.read.v, isTrue);
-      expect(entityUserAccess, userEntityAccess);
-
-      expect(
-        (await fsDatabase.projectDb
-                .fsInviteIdRef(inviteId)
-                .get(fsDatabase.firestore))
-            .exists,
-        isFalse,
-      );
-      expect(
-        (await fsDatabase.projectDb
-                .fsInviteEntityRef(inviteId, entityId)
-                .get(fsDatabase.firestore))
-            .exists,
-        isFalse,
-      );
-
-      // Sign back as user 1
-      await auth.signInWithEmailAndPassword(
-        email: credentials!.email,
-        password: credentials.password,
-      );
-    }
+        fsUserAccess: TkCmsFsUserAccess.superAdmin(),
+      ),
+      HttpsErrorCode.permissionDenied,
+    );
 
     await client.deleteEntity(entityId: entityId);
     var userEntityAccessRef = fsDatabase.projectDb.fsUserEntityAccessRef(
@@ -763,6 +614,127 @@ void testFestenaoServerGroup(
     await firestoreDocApiService.deleteDoc(path);
     expect(await firestoreDocApiService.getDoc(path), isNull);
   }, skip: !options.addFirestoreDoc);
+  group(
+    'entity rights',
+    () {
+      // A user with no access on a project (the stranger) cannot give itself
+      // one, nor manage it; the owner, once it left, cannot come back without
+      // an invite.
+      late FestenaoApiFsEntityClient<FsProject> client;
+      late FirebaseAuth auth;
+      late String ownerId;
+      late String strangerId;
+
+      Future<String> signIn(TkCmsEmailPasswordCredentials credentials) async =>
+          (await auth.signInWithEmailAndPassword(
+            email: credentials.email,
+            password: credentials.password,
+          )).user.uid;
+      Future<String> signInOwner() =>
+          signIn(context.clientContext.credentials!);
+      Future<String> signInStranger() => signIn(options!.strangerCredentials!);
+
+      Future<bool> hasAccess(String entityId, String userId) async =>
+          (await context.fsDatabase.projectDb
+                  .fsEntityUserAccessRef(entityId, userId)
+                  .get(context.fsDatabase.firestore))
+              .exists;
+
+      Future<String> createProject() async => (await client.createEntity(
+        entity: FsProject()
+          ..name.v = 'Rights ${DateTime.timestamp().toIso8601String()}',
+      )).id;
+
+      setUpAll(() async {
+        client = context.projectApiClient;
+        auth = context.clientContext.firebaseAuth!;
+        strangerId = await signInStranger();
+        ownerId = await signInOwner();
+      });
+
+      test('stranger join refused', () async {
+        await signInOwner();
+        var entityId = await createProject();
+        await signInStranger();
+        for (var access in [
+          TkCmsFsUserAccess.superAdmin(),
+          TkCmsFsUserAccess.admin(),
+          TkCmsFsUserAccess()..read.v = true,
+        ]) {
+          await _expectApiErrorCode(
+            () => client.joinEntity(entityId: entityId, fsUserAccess: access),
+            HttpsErrorCode.permissionDenied,
+          );
+        }
+        if (!noFirestoreCheck) {
+          expect(await hasAccess(entityId, strangerId), isFalse);
+        }
+        await signInOwner();
+        await client.deleteEntity(entityId: entityId);
+        await client.purgeEntity(entityId: entityId);
+      });
+
+      test('stranger delete invite, delete and purge refused', () async {
+        await signInOwner();
+        var entityId = await createProject();
+        var inviteId = await client.createEntityInvite(
+          entityId: entityId,
+          fsUserAccess: TkCmsFsUserAccess()..read.v = true,
+        );
+        await signInStranger();
+        await _expectApiErrorCode(
+          () =>
+              client.deleteEntityInvite(entityId: entityId, inviteId: inviteId),
+          HttpsErrorCode.permissionDenied,
+        );
+        await _expectApiErrorCode(
+          () => client.deleteEntity(entityId: entityId),
+          HttpsErrorCode.permissionDenied,
+        );
+
+        // Deleted by its owner (the invite still there, read as the owner:
+        // the rules hide it from the stranger), a stranger cannot purge it.
+        await signInOwner();
+        if (!noFirestoreCheck) {
+          var invite = await context.fsDatabase.projectDb
+              .fsInviteEntityRef(inviteId, entityId)
+              .get(context.fsDatabase.firestore);
+          expect(invite.exists, isTrue);
+        }
+        await client.deleteEntity(entityId: entityId);
+        await signInStranger();
+        await _expectApiErrorCode(
+          () => client.purgeEntity(entityId: entityId),
+          HttpsErrorCode.permissionDenied,
+        );
+        await signInOwner();
+        if (!noFirestoreCheck) {
+          expect(await hasAccess(entityId, ownerId), isTrue);
+        }
+        await client.deleteEntityInvite(entityId: entityId, inviteId: inviteId);
+        await client.purgeEntity(entityId: entityId);
+      });
+
+      test('owner left cannot join again', () async {
+        await signInOwner();
+        var entityId = await createProject();
+        await client.leaveEntity(entityId: entityId);
+        if (!noFirestoreCheck) {
+          expect(await hasAccess(entityId, ownerId), isFalse);
+        }
+        await _expectApiErrorCode(
+          () => client.joinEntity(
+            entityId: entityId,
+            fsUserAccess: TkCmsFsUserAccess.admin(),
+          ),
+          HttpsErrorCode.permissionDenied,
+        );
+      });
+    },
+    skip: noSignIn || options.strangerCredentials == null
+        ? 'no sign in or no stranger'
+        : null,
+  );
   group('set public', () {
     // The shared suite of `entity/project/set-public`: the first test user
     // publishes and unpublishes a project it created; a second one, when

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:festenao_dartff/functions.dart';
 import 'package:tekartik_firebase_admin_sdk/firebase_admin_sdk.dart';
 import 'package:tekartik_firebase_admin_sdk/firebase_auth_admin_sdk.dart';
@@ -34,6 +36,12 @@ FirebaseServicesContext initFirebaseServicesAdminSdk() {
   return firebaseServicesContext;
 }
 
+/// True when run by the Firebase emulator (it sets `FUNCTIONS_EMULATOR`):
+/// the raw firestore doc api is then served for the test setups, never on a
+/// deployed function.
+bool get _isFunctionsEmulator =>
+    Platform.environment['FUNCTIONS_EMULATOR'] == 'true';
+
 void main(List<String> args) {
   runFunctions((firebase) async {
     var fbContext = (initFirebaseServicesAdminSdk().copyWith(
@@ -49,6 +57,7 @@ void main(List<String> args) {
         firebaseContext: fbContext,
         flavorContext: FlavorContext.dev,
       ),
+      firestoreDocApi: _isFunctionsEmulator,
     );
 
     // https://firebase.google.com/docs/functions/http-events
@@ -80,6 +89,7 @@ void main(List<String> args) {
         firebaseContext: fbContext,
         flavorContext: FlavorContext.prod,
       ),
+      firestoreDocApi: _isFunctionsEmulator,
     );
 
     // https://firebase.google.com/docs/functions/http-events

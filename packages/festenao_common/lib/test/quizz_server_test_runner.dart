@@ -128,6 +128,8 @@ void testQuizzServerGroup(Future<QuizzTestContext> Function() initContext) {
       );
       var sessionId = quiz.sessionId.v!;
 
+      // A wrong answer sends another answer id (the server scores from the
+      // quiz correct answers, not from the client correct flag).
       ApiQuizzSendResultQuery newRequest({
         bool correct = true,
         int elasedMs = 0,
@@ -142,7 +144,7 @@ void testQuizzServerGroup(Future<QuizzTestContext> Function() initContext) {
           ..answers.v = [
             CvQuizPlayerAnswer()
               ..correct.v = correct
-              ..answerId.v = answerId
+              ..answerId.v = correct ? answerId : '${answerId}_wrong'
               ..questionId.v = questionId
               ..elapsedMs.v = elasedMs,
           ];
@@ -266,7 +268,8 @@ void testQuizzServerGroup(Future<QuizzTestContext> Function() initContext) {
         'localTimestamp': now,
       });
 
-      // Send wrong with winningCount lowered
+      // Send wrong with winningCount lowered: the winning count is the quiz
+      // one, not the client one, no goodie.
       resultRequest = newRequest(correct: false)
         ..localDeviceId.v = 'dwrong2'
         ..winningCount.v = 0;
@@ -283,10 +286,35 @@ void testQuizzServerGroup(Future<QuizzTestContext> Function() initContext) {
         'score': 0,
         'quizId': quizId,
         'elapsedMs': 0,
-        'won': wonGoodie1, // Ok!
         'timestamp': player.timestamp.v,
         'localTimestamp': now,
       });
+
+      // A wrong answer claimed correct by the client scores nothing.
+      resultRequest = newRequest(correct: false)
+        ..localDeviceId.v = 'dwrong3'
+        ..answers.v!.first.correct.v = true;
+      response = await apiClient.sendQuizResult(resultRequest);
+      player = await database
+          .fsGdQuizPlayer(sessionId, response.playerId.v!)
+          .get(firestore);
+      expect(player.score.v, 0);
+      expect(player.won.v, isNull);
+
+      // The same correct answer sent twice counts once (more answers than
+      // the questions of a player are refused).
+      resultRequest = newRequest(correct: true, elasedMs: 10)
+        ..localDeviceId.v = 'dtwice';
+      resultRequest.answers.v = [
+        ...resultRequest.answers.v!,
+        ...resultRequest.answers.v!,
+      ];
+      response = await apiClient.sendQuizResult(resultRequest);
+      player = await database
+          .fsGdQuizPlayer(sessionId, response.playerId.v!)
+          .get(firestore);
+      expect(player.score.v, 1);
+      expect(player.elapsedMs.v, 10);
     });
 
     test('full run tv (fake players, ranks)', () async {
