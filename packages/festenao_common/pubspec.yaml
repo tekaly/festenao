@@ -15,7 +15,7 @@ dependencies:
   dev_build: ">=1.1.10"
   # The service account of the env variable, ds env included
   # (firebase/festenao_service_account_io.dart).
-  process_run: ">=1.3.6"
+  process_run: ">=1.4.0"
   # Object editor: yaml documents, edited in place.
   yaml: ">=3.1.3"
   yaml_edit: ">=2.2.4"

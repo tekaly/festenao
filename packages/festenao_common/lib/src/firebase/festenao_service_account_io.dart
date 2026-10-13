@@ -356,7 +356,8 @@ Future<bool> festenaoDeleteServiceAccountFile(
 /// Sets [festenaoServiceAccountEnvKey] in the ds env user file to [value] (a
 /// path or the json), as `ds env var set` does, deleting it when null.
 ///
-/// The value is written quoted, so a json stays a string for the yaml file.
+/// process_run (>= 1.4.0) quotes the value when needed, so a json stays a
+/// string for the yaml file.
 /// [environment] may name another user file
 /// (`TEKARTIK_PROCESS_RUN_USER_ENV_FILE_PATH`), for tests. Nothing is printed:
 /// the file holds other secrets.
@@ -367,7 +368,7 @@ Future<void> festenaoSetServiceAccountDsEnv(
   var shell = Shell(verbose: false, environment: environment);
   await shell.shellVarOverride(
     festenaoServiceAccountEnvKey,
-    value == null ? null : jsonEncode(value),
+    value,
     local: false,
   );
 }
