@@ -409,19 +409,25 @@ void testFestenaoServerGroup(
     var name = 'Test $now';
     var createEntityId = 'test';
 
-    try {
-      await client.deleteEntity(entityId: createEntityId);
-    } catch (_) {}
-    try {
-      await client.purgeEntity(entityId: createEntityId);
-    } catch (_) {}
+    /// Removes the entity a failed run may have left, signed in: delete and
+    /// purge require its admin (the signed in user, its creator), the admin
+    /// calls only work without the security rules (admin sdk checks).
+    Future<void> cleanUp() async {
+      try {
+        await client.deleteEntity(entityId: createEntityId);
+      } catch (_) {}
+      try {
+        await client.purgeEntity(entityId: createEntityId);
+      } catch (_) {}
 
-    try {
-      await projectDb.adminDeleteEntity(createEntityId);
-    } catch (_) {}
-    try {
-      await projectDb.adminPurgeEntity(createEntityId);
-    } catch (_) {}
+      try {
+        await projectDb.adminDeleteEntity(createEntityId);
+      } catch (_) {}
+      try {
+        await projectDb.adminPurgeEntity(createEntityId);
+      } catch (_) {}
+    }
+
     Future<FsProject> createEntity() async {
       var entity = await client.createEntity(
         entity: FsProject()..name.v = name,
@@ -459,6 +465,7 @@ void testFestenaoServerGroup(
 
       authMe = await client.apiService.getAuthMe();
       expect(authMe.uid.v, userId);
+      await cleanUp();
       if (!noFirestoreCheck) {
         expect(
           (await fsDatabase.projectDb
