@@ -33,7 +33,7 @@ class DbProject extends DbStringRecordBase with TkCmsCvUserAccessMixin {
   bool get isWrite => TkCmsCvUserAccessCommonExt(this).isWrite;
 
   /// True if the user has admin access.
-  bool get isAdmin => TkCmsCvUserAccessCommonExt(this).isRead;
+  bool get isAdmin => TkCmsCvUserAccessCommonExt(this).isAdmin;
 
   /// True if the user has read access.
   bool get isRead => TkCmsCvUserAccessCommonExt(this).isRead;
@@ -72,9 +72,36 @@ class ProjectsDb {
 
   /// Future that completes when the database is ready.
   late final Future<void> ready = () async {
-    db = await factory.openDatabase(projectsDbName);
     initDbProjectsBuilders();
+    var isNew = name != projectsDbName && !await factory.databaseExists(name);
+    db = await factory.openDatabase(name);
+    if (isNew) {
+      await _importLegacyProjectsDb();
+    }
   }();
+
+  /// The projects were all stored in [projectsDbName] (whatever the name),
+  /// copy them once in a new named database so that current users keep them.
+  Future<void> _importLegacyProjectsDb() async {
+    if (!await factory.databaseExists(projectsDbName)) {
+      return;
+    }
+    var legacyDb = await factory.openDatabase(projectsDbName);
+    try {
+      var projects = await dbProjectStore.query().getRecords(legacyDb);
+      var users = await dbProjectUserStore.query().getRecords(legacyDb);
+      await db.transaction((txn) async {
+        for (var project in projects) {
+          await dbProjectStore.record(project.id).put(txn, project);
+        }
+        for (var user in users) {
+          await dbProjectUserStore.record(user.id).put(txn, user);
+        }
+      });
+    } finally {
+      await legacyDb.close();
+    }
+  }
 
   /// Sets the current identity ID and initializes the user record if needed.
   Future<void> setCurrentIdentityId(String identityId) async {

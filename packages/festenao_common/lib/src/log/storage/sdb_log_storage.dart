@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
+import 'package:tekartik_common_utils/common_utils_import.dart' show Lock;
 import '../log_level.dart';
 import '../log_record.dart';
 import '../reader/log_query_filter.dart';
 import 'log_storage.dart';
+import 'log_storage_prv.dart';
 
 /// CV / SDB Record for log records.
 class SdbLogRecordCv extends ScvStringRecordBase {
@@ -209,7 +211,10 @@ class SdbLogStorage implements LogStorage {
   LogSegmentSummary? _activeSegmentSummary;
 
   final List<LogSegmentSummary> _segmentSummaries = [];
-  bool _initialized = false;
+  Future<void>? _initFuture;
+
+  /// Writes one at a time (the logger does not wait for its appends).
+  final _lock = Lock();
 
   static const String _masterDbName = 'festenao_log_master.db';
 
@@ -230,9 +235,9 @@ class SdbLogStorage implements LogStorage {
       : '$dbPathPrefix/log_seg_$segmentId.db';
 
   @override
-  Future<void> init() async {
-    if (_initialized) return;
-    _initialized = true;
+  Future<void> init() => _initFuture ??= _init();
+
+  Future<void> _init() async {
     _initSdbLogBuilders();
 
     final masterPath = _masterDbPath();
@@ -253,7 +258,7 @@ class SdbLogStorage implements LogStorage {
 
     LogSegmentSummary? activeSummary;
     for (final seg in _segmentSummaries) {
-      if (seg.status == 'active') {
+      if (seg.status == logSegmentStatusActive) {
         activeSummary = seg;
         break;
       }
@@ -263,6 +268,25 @@ class SdbLogStorage implements LogStorage {
 
     _activeSegmentSummary = activeSummary;
     _activeSegmentDb = await _openSegmentDb(activeSummary.segmentId);
+  }
+
+  /// Runs [action] on the database of [segmentId], the active one or a
+  /// database opened then closed (an open database would block its deletion
+  /// on the web).
+  Future<T> _withSegmentDb<T>(
+    String segmentId,
+    Future<T> Function(SdbDatabase db) action,
+  ) async {
+    if (segmentId == _activeSegmentSummary?.segmentId &&
+        _activeSegmentDb != null) {
+      return await action(_activeSegmentDb!);
+    }
+    final db = await _openSegmentDb(segmentId);
+    try {
+      return await action(db);
+    } finally {
+      await db.close();
+    }
   }
 
   Future<SdbDatabase> _openSegmentDb(String segmentId) async {
@@ -286,7 +310,7 @@ class SdbLogStorage implements LogStorage {
       createdAt: DateTime.now().toUtc(),
       sizeBytes: 0,
       recordCount: 0,
-      status: 'active',
+      status: logSegmentStatusActive,
     );
 
     _segmentSummaries.add(summary);
@@ -302,49 +326,26 @@ class SdbLogStorage implements LogStorage {
   @override
   Future<void> appendRecord(LogRecord record) async {
     await init();
-    final cvRec = SdbLogRecordCv.fromLogRecord(record);
-    final map = record.toMap();
-    final recSize = map.toString().length;
+    await _lock.synchronized(() async {
+      final cvRec = SdbLogRecordCv.fromLogRecord(record);
+      final recSize = record.toMap().toString().length;
 
-    await sdbLogRecordStore.record(record.id).put(_activeSegmentDb!, cvRec);
+      await sdbLogRecordStore.record(record.id).put(_activeSegmentDb!, cvRec);
 
-    _streamController.add(record);
+      _streamController.add(record);
 
-    final current = _activeSegmentSummary!;
-    final oldest =
-        current.oldestTimestamp == null ||
-            record.timestamp.isBefore(current.oldestTimestamp!)
-        ? record.timestamp
-        : current.oldestTimestamp;
-    final newest =
-        current.newestTimestamp == null ||
-            record.timestamp.isAfter(current.newestTimestamp!)
-        ? record.timestamp
-        : current.newestTimestamp;
+      _activeSegmentSummary = logSegmentSummaryAddRecord(
+        _activeSegmentSummary!,
+        record,
+        recSize,
+      );
+      logSegmentSummariesReplace(_segmentSummaries, _activeSegmentSummary!);
+      await _saveSegmentSummary(_activeSegmentSummary!);
 
-    _activeSegmentSummary = LogSegmentSummary(
-      segmentId: current.segmentId,
-      name: current.name,
-      createdAt: current.createdAt,
-      sealedAt: current.sealedAt,
-      oldestTimestamp: oldest,
-      newestTimestamp: newest,
-      sizeBytes: current.sizeBytes + recSize,
-      recordCount: current.recordCount + 1,
-      status: current.status,
-    );
-
-    final idx = _segmentSummaries.indexWhere(
-      (s) => s.segmentId == current.segmentId,
-    );
-    if (idx != -1) {
-      _segmentSummaries[idx] = _activeSegmentSummary!;
-    }
-    await _saveSegmentSummary(_activeSegmentSummary!);
-
-    if (_activeSegmentSummary!.sizeBytes >= maxSegmentSizeBytes) {
-      await rotateSegment();
-    }
+      if (_activeSegmentSummary!.sizeBytes >= maxSegmentSizeBytes) {
+        await _rotateSegment();
+      }
+    });
   }
 
   @override
@@ -354,72 +355,75 @@ class SdbLogStorage implements LogStorage {
     }
   }
 
+  /// All the records of [segmentId].
+  Future<List<LogRecord>> _segmentRecords(String segmentId) =>
+      _withSegmentDb(segmentId, (db) async {
+        final recs = await sdbLogRecordStore.findRecords(db);
+        return recs.map((r) => r.toLogRecord()).toList();
+      });
+
   @override
   Future<List<LogRecord>> getUnsentRecords({int? limit}) async {
     await init();
-    final results = <LogRecord>[];
-
-    for (final segSummary in _segmentSummaries) {
-      final db = await _openSegmentDb(segSummary.segmentId);
-      final recs = await sdbLogRecordStore.findRecords(db);
-      for (final r in recs) {
-        final rec = r.toLogRecord();
-        if (!rec.sent) {
-          results.add(rec);
-          if (limit != null && results.length >= limit) {
-            return results;
+    return await _lock.synchronized(() async {
+      final results = <LogRecord>[];
+      for (final segSummary in _segmentSummaries) {
+        for (final rec in await _segmentRecords(segSummary.segmentId)) {
+          if (!rec.sent) {
+            results.add(rec);
+            if (limit != null && results.length >= limit) {
+              return results;
+            }
           }
         }
       }
-    }
-    return results;
+      return results;
+    });
   }
 
   @override
   Future<void> markAsSent(List<String> recordIds, {DateTime? sentAt}) async {
     await init();
-    final now = (sentAt ?? DateTime.now()).toUtc();
-    final idSet = recordIds.toSet();
+    await _lock.synchronized(() async {
+      final now = (sentAt ?? DateTime.now()).toUtc();
+      final idSet = recordIds.toSet();
 
-    for (var segIdx = 0; segIdx < _segmentSummaries.length; segIdx++) {
-      final segSummary = _segmentSummaries[segIdx];
-      final db = await _openSegmentDb(segSummary.segmentId);
-      final recs = await sdbLogRecordStore.findRecords(db);
+      for (var segIdx = 0; segIdx < _segmentSummaries.length; segIdx++) {
+        final segSummary = _segmentSummaries[segIdx];
+        final (updatedCount, allSent, count) = await _withSegmentDb(
+          segSummary.segmentId,
+          (db) async {
+            final recs = await sdbLogRecordStore.findRecords(db);
+            var updatedCount = 0;
+            var allSent = true;
+            for (final r in recs) {
+              final rec = r.toLogRecord();
+              if (idSet.contains(rec.id)) {
+                final updated = rec.copyWith(sent: true, sentAt: now);
+                final updatedCv = SdbLogRecordCv.fromLogRecord(updated);
+                await sdbLogRecordStore.record(rec.id).put(db, updatedCv);
+                updatedCount++;
+              } else if (!rec.sent) {
+                allSent = false;
+              }
+            }
+            return (updatedCount, allSent, recs.length);
+          },
+        );
 
-      var updatedCount = 0;
-      var allSent = true;
-
-      for (final r in recs) {
-        final rec = r.toLogRecord();
-        if (idSet.contains(rec.id)) {
-          final updated = rec.copyWith(sent: true, sentAt: now);
-          final updatedCv = SdbLogRecordCv.fromLogRecord(updated);
-          await sdbLogRecordStore.record(rec.id).put(db, updatedCv);
-          updatedCount++;
-        } else if (!rec.sent) {
-          allSent = false;
+        if (updatedCount > 0 &&
+            allSent &&
+            count > 0 &&
+            segSummary.status == logSegmentStatusSealed) {
+          final newSummary = logSegmentSummaryWithStatus(
+            segSummary,
+            logSegmentStatusFullySent,
+          );
+          _segmentSummaries[segIdx] = newSummary;
+          await _saveSegmentSummary(newSummary);
         }
       }
-
-      if (updatedCount > 0 &&
-          allSent &&
-          recs.isNotEmpty &&
-          segSummary.status == 'sealed') {
-        final newSummary = LogSegmentSummary(
-          segmentId: segSummary.segmentId,
-          name: segSummary.name,
-          createdAt: segSummary.createdAt,
-          sealedAt: segSummary.sealedAt,
-          oldestTimestamp: segSummary.oldestTimestamp,
-          newestTimestamp: segSummary.newestTimestamp,
-          sizeBytes: segSummary.sizeBytes,
-          recordCount: segSummary.recordCount,
-          status: 'fullySent',
-        );
-        _segmentSummaries[segIdx] = newSummary;
-        await _saveSegmentSummary(newSummary);
-      }
-    }
+    });
   }
 
   @override
@@ -430,33 +434,21 @@ class SdbLogStorage implements LogStorage {
     bool descending = true,
   }) async {
     await init();
-    final results = <LogRecord>[];
-
-    for (final segSummary in _segmentSummaries) {
-      final db = await _openSegmentDb(segSummary.segmentId);
-      final recs = await sdbLogRecordStore.findRecords(db);
-      for (final r in recs) {
-        final rec = r.toLogRecord();
-        if (filter.matches(rec)) {
-          results.add(rec);
-        }
+    final results = await _lock.synchronized(() async {
+      final results = <LogRecord>[];
+      for (final segSummary in _segmentSummaries) {
+        results.addAll(
+          (await _segmentRecords(segSummary.segmentId)).where(filter.matches),
+        );
       }
-    }
-
-    if (descending) {
-      results.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    } else {
-      results.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    }
-
-    final start = offset ?? 0;
-    if (start >= results.length) return [];
-
-    if (limit != null) {
-      final end = (start + limit).clamp(0, results.length);
-      return results.sublist(start, end);
-    }
-    return results.sublist(start);
+      return results;
+    });
+    return logRecordsSortAndPage(
+      results,
+      limit: limit,
+      offset: offset,
+      descending: descending,
+    );
   }
 
   @override
@@ -473,87 +465,64 @@ class SdbLogStorage implements LogStorage {
   @override
   Future<void> rotateSegment() async {
     await init();
-    if (_activeSegmentSummary != null &&
-        _activeSegmentSummary!.status == 'active') {
-      final sealed = LogSegmentSummary(
-        segmentId: _activeSegmentSummary!.segmentId,
-        name: _activeSegmentSummary!.name,
-        createdAt: _activeSegmentSummary!.createdAt,
+    await _lock.synchronized(_rotateSegment);
+  }
+
+  Future<void> _rotateSegment() async {
+    final active = _activeSegmentSummary;
+    if (active != null && active.status == logSegmentStatusActive) {
+      final sealed = logSegmentSummaryWithStatus(
+        active,
+        logSegmentStatusSealed,
         sealedAt: DateTime.now().toUtc(),
-        oldestTimestamp: _activeSegmentSummary!.oldestTimestamp,
-        newestTimestamp: _activeSegmentSummary!.newestTimestamp,
-        sizeBytes: _activeSegmentSummary!.sizeBytes,
-        recordCount: _activeSegmentSummary!.recordCount,
-        status: 'sealed',
       );
-      final idx = _segmentSummaries.indexWhere(
-        (s) => s.segmentId == sealed.segmentId,
-      );
-      if (idx != -1) {
-        _segmentSummaries[idx] = sealed;
-      }
+      logSegmentSummariesReplace(_segmentSummaries, sealed);
       await _saveSegmentSummary(sealed);
     }
 
+    final previousDb = _activeSegmentDb;
     _activeSegmentSummary = await _createNewSegmentSummary();
     _activeSegmentDb = await _openSegmentDb(_activeSegmentSummary!.segmentId);
+    // The sealed segment is opened on demand.
+    await previousDb?.close();
+  }
+
+  Future<void> _deleteSegment(LogSegmentSummary seg) async {
+    await sdbLogMasterStore.record(seg.segmentId).delete(_masterDb!);
+    await sdbFactory.deleteDatabase(_segmentDbPath(seg.segmentId));
   }
 
   @override
   Future<void> purgeOldLogs({Duration? maxAge, int? maxTotalSizeBytes}) async {
     await init();
-    final ageCutoff = maxAge ?? this.maxAge;
-    final sizeLimit = maxTotalSizeBytes ?? this.maxTotalSizeBytes;
-    final now = DateTime.now().toUtc();
+    await _lock.synchronized(() async {
+      final sizeLimit = maxTotalSizeBytes ?? this.maxTotalSizeBytes;
+      final activeSegmentId = _activeSegmentSummary?.segmentId;
 
-    final toDelete = <LogSegmentSummary>[];
-    for (final seg in _segmentSummaries) {
-      if (seg.segmentId == _activeSegmentSummary?.segmentId) continue;
-      if (seg.newestTimestamp != null) {
-        if (now.difference(seg.newestTimestamp!) > ageCutoff) {
-          toDelete.add(seg);
-        }
+      final toDelete = logSegmentsOlderThan(
+        _segmentSummaries,
+        activeSegmentId: activeSegmentId,
+        maxAge: maxAge ?? this.maxAge,
+      );
+      for (final seg in toDelete) {
+        _segmentSummaries.removeWhere((s) => s.segmentId == seg.segmentId);
+        await _deleteSegment(seg);
       }
-    }
 
-    for (final seg in toDelete) {
-      _segmentSummaries.removeWhere((s) => s.segmentId == seg.segmentId);
-      await sdbLogMasterStore.record(seg.segmentId).delete(_masterDb!);
-      await sdbFactory.deleteDatabase(_segmentDbPath(seg.segmentId));
-    }
+      int totalBytes() =>
+          _segmentSummaries.fold(0, (sum, seg) => sum + seg.sizeBytes);
 
-    int totalBytes() =>
-        _segmentSummaries.fold(0, (sum, seg) => sum + seg.sizeBytes);
-
-    while (totalBytes() > sizeLimit && _segmentSummaries.length > 1) {
-      var targetIdx = -1;
-      for (var i = 0; i < _segmentSummaries.length; i++) {
-        if (_segmentSummaries[i].segmentId ==
-            _activeSegmentSummary?.segmentId) {
-          continue;
-        }
-        if (_segmentSummaries[i].status == 'fullySent') {
-          targetIdx = i;
+      while (totalBytes() > sizeLimit && _segmentSummaries.length > 1) {
+        final targetIdx = logSegmentPurgeIndex(
+          _segmentSummaries,
+          activeSegmentId: activeSegmentId,
+        );
+        if (targetIdx == -1) {
           break;
         }
+        await _deleteSegment(_segmentSummaries.removeAt(targetIdx));
       }
-      if (targetIdx == -1) {
-        for (var i = 0; i < _segmentSummaries.length; i++) {
-          if (_segmentSummaries[i].segmentId !=
-              _activeSegmentSummary?.segmentId) {
-            targetIdx = i;
-            break;
-          }
-        }
-      }
-      if (targetIdx != -1) {
-        final seg = _segmentSummaries.removeAt(targetIdx);
-        await sdbLogMasterStore.record(seg.segmentId).delete(_masterDb!);
-        await sdbFactory.deleteDatabase(_segmentDbPath(seg.segmentId));
-      } else {
-        break;
-      }
-    }
+    });
   }
 
   @override
@@ -561,6 +530,8 @@ class SdbLogStorage implements LogStorage {
 
   @override
   Future<void> close() async {
+    // Wait for the pending writes.
+    await _lock.synchronized(() {});
     await _streamController.close();
     await _activeSegmentDb?.close();
     await _masterDb?.close();

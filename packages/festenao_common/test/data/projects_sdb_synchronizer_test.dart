@@ -1,5 +1,4 @@
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
-import 'package:festenao_common/data/src/demo/demo_constants.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
@@ -95,10 +94,11 @@ Future<void> main() async {
     synchronizer.dispose();
   });
   test('autoSyncOne', () async {
+    // It only listens to the local project for now (no sync yet).
     var synchronizer = ProjectsDbSingleProjectAutoSynchronizer(
       projectsDb: projectsDb,
       fsProjects: fsProjectsDb,
-      projectId: testProjectId,
+      projectId: projectId,
       userId: userId,
     );
     var fsProject = FsProject()..name.setValue('test project');
@@ -107,9 +107,9 @@ Future<void> main() async {
       entity: fsProject,
       entityId: projectId,
     );
-    // ignore: avoid_print
-    print('projectUid: $projectUid');
-    await sleep(1000);
+    expect(projectUid, projectId);
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    expect(await projectsDb.getProject(projectId, userId: userId), isNull);
     synchronizer.dispose();
   });
 }

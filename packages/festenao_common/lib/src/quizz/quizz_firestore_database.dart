@@ -973,52 +973,42 @@ class QuizzFirestoreDatabase {
 
   /// Deletes the tv quizzes created before [maxDateTime].
   Future<void> deleteQuizzesBefore(DateTime maxDateTime) async {
-    var count = 10;
-    var query = fsQuizCollection
-        .query()
-        .where(fsQuizModel.createdTimestamp.name, isLessThan: maxDateTime)
-        .limit(count);
-
-    while (true) {
-      var quizzes = await query.get(firestore);
-
-      for (var quiz in quizzes) {
-        if (quiz.isTypeGd) {
-          // Do not delete gd quizzes
-        } else {
-          await deleteQuiz(quiz.id);
-        }
-      }
-      if (quizzes.length < count) {
-        break;
-      }
-    }
+    await _forEachTvQuizBefore(maxDateTime, deleteQuiz);
   }
 
   /// Archives the tv quizzes created before [maxDateTime].
   Future<void> archiveQuizzesBefore(DateTime maxDateTime) async {
+    await _forEachTvQuizBefore(maxDateTime, archiveQuiz);
+  }
+
+  /// Calls [action] on each tv quiz (gd quizzes are kept) created before
+  /// [maxDateTime], paging forward after the last quiz of each page (the gd
+  /// quizzes are never deleted, the creation timestamps can be equal).
+  Future<void> _forEachTvQuizBefore(
+    DateTime maxDateTime,
+    Future<void> Function(String quizId) action,
+  ) async {
     var count = 10;
     var query = fsQuizCollection
         .query()
-        .orderBy(fsQuizModel.createdTimestamp.name)
         .where(fsQuizModel.createdTimestamp.name, isLessThan: maxDateTime)
+        .orderBy(fsQuizModel.createdTimestamp.name)
+        .orderBy(firestoreNameFieldPath)
         .limit(count);
 
     while (true) {
       var quizzes = await query.get(firestore);
 
       for (var quiz in quizzes) {
-        if (quiz.isTypeGd) {
-          // Do not archive gd quizzes
-        } else {
-          await archiveQuiz(quiz.id);
+        if (!quiz.isTypeGd) {
+          await action(quiz.id);
         }
       }
       if (quizzes.length < count) {
         break;
       }
       var last = quizzes.last;
-      query = query.startAt(values: [last.createdTimestamp.v]);
+      query = query.startAfter(values: [last.createdTimestamp.v, last.id]);
     }
   }
 

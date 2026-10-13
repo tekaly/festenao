@@ -81,50 +81,19 @@ void main() {
       await syncRecords.delete(db);
       expect(await festenaoDb.getSyncRecords(), isEmpty);
 
+      // Untracked (no sync record): nothing is pushed.
       var stat = await sync.syncUp();
-      syncRecords = await festenaoDb.getSyncRecords();
-      if (syncRecords.isNotEmpty) {
-        var syncRecord = syncRecords.first;
-        expect(syncRecord.syncId.v, isNotNull);
-        expect(syncRecord.syncChangeId.v, isNotNull);
-        expect(syncRecord.syncTimestamp.v, isNotNull);
-        expect(syncRecords.map((r) => r.toMap()), [
-          {
-            'store': 'artist',
-            'key': 'a1',
-            'dirty': false,
-            'deleted': false,
-            'syncTimestamp': syncRecord.syncTimestamp.v,
-            'syncId': syncRecord.syncId.v,
-            'syncChangeId': 1,
-          },
-        ]);
-        expect(stat, FaoSyncStat(remoteUpdatedCount: 1));
-        var sourceRecord = (await source.getSourceRecord(
+      expect(stat, FaoSyncStat());
+      expect(await festenaoDb.getSyncRecords(), isEmpty);
+      expect(
+        await source.getSourceRecord(
           FestenaoDataSourceRef(store: 'artist', key: 'a1'),
-        ))!;
-        expect(
-          sourceRecord,
-          SyncedSourceRecord()
-            ..syncId.v = sourceRecord.syncId.v
-            ..syncTimestamp.v = sourceRecord.syncTimestamp.v
-            ..syncChangeId.v = 1
-            ..record.v = (SyncedSourceRecordData()
-              ..store.v = dbArtistStoreRef.name
-              ..key.v = 'a1'
-              ..deleted.v = false
-              ..value.v = {'name': 'test1'}),
-        );
-        var sourceMeta = (await source.getMetaInfo())!;
-        expect(sourceMeta.toMap(), {'lastChangeId': 1});
-      }
+        ),
+        isNull,
+      );
       // Sync again
       stat = await sync.syncUp();
       expect(stat, FaoSyncStat());
-      if (syncRecords.isNotEmpty) {
-        var sourceMeta = (await source.getMetaInfo())!;
-        expect(sourceMeta.toMap(), {'lastChangeId': 1});
-      }
     });
 
     test('syncOneImageToRemote', () async {

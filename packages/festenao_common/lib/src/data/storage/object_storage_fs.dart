@@ -3,6 +3,7 @@ import 'package:fs_shim/fs.dart';
 import 'package:path/path.dart' as p;
 
 import 'object_storage.dart';
+import 'object_storage_fs_path.dart';
 
 class _FsMeta implements ObjectStorageMeta {
   @override
@@ -50,13 +51,8 @@ class ObjectStorageFs extends ObjectStorage {
   /// Create a new [ObjectStorageFs] instance.
   ObjectStorageFs({required this.fileSystem, required this.rootPath});
 
-  String _toFsPath(String posixPath) {
-    var parts = p.posix.split(posixPath);
-    var filteredParts = parts
-        .where((part) => part.isNotEmpty && part != '.' && part != '..')
-        .toList();
-    return fileSystem.path.joinAll([rootPath, ...filteredParts]);
-  }
+  String _toFsPath(String posixPath) =>
+      objectStorageFsPath(fileSystem, rootPath, posixPath);
 
   String? _mimeTypeFromPath(String path) {
     var ext = p.extension(path).toLowerCase();
@@ -81,16 +77,13 @@ class ObjectStorageFs extends ObjectStorage {
   Future<void> delete(String path) async {
     var fsPath = _toFsPath(path);
 
-    var file = fileSystem.file(fsPath);
-    if (await file.exists()) {
-      await file.delete();
-      return;
-    }
-
-    var dir = fileSystem.directory(fsPath);
-    if (await dir.exists()) {
-      await dir.delete(recursive: true);
-      return;
+    // The entity type first: a memory (or idb) file system says a directory
+    // `exists()` as a file too, dart:io does not.
+    var type = await fileSystem.type(fsPath);
+    if (type == FileSystemEntityType.file) {
+      await fileSystem.file(fsPath).delete();
+    } else if (type == FileSystemEntityType.directory) {
+      await fileSystem.directory(fsPath).delete(recursive: true);
     }
   }
 

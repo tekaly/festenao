@@ -2,6 +2,7 @@ import 'dart:async';
 import '../log_record.dart';
 import '../reader/log_query_filter.dart';
 import 'log_storage.dart';
+import 'log_storage_prv.dart';
 
 /// Hybrid log storage implementation combining structured storage ([sdbStorage])
 /// for active/unsent logs and file storage ([fsStorage]) for archived/sent logs.
@@ -15,15 +16,15 @@ class HybridLogStorage implements LogStorage {
   final StreamController<LogRecord> _streamController =
       StreamController<LogRecord>.broadcast();
 
-  bool _initialized = false;
+  Future<void>? _initFuture;
 
   /// Creates a hybrid log storage instance.
   HybridLogStorage({required this.sdbStorage, required this.fsStorage});
 
   @override
-  Future<void> init() async {
-    if (_initialized) return;
-    _initialized = true;
+  Future<void> init() => _initFuture ??= _init();
+
+  Future<void> _init() async {
     await sdbStorage.init();
     await fsStorage.init();
   }
@@ -51,10 +52,23 @@ class HybridLogStorage implements LogStorage {
   @override
   Future<void> markAsSent(List<String> recordIds, {DateTime? sentAt}) async {
     await init();
+    final idSet = recordIds.toSet();
+    // Only the records sent now are archived, the ones sent before already
+    // are.
+    final newlySentIds = (await sdbStorage.getUnsentRecords())
+        .map((r) => r.id)
+        .where(idSet.contains)
+        .toSet();
     await sdbStorage.markAsSent(recordIds, sentAt: sentAt);
+    if (newlySentIds.isEmpty) {
+      return;
+    }
 
     final queryFilter = const LogQueryFilter(sentOnly: true);
-    final sentFromSdb = await sdbStorage.queryRecords(queryFilter);
+    final sentFromSdb = (await sdbStorage.queryRecords(
+      queryFilter,
+      descending: false,
+    )).where((r) => newlySentIds.contains(r.id)).toList();
     if (sentFromSdb.isNotEmpty) {
       await fsStorage.appendRecords(sentFromSdb);
     }
@@ -79,21 +93,12 @@ class HybridLogStorage implements LogStorage {
       combinedMap[r.id] = r;
     }
 
-    final combined = combinedMap.values.toList();
-    if (descending) {
-      combined.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    } else {
-      combined.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    }
-
-    final start = offset ?? 0;
-    if (start >= combined.length) return [];
-
-    if (limit != null) {
-      final end = (start + limit).clamp(0, combined.length);
-      return combined.sublist(start, end);
-    }
-    return combined.sublist(start);
+    return logRecordsSortAndPage(
+      combinedMap.values.toList(),
+      limit: limit,
+      offset: offset,
+      descending: descending,
+    );
   }
 
   @override

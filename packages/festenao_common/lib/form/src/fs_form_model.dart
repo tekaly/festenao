@@ -93,6 +93,7 @@ mixin CvFormQuestionResponseMixin on CvModel {
   List<CvField> get responseMixinFields => [
     answerType,
     answerInt,
+    answerDate,
     answerText,
     choiceId,
     choiceIds,

@@ -1,4 +1,4 @@
-name: tekaly_festenao_noff_firebase_api_context
+name: tekaly_festenao_firebase_no_api_context
 description: Dart firestore rules project (no cloud functions)
 version: 0.0.1
 publish_to: none

@@ -16,6 +16,7 @@ import 'package:tkcms_user_app/view/rx_busy_indicator.dart';
 import 'end_screen.dart';
 import 'form_question_screen_bloc.dart';
 import 'form_screen_controller.dart';
+import 'question_int_validator.dart';
 import 'text_field_screen.dart';
 
 var debugQuestionScreen = false; // devWarning(true);
@@ -530,29 +531,12 @@ class _QuestionScreenState extends AutoDisposeBaseState<QuestionScreen>
               //hintText: question.hint.v,
             ),
             keyboardType: TextInputType.number,
-            validator: (value) {
-              var rawText = value?.trimmedNonEmpty();
-
-              if (rawText == null) {
-                if (tkQuestionOptions.emptyAllowed) {
-                  return null;
-                }
-                return 'Veuillez saisir une valeur';
-              }
-              var intValue = int.tryParse(rawText);
-              if (intValue == null) {
-                return 'Veuillez saisir un nombre';
-              }
-              if (tkQuestionOptions.min != null &&
-                  intValue < tkQuestionOptions.min!) {
-                return 'Minimum ${tkQuestionOptions.min}';
-              }
-              if (tkQuestionOptions.max != null &&
-                  intValue < tkQuestionOptions.max!) {
-                return 'Maximum ${tkQuestionOptions.max}';
-              }
-              return null;
-            },
+            validator: (value) => formQuestionIntValidator(
+              value,
+              emptyAllowed: tkQuestionOptions.emptyAllowed,
+              min: tkQuestionOptions.min,
+              max: tkQuestionOptions.max,
+            ),
           ),
           const SizedBox(height: 32),
           Center(

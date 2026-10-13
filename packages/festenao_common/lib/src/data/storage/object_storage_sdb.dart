@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 import 'package:fs_shim/fs_memory.dart';
-import 'package:path/path.dart' as p;
 import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 
 import 'object_storage.dart';
+import 'object_storage_fs_path.dart';
 
 /// SDB record for stored objects metadata.
 class SdbObjectRecord extends ScvStringRecordBase {
@@ -108,9 +108,9 @@ class ObjectStorageSdb extends ObjectStorage {
     this.rootPath = '/',
   });
 
-  /// Create a new in-memory [ObjectStorageSdb] instance.
+  /// Create a new in-memory [ObjectStorageSdb] instance (its own database).
   ObjectStorageSdb.inMemory()
-    : factory = sdbFactoryMemory,
+    : factory = newSdbFactoryMemory(),
       fileSystem = newFileSystemMemory(),
       rootPath = '/root',
       name = 'in_memory';
@@ -121,13 +121,8 @@ class ObjectStorageSdb extends ObjectStorage {
     await db.close();
   }
 
-  String _toFsPath(String posixPath) {
-    var parts = p.posix.split(posixPath);
-    var filteredParts = parts
-        .where((part) => part.isNotEmpty && part != '.' && part != '..')
-        .toList();
-    return fileSystem.path.joinAll([rootPath, ...filteredParts]);
-  }
+  String _toFsPath(String posixPath) =>
+      objectStorageFsPath(fileSystem, rootPath, posixPath);
 
   /// Checks if the local database record exists and the file is present in the filesystem.
   Future<bool> hasLocalContent(String path) async {

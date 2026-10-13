@@ -66,6 +66,7 @@ class DbFestenaoMediaFile extends DbStringRecordBase {
     path,
     createdTimestamp,
     uploaded,
+    deleted,
   ];
 
   /// To media file
@@ -161,6 +162,9 @@ class FestenaoMediaDb {
   Future<File> getMediaFile(String fileId) async {
     var db = await _futureDatabase;
     var fileRecord = await dbMediaStoreRef.record(fileId).get(db);
+    if (fileRecord?.deleted.v == true) {
+      throw FestenaoMediaDbException('Media file deleted for ID: $fileId');
+    }
 
     var path = _ensurePath(fileId, fileRecord);
     return fs.file(path);
@@ -185,7 +189,11 @@ class FestenaoMediaDb {
     return fs.path.normalize(fileRecord.path.v!);
   }
 
-  /// Deletes the media file and its corresponding database record for the given [fileId].
+  /// Deletes the media file for the given [fileId].
+  ///
+  /// The record is kept marked as deleted (and to sync, local but not remote)
+  /// so that the synchronizer deletes the remote file and the other devices
+  /// their local file.
   Future<void> deleteMediaFile(String fileId) async {
     var db = await _futureDatabase;
     DbFestenaoMediaFile? fileRecord;
@@ -203,8 +211,6 @@ class FestenaoMediaDb {
 
         await file.put(txn);
         await status.put(txn);
-        await dbMediaLocalStoreRef.record(fileId).delete(txn);
-        await dbMediaStoreRef.record(fileId).delete(txn);
         fileRecord = file;
       }
     });
@@ -221,11 +227,11 @@ class FestenaoMediaDb {
     }
   }
 
-  /// Gets all media file records from the database.
+  /// Gets all media file records from the database (not the deleted ones).
   Future<List<DbFestenaoMediaFile>> getAllRecords() async {
     var db = await _futureDatabase;
     var records = await dbMediaStoreRef.query().getRecords(db);
-    return records;
+    return records.where((record) => record.deleted.v != true).toList();
   }
 
   /// File ids to upload (delete and create)
@@ -243,19 +249,24 @@ class FestenaoMediaDb {
         .getKeys(db);
   }
 
-  /// File to download
+  /// File to download: the (synced) files not local yet, a synced file has
+  /// no local status.
   Future<List<String>> fileIdsToDownload() async {
     var db = await _futureDatabase;
-    return await dbMediaLocalStoreRef
-        .query(
-          finder: Finder(
-            filter: Filter.equals(
-              dbFestenaoMediaStatusFileModel.local.name,
-              false,
-            ),
-          ),
-        )
-        .getKeys(db);
+    var fileIds = <String>[];
+    await db.transaction((txn) async {
+      var files = await dbMediaStoreRef.query().getRecords(txn);
+      for (var file in files) {
+        if (file.deleted.v == true) {
+          continue;
+        }
+        var status = await dbMediaLocalStoreRef.record(file.id).get(txn);
+        if (status?.local.v != true) {
+          fileIds.add(file.id);
+        }
+      }
+    });
+    return fileIds;
   }
 
   /// File to download

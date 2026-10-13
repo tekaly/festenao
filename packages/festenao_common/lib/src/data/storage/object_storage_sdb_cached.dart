@@ -25,12 +25,24 @@ class ObjectStorageSdbCached extends ObjectStorage {
   /// Create a new [ObjectStorageSdbCached] instance.
   ObjectStorageSdbCached({required this.delegate, required this.cache});
 
-  String _getMarkerPath(String path) {
-    if (path.isEmpty) return '.directory_cached';
-    return path.endsWith('/')
-        ? '$path.directory_cached'
-        : '$path/.directory_cached';
+  /// Marker file of a cached directory listing.
+  static const _listedMarkerName = '.directory_cached';
+
+  /// Marker file of a directory known from a parent listing (the cache only
+  /// derives its directories from the files below them).
+  static const _locationMarkerName = '.directory_location';
+
+  String _getMarkerPath(String path) => _markerPath(path, _listedMarkerName);
+
+  String _markerPath(String path, String markerName) {
+    if (path.isEmpty) return markerName;
+    return path.endsWith('/') ? '$path$markerName' : '$path/$markerName';
   }
+
+  /// True for the cache own marker files.
+  bool _isMarker(ObjectStorageMeta item) =>
+      item.name.endsWith(_listedMarkerName) ||
+      item.name.endsWith(_locationMarkerName);
 
   @override
   Future<void> delete(String path) async {
@@ -175,7 +187,7 @@ class ObjectStorageSdbCached extends ObjectStorage {
         maxResults: maxResults,
       );
       var filteredItems = cachedResponse.items
-          .where((item) => !item.name.endsWith('.directory_cached'))
+          .where((item) => !_isMarker(item))
           .toList();
       var response = _CachedListResponse(items: filteredItems);
 
@@ -213,7 +225,7 @@ class ObjectStorageSdbCached extends ObjectStorage {
 
       var currentCachedResponse = await cache.list(path);
       var currentCachedPaths = currentCachedResponse.items
-          .where((item) => !item.name.endsWith('.directory_cached'))
+          .where((item) => !_isMarker(item))
           .map((item) => item.path)
           .toSet();
 
@@ -229,6 +241,14 @@ class ObjectStorageSdbCached extends ObjectStorage {
             size: item.size ?? 0,
             mimeType: item.mimeType ?? 'application/octet-stream',
           );
+        } else {
+          // So that the cached listing shows the sub directory.
+          await cache.cacheWrite(
+            _markerPath(item.path, _locationMarkerName),
+            name: _locationMarkerName,
+            size: 0,
+            mimeType: 'application/octet-stream',
+          );
         }
       }
 
@@ -240,7 +260,7 @@ class ObjectStorageSdbCached extends ObjectStorage {
 
       await cache.upload(
         path,
-        name: '.directory_cached',
+        name: _listedMarkerName,
         data: Uint8List(0),
         mimeType: 'application/octet-stream',
       );

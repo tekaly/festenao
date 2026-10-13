@@ -27,21 +27,24 @@ Future<void> main() async {
           {'id': 'text_2', 'subFormId': 'text_3'},
         ],
       });
+      // The date answer is saved too.
       expect(_fill<CvFormQuestionResponse>(), {
         'id': 'text_1',
         'answerType': 'text_2',
         'int': 3,
-        'text': 'text_4',
-        'choiceId': 'text_5',
-        'choiceIds': ['text_6'],
+        'date': 'text_4',
+        'text': 'text_5',
+        'choiceId': 'text_6',
+        'choiceIds': ['text_7'],
         'subForm': [
           {
-            'id': 'text_7',
-            'answerType': 'text_8',
-            'int': 9,
-            'text': 'text_10',
-            'choiceId': 'text_11',
-            'choiceIds': ['text_12'],
+            'id': 'text_8',
+            'answerType': 'text_9',
+            'int': 10,
+            'date': 'text_11',
+            'text': 'text_12',
+            'choiceId': 'text_13',
+            'choiceIds': ['text_14'],
             'subForm': [{}],
           },
         ],

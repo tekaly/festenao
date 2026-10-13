@@ -23,7 +23,7 @@ var firestoreEmulatorPort = 8080;
 Future<void> main() async {
   emulatorService = FirebaseEmulatorService(
     path: await festenaoTestPackagePath(
-      'tekaly_festenao_noff_firebase_api_context',
+      'tekaly_festenao_firebase_no_api_context',
     ),
   );
   debugWebServices = true;

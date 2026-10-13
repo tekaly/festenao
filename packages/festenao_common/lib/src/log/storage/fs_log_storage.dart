@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:fs_shim/fs.dart';
+import 'package:tekartik_common_utils/common_utils_import.dart' show Lock;
 import '../log_record.dart';
 import '../reader/log_query_filter.dart';
 import 'log_storage.dart';
+import 'log_storage_prv.dart';
 
 /// File-system based implementation of [LogStorage] using `fs_shim`.
 /// Supports line-delimited JSON log files (JSONL), rotation at 10MB, and master index tracking.
@@ -28,7 +30,11 @@ class FsLogStorage implements LogStorage {
 
   final List<LogSegmentSummary> _segmentSummaries = [];
   LogSegmentSummary? _activeSegmentSummary;
-  bool _initialized = false;
+  Future<void>? _initFuture;
+
+  /// Appends, rewrites and reads one at a time (the logger does not wait for
+  /// its appends).
+  final _lock = Lock();
 
   /// Creates an [FsLogStorage] instance.
   FsLogStorage({
@@ -47,10 +53,9 @@ class FsLogStorage implements LogStorage {
       fileSystem.file('${_dir.path}/log_seg_$segmentId.jsonl');
 
   @override
-  Future<void> init() async {
-    if (_initialized) return;
-    _initialized = true;
+  Future<void> init() => _initFuture ??= _init();
 
+  Future<void> _init() async {
     if (!await _dir.exists()) {
       await _dir.create(recursive: true);
     }
@@ -70,7 +75,7 @@ class FsLogStorage implements LogStorage {
     _segmentSummaries.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
     for (final seg in _segmentSummaries) {
-      if (seg.status == 'active') {
+      if (seg.status == logSegmentStatusActive) {
         _activeSegmentSummary = seg;
         break;
       }
@@ -90,7 +95,7 @@ class FsLogStorage implements LogStorage {
       createdAt: DateTime.now().toUtc(),
       sizeBytes: 0,
       recordCount: 0,
-      status: 'active',
+      status: logSegmentStatusActive,
     );
 
     _segmentSummaries.add(summary);
@@ -106,50 +111,29 @@ class FsLogStorage implements LogStorage {
   @override
   Future<void> appendRecord(LogRecord record) async {
     await init();
-    final active = _activeSegmentSummary!;
-    final file = _segmentFile(active.segmentId);
+    await _lock.synchronized(() async {
+      final active = _activeSegmentSummary!;
+      final file = _segmentFile(active.segmentId);
 
-    final line = '${jsonEncode(record.toMap())}\n';
-    final lineBytes = utf8.encode(line).length;
+      final line = '${jsonEncode(record.toMap())}\n';
+      final lineBytes = utf8.encode(line).length;
 
-    await file.writeAsString(line, mode: FileMode.append);
+      await file.writeAsString(line, mode: FileMode.append);
 
-    _streamController.add(record);
+      _streamController.add(record);
 
-    final oldest =
-        active.oldestTimestamp == null ||
-            record.timestamp.isBefore(active.oldestTimestamp!)
-        ? record.timestamp
-        : active.oldestTimestamp;
-    final newest =
-        active.newestTimestamp == null ||
-            record.timestamp.isAfter(active.newestTimestamp!)
-        ? record.timestamp
-        : active.newestTimestamp;
+      _activeSegmentSummary = logSegmentSummaryAddRecord(
+        active,
+        record,
+        lineBytes,
+      );
+      logSegmentSummariesReplace(_segmentSummaries, _activeSegmentSummary!);
+      await _saveMasterIndex();
 
-    _activeSegmentSummary = LogSegmentSummary(
-      segmentId: active.segmentId,
-      name: active.name,
-      createdAt: active.createdAt,
-      sealedAt: active.sealedAt,
-      oldestTimestamp: oldest,
-      newestTimestamp: newest,
-      sizeBytes: active.sizeBytes + lineBytes,
-      recordCount: active.recordCount + 1,
-      status: active.status,
-    );
-
-    final idx = _segmentSummaries.indexWhere(
-      (s) => s.segmentId == active.segmentId,
-    );
-    if (idx != -1) {
-      _segmentSummaries[idx] = _activeSegmentSummary!;
-    }
-    await _saveMasterIndex();
-
-    if (_activeSegmentSummary!.sizeBytes >= maxSegmentSizeBytes) {
-      await rotateSegment();
-    }
+      if (_activeSegmentSummary!.sizeBytes >= maxSegmentSizeBytes) {
+        await _rotateSegment();
+      }
+    });
   }
 
   @override
@@ -178,65 +162,63 @@ class FsLogStorage implements LogStorage {
   @override
   Future<List<LogRecord>> getUnsentRecords({int? limit}) async {
     await init();
-    final results = <LogRecord>[];
-    for (final segSummary in _segmentSummaries) {
-      final records = await _readSegmentRecords(segSummary.segmentId);
-      for (final rec in records) {
-        if (!rec.sent) {
-          results.add(rec);
-          if (limit != null && results.length >= limit) {
-            return results;
+    return await _lock.synchronized(() async {
+      final results = <LogRecord>[];
+      for (final segSummary in _segmentSummaries) {
+        final records = await _readSegmentRecords(segSummary.segmentId);
+        for (final rec in records) {
+          if (!rec.sent) {
+            results.add(rec);
+            if (limit != null && results.length >= limit) {
+              return results;
+            }
           }
         }
       }
-    }
-    return results;
+      return results;
+    });
   }
 
   @override
   Future<void> markAsSent(List<String> recordIds, {DateTime? sentAt}) async {
     await init();
-    final now = (sentAt ?? DateTime.now()).toUtc();
-    final idSet = recordIds.toSet();
+    await _lock.synchronized(() async {
+      final now = (sentAt ?? DateTime.now()).toUtc();
+      final idSet = recordIds.toSet();
 
-    for (var segIdx = 0; segIdx < _segmentSummaries.length; segIdx++) {
-      final segSummary = _segmentSummaries[segIdx];
-      final records = await _readSegmentRecords(segSummary.segmentId);
-      var modified = false;
-      var allSent = true;
+      for (var segIdx = 0; segIdx < _segmentSummaries.length; segIdx++) {
+        final segSummary = _segmentSummaries[segIdx];
+        final records = await _readSegmentRecords(segSummary.segmentId);
+        var modified = false;
+        var allSent = true;
 
-      for (var i = 0; i < records.length; i++) {
-        final rec = records[i];
-        if (idSet.contains(rec.id)) {
-          records[i] = rec.copyWith(sent: true, sentAt: now);
-          modified = true;
-        } else if (!records[i].sent) {
-          allSent = false;
+        for (var i = 0; i < records.length; i++) {
+          final rec = records[i];
+          if (idSet.contains(rec.id)) {
+            records[i] = rec.copyWith(sent: true, sentAt: now);
+            modified = true;
+          } else if (!records[i].sent) {
+            allSent = false;
+          }
+        }
+
+        if (modified) {
+          final file = _segmentFile(segSummary.segmentId);
+          final lines = records.map((r) => jsonEncode(r.toMap())).join('\n');
+          await file.writeAsString(lines.isEmpty ? '' : '$lines\n');
+
+          if (allSent &&
+              records.isNotEmpty &&
+              segSummary.status == logSegmentStatusSealed) {
+            _segmentSummaries[segIdx] = logSegmentSummaryWithStatus(
+              segSummary,
+              logSegmentStatusFullySent,
+            );
+            await _saveMasterIndex();
+          }
         }
       }
-
-      if (modified) {
-        final file = _segmentFile(segSummary.segmentId);
-        final lines = records.map((r) => jsonEncode(r.toMap())).join('\n');
-        await file.writeAsString(lines.isEmpty ? '' : '$lines\n');
-
-        if (allSent && records.isNotEmpty && segSummary.status == 'sealed') {
-          final newSummary = LogSegmentSummary(
-            segmentId: segSummary.segmentId,
-            name: segSummary.name,
-            createdAt: segSummary.createdAt,
-            sealedAt: segSummary.sealedAt,
-            oldestTimestamp: segSummary.oldestTimestamp,
-            newestTimestamp: segSummary.newestTimestamp,
-            sizeBytes: segSummary.sizeBytes,
-            recordCount: segSummary.recordCount,
-            status: 'fullySent',
-          );
-          _segmentSummaries[segIdx] = newSummary;
-          await _saveMasterIndex();
-        }
-      }
-    }
+    });
   }
 
   @override
@@ -247,30 +229,20 @@ class FsLogStorage implements LogStorage {
     bool descending = true,
   }) async {
     await init();
-    final results = <LogRecord>[];
-    for (final segSummary in _segmentSummaries) {
-      final records = await _readSegmentRecords(segSummary.segmentId);
-      for (final rec in records) {
-        if (filter.matches(rec)) {
-          results.add(rec);
-        }
+    final results = await _lock.synchronized(() async {
+      final results = <LogRecord>[];
+      for (final segSummary in _segmentSummaries) {
+        final records = await _readSegmentRecords(segSummary.segmentId);
+        results.addAll(records.where(filter.matches));
       }
-    }
-
-    if (descending) {
-      results.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-    } else {
-      results.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-    }
-
-    final start = offset ?? 0;
-    if (start >= results.length) return [];
-
-    if (limit != null) {
-      final end = (start + limit).clamp(0, results.length);
-      return results.sublist(start, end);
-    }
-    return results.sublist(start);
+      return results;
+    });
+    return logRecordsSortAndPage(
+      results,
+      limit: limit,
+      offset: offset,
+      descending: descending,
+    );
   }
 
   @override
@@ -287,91 +259,66 @@ class FsLogStorage implements LogStorage {
   @override
   Future<void> rotateSegment() async {
     await init();
-    if (_activeSegmentSummary != null &&
-        _activeSegmentSummary!.status == 'active') {
-      final sealed = LogSegmentSummary(
-        segmentId: _activeSegmentSummary!.segmentId,
-        name: _activeSegmentSummary!.name,
-        createdAt: _activeSegmentSummary!.createdAt,
-        sealedAt: DateTime.now().toUtc(),
-        oldestTimestamp: _activeSegmentSummary!.oldestTimestamp,
-        newestTimestamp: _activeSegmentSummary!.newestTimestamp,
-        sizeBytes: _activeSegmentSummary!.sizeBytes,
-        recordCount: _activeSegmentSummary!.recordCount,
-        status: 'sealed',
+    await _lock.synchronized(_rotateSegment);
+  }
+
+  Future<void> _rotateSegment() async {
+    final active = _activeSegmentSummary;
+    if (active != null && active.status == logSegmentStatusActive) {
+      logSegmentSummariesReplace(
+        _segmentSummaries,
+        logSegmentSummaryWithStatus(
+          active,
+          logSegmentStatusSealed,
+          sealedAt: DateTime.now().toUtc(),
+        ),
       );
-      final idx = _segmentSummaries.indexWhere(
-        (s) => s.segmentId == sealed.segmentId,
-      );
-      if (idx != -1) {
-        _segmentSummaries[idx] = sealed;
-      }
       await _saveMasterIndex();
     }
 
     _activeSegmentSummary = await _createNewSegmentSummary();
   }
 
+  Future<void> _deleteSegmentFile(String segmentId) async {
+    final file = _segmentFile(segmentId);
+    if (await file.exists()) {
+      await file.delete();
+    }
+  }
+
   @override
   Future<void> purgeOldLogs({Duration? maxAge, int? maxTotalSizeBytes}) async {
     await init();
-    final ageCutoff = maxAge ?? this.maxAge;
-    final sizeLimit = maxTotalSizeBytes ?? this.maxTotalSizeBytes;
-    final now = DateTime.now().toUtc();
+    await _lock.synchronized(() async {
+      final sizeLimit = maxTotalSizeBytes ?? this.maxTotalSizeBytes;
+      final activeSegmentId = _activeSegmentSummary?.segmentId;
 
-    final toDelete = <LogSegmentSummary>[];
-    for (final seg in _segmentSummaries) {
-      if (seg.segmentId == _activeSegmentSummary?.segmentId) continue;
-      if (seg.newestTimestamp != null) {
-        if (now.difference(seg.newestTimestamp!) > ageCutoff) {
-          toDelete.add(seg);
-        }
+      final toDelete = logSegmentsOlderThan(
+        _segmentSummaries,
+        activeSegmentId: activeSegmentId,
+        maxAge: maxAge ?? this.maxAge,
+      );
+      for (final seg in toDelete) {
+        _segmentSummaries.removeWhere((s) => s.segmentId == seg.segmentId);
+        await _deleteSegmentFile(seg.segmentId);
       }
-    }
 
-    for (final seg in toDelete) {
-      _segmentSummaries.removeWhere((s) => s.segmentId == seg.segmentId);
-      final file = _segmentFile(seg.segmentId);
-      if (await file.exists()) {
-        await file.delete();
-      }
-    }
+      int totalBytes() =>
+          _segmentSummaries.fold(0, (sum, seg) => sum + seg.sizeBytes);
 
-    int totalBytes() =>
-        _segmentSummaries.fold(0, (sum, seg) => sum + seg.sizeBytes);
-
-    while (totalBytes() > sizeLimit && _segmentSummaries.length > 1) {
-      var targetIdx = -1;
-      for (var i = 0; i < _segmentSummaries.length; i++) {
-        if (_segmentSummaries[i].segmentId ==
-            _activeSegmentSummary?.segmentId) {
-          continue;
-        }
-        if (_segmentSummaries[i].status == 'fullySent') {
-          targetIdx = i;
+      while (totalBytes() > sizeLimit && _segmentSummaries.length > 1) {
+        final targetIdx = logSegmentPurgeIndex(
+          _segmentSummaries,
+          activeSegmentId: activeSegmentId,
+        );
+        if (targetIdx == -1) {
           break;
         }
-      }
-      if (targetIdx == -1) {
-        for (var i = 0; i < _segmentSummaries.length; i++) {
-          if (_segmentSummaries[i].segmentId !=
-              _activeSegmentSummary?.segmentId) {
-            targetIdx = i;
-            break;
-          }
-        }
-      }
-      if (targetIdx != -1) {
         final seg = _segmentSummaries.removeAt(targetIdx);
-        final file = _segmentFile(seg.segmentId);
-        if (await file.exists()) {
-          await file.delete();
-        }
-      } else {
-        break;
+        await _deleteSegmentFile(seg.segmentId);
       }
-    }
-    await _saveMasterIndex();
+      await _saveMasterIndex();
+    });
   }
 
   @override
@@ -379,6 +326,8 @@ class FsLogStorage implements LogStorage {
 
   @override
   Future<void> close() async {
+    // Wait for the pending writes.
+    await _lock.synchronized(() {});
     await _streamController.close();
   }
 }

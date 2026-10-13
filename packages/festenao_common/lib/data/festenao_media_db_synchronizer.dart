@@ -22,6 +22,14 @@ class FestenaoMediaDbSynchronizer {
       var fileRecord = await db.getMediaFileRecord(fileId);
       if (fileRecord != null) {
         try {
+          if (fileRecord.deleted.v == true) {
+            // Deleted locally, delete the remote file
+            await source.deleteMediaFile(
+              FestenaoMediaFileRef.fromPath(fileRecord.path.v!),
+            );
+            await db.markLocalDeleted(fileId);
+            continue;
+          }
           var bytes = await db.readMediaFileBytes(fileId);
           await source.addMediaFile(
             file: fileRecord.toMediaFile(),

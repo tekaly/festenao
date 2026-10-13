@@ -98,7 +98,13 @@ mixin CvSurveyAnswerMixin on CvModel {
   final choiceIds = CvListField<String>('choiceIds');
 
   /// List of fields provided by the mixin.
-  List<CvField> get mixinFields => [answerInt, answerText, choiceId, choiceIds];
+  List<CvField> get mixinFields => [
+    answerInt,
+    answerDate,
+    answerText,
+    choiceId,
+    choiceIds,
+  ];
 }
 
 /// Survey question choice model.
