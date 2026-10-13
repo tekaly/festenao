@@ -17,11 +17,16 @@ import 'package:tkcms_common/tkcms_common.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
 var defaultRegion = regionBelgium;
-var emulatorService = FirebaseEmulatorService(path: '.');
+
+/// Run from this folder whatever the current directory.
+late FirebaseEmulatorService emulatorService;
 
 /// The "app" (top) entity id used by [FfApp] (its default `app` name).
 var testAppId = 'festenao';
 Future<void> main() async {
+  emulatorService = FirebaseEmulatorService(
+    path: await festenaoTestPackagePath('tekaly_festenao_firebase_api_context'),
+  );
   debugWebServices = true;
   debugFirestoreRest = true;
   var emulatorSupported = await emulatorService.isSupported(
@@ -40,7 +45,7 @@ Future<void> main() async {
     setUpAll(() async {
       testContext = await initEmulatorServerContext(
         appId: testAppId,
-        path: '.',
+        path: emulatorService.path,
         region: defaultRegion,
       );
     });

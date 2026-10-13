@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:festenao_common/festenao_firebase_rest.dart';
 import 'package:festenao_common/server/festenao_server_cms.dart';
+import 'package:festenao_common/test/festenao_test_server_emulator_helper.dart';
 import 'package:festenao_demo/festenao_demo_cms.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:tekartik_firebase_functions_call_http/functions_call_http.dart';
@@ -14,7 +15,8 @@ import 'package:tkcms_common/tkcms_common.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
-var emulatorService = FirebaseEmulatorService(path: '.');
+/// Run from this folder whatever the current directory.
+late FirebaseEmulatorService emulatorService;
 
 /// The app of the dev `FfApp` of functions/bin/server.dart (its default).
 const _app = 'festenao';
@@ -25,6 +27,9 @@ const _app = 'festenao';
 /// - `cmsdev`, the site of a project whose synced content holds the demo
 ///   pages.
 Future<void> main() async {
+  emulatorService = FirebaseEmulatorService(
+    path: await festenaoTestPackagePath('festenao_dartff'),
+  );
   if (!await emulatorService.isSupported()) {
     test('Firebase emulator not supported', () {
       stderr.writeln('Firebase emulator not supported');

@@ -6,6 +6,7 @@ library;
 import 'dart:io';
 
 import 'package:festenao_common/festenao_firebase_rest.dart';
+import 'package:festenao_common/test/festenao_test_server_emulator_helper.dart';
 import 'package:festenao_common/test/project_standalone_access_test_runner.dart';
 import 'package:festenao_common/test/user_prv_access_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
@@ -13,12 +14,18 @@ import 'package:test/test.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
-var emulatorService = FirebaseEmulatorService(path: '.');
+/// Run from this folder whatever the current directory.
+late FirebaseEmulatorService emulatorService;
 
 var firestoreEmulatorHost = 'localhost';
 var firestoreEmulatorPort = 8080;
 
 Future<void> main() async {
+  emulatorService = FirebaseEmulatorService(
+    path: await festenaoTestPackagePath(
+      'tekaly_festenao_noff_firebase_api_context',
+    ),
+  );
   debugWebServices = true;
   debugFirestoreRest = true;
   var emulatorSupported = await emulatorService.isSupported();

@@ -1,3 +1,4 @@
+import 'package:dev_build/build_support.dart' show pathGetResolvedPackagePath;
 // ignore: unused_import
 import 'package:dev_test/test.dart';
 import 'package:festenao_common/api/festenao_api_client.dart';
@@ -33,6 +34,20 @@ class FestenaoTestServerEmulatorContext extends FestenaoTestServerContext {
     await emulator.stop();
     await super.close();
   }
+}
+
+/// The folder of the workspace package [package] (the one holding its
+/// `firebase.json`, rules and functions), whatever the current directory.
+///
+/// An IDE running every test under a parent folder runs them from that
+/// folder: a `'.'` path then starts the parent's emulator, with the parent's
+/// rules and functions.
+Future<String> festenaoTestPackagePath(String package) async {
+  var path = await pathGetResolvedPackagePath('.', package);
+  if (path == null) {
+    throw StateError('package $package not found in the package config');
+  }
+  return path;
 }
 
 /// Emulator options

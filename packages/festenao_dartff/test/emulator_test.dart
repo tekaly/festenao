@@ -12,10 +12,11 @@ import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_common/festenao_quizz.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/test/festenao_doc_test_server_test_runner.dart';
+import 'package:festenao_common/test/festenao_test_server_emulator_helper.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
 import 'package:festenao_common/test/quizz_server_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
-import 'package:tekartik_firebase_functions_call_http/functions_call_http.dart';
+import 'package:tekartik_firebase_functions_call_rest/functions_call_rest.dart';
 import 'package:test/test.dart';
 import 'package:tkcms_common/tkcms_app.dart';
 import 'package:tkcms_common/tkcms_common.dart';
@@ -23,7 +24,9 @@ import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
 var defaultRegion = regionBelgium;
-var emulatorService = FirebaseEmulatorService(path: '.');
+
+/// Run from this folder whatever the current directory.
+late FirebaseEmulatorService emulatorService;
 
 Future<FirebaseEmulator> startServer(String projectId) async {
   var emulator = await emulatorService.start(
@@ -73,7 +76,9 @@ Future<FestenaoTestServerEmulatorContext> initEmulatorServerContext() async {
   );
   var auth = firebaseAuthServiceRest.auth(restApp);
   var firestore = firestoreServiceRest.firestore(restApp);
-  var functionsCall = firebaseFunctionsCallServiceHttp.functionsCall(
+  // The rest functions call sends the signed-in user's ID token: the
+  // callable server gets its userId from it.
+  var functionsCall = firebaseFunctionsCallServiceRest.functionsCall(
     restApp,
     options: FirebaseFunctionsCallOptions(region: defaultRegion),
   );
@@ -210,6 +215,9 @@ void adminAccessTestRunner(
 }
 
 Future<void> main() async {
+  emulatorService = FirebaseEmulatorService(
+    path: await festenaoTestPackagePath('festenao_dartff'),
+  );
   debugWebServices = true;
   debugFirestoreRest = true;
   var emulatorSupported = await emulatorService.isSupported();
