@@ -486,8 +486,11 @@ void testFestenaoServerGroup(
     // server no longer honours.
     //
     // Joining within its own access (the creator is an admin) is allowed, a
-    // role it does not have is not (no escalation through join).
+    // role it does not have is not (no escalation through join), unless the
+    // user is an app admin (any access, as when joining from the admin app):
+    // the dev test user is one.
     await client.joinEntity(entityId: entityId, fsUserAccess: fsUserAccess);
+    var isAppAdmin = false;
     if (!noFirestoreCheck) {
       expect(
         (await fsDatabase.projectDb
@@ -496,14 +499,30 @@ void testFestenaoServerGroup(
             .exists,
         isTrue,
       );
+      // Its own row, readable through most rules: refused, not an app admin.
+      try {
+        var appAccess = await fsDatabase.appDb
+            .fsEntityUserAccessRef(fsDatabase.flavorContext.app, userId)
+            .get(fsDatabase.firestore);
+        isAppAdmin = appAccess.exists && appAccess.isAdmin;
+      } on FirestoreException catch (e) {
+        if (e.code != FirestoreErrorCode.permissionDenied) {
+          rethrow;
+        }
+      }
     }
-    await _expectApiErrorCode(
-      () => client.joinEntity(
-        entityId: entityId,
-        fsUserAccess: TkCmsFsUserAccess.superAdmin(),
-      ),
-      HttpsErrorCode.permissionDenied,
+    Future<void> superAdminJoin() => client.joinEntity(
+      entityId: entityId,
+      fsUserAccess: TkCmsFsUserAccess.superAdmin(),
     );
+    if (isAppAdmin) {
+      await superAdminJoin();
+    } else {
+      await _expectApiErrorCode(
+        superAdminJoin,
+        HttpsErrorCode.permissionDenied,
+      );
+    }
 
     await client.deleteEntity(entityId: entityId);
     var userEntityAccessRef = fsDatabase.projectDb.fsUserEntityAccessRef(
