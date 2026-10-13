@@ -90,6 +90,16 @@ Future<FestenaoTestServerEmulatorContext> initEmulatorServerContext() async {
   );
   await fbContext.useEmulator();
 
+  // A fresh emulator has no user: create the ones the runners sign in with
+  // (signInWithEmailAndPassword), the owner and a stranger, signed out.
+  for (var credentials in [emulatorCredentials, emulatorStrangerCredentials]) {
+    await auth.signInOrUpWithEmailAndPassword(
+      email: credentials.email,
+      password: credentials.password,
+    );
+  }
+  await auth.signOut();
+
   var apiService = FestenaoApiService(
     httpsApiUri: httpsApiUri,
     callableApi: functionsCall.callableFromUri(callableApiUri),
@@ -99,11 +109,14 @@ Future<FestenaoTestServerEmulatorContext> initEmulatorServerContext() async {
 
   var ampService = FestenaoAmpService(httpsAmpUri: ampUri);
   await ampService.initClient();
+  // The client side view of the database, rooted like the functions one
+  // (`FfApp`: its default app, the dev flavor): the doc api and the cron
+  // work on the server paths.
   var fsDatabase = FestenaoFirestoreDatabase(
     firebaseContext: fbContext,
     flavorContext: AppFlavorContext(
       flavorContext: FlavorContext.dev,
-      app: apiService.app,
+      app: testAppId,
     ),
   );
   var projectApiClient = FestenaoApiFsEntityClient(
@@ -126,6 +139,12 @@ Future<FestenaoTestServerEmulatorContext> initEmulatorServerContext() async {
 
 const emulatorCredentials = TkCmsEmailPasswordCredentials(
   email: 'festenao@gmail.com',
+  password: 'test1234',
+);
+
+/// A second user, with no access on anything (the set public stranger test).
+const emulatorStrangerCredentials = TkCmsEmailPasswordCredentials(
+  email: 'stranger@festenao-dartff-test.local',
   password: 'test1234',
 );
 
@@ -201,8 +220,8 @@ void adminAccessTestRunner(
     await auth.signOut();
     expect(auth.currentUser, isNull);
     await auth.signInOrUpWithEmailAndPassword(
-      email: 'stranger@festenao-dartff-test.local',
-      password: 'test1234',
+      email: emulatorStrangerCredentials.email,
+      password: emulatorStrangerCredentials.password,
     );
     expect(auth.currentUser, isNotNull);
     try {
@@ -241,7 +260,10 @@ Future<void> main() async {
 
         noObjectStorage: true,
 
-        options: TestFestenaoServerGroupOptions(addFirestoreDoc: true),
+        options: TestFestenaoServerGroupOptions(
+          addFirestoreDoc: true,
+          strangerCredentials: emulatorStrangerCredentials,
+        ),
       );
       testFestenaoDocServerGroup(() async => testContext);
       testQuizzServerGroup(() async {

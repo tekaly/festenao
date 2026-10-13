@@ -665,15 +665,37 @@ void testFestenaoServerGroup(
     }
     await client.purgeEntity(entityId: entityId);
     if (!noFirestoreCheck) {
-      entity = await fsDatabase.projectDb
-          .fsEntityRef(entityId)
-          .get(fsDatabase.firestore);
-      expect(entity.exists, isFalse);
+      // Through the rules (the emulator) the client has no access left to
+      // the purged entity: its read is refused rather than empty. Read as
+      // the server does when the doc api is there, a refused client read
+      // counts as gone otherwise.
+      var docApiService = options!.addFirestoreDoc
+          ? FirestoreDocApiService(
+              httpsApiUri: apiService.httpsApiUri,
+              callableApi: apiService.callableApi,
+              httpClientFactory: apiService.httpClientFactory,
+              app: apiService.app,
+            )
+          : null;
+      Future<bool> purgedDocExists(String path) async {
+        if (docApiService != null) {
+          return await docApiService.getDoc(path) != null;
+        }
+        try {
+          return (await fsDatabase.firestore.doc(path).get()).exists;
+        } on FirestoreException catch (e) {
+          if (e.code == FirestoreErrorCode.permissionDenied) {
+            return false;
+          }
+          rethrow;
+        }
+      }
 
-      var userEntityAccess = await userEntityAccessRef.get(
-        fsDatabase.firestore,
+      expect(
+        await purgedDocExists(fsDatabase.projectDb.fsEntityRef(entityId).path),
+        isFalse,
       );
-      expect(userEntityAccess.exists, isFalse);
+      expect(await purgedDocExists(userEntityAccessRef.path), isFalse);
     }
   });
 

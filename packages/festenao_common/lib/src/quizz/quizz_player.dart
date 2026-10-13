@@ -1434,17 +1434,16 @@ class QuizPlayerController {
           );
           var index = 0;
 
-          for (var chunk in listChunk(randomPlayers, 10)) {
-            var futures = <Future<Object?>>[];
-            for (var player in chunk) {
-              if (isDebug) {
-                // ignore: avoid_print
-                print('sending fake player ${++index} ${player.username.v}');
-              }
-              var future = apiClient.sendQuizResult(player);
-              futures.add(future);
+          // One at a time: the functions emulator starts a new (cold) Dart
+          // runtime for each concurrent request, longer than the 5s
+          // without a new player the score computing waits for. A steady
+          // stream keeps that wait going whatever the count.
+          for (var player in randomPlayers) {
+            if (isDebug) {
+              // ignore: avoid_print
+              print('sending fake player ${++index} ${player.username.v}');
             }
-            await Future.wait(futures);
+            await apiClient.sendQuizResult(player);
           }
         }().unawait();
       }
