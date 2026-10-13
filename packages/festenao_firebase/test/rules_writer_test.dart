@@ -134,7 +134,12 @@ service cloud.firestore {
       for (var entry in festenaoRulesPresets.entries) {
         var text = entry.value().toRulesText();
         expect(text, startsWith("rules_version = '2';"), reason: entry.key);
-        expect(text, contains('function signedIn()'), reason: entry.key);
+        if (entry.key == 'full_api_context') {
+          // Deny all, no function.
+          expect(text, contains('match /{document=**}'), reason: entry.key);
+        } else {
+          expect(text, contains('function signedIn()'), reason: entry.key);
+        }
       }
     });
 

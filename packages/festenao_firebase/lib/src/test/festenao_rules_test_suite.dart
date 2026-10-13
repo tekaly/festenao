@@ -454,9 +454,9 @@ void runFestenaoFirestoreRulesTests(
     });
   });
 
-  group('full_api_context', () {
+  group('standalone_context', () {
     setUpAll(() async {
-      await usePreset('full_api_context');
+      await usePreset('standalone_context');
     });
     setUp(() async {
       await ctx.signOut();
@@ -588,6 +588,62 @@ void runFestenaoFirestoreRulesTests(
         {'v': 1},
       );
       await expectPermissionDenied(() => projectRef.set({'name': 'x'}));
+    });
+  });
+
+  group('full_api_context', () {
+    setUpAll(() async {
+      await usePreset('full_api_context');
+    });
+    setUp(() async {
+      await ctx.signOut();
+    });
+
+    test('the client is refused everything', () async {
+      var projectId = 'full_api';
+      var adminUid = await ctx.signInOrUp(newEmail('full_api_admin'));
+      // Everything another context would let this user read or write.
+      await grant(projectId, adminUid, admin: true);
+      await ctx.adminFirestore.doc(projectPath(projectId)).set({'name': 'p'});
+      await ctx.adminFirestore.doc('${projectPath(projectId)}/data/d1').set({
+        'v': 1,
+      });
+      await ctx.adminFirestore.doc(publicAccessPath(projectId)).set({
+        'read': true,
+      });
+      await ctx.adminFirestore.doc('app/$appId/user_prv/$adminUid').set({
+        'v': 1,
+      });
+      await ctx.adminFirestore.doc('public/get/doc/doc1').set({'v': 1});
+      var paths = [
+        'app/$appId',
+        projectPath(projectId),
+        '${projectPath(projectId)}/data/d1',
+        accessPath(projectId, adminUid),
+        entityAccessPath(projectId, adminUid),
+        publicAccessPath(projectId),
+        'app/$appId/invite/project/invite_id/inv1',
+        'app/$appId/user_prv/$adminUid',
+        'public/get/doc/doc1',
+      ];
+
+      Future<void> expectAllRefused(String who) async {
+        for (var path in paths) {
+          var ref = ctx.firestore.doc(path);
+          var reason = '$who $path';
+          await expectPermissionDenied(() => ref.get(), reason: reason);
+          await expectPermissionDenied(() => ref.set({'v': 2}), reason: reason);
+          await expectPermissionDenied(() => ref.delete(), reason: reason);
+        }
+        await expectPermissionDenied(
+          () => ctx.firestore.collection('app/$appId/project').get(),
+          reason: '$who list',
+        );
+      }
+
+      await expectAllRefused('entity admin');
+      await ctx.signOut();
+      await expectAllRefused('signed out');
     });
   });
 

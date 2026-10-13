@@ -1,5 +1,5 @@
-name: tekaly_festenao_firebase_no_api_context
-description: Dart ff project
+name: tekaly_festenao_firebase_full_api_context
+description: festenao full api context, deny all rules and emulator tests
 version: 0.0.1
 publish_to: none
 

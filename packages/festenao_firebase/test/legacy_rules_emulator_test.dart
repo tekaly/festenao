@@ -26,6 +26,12 @@ Future<void> main() async {
         var file = File(
           p.join('test', 'data', 'legacy_rules', '$preset.rules'),
         );
+        // A preset with no hand written predecessor (the deny all full api
+        // context) runs as generated.
+        if (!file.existsSync()) {
+          await ctx.setRules(festenaoRulesPresets[preset]!());
+          return;
+        }
         await ctx.setRulesText(await file.readAsString());
       },
     );

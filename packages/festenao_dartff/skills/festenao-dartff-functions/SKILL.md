@@ -13,8 +13,8 @@ description: >-
   twins and cmsdemo with runFunctions, functionsHttpDartV2Handler and
   functionsCallDartV2Handler, compiling with tool/compile_dart_function.dart,
   running the firebase emulator (FirebaseEmulatorService,
-  initEmulatorServerContext, testFestenaoServerGroup) and the three firestore
-  rules contexts (api, full api, no api).
+  initEmulatorServerContext, testFestenaoServerGroup) and the four firestore
+  rules contexts (api, standalone, full api, no api).
 ---
 
 # Festenao Dart cloud functions (festenao_dartff)
@@ -24,7 +24,7 @@ for the admin sdk runtime (`firebase.json` runtime `dart3`,
 `package:firebase_functions`). It holds `FfApp`, the `FestenaoServerApp`
 answering the festenao api, the handlers that `functions/bin/server.dart`
 registers, the firebase project files (rules, indexes, emulator ports) and
-three sibling rules projects.
+four sibling rules projects.
 
 ## Guidelines
 
@@ -36,8 +36,10 @@ three sibling rules projects.
   `test/emulator_test.dart`, `test/cms_emulator_test.dart`,
   `test/cms_function_test.dart`, and the rules contexts
   `festenao_firebase_api_context.dart/` (api + rules, no client side project
-  creation), `festenao_firebase_full_api_context.dart/` (api + rules with
-  standalone creation, public access and invites) and
+  creation), `festenao_firebase_standalone_context.dart/` (api + rules with
+  standalone creation, public access and invites by code),
+  `festenao_firebase_full_api_context.dart/` (deny all rules: every read and
+  write through the api, reserved for when reads go through the api too) and
   `festenao_firebase_no_api_context.dart/` (rules only, no function: what
   the no-api providers of `festenao_riverpod` run against). Each has its
   own `firestore.rules`, `tool/` emulator starter and one `test/` file.
@@ -372,6 +374,7 @@ cd packages/festenao_dartff
 dart run tool/start_festenao_emulator.dart   # emulator, data kept in .data
 dart test                                    # test/emulator_test.dart (needs the firebase cli)
 (cd festenao_firebase_no_api_context.dart && dart test)   # rules only context
+(cd festenao_firebase_full_api_context.dart && dart test) # deny all, api only
 dart run tool/compile_dart_function.dart     # functions/bin/server (linux x64)
 firebase deploy --only functions
 ```

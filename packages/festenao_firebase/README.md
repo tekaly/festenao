@@ -70,8 +70,10 @@ Level 0 is `/{entity}/{entityId}` (`hasEntityAccess`), level 1 adds
 (`sub2HasEntityAccess`), and so on: one definition, any nesting depth.
 
 Presets (`festenaoRulesPresets`): `api_context`, `no_api_context`,
-`full_api_context`, `dartff` (the legacy root file), `server_full_api`
-(calendelio style: api owned access, app level `user_access`).
+`standalone_context` (standalone invites by code at both levels),
+`full_api_context` (deny all, everything through the api), `dartff` (the
+legacy root file), `server_full_api` (calendelio style: api owned access, app
+level `user_access`).
 
 `dart run tool/generate_firestore_rules.dart` rewrites the rules files of
 `festenao_dartff` and its contexts (`--check` only reports), 

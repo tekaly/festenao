@@ -6,26 +6,36 @@ library;
 import 'dart:io';
 
 import 'package:festenao_common/festenao_firebase_rest.dart';
-import 'package:festenao_common/test/app_api_access_test_runner.dart';
 import 'package:festenao_common/test/email_invite_rules_test_runner.dart';
 import 'package:festenao_common/test/festenao_email_invite_test_runner.dart';
 import 'package:festenao_common/test/festenao_invite_email_test_runner.dart';
 import 'package:festenao_common/test/festenao_test_server_emulator_helper.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
-import 'package:festenao_common/test/project_access_test_runner.dart';
-import 'package:festenao_common/test/user_prv_access_test_runner.dart';
+import 'package:festenao_common/test/full_api_client_refused_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:test/test.dart';
 import 'package:tkcms_common/tkcms_common.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
 var defaultRegion = regionBelgium;
-var emulatorService = FirebaseEmulatorService(path: '.');
+
+/// Run from this folder whatever the current directory.
+late FirebaseEmulatorService emulatorService;
 
 /// The "app" (top) entity id used by [FfApp] (its default `app` name).
 var testAppId = 'festenao';
 
+/// The full api context: every read and write goes through the api, the
+/// rules refuse the client everything.
+///
+/// Reserved for the time reads go through the api too: the tests reading
+/// entity data through an access checked api come here when it exists.
 Future<void> main() async {
+  emulatorService = FirebaseEmulatorService(
+    path: await festenaoTestPackagePath(
+      'tekaly_festenao_firebase_full_api_context',
+    ),
+  );
   debugWebServices = true;
   debugFirestoreRest = true;
   var emulatorSupported = await emulatorService.isSupported();
@@ -36,35 +46,17 @@ Future<void> main() async {
     return;
   }
   late FestenaoTestServerEmulatorContext testContext;
-  late final firestore = testContext.clientContext.firestore!;
-  group('app_api_festenao_access_test', () {
+  group('full_api_festenao_test', () {
     setUpAll(() async {
       testContext = await initEmulatorServerContext(
         appId: testAppId,
-        path: '.',
+        path: emulatorService.path,
         region: defaultRegion,
       );
     });
-    group('app admin access', () {
-      appAccessApiTestRunner(() async => testContext.clientContext);
+    group('client firestore refused', () {
+      appFullApiClientRefusedTestRunner(() async => testContext);
     });
-    group('project access', () {
-      appProjectStandaloneAccessTestRunner(
-        () async => testContext.clientContext,
-      );
-      appProjectAccessTestRunner(() async => testContext.clientContext);
-      appUserPrvAccessTestRunner(
-        () => UserPrvAccessTestContext(
-          auth: testContext.clientContext.firebaseAuth!,
-          firestore: firestore,
-        ),
-      );
-
-      appPublicAccessTestRunner(() async => testContext.clientContext);
-      appProjectPublicAccessTestRunner(() async => testContext.clientContext);
-    });
-    // The addressed email invites are admin only data: the rules refuse
-    // every client, the api is the only way in.
     group('email invite rules', () {
       appEmailInviteRulesTestRunner(() async => testContext);
     });
@@ -83,7 +75,7 @@ Future<void> main() async {
     });
     tearDownAll(() async {
       await testContext.close();
-      await firestore.app.delete();
+      await testContext.clientContext.firestore!.app.delete();
     });
   }, timeout: Timeout(Duration(minutes: 5)));
 }

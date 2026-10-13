@@ -11,6 +11,8 @@ final generatedRulesFiles = <String, FirestoreRules Function()>{
       festenaoApiContextRules,
   'packages/festenao_dartff/festenao_firebase_no_api_context.dart/firestore.rules':
       festenaoNoApiContextRules,
+  'packages/festenao_dartff/festenao_firebase_standalone_context.dart/firestore.rules':
+      festenaoStandaloneContextRules,
   'packages/festenao_dartff/festenao_firebase_full_api_context.dart/firestore.rules':
       festenaoFullApiContextRules,
 };

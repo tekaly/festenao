@@ -5,7 +5,8 @@ description: >-
   festenao_firebase: TkCmsFirestoreRules and its levels (entity, invite,
   access manage, access self, creator, public access, user_prv, user_access,
   public get rule sets at any nesting depth) and the festenao*Rules() presets
-  (api_context, no_api_context, full_api_context, server_full_api, dartff)
+  (api_context, no_api_context, standalone_context, full_api_context,
+  server_full_api, dartff)
   with FestenaoRulesOptions, plus the app side pair of tools that generates
   firestore.rules and deploys it.
 ---
@@ -78,11 +79,14 @@ file; it does not write match blocks.
   * `festenaoNoApiContextRules()` (`no_api_context`) — no backend: the client
     creates its entities and access rows itself (`creatorUserId`), standalone
     invites, public read of the data.
-  * `festenaoFullApiContextRules()` (`full_api_context`) — top level *and*
-    sub entities, standalone invites by code at both levels.
-  * `festenaoServerFullApiRules()` (`server_full_api`) — the same two levels
-    with the api owning every mutation, no client side invites nor flag
-    writes, app level `user_access` (calendelio style).
+  * `festenaoStandaloneContextRules()` (`standalone_context`) — top level
+    *and* sub entities, standalone invites by code at both levels.
+  * `festenaoFullApiContextRules()` (`full_api_context`) — deny all: every
+    read and write goes through the api, the client is refused everything
+    (reserved for an app whose reads go through its api too).
+  * `festenaoServerFullApiRules()` (`server_full_api`) — top level and sub
+    entities with the api owning every mutation, no client side invites nor
+    flag writes, app level `user_access` (calendelio style).
   * `festenaoDartffRules()` (`dartff`) — the legacy festenao root file: both
     levels with whole subtree entity rules, standalone invites, per user
     private data and the public read flags.
