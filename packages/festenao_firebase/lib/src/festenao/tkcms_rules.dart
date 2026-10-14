@@ -24,6 +24,20 @@ const tkCmsRulesSlugCollectionId = 'slug';
 /// The `public/get` world readable documents.
 const tkCmsRulesPublicGetPath = 'public/get';
 
+/// The collections of a level that are not entities: the no-api creator
+/// rules ([TkCmsEntityRules.addCreatorRules]) never apply to them, otherwise
+/// a signed in user creates `user_prv/<someone>` naming itself creator and
+/// grants itself access to that user's private data, creates its own
+/// `user_access` rights or any slug.
+const tkCmsRulesCreatorReservedCollectionIds = [
+  tkCmsRulesUserPrvCollectionId,
+  tkCmsRulesUserAccessCollectionId,
+  tkCmsRulesSlugCollectionId,
+  tkCmsFsEntityTypeAccessCollectionId,
+  tkCmsFsEntityTypeInviteCollectionId,
+  'public',
+];
+
 /// The `creatorUserId` field of an entity created without a backend.
 const tkCmsRulesCreatorUserIdField = 'creatorUserId';
 
@@ -612,15 +626,18 @@ class TkCmsEntityRules {
       'A `get()` reads the state before the current write, so the entity\n'
       'document has to be committed before its access documents are written.',
     );
+    RulesExpr isEntity(RulesMatch m) =>
+        ~m.v('entity').isIn(tkCmsRulesCreatorReservedCollectionIds);
     rules.match(level.pattern('/{entity}/{entityId}'), (m) {
       m.allow(
         [RulesMethod.create],
         signedIn &
+            isEntity(m) &
             requestResourceData
                 .get(tkCmsRulesCreatorUserIdField, '__none__')
                 .eq(uid),
       );
-      m.allow([RulesMethod.get], signedIn);
+      m.allow([RulesMethod.get], signedIn & isEntity(m));
     });
     for (var pattern in [
       level.pattern(
@@ -634,6 +651,7 @@ class TkCmsEntityRules {
         m.allow(
           [RulesMethod.create],
           signedIn &
+              isEntity(m) &
               entityCreatorUserIdMatchesFunction.call([
                 ...level.parentVars(m),
                 m.v('entity'),
@@ -741,9 +759,8 @@ class TkCmsEntityRules {
   /// creates it, updates it (the entity before and after the write: moving
   /// it to an alias) and deletes it; otherwise only the server writes them.
   ///
-  /// Beware that the no-api creator rules ([addCreatorRules]) let a signed
-  /// in user create any `<parent>/<collection>/<id>` document carrying its
-  /// own `creatorUserId`, `slug/<id>` included.
+  /// The no-api creator rules ([addCreatorRules]) skip `slug` (see
+  /// [tkCmsRulesCreatorReservedCollectionIds]).
   void addSlugRules({bool clientWrite = false}) {
     rules.comment(
       clientWrite

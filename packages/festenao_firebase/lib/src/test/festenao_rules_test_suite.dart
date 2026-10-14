@@ -402,6 +402,52 @@ void runFestenaoFirestoreRulesTests(
       await expectPermissionDenied(() => projectRef.get());
     });
 
+    test('creator rules skip the reserved collections', () async {
+      // The victim keeps private data without a user_prv/<uid> document.
+      var victimUid = await ctx.signInOrUp(newEmail('victim'));
+      var victimDataPath = 'app/$appId/user_prv/$victimUid/data/d1';
+      await ctx.firestore.doc(victimDataPath).set({'secret': 1});
+      await ctx.signOut();
+      var attackerUid = await ctx.signInOrUp(newEmail('attacker'));
+      var access = {'admin': true, 'write': true, 'read': true};
+
+      // user_prv/<victim> as an entity of its own: create, grant, read.
+      await expectPermissionDenied(
+        () => ctx.firestore.doc('app/$appId/user_prv/$victimUid').set({
+          'creatorUserId': attackerUid,
+        }),
+      );
+      await expectPermissionDenied(
+        () => ctx.firestore
+            .doc(
+              'app/$appId/access/user_prv/entity_id/$victimUid/user_access/$attackerUid',
+            )
+            .set(access),
+      );
+      await expectPermissionDenied(
+        () => ctx.firestore.doc(victimDataPath).get(),
+      );
+      await expectPermissionDenied(
+        () => ctx.firestore.doc('app/$appId/user_prv/$victimUid').get(),
+      );
+      // Its own app rights, a slug, access/invite parents.
+      for (var path in [
+        'app/$appId/user_access/$attackerUid',
+        'app/$appId/slug/my-slug',
+        'app/$appId/access/project',
+        'app/$appId/invite/project',
+        'app/$appId/public/get',
+      ]) {
+        await expectPermissionDenied(
+          () => ctx.firestore.doc(path).set({
+            'creatorUserId': attackerUid,
+            'admin': true,
+          }),
+          reason: path,
+        );
+      }
+    });
+
     test('public access (data only)', () async {
       var projectId = 'public';
       var adminUid = await ctx.signInOrUp(newEmail('admin'));

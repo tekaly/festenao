@@ -81,8 +81,8 @@ service cloud.firestore {
     // A `get()` reads the state before the current write, so the entity
     // document has to be committed before its access documents are written.
     match /{top}/{topId}/{entity}/{entityId} {
-      allow create: if signedIn() && request.resource.data.get('creatorUserId', '__none__') == request.auth.uid;
-      allow get: if signedIn();
+      allow create: if signedIn() && !(entity in ['user_prv', 'user_access', 'slug', 'access', 'invite', 'public']) && request.resource.data.get('creatorUserId', '__none__') == request.auth.uid;
+      allow get: if signedIn() && !(entity in ['user_prv', 'user_access', 'slug', 'access', 'invite', 'public']);
     }
 
     function subEntityCreatorUserIdMatches(top, topId, entity, entityId, userId) {
@@ -91,11 +91,11 @@ service cloud.firestore {
     }
 
     match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{userId} {
-      allow create: if signedIn() && subEntityCreatorUserIdMatches(top, topId, entity, entityId, request.auth.uid);
+      allow create: if signedIn() && !(entity in ['user_prv', 'user_access', 'slug', 'access', 'invite', 'public']) && subEntityCreatorUserIdMatches(top, topId, entity, entityId, request.auth.uid);
     }
 
     match /{top}/{topId}/access/{entity}/user_id/{userId}/entity_access/{entityId} {
-      allow create: if signedIn() && subEntityCreatorUserIdMatches(top, topId, entity, entityId, request.auth.uid);
+      allow create: if signedIn() && !(entity in ['user_prv', 'user_access', 'slug', 'access', 'invite', 'public']) && subEntityCreatorUserIdMatches(top, topId, entity, entityId, request.auth.uid);
     }
 
     //
