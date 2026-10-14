@@ -616,6 +616,244 @@ void runFestenaoFirestoreRulesTests(
       await ctx.firestore.doc(inviteEntityPath).delete();
     });
 
+    // The pending invites of a project, created by its admin: the admin
+    // invite a stranger is after, and one more.
+    String inviteIdPath(String inviteId) =>
+        'app/$appId/invite/project/invite_id/$inviteId';
+    String inviteEntityPath(String inviteId, String projectId) =>
+        '${inviteIdPath(inviteId)}/invite_entity/$projectId';
+    var inviteIdCollectionPath = 'app/$appId/invite/project/invite_id';
+    Future<void> createInvite(String inviteId, String projectId) async {
+      await ctx.firestore.doc(inviteIdPath(inviteId)).set({
+        'entityId': projectId,
+      });
+      await ctx.firestore.doc(inviteEntityPath(inviteId, projectId)).set({
+        'entityId': projectId,
+        'userAccess': {'admin': true, 'write': true, 'read': true},
+      });
+    }
+
+    Future<bool> exists(String path) async =>
+        (await ctx.adminFirestore.doc(path).get()).exists;
+
+    test('a stranger cannot list the invites to take an admin one', () async {
+      var projectId = 'listed';
+      var strangerUid = await ctx.signInOrUp(newEmail('lister'));
+      await ctx.signOut();
+      var adminUid = await ctx.signInOrUp(newEmail('list_admin'));
+      await grant(projectId, adminUid, admin: true);
+      await ctx.adminFirestore.doc(projectPath(projectId)).set({'name': 'p'});
+      await createInvite('listed1', projectId);
+      await createInvite('listed2', projectId);
+
+      await ctx.signOut();
+      await ctx.signInOrUp(newEmail('lister'));
+      var collection = ctx.firestore.collection(inviteIdCollectionPath);
+      for (var query in [
+        collection,
+        collection.where('entityId', isGreaterThan: ''),
+      ]) {
+        await expectPermissionDenied(() => query.get());
+      }
+      // The attack: list the pending invites of the project (its id is no
+      // secret), use each one to make itself an admin, delete them.
+      var listed = <String>[];
+      try {
+        listed =
+            (await collection.where('entityId', isEqualTo: projectId).get())
+                .docs
+                .map((doc) => doc.ref.id)
+                .toList();
+      } catch (e) {
+        expect(isPermissionDeniedException(e), isTrue, reason: '$e');
+      }
+      for (var inviteId in listed) {
+        var access = {
+          'inviteId': inviteId,
+          'admin': true,
+          'write': true,
+          'read': true,
+        };
+        for (var path in [
+          accessPath(projectId, strangerUid),
+          entityAccessPath(projectId, strangerUid),
+          inviteEntityPath(inviteId, projectId),
+          inviteIdPath(inviteId),
+        ]) {
+          try {
+            if (path.contains('/invite_id/')) {
+              await ctx.firestore.doc(path).delete();
+            } else {
+              await ctx.firestore.doc(path).set(access);
+            }
+          } catch (_) {
+            // Denied, checked below.
+          }
+        }
+      }
+      expect(listed, isEmpty);
+      expect(await exists(accessPath(projectId, strangerUid)), isFalse);
+      for (var inviteId in ['listed1', 'listed2']) {
+        expect(await exists(inviteIdPath(inviteId)), isTrue);
+        expect(await exists(inviteEntityPath(inviteId, projectId)), isTrue);
+      }
+      await expectPermissionDenied(
+        () => ctx.firestore.doc(projectPath(projectId)).get(),
+      );
+    });
+
+    test('an admin of another project cannot forge an admin invite', () async {
+      var projectId = 'forged';
+      var otherProjectId = 'forger';
+      var forgerUid = await ctx.signInOrUp(newEmail('forger'));
+      await grant(otherProjectId, forgerUid, admin: true);
+      // An invite under this project's id naming the forger's own project
+      // (the invite write rule checks the entityId it writes).
+      var forgedPath = inviteEntityPath('forged1', projectId);
+      try {
+        await ctx.firestore.doc(forgedPath).set({
+          'entityId': otherProjectId,
+          'userAccess': {'admin': true, 'write': true, 'read': true},
+        });
+      } catch (e) {
+        expect(isPermissionDeniedException(e), isTrue, reason: '$e');
+      }
+      var access = {
+        'inviteId': 'forged1',
+        'admin': true,
+        'write': true,
+        'read': true,
+      };
+      await expectPermissionDenied(
+        () => ctx.firestore.doc(accessPath(projectId, forgerUid)).set(access),
+      );
+      await expectPermissionDenied(
+        () => ctx.firestore
+            .doc(entityAccessPath(projectId, forgerUid))
+            .set(access),
+      );
+    });
+
+    test('invites: the admin lists and revokes, the invitee accepts or '
+        'declines', () async {
+      var projectId = 'managed';
+      var otherProjectId = 'managed_other';
+      var invitedUid = await ctx.signInOrUp(newEmail('accepter'));
+      await ctx.signOut();
+      var otherAdminUid = await ctx.signInOrUp(newEmail('other_admin'));
+      await grant(otherProjectId, otherAdminUid, admin: true);
+      await ctx.signOut();
+      var adminUid = await ctx.signInOrUp(newEmail('manager'));
+      await grant(projectId, adminUid, admin: true);
+      await ctx.adminFirestore.doc(projectPath(projectId)).set({'name': 'p'});
+      await createInvite('accepted', projectId);
+      await createInvite('declined', projectId);
+      await createInvite('revoked', projectId);
+
+      // The admin lists the invites of its project (the purge query), not
+      // without the entityId filter.
+      var collection = ctx.firestore.collection(inviteIdCollectionPath);
+      var query = collection.where('entityId', isEqualTo: projectId);
+      expect((await query.get()).docs.map((doc) => doc.ref.id).toSet(), {
+        'accepted',
+        'declined',
+        'revoked',
+      });
+      await expectPermissionDenied(() => collection.get());
+      // And revokes one.
+      var batch = ctx.firestore.batch();
+      batch.delete(ctx.firestore.doc(inviteEntityPath('revoked', projectId)));
+      batch.delete(ctx.firestore.doc(inviteIdPath('revoked')));
+      await batch.commit();
+      expect(await exists(inviteIdPath('revoked')), isFalse);
+
+      // An admin of another project does not list them.
+      await ctx.signOut();
+      await ctx.signInOrUp(newEmail('other_admin'));
+      await expectPermissionDenied(() => query.get());
+
+      // The invitee accepts (tkcms acceptInviteEntity): it gets the invite,
+      // deletes it and writes its own access documents naming it, at once.
+      await ctx.signOut();
+      await ctx.signInOrUp(newEmail('accepter'));
+      var access = {
+        'inviteId': 'accepted',
+        'admin': true,
+        'write': true,
+        'read': true,
+      };
+      var inviteIdRef = ctx.firestore.doc(inviteIdPath('accepted'));
+      var inviteEntityRef = ctx.firestore.doc(
+        inviteEntityPath('accepted', projectId),
+      );
+      if (ctx.firestore.supportsTransaction) {
+        await ctx.firestore.runTransaction((txn) async {
+          expect((await txn.get(inviteIdRef)).exists, isTrue);
+          expect((await txn.get(inviteEntityRef)).exists, isTrue);
+          txn.delete(inviteIdRef);
+          txn.delete(inviteEntityRef);
+          txn.set(ctx.firestore.doc(accessPath(projectId, invitedUid)), access);
+          txn.set(
+            ctx.firestore.doc(entityAccessPath(projectId, invitedUid)),
+            access,
+          );
+        });
+      } else {
+        expect((await inviteIdRef.get()).exists, isTrue);
+        expect((await inviteEntityRef.get()).exists, isTrue);
+        batch = ctx.firestore.batch();
+        batch.delete(inviteIdRef);
+        batch.delete(inviteEntityRef);
+        batch.set(ctx.firestore.doc(accessPath(projectId, invitedUid)), access);
+        batch.set(
+          ctx.firestore.doc(entityAccessPath(projectId, invitedUid)),
+          access,
+        );
+        await batch.commit();
+      }
+      expect(await exists(inviteIdPath('accepted')), isFalse);
+      await ctx.firestore.doc(projectPath(projectId)).set({'name': 'p2'});
+
+      // Another invitee declines the invite it was sent: it holds the ids
+      // (the link), not an access.
+      await ctx.signOut();
+      var declinerUid = await ctx.signInOrUp(newEmail('decliner'));
+      // The accepted invite is gone: naming it grants nothing.
+      await expectPermissionDenied(
+        () => ctx.firestore.doc(accessPath(projectId, declinerUid)).set(access),
+      );
+      expect(
+        (await ctx.firestore.doc(inviteIdPath('declined')).get()).exists,
+        isTrue,
+      );
+      await ctx.firestore.doc(inviteEntityPath('declined', projectId)).delete();
+      await ctx.firestore.doc(inviteIdPath('declined')).delete();
+      expect(await exists(inviteIdPath('declined')), isFalse);
+      await expectPermissionDenied(() => query.get());
+    });
+
+    test('top level invites: the admins list them, not a stranger', () async {
+      var entityId = 'top_invites_$runId';
+      var adminUid = await ctx.signInOrUp(newEmail('top_inv_admin'));
+      await ctx.adminFirestore
+          .doc('access/project/entity_id/$entityId/user_access/$adminUid')
+          .set({'admin': true, 'write': true, 'read': true});
+      var invitePath = 'invite/project/invite_id/top_$runId';
+      await ctx.adminFirestore.doc(invitePath).set({'entityId': entityId});
+      await ctx.adminFirestore.doc('$invitePath/invite_entity/$entityId').set({
+        'entityId': entityId,
+        'userAccess': {'admin': true, 'write': true, 'read': true},
+      });
+      var query = ctx.firestore
+          .collection('invite/project/invite_id')
+          .where('entityId', isEqualTo: entityId);
+      expect((await query.get()).docs.map((doc) => doc.ref.id), ['top_$runId']);
+      await ctx.signOut();
+      await ctx.signInOrUp(newEmail('top_inv_stranger'));
+      await expectPermissionDenied(() => query.get());
+      expect((await ctx.firestore.doc(invitePath).get()).exists, isTrue);
+    });
+
     test('public access (all)', () async {
       var projectId = 'public_all';
       await ctx.adminFirestore.doc(projectPath(projectId)).set({'name': 'p'});

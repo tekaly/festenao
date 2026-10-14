@@ -97,7 +97,9 @@ missing document is `null`, member access on a missing key is an error,
 `get()`/`exists()` are cached per request and limited to 10 documents (20 in
 batches and transactions). Writes see `resource` (before) and
 `request.resource` (after, merges and field values resolved); batches and
-transactions are checked against the state before them. Not supported:
+transactions are checked against the state before them. A `list` sees as
+`resource.data` the `where(field, isEqualTo: value)` constraints of the query
+(top level fields only, none: no `resource`). Not supported:
 `collectionGroup`, `getAfter`.
 
 ## Emulator

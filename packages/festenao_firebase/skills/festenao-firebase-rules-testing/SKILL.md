@@ -61,7 +61,9 @@ emulator run is what proves the simulator right.
   `get()`/`exists()` cached per request and capped at 10 documents (20 in
   batches and transactions), `resource` (before) vs `request.resource`
   (after, merges and field values resolved), batches and transactions checked
-  against the state before them. Not supported: `collectionGroup`,
+  against the state before them, a `list` seeing the query
+  `where(field, isEqualTo: value)` constraints as `resource.data` (top level
+  fields only). Not supported: `collectionGroup`,
   `getAfter`.
 * Bypassing the rules to seed is not a custom claim: the emulator takes the
   `owner` token (`newOwnerContext()`) and the simulator hands out the

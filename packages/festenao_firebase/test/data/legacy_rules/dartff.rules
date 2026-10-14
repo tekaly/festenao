@@ -31,13 +31,20 @@ service cloud.firestore {
     function inviteMatchesInviteCode(entity, userId, inviteCode) {
       return inviteCode != null && get(/databases/$(database)/documents/access/$(entity)/user_id/$(userId)/invite_access/$(inviteCode)).data.admin == true;
     }
+    // The invite must name the entity: an admin of another entity may write an
+    // invite under any entity id (the write rule checks the entityId it writes).
     function accessMatchesInvite(entity, entityId, inviteId) {
       return inviteId != null 
-        && get(/databases/$(database)/documents/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId)).data.userAccess.admin == true;
+        && get(/databases/$(database)/documents/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId)).data.userAccess.admin == true
+        && get(/databases/$(database)/documents/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId)).data.entityId == entityId;
     }
+    // Get and delete: whoever holds the invite id (the invite link; the invitee
+    // declines by deleting it). List: the entity admins only
+    // (where entityId == <entityId>), listing would leak the ids.
     match /invite/{entity}/invite_id/{document=**} {
       allow create: if inviteMatchesInviteCode(entity, request.auth.uid, request.resource.data.inviteCode);
-      allow read: if request.auth.uid != null && resource.data.entityId != null;
+      allow get: if request.auth.uid != null && resource.data.entityId != null;
+      allow list: if request.auth != null && hasEntityAdminAccess(entity, resource.data.entityId, request.auth.uid);
       allow delete: if request.auth.uid != null;
     }
     
@@ -108,13 +115,18 @@ service cloud.firestore {
     function subInviteMatchesInviteCode(top, topId, entity, userId, inviteCode) {
       return inviteCode != null && get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/user_id/$(userId)/invite_access/$(inviteCode)).data.admin == true;
     }
+    // The invite must name the entity (see accessMatchesInvite).
     function subAccessMatchesInvite(top, topId, entity, entityId, inviteId) {
       return inviteId != null
-        && get(/databases/$(database)/documents/$(top)/$(topId)/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId)).data.userAccess.admin == true;
+        && get(/databases/$(database)/documents/$(top)/$(topId)/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId)).data.userAccess.admin == true
+        && get(/databases/$(database)/documents/$(top)/$(topId)/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId)).data.entityId == entityId;
     }
+    // Get and delete: whoever holds the invite id, list: the entity admins only
+    // (see the top level invite rules).
     match /{top}/{topId}/invite/{entity}/invite_id/{document=**} {
       allow create: if subInviteMatchesInviteCode(top, topId, entity, request.auth.uid, request.resource.data.inviteCode);
-      allow read: if request.auth != null && resource.data.entityId != null;
+      allow get: if request.auth != null && resource.data.entityId != null;
+      allow list: if request.auth != null && subHasEntityAdminAccess(top, topId, entity, resource.data.entityId, request.auth.uid);
       allow delete: if request.auth != null;
     }
 

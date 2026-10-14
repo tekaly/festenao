@@ -330,29 +330,38 @@ class TkCmsEntityRules {
 
   /// `accessMatchesInvite(<parent>, entity, entityId, inviteId)`: the invite
   /// grants admin access on the entity (standalone invite acceptance).
-  RulesFunction get accessMatchesInviteFunction =>
-      _function('accessMatchesInvite', ['entity', 'entityId', 'inviteId'], (f) {
-        var doc = f.let(
-          'doc',
-          rulesGet(
-            docPath([
-              ..._parentParamsOf(f),
-              tkCmsFsEntityTypeInviteCollectionId,
-              f.param('entity'),
-              tkCmsFsInviteIdCollectionId,
-              f.param('inviteId'),
-              tkCmsFsInviteEntityCollectionId,
-              f.param('entityId'),
-            ]),
-          ),
-        );
-        return f.param('inviteId').isNotNull &
-            doc.isNotNull &
-            doc.data
-                .get(tkCmsRulesUserAccessField, const <String, Object?>{})
-                .get(tkCmsRulesAdminAccess, false)
-                .eq(true);
-      });
+  ///
+  /// The invite must also name the entity (its `entityId` field): an admin
+  /// of another entity may write an invite under any entity id (the invite
+  /// write rule checks the `entityId` it writes, not the path), which would
+  /// otherwise make it an admin of that entity.
+  RulesFunction get accessMatchesInviteFunction => _function(
+    'accessMatchesInvite',
+    ['entity', 'entityId', 'inviteId'],
+    (f) {
+      var doc = f.let(
+        'doc',
+        rulesGet(
+          docPath([
+            ..._parentParamsOf(f),
+            tkCmsFsEntityTypeInviteCollectionId,
+            f.param('entity'),
+            tkCmsFsInviteIdCollectionId,
+            f.param('inviteId'),
+            tkCmsFsInviteEntityCollectionId,
+            f.param('entityId'),
+          ]),
+        ),
+      );
+      return f.param('inviteId').isNotNull &
+          doc.isNotNull &
+          doc.data.get(tkCmsRulesEntityIdField, null).eq(f.param('entityId')) &
+          doc.data
+              .get(tkCmsRulesUserAccessField, const <String, Object?>{})
+              .get(tkCmsRulesAdminAccess, false)
+              .eq(true);
+    },
+  );
 
   /// `hasEntity<access>Access(<parent>, entity, entityId, request.auth.uid)`
   /// for the entity of [match] (a match under `/{entity}/{entityId}`).
@@ -551,15 +560,25 @@ class TkCmsEntityRules {
   }
 
   /// Standalone (no backend) invites by code: a user holding an admin
-  /// `invite_access/{inviteCode}` creates invites, any signed in user reads
-  /// and deletes them, and an access document naming an admin invite can be
-  /// created by anyone (the invite id is the capability).
+  /// `invite_access/{inviteCode}` creates invites, any signed in user gets
+  /// and deletes one it knows the id of, only the entity admins list them
+  /// (`where entityId == <entityId>`), and an access document naming an
+  /// admin invite of its entity can be created by anyone (the invite id is
+  /// the capability).
+  ///
+  /// Listing is what would leak the capability: a signed in stranger listing
+  /// the pending invites (`where entityId == <any id>`) would find an admin
+  /// one and make itself an admin of that entity. Deleting stays open to any
+  /// signed in user: the invitee declines an invite it cannot accept (the
+  /// invite view screen), and the id is only known from the invite link.
   void addStandaloneInviteRules() {
     _section('Standalone invites (no backend)');
     rules.comment(
       'access/{entity}/user_id/{userId}/invite_access/{inviteCode} - allows creating invites\n'
       'invite/{entity}/invite_id/{inviteId}/invite_entity/{entityId} - the invite\n'
-      'access documents created with an inviteId matching an admin invite',
+      'access documents created with an inviteId matching an admin invite\n'
+      'Get and delete: whoever holds the invite id (the link). List: the entity\n'
+      'admins only (where entityId == <entityId>), listing would leak the ids.',
     );
     var invitePattern = level.pattern(
       '/$tkCmsFsEntityTypeInviteCollectionId/{entity}/$tkCmsFsInviteIdCollectionId/{document=**}',
@@ -575,8 +594,18 @@ class TkCmsEntityRules {
         ]),
       );
       m.allow([
-        RulesMethod.read,
+        RulesMethod.get,
       ], signedIn & resourceData.member(tkCmsRulesEntityIdField).isNotNull);
+      m.allow(
+        [RulesMethod.list],
+        signedIn &
+            hasEntityAdminAccessFunction.call([
+              ...level.parentVars(m),
+              m.v('entity'),
+              resourceData.member(tkCmsRulesEntityIdField),
+              uid,
+            ]),
+      );
       m.allow([RulesMethod.delete], signedIn);
     });
     for (var pattern in [

@@ -29,20 +29,11 @@ service cloud.firestore {
     // access/{entity}/user_id/{userId}/invite_access/{inviteCode} - allows creating invites
     // invite/{entity}/invite_id/{inviteId}/invite_entity/{entityId} - the invite
     // access documents created with an inviteId matching an admin invite
+    // Get and delete: whoever holds the invite id (the link). List: the entity
+    // admins only (where entityId == <entityId>), listing would leak the ids.
     function inviteMatchesInviteCode(entity, userId, inviteCode) {
       let doc = get(/databases/$(database)/documents/access/$(entity)/user_id/$(userId)/invite_access/$(inviteCode));
       return inviteCode != null && doc != null && doc.data.get('admin', false) == true;
-    }
-
-    match /invite/{entity}/invite_id/{document=**} {
-      allow create: if inviteMatchesInviteCode(entity, request.auth.uid, request.resource.data.inviteCode);
-      allow read: if signedIn() && resource.data.entityId != null;
-      allow delete: if signedIn();
-    }
-
-    function accessMatchesInvite(entity, entityId, inviteId) {
-      let doc = get(/databases/$(database)/documents/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId));
-      return inviteId != null && doc != null && doc.data.get('userAccess', {}).get('admin', false) == true;
     }
 
     function hasEntityAccess(entity, entityId, userId, access) {
@@ -52,6 +43,18 @@ service cloud.firestore {
 
     function hasEntityAdminAccess(entity, entityId, userId) {
       return hasEntityAccess(entity, entityId, userId, 'admin');
+    }
+
+    match /invite/{entity}/invite_id/{document=**} {
+      allow create: if inviteMatchesInviteCode(entity, request.auth.uid, request.resource.data.inviteCode);
+      allow get: if signedIn() && resource.data.entityId != null;
+      allow list: if signedIn() && hasEntityAdminAccess(entity, resource.data.entityId, request.auth.uid);
+      allow delete: if signedIn();
+    }
+
+    function accessMatchesInvite(entity, entityId, inviteId) {
+      let doc = get(/databases/$(database)/documents/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId));
+      return inviteId != null && doc != null && doc.data.get('entityId', null) == entityId && doc.data.get('userAccess', {}).get('admin', false) == true;
     }
 
     match /access/{entity}/entity_id/{entityId}/user_access/{document} {
@@ -111,20 +114,11 @@ service cloud.firestore {
     // access/{entity}/user_id/{userId}/invite_access/{inviteCode} - allows creating invites
     // invite/{entity}/invite_id/{inviteId}/invite_entity/{entityId} - the invite
     // access documents created with an inviteId matching an admin invite
+    // Get and delete: whoever holds the invite id (the link). List: the entity
+    // admins only (where entityId == <entityId>), listing would leak the ids.
     function subInviteMatchesInviteCode(top, topId, entity, userId, inviteCode) {
       let doc = get(/databases/$(database)/documents/$(top)/$(topId)/access/$(entity)/user_id/$(userId)/invite_access/$(inviteCode));
       return inviteCode != null && doc != null && doc.data.get('admin', false) == true;
-    }
-
-    match /{top}/{topId}/invite/{entity}/invite_id/{document=**} {
-      allow create: if subInviteMatchesInviteCode(top, topId, entity, request.auth.uid, request.resource.data.inviteCode);
-      allow read: if signedIn() && resource.data.entityId != null;
-      allow delete: if signedIn();
-    }
-
-    function subAccessMatchesInvite(top, topId, entity, entityId, inviteId) {
-      let doc = get(/databases/$(database)/documents/$(top)/$(topId)/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId));
-      return inviteId != null && doc != null && doc.data.get('userAccess', {}).get('admin', false) == true;
     }
 
     function subHasEntityAccess(top, topId, entity, entityId, userId, access) {
@@ -134,6 +128,18 @@ service cloud.firestore {
 
     function subHasEntityAdminAccess(top, topId, entity, entityId, userId) {
       return subHasEntityAccess(top, topId, entity, entityId, userId, 'admin');
+    }
+
+    match /{top}/{topId}/invite/{entity}/invite_id/{document=**} {
+      allow create: if subInviteMatchesInviteCode(top, topId, entity, request.auth.uid, request.resource.data.inviteCode);
+      allow get: if signedIn() && resource.data.entityId != null;
+      allow list: if signedIn() && subHasEntityAdminAccess(top, topId, entity, resource.data.entityId, request.auth.uid);
+      allow delete: if signedIn();
+    }
+
+    function subAccessMatchesInvite(top, topId, entity, entityId, inviteId) {
+      let doc = get(/databases/$(database)/documents/$(top)/$(topId)/invite/$(entity)/invite_id/$(inviteId)/invite_entity/$(entityId));
+      return inviteId != null && doc != null && doc.data.get('entityId', null) == entityId && doc.data.get('userAccess', {}).get('admin', false) == true;
     }
 
     match /{top}/{topId}/access/{entity}/entity_id/{entityId}/user_access/{document} {

@@ -52,8 +52,11 @@ file; it does not write match blocks.
     on a list.
   * `addStandaloneInviteRules()` — the no backend invite flow: the holder of
     an admin `invite_access/{inviteCode}` creates invites and an access row
-    naming an admin invite id can be created by anyone (the invite id is the
-    capability).
+    naming an admin invite id of its entity (the invite `entityId`) can be
+    created by anyone (the invite id is the capability). So any signed in
+    user gets and deletes (declines) an invite it knows the id of, but only
+    the entity admins list them (`where entityId == <entityId>`): listing
+    would hand out the ids.
   * `addCreatorRules()` — the no backend creation flow, where the client
     writes the entity and its own access row with `creatorUserId`.
   * `addPublicAccessRules({scope, adminWrite})` — the public read flag at

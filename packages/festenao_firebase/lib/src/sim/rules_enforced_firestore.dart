@@ -290,12 +290,19 @@ class RulesEnforcedFirestore
   }
 
   /// Checks a query on the collection [path].
-  Future<void> checkList(String path) {
+  ///
+  /// [equalities] are the `where(field, isEqualTo: value)` constraints of the
+  /// query: what the rules know of `resource.data` on a `list` (none: no
+  /// `resource` at all, any `resource.data` access is an error).
+  Future<void> checkList(String path, {Map<String, Object?>? equalities}) {
     return simulator.check(
       RulesRequest(
         method: RulesMethod.list,
         path: path,
         auth: simulator.getAuth(),
+        resourceData: (equalities == null || equalities.isEmpty)
+            ? null
+            : equalities,
         multi: true,
       ),
       _reader,
@@ -455,12 +462,23 @@ class RulesEnforcedQuery
   /// The collection queried.
   late final RulesEnforcedCollectionReference collectionRef;
 
+  /// The equality constraints on top level fields
+  /// (`where(field, isEqualTo: value)`), the `resource.data` a `list` rule
+  /// sees.
+  ///
+  /// The engine proves a `list` rule against the query constraints; the
+  /// simulator models the equalities only: a rule reading another field of
+  /// `resource.data` is an error (denied), like on an unconstrained field
+  /// (a `get(field, default)` on it answers the default though).
+  final Map<String, Object?> equalities;
+
   /// Creates a wrapper of [query] on [collectionRef] (null only for the
   /// collection reference itself, which sets it in its constructor).
   RulesEnforcedQuery(
     this.query,
-    RulesEnforcedCollectionReference? collectionRef,
-  ) {
+    RulesEnforcedCollectionReference? collectionRef, {
+    this.equalities = const {},
+  }) {
     if (collectionRef != null) {
       this.collectionRef = collectionRef;
     }
@@ -472,20 +490,25 @@ class RulesEnforcedQuery
   @override
   Firestore get firestore => _enforcedFirestore;
 
-  RulesEnforcedQuery _wrap(Query query) =>
-      RulesEnforcedQuery(query, collectionRef);
+  RulesEnforcedQuery _wrap(Query query, {Map<String, Object?>? equalities}) =>
+      RulesEnforcedQuery(
+        query,
+        collectionRef,
+        equalities: equalities ?? this.equalities,
+      );
+
+  Future<void> _checkList() =>
+      _enforcedFirestore.checkList(collectionRef.path, equalities: equalities);
 
   @override
   Future<QuerySnapshot> get() async {
-    await _enforcedFirestore.checkList(collectionRef.path);
+    await _checkList();
     return RulesEnforcedQuerySnapshot(await query.get(), _enforcedFirestore);
   }
 
   @override
   Stream<QuerySnapshot> onSnapshot({bool includeMetadataChanges = false}) {
-    return Stream.fromFuture(
-      _enforcedFirestore.checkList(collectionRef.path),
-    ).asyncExpand(
+    return Stream.fromFuture(_checkList()).asyncExpand(
       (_) => query
           .onSnapshot(includeMetadataChanges: includeMetadataChanges)
           .map(
@@ -497,7 +520,7 @@ class RulesEnforcedQuery
 
   @override
   Future<int> count() async {
-    await _enforcedFirestore.checkList(collectionRef.path);
+    await _checkList();
     return query.count();
   }
 
@@ -556,6 +579,13 @@ class RulesEnforcedQuery
       whereIn: whereIn,
       isNull: isNull,
     ),
+    // A top level field only (not a dotted path nor `__name__`).
+    equalities:
+        (isEqualTo != null &&
+            !fieldPath.contains('.') &&
+            !fieldPath.startsWith('__'))
+        ? {...equalities, fieldPath: isEqualTo}
+        : null,
   );
 
   static DocumentSnapshot? _unwrap(DocumentSnapshot? snapshot) =>
@@ -570,7 +600,7 @@ class _RulesEnforcedAggregateQuery implements AggregateQuery {
 
   @override
   Future<AggregateQuerySnapshot> get() async {
-    await query._enforcedFirestore.checkList(query.collectionRef.path);
+    await query._checkList();
     return aggregateQuery.get();
   }
 }
