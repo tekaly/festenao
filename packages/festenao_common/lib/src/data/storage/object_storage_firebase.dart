@@ -22,6 +22,16 @@ class _FirebaseMeta implements ObjectStorageMeta {
 
   @override
   String? get mimeType => _meta?.contentType;
+
+  @override
+  DateTime? get modified {
+    try {
+      return _meta?.dateUpdated;
+    } on UnimplementedError {
+      // Not every storage implementation reads it.
+      return null;
+    }
+  }
 }
 
 /// Firebase implementation of [ObjectStorageListResponse].

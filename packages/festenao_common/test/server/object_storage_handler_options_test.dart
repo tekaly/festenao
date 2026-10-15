@@ -51,6 +51,16 @@ void main() {
     );
   });
 
+  test('the modification time is sent as ISO 8601 UTC', () async {
+    var request = (GdriveApiListQuery()..path.v = 'folder').request(
+      GdriveApiService.listCommand,
+    )..userId.v = 'user1';
+    var result = await handler.onCommandOrNull(request) as GdriveApiListResult;
+    var modified = result.items.v!.single.modified.v!;
+    expect(modified, endsWith('Z'));
+    expect(DateTime.parse(modified).isUtc, isTrue);
+  });
+
   test('other commands are not handled', () async {
     expect(await handler.onCommandOrNull(ApiRequest(command: 'other')), isNull);
   });

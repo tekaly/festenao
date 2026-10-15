@@ -19,9 +19,15 @@ class SdbObjectRecord extends ScvStringRecordBase {
   /// MIME type.
   final mimeType = CvField<String>('mimeType');
 
+  /// The last modification time, ISO 8601 UTC.
+  final modified = CvField<String>('modified');
+
   @override
-  CvFields get fields => [name, path, size, mimeType];
+  CvFields get fields => [name, path, size, mimeType, modified];
 }
+
+DateTime? _parseModified(String? text) =>
+    text == null ? null : DateTime.tryParse(text);
 
 final _sdbObjectModel = SdbObjectRecord();
 
@@ -52,12 +58,16 @@ class _SdbMeta implements ObjectStorageMeta {
   @override
   final bool isLocation;
 
+  @override
+  final DateTime? modified;
+
   _SdbMeta({
     required this.name,
     required this.path,
     this.size,
     this.mimeType,
     required this.isLocation,
+    this.modified,
   });
 }
 
@@ -139,6 +149,7 @@ class ObjectStorageSdb extends ObjectStorage {
     required String name,
     required int size,
     required String mimeType,
+    DateTime? modified,
     Uint8List? data,
   }) async {
     await ready;
@@ -146,7 +157,8 @@ class ObjectStorageSdb extends ObjectStorage {
       ..name.v = name
       ..path.v = path
       ..size.v = size
-      ..mimeType.v = mimeType;
+      ..mimeType.v = mimeType
+      ..modified.v = modified?.toUtc().toIso8601String();
     await sdbObjectStore.record(path).put(db, record);
 
     if (data != null) {
@@ -291,6 +303,7 @@ class ObjectStorageSdb extends ObjectStorage {
         size: record.size.v,
         mimeType: record.mimeType.v,
         isLocation: false,
+        modified: _parseModified(record.modified.v),
       );
     }
 
@@ -372,6 +385,7 @@ class ObjectStorageSdb extends ObjectStorage {
             size: file.size.v,
             mimeType: file.mimeType.v,
             isLocation: false,
+            modified: _parseModified(file.modified.v),
           ),
         );
       }
@@ -396,11 +410,13 @@ class ObjectStorageSdb extends ObjectStorage {
         : (path.endsWith('/') ? '$path$name' : '$path/$name');
 
     // 1. Put metadata
+    var modified = DateTime.now().toUtc();
     var record = SdbObjectRecord()
       ..name.v = name
       ..path.v = filePosixPath
       ..size.v = data.length
-      ..mimeType.v = mimeType;
+      ..mimeType.v = mimeType
+      ..modified.v = modified.toIso8601String();
 
     await sdbObjectStore.record(filePosixPath).put(db, record);
 
@@ -419,6 +435,7 @@ class ObjectStorageSdb extends ObjectStorage {
       size: data.length,
       mimeType: mimeType,
       isLocation: false,
+      modified: modified,
     );
   }
 }

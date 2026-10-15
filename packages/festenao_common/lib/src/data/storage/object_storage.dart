@@ -25,6 +25,9 @@ abstract class ObjectStorageMeta {
 
   /// True if this represents a directory/location rather than a file.
   bool get isLocation;
+
+  /// The last modification time, null when unknown.
+  DateTime? get modified;
 }
 
 /// Result of a listing operation.

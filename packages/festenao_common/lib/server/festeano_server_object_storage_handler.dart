@@ -96,7 +96,8 @@ class FestenaoObjectStorageHandler implements FestenaoApiHandler {
       ..path.v = meta.path
       ..size.v = meta.size
       ..mimeType.v = meta.mimeType
-      ..isLocation.v = meta.isLocation;
+      ..isLocation.v = meta.isLocation
+      ..modified.v = meta.modified?.toUtc().toIso8601String();
   }
 
   /// Handles the list command.

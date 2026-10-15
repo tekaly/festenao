@@ -19,6 +19,8 @@ class _GdriveMeta implements ObjectStorageMeta {
   final String? mimeType;
   @override
   final bool isLocation;
+  @override
+  final DateTime? modified;
 
   _GdriveMeta({
     required this.name,
@@ -26,6 +28,7 @@ class _GdriveMeta implements ObjectStorageMeta {
     this.size,
     this.mimeType,
     required this.isLocation,
+    this.modified,
   });
 }
 
@@ -35,7 +38,8 @@ const gdriveShortcutMimeType = 'application/vnd.google-apps.shortcut';
 
 /// The file fields read: a shortcut comes with its target.
 const _fileFields =
-    'id,name,mimeType,size,shortcutDetails(targetId,targetMimeType)';
+    'id,name,mimeType,size,modifiedTime,'
+    'shortcutDetails(targetId,targetMimeType)';
 
 /// The meta of a drive [file]; a shortcut is its target — its id, mime type,
 /// folder or not — under the name of the shortcut: listed, read or
@@ -46,12 +50,15 @@ ObjectStorageMeta gdriveObjectStorageMeta(gd.File file) {
   var id = file.id!;
   var mimeType = file.mimeType;
   var size = int.tryParse(file.size ?? '');
+  var modified = file.modifiedTime;
   var target = file.shortcutDetails;
   if (mimeType == gdriveShortcutMimeType && target?.targetId != null) {
     id = target!.targetId!;
     mimeType = target.targetMimeType;
-    // The size is the target's, not listed with the shortcut.
+    // The size and the modification time are the target's, not listed with
+    // the shortcut.
     size = null;
+    modified = null;
   }
   var isLocation = mimeType == GDrive.folderMimeType;
   return _GdriveMeta(
@@ -60,6 +67,7 @@ ObjectStorageMeta gdriveObjectStorageMeta(gd.File file) {
     size: isLocation ? null : size,
     mimeType: mimeType,
     isLocation: isLocation,
+    modified: modified,
   );
 }
 
@@ -166,7 +174,7 @@ class ObjectStorageGdrive extends ObjectStorage {
   }
 
   /// A shortcut is read as its target (see [gdriveObjectStorageMeta]), its
-  /// size included.
+  /// size and modification time included.
   @override
   Future<ObjectStorageMeta> getItem(String path) async {
     await gdrive.ready;
@@ -180,6 +188,7 @@ class ObjectStorageGdrive extends ObjectStorage {
         size: target.size,
         mimeType: target.mimeType,
         isLocation: false,
+        modified: target.modified,
       );
     }
     return meta;
@@ -213,7 +222,7 @@ class ObjectStorageGdrive extends ObjectStorage {
           ..mimeType = mimeType,
         existingId,
         uploadMedia: media,
-        $fields: 'id,name,mimeType,size',
+        $fields: 'id,name,mimeType,size,modifiedTime',
       );
     } else {
       result = await gdrive.driveApi.files.create(
@@ -223,7 +232,7 @@ class ObjectStorageGdrive extends ObjectStorage {
           ..parents = [parentId],
         uploadMedia: media,
         enforceSingleParent: true,
-        $fields: 'id,name,mimeType,size',
+        $fields: 'id,name,mimeType,size,modifiedTime',
       );
     }
 

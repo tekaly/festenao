@@ -21,12 +21,16 @@ class _FsMeta implements ObjectStorageMeta {
   @override
   final bool isLocation;
 
+  @override
+  final DateTime? modified;
+
   _FsMeta({
     required this.name,
     required this.path,
     this.size,
     this.mimeType,
     required this.isLocation,
+    this.modified,
   });
 }
 
@@ -152,6 +156,7 @@ class ObjectStorageFs extends ObjectStorage {
         size: stat.size,
         mimeType: _mimeTypeFromPath(path),
         isLocation: false,
+        modified: stat.modified,
       );
     }
 
@@ -197,6 +202,7 @@ class ObjectStorageFs extends ObjectStorage {
             size: stat.size,
             mimeType: _mimeTypeFromPath(posixPath),
             isLocation: false,
+            modified: stat.modified,
           ),
         );
       } else if (entity is Directory) {

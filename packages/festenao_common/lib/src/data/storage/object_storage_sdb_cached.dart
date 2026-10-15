@@ -117,6 +117,7 @@ class ObjectStorageSdbCached extends ObjectStorage {
         name: meta.name,
         size: data.length,
         mimeType: meta.mimeType ?? 'application/octet-stream',
+        modified: meta.modified,
         data: data,
       );
       return data;
@@ -157,6 +158,7 @@ class ObjectStorageSdbCached extends ObjectStorage {
           name: item.name,
           size: item.size ?? 0,
           mimeType: item.mimeType ?? 'application/octet-stream',
+          modified: item.modified,
         );
       }
       return item;
@@ -240,6 +242,7 @@ class ObjectStorageSdbCached extends ObjectStorage {
             name: item.name,
             size: item.size ?? 0,
             mimeType: item.mimeType ?? 'application/octet-stream',
+            modified: item.modified,
           );
         } else {
           // So that the cached listing shows the sub directory.

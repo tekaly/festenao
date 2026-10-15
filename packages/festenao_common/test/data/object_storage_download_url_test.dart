@@ -191,6 +191,9 @@ class _MockMeta implements ObjectStorageMeta {
 
   @override
   bool get isLocation => false;
+
+  @override
+  DateTime? get modified => null;
 }
 
 class _MockListResponse implements ObjectStorageListResponse {

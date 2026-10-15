@@ -17,8 +17,18 @@ class GdriveApiItem extends CvModelBase {
   /// True if it is a folder.
   late final isLocation = CvField<bool>('isLocation');
 
+  /// The last modification time, ISO 8601 UTC (`2026-10-15T08:30:00.000Z`).
+  late final modified = CvField<String>('modified');
+
   @override
-  late final CvFields fields = [name, path, size, mimeType, isLocation];
+  late final CvFields fields = [
+    name,
+    path,
+    size,
+    mimeType,
+    isLocation,
+    modified,
+  ];
 }
 
 /// GDrive delete query.

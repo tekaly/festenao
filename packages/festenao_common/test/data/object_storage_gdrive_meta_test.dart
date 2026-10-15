@@ -10,10 +10,12 @@ void main() {
           ..id = 'f1'
           ..name = 'song.mp3'
           ..mimeType = 'audio/mpeg'
-          ..size = '123',
+          ..size = '123'
+          ..modifiedTime = DateTime.utc(2026, 10, 9, 14, 32),
       );
       expect(file.path, 'f1');
       expect(file.size, 123);
+      expect(file.modified, DateTime.utc(2026, 10, 9, 14, 32));
       expect(file.isLocation, isFalse);
       var folder = gdriveObjectStorageMeta(
         gd.File()
@@ -30,11 +32,14 @@ void main() {
           ..id = 's1'
           ..name = 'Hip hop.mp3'
           ..mimeType = gdriveShortcutMimeType
+          ..modifiedTime = DateTime.utc(2026, 1, 1)
           ..shortcutDetails = (gd.FileShortcutDetails()
             ..targetId = 't1'
             ..targetMimeType = 'audio/mpeg'),
       );
       expect(toFile.path, 't1');
+      // The shortcut's own time is not the target's.
+      expect(toFile.modified, isNull);
       expect(toFile.name, 'Hip hop.mp3');
       expect(toFile.mimeType, 'audio/mpeg');
       expect(toFile.isLocation, isFalse);

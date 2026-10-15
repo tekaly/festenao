@@ -26,6 +26,10 @@ class _ObjectStorageApiMeta implements ObjectStorageMeta {
 
   @override
   int? get size => _item.size.v;
+
+  /// Null from a server that does not send it yet.
+  @override
+  DateTime? get modified => DateTime.tryParse(_item.modified.v ?? '');
 }
 
 /// Client implementation of [ObjectStorageListResponse].
