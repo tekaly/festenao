@@ -1,22 +1,9 @@
-import 'dart:typed_data';
+import 'package:tekaly_sdb_synced_media/synced_media.dart';
 
 import '../festenao_cv.dart';
-import 'festenao_media.dart';
 
-/// Abstract source for media files.
-abstract class FestenaoMediaSource {
-  /// Adds a media file to the source.
-  Future<void> addMediaFile({
-    required FestenaoMediaFile file,
-    required Uint8List bytes,
-  });
-
-  /// Reads the media file bytes for the given [ref].
-  Future<Uint8List> readMediaFileBytes(FestenaoMediaFileRef ref);
-
-  /// Deletes the media file for the given [ref].
-  Future<void> deleteMediaFile(FestenaoMediaFileRef ref);
-}
+/// Abstract source for media files (see `tekaly_sdb_synced_media`).
+typedef FestenaoMediaSource = SyncedMediaSource;
 
 /// /meta/info
 abstract class FestenaoMediaSourceMetaInfo implements CvModel {

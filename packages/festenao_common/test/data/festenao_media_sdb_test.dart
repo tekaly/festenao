@@ -22,19 +22,28 @@ void main() {
   tearDown(() async {
     await sdbDb.close();
   });
+
+  /// Status flags only (the status also holds the path, size and access).
+  Future<Map<String, Object?>> getStatusFlags(String fileId) async {
+    var status = await sdbMediaStatusLocalStore.record(fileId).get(db.database);
+    return {
+      'local': status?.local.v,
+      'remote': status?.remote.v,
+      'deleted': status?.deleted.v,
+    };
+  }
+
   test('write/read/delete/purge', () async {
     var content = Uint8List.fromList([1, 2, 3]);
     var fileId = await db.addMediaFile(
       bytes: content,
       file: FestenaoMediaFile.from(filename: 'test.webp', type: 'image/webp'),
     );
-    expect(
-      await sdbMediaStatusLocalStore.record(fileId).get(db.database),
-      SdbFestenaoMediaFileStatus()
-        ..local.v = 1
-        ..remote.v = 0
-        ..deleted.v = 0,
-    );
+    expect(await getStatusFlags(fileId), {
+      'local': 1,
+      'remote': 0,
+      'deleted': 0,
+    });
     expect(await db.readMediaFileBytes(fileId), content);
     var record = (await db.getMediaFileRecord(fileId))!;
     expect(record.id, fileId);
@@ -50,13 +59,11 @@ void main() {
     expect(await file.exists(), isTrue);
     expect(await file.readAsBytes(), content);
     await db.deleteMediaFile(fileId);
-    expect(
-      await sdbMediaStatusLocalStore.record(fileId).get(db.database),
-      SdbFestenaoMediaFileStatus()
-        ..local.v = 0
-        ..remote.v = 0
-        ..deleted.v = 1,
-    );
+    expect(await getStatusFlags(fileId), {
+      'local': 0,
+      'remote': 0,
+      'deleted': 1,
+    });
     expect(
       (await sdbMediaStore.record(fileId).get(db.database))!.deleted.v,
       isTrue,
@@ -120,12 +127,10 @@ void main() {
   test('markLocalNotPresentDeleted', () async {
     var fileId = await addSimpleFile();
     await db.markRemoteDeleted(fileId);
-    expect(
-      await sdbMediaStatusLocalStore.record(fileId).get(db.database),
-      SdbFestenaoMediaFileStatus()
-        ..local.v = 1
-        ..remote.v = 0
-        ..deleted.v = 1,
-    );
+    expect(await getStatusFlags(fileId), {
+      'local': 1,
+      'remote': 0,
+      'deleted': 1,
+    });
   });
 }

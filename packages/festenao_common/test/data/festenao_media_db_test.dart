@@ -29,6 +29,9 @@ class _MemoryMediaSource implements FestenaoMediaSource {
   @override
   Future<Uint8List> readMediaFileBytes(FestenaoMediaFileRef ref) async =>
       files[ref.path]!;
+
+  @override
+  Future<Uri?> getMediaUrl(FestenaoMediaFileRef ref) async => null;
 }
 
 void main() {

@@ -4,6 +4,8 @@ import 'package:festenao_common/data/festenao_media_source_firebase.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:path/path.dart';
 import 'package:tekaly_sdb_synced/synced_sdb.dart';
+import 'package:tekaly_sdb_synced_media/synced_media.dart'
+    show SyncedMediaCacheOptions;
 import 'package:tekaly_sembast_synced/synced_db_firestore.dart';
 import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
@@ -27,11 +29,8 @@ class FestenaoSyncedSdb {
     FestenaoMediaSdbSynchronizer.debugLog = value;
   }
 
-  StreamSubscription? _syncStatSubscription;
   late final FestenaoMediaSdbSynchronizer _mediaSynchronizer;
   late final SyncedSdbSynchronizer _syncedDbSynchronizer;
-
-  final _syncMediaLock = Lock();
 
   /// File system (sandbox to location)
   final FestenaoSdb db;
@@ -45,17 +44,21 @@ class FestenaoSyncedSdb {
   /// Firebase firestore
   final Firestore firestore;
 
-  var _disposed = false;
-
   /// The media source
   FestenaoMediaSource get mediaSource => _mediaSynchronizer.source;
 
-  /// Festenao synced db
+  /// The media synchronizer (cache aware reads, network urls).
+  FestenaoMediaSdbSynchronizer get mediaSynchronizer => _mediaSynchronizer;
+
+  /// Festenao synced db, the media contents kept locally per
+  /// [mediaCacheOptions] (all by default).
   FestenaoSyncedSdb({
     required this.db,
     required this.sourceOptions,
     required this.firebaseStorage,
     required this.firestore,
+    SyncedMediaCacheOptions mediaCacheOptions =
+        const SyncedMediaCacheOptions.all(),
   }) {
     if (_debugLog) {
       log('Creating synced Sdb $sourceOptions');
@@ -81,32 +84,15 @@ class FestenaoSyncedSdb {
           bucketName: sourceOptions.storageBucket,
         ),
       ),
+      cacheOptions: mediaCacheOptions,
     );
-    _syncStatSubscription = _syncedDbSynchronizer.onSynced().listen((syncStat) {
-      // On post sync with changes, trigger media sync
-      if (_debugLog) {
-        log('Synced done');
-      }
-      unawaited(synchronizeMedias());
-    });
-    db.syncedSdb.initialSynchronizationDone().then((_) {
-      if (_debugLog) {
-        log('initial synchronization done');
-      }
-      unawaited(synchronizeMedias());
-    });
-
-    // Synchronize the media on start, should not try to access the network if not
-    // needed
-    synchronizeMedias();
+    // Synchronize the media now and after each database synchronization
+    // (new or deleted media records, local media to upload).
+    _mediaSynchronizer.startAutoSync(_syncedDbSynchronizer.onSynced());
   }
 
   /// Synchronize medias.
-  Future<SyncedSyncStat> synchronizeMedias() {
-    return _syncMediaLock.synchronized(() {
-      return _synchronizeMedias();
-    });
-  }
+  Future<SyncedSyncStat> synchronizeMedias() => _mediaSynchronizer.sync();
 
   /// Synchronize database.
   Future<SyncedSyncStat> synchronize() {
@@ -127,29 +113,9 @@ class FestenaoSyncedSdb {
     print('[FestenaoSyncedSdb] $message');
   }
 
-  /// Synchronize medias.
-  Future<SyncedSyncStat> _synchronizeMedias() async {
-    if (_disposed) return SyncedSyncStat();
-    try {
-      if (debugLog) {
-        log('Starting media sync');
-      }
-      // print('started syncMedia');
-      var syncResult = await _mediaSynchronizer.sync();
-      if (debugLog) {
-        log('media sync: $syncResult');
-      }
-      return syncResult;
-    } catch (e) {
-      log('sync medias failed $e');
-      rethrow;
-    }
-  }
-
   /// Clean up
   void dispose() {
-    _disposed = true;
-    _syncStatSubscription?.cancel();
+    unawaited(_mediaSynchronizer.close());
     _syncedDbSynchronizer.close();
   }
 }

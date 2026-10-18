@@ -5,6 +5,8 @@ import 'package:festenao_common/src/data/projects_sdb/user_projects_sdb.dart';
 import 'package:fs_shim/fs.dart';
 import 'package:path/path.dart';
 import 'package:tekaly_sdb_synced/synced_sdb.dart';
+import 'package:tekaly_sdb_synced_media/synced_media.dart'
+    show SyncedMediaCacheOptions;
 import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tekartik_firebase_storage/storage.dart';
 
@@ -23,6 +25,10 @@ Future<FestenaoSyncedSdb> openProjectFestenaoSyncedSdb({
   required Firestore firestore,
   required FirebaseStorage firebaseStorage,
   required SdbOpenDatabaseOptions openOptions,
+
+  /// Media contents kept locally, all by default.
+  SyncedMediaCacheOptions mediaCacheOptions =
+      const SyncedMediaCacheOptions.all(),
 }) async {
   var projectUid = project.uid.v!;
   var dbName = '${dataId}_${app}_${projectUid}_synced.db';
@@ -48,5 +54,6 @@ Future<FestenaoSyncedSdb> openProjectFestenaoSyncedSdb({
     sourceOptions: syncSourceOption,
     firebaseStorage: firebaseStorage,
     firestore: firestore,
+    mediaCacheOptions: mediaCacheOptions,
   );
 }

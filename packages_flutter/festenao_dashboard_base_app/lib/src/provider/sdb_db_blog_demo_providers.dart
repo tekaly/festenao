@@ -173,11 +173,8 @@ extension SdbContextSdbExt on SdfContentSdb {
       sdfLocationStore.record(id).delete(_db);
 }
 
+/// `onMediaFiles()` and `onMediaFile(id)` are `FestenaoMediaSdb` methods.
 extension FestenaoMediaSdbStreamExt on FestenaoMediaSdb {
-  Stream<List<SdbFestenaoMediaFile>> onMediaFiles() =>
-      sdbMediaStore.onRecords(database);
-  Stream<SdbFestenaoMediaFile?> onMediaFile(String id) =>
-      sdbMediaStore.record(id).onRecord(database);
   Stream<SdbFestenaoMediaFileStatus?> onMediaStatusFile(String id) =>
       sdbMediaStatusLocalStore.record(id).onRecord(database);
   Future<SdbFestenaoMediaFileStatus?> getMediaStatusFile(String id) =>

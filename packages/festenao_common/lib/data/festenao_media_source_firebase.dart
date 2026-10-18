@@ -1,9 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:festenao_common/data/festenao_media_db.dart';
-import 'package:festenao_common/data/festenao_media_source.dart';
-import 'package:path/path.dart';
-import 'package:tekartik_firebase_storage/utils/link.dart';
+import 'package:tekaly_sdb_synced_media/synced_media_storage.dart';
 import 'package:tkcms_common/tkcms_storage.dart';
 
 import '../festenao_firestore.dart';
@@ -48,82 +44,35 @@ class FsFestenaoMediaFile extends CvFirestoreDocumentBase {
   ];
 }
 
-/// Firebase implementation of [FestenaoMediaSource].
-class FestenaoMediaSourceFirebase implements FestenaoMediaSource {
+/// Firebase implementation of `FestenaoMediaSource`, the contents in
+/// `<rootDirectory>/<media path>` (see `SyncedMediaSourceStorage`).
+class FestenaoMediaSourceFirebase extends SyncedMediaSourceStorage {
   /// Storage context
   final FirebaseStorageContext storageContext;
 
-  /// Bucket name
-  String? get bucketName => storageContext.bucketName;
-
-  /// Storage
-  Storage get storage => storageContext.storage;
-
   /// Constructor for [FestenaoMediaSourceFirebase].
-  FestenaoMediaSourceFirebase({required this.storageContext}) {
+  FestenaoMediaSourceFirebase({
+    required this.storageContext,
+    super.cacheControl,
+    super.urlBuilder,
+  }) : super(
+         storage: storageContext.storage,
+         bucketName: storageContext.bucketName,
+         rootPath: storageContext.rootDirectory,
+       ) {
     cvAddConstructors([DbFestenaoMediaFile.new]);
   }
 
   /// Get gs link
-  Uri getGsLink({required FestenaoMediaFileRef ref}) {
-    var path = _fixPath(ref.path);
-    var fileRef = StorageFileRef(bucketName!, path);
+  Uri getGsLink({required FestenaoMediaFileRef ref}) =>
+      storageFileRef(ref).toLink();
 
-    return fileRef.toLink();
-  }
-
-  /// Get download url
+  /// Get download url, throws if the storage gives none.
   Future<String> getDownloadUrl({required FestenaoMediaFileRef ref}) async {
-    try {
-      var link = getGsLink(ref: ref);
-      var fileRef = storage.ref(link.toString());
-
-      var url = await fileRef.getDownloadUrl();
-      return url;
-    } catch (e, st) {
-      // ignore: avoid_print
-      print('getDownloadUrl: $e $st');
-      rethrow;
+    var url = await getMediaUrl(ref);
+    if (url == null) {
+      throw UnsupportedError('No download url for $ref');
     }
-  }
-
-  @override
-  Future<void> addMediaFile({
-    required Uint8List bytes,
-    required FestenaoMediaFile file,
-  }) async {
-    var path = _fixPath(file.path);
-    var type = file.type;
-
-    var bucket = storage.bucket(bucketName);
-    var gsFile = bucket.file(path);
-    await gsFile.upload(
-      bytes,
-      options: StorageUploadFileOptions(contentType: type),
-    );
-  }
-
-  String _fixPath(String path) {
-    return url.join(storageContext.rootDirectory, path);
-  }
-
-  @override
-  Future<void> deleteMediaFile(FestenaoMediaFileRef ref) async {
-    var bucket = storage.bucket(bucketName);
-    var path = _fixPath(ref.path);
-    var file = bucket.file(path);
-    try {
-      await file.delete();
-    } catch (_) {
-      // Ignore if file does not exist
-    }
-  }
-
-  @override
-  Future<Uint8List> readMediaFileBytes(FestenaoMediaFileRef ref) async {
-    var bucket = storage.bucket(bucketName);
-    var path = _fixPath(ref.path);
-    var file = bucket.file(path);
-    return await file.readAsBytes();
+    return url.toString();
   }
 }
