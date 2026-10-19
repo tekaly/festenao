@@ -257,6 +257,27 @@ void runFestenaoFirestoreRulesTests(
       }
     });
 
+    test('app users: server only', () async {
+      var uid = await ctx.signInOrUp(newEmail('app_user'));
+      // Written by the server (the api, admin rights) only.
+      var ownRef = ctx.firestore.doc('app/$appId/app_user/$uid');
+      await ctx.adminFirestore.doc(ownRef.path).set({'anonymous': true});
+      await expectPermissionDenied(() => ownRef.get());
+      await expectPermissionDenied(() => ownRef.set({'lastSeen': 'now'}));
+      await expectPermissionDenied(
+        () => ctx.firestore.collection('app/$appId/app_user').get(),
+      );
+      await expectPermissionDenied(
+        () => ctx.firestore.doc('app/$appId/app_user_purge/report').get(),
+      );
+      // The index of the apps that saw a user, at the root.
+      var indexRef = ctx.firestore.doc('app_user_index/$uid');
+      await expectPermissionDenied(() => indexRef.get());
+      await expectPermissionDenied(() => indexRef.set({'lastSeen': {}}));
+      await ctx.adminFirestore.doc(ownRef.path).delete();
+      await ctx.signOut();
+    });
+
     test('list', () async {
       var projectId = 'list';
       var readerUid = await ctx.signInOrUp(newEmail('reader'));

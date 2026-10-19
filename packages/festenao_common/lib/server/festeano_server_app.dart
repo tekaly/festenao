@@ -64,7 +64,33 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
     );
     await db.projectDb.purgeDeletedEntities();
     await db.projectDb.deleteOldInvites();
+    await cronPurgeAppUsers();
     return ApiEmpty();
+  }
+
+  /// The projects of the app (purge and merge of its users).
+  late final _projectAccess = FestenaoFirestoreDatabase(
+    firebaseContext: firebaseContext,
+    flavorContext: appFlavorContext,
+  ).projectDb;
+
+  /// A purged user leaves its projects; a project left without any user is
+  /// marked deleted (purged later by the cron).
+  @override
+  Future<void> onPurgeAppUser(String userId) async {
+    await festenaoPurgeUserEntityAccesses(_projectAccess, userId);
+  }
+
+  /// A merged anonymous user hands its projects to the account.
+  @override
+  Future<void> onMergeAppUser({
+    required String fromUserId,
+    required String toUserId,
+  }) async {
+    await _projectAccess.moveUserAccesses(
+      fromUserId: fromUserId,
+      toUserId: toUserId,
+    );
   }
 
   /// Handles HTTPS AMP requests.
@@ -345,4 +371,18 @@ extension FesteanoServerAppExt on FestenaoServerApp {
   void initEntityFunctions<TFsEntity extends TkCmsFsEntity>(
     FestenaoEntityHandler<TkCmsFsEntity> entityHandler,
   ) {}
+}
+
+/// Removes every access of [userId] to the entities of [entityAccess]; an
+/// entity left without any user is marked deleted (the cron purges it).
+Future<void> festenaoPurgeUserEntityAccesses<T extends TkCmsFsEntity>(
+  TkCmsFirestoreDatabaseServiceEntityAccess<T> entityAccess,
+  String userId,
+) async {
+  var entityIds = await entityAccess.deleteUserAccesses(userId);
+  for (var entityId in entityIds) {
+    if (!await entityAccess.entityHasUserAccess(entityId)) {
+      await entityAccess.rootMarkAsDeleted(entityId);
+    }
+  }
 }

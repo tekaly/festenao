@@ -1,4 +1,5 @@
 import 'package:festenao_common/admin/festenao_apps_admin.dart';
+import 'package:festenao_common/api/festenao_app_user.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/firebase/firebase_auth.dart';
 import 'package:festenao_common/firebase/firebase_users_explorer.dart';
@@ -6,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../app_user_access_flutter.dart';
+import '../app_users_screen.dart';
 import '../explorer_ui/explorer_chip.dart';
 import '../explorer_ui/explorer_scaffold.dart';
 import '../firebase_users_explorer_flutter.dart';
@@ -344,6 +346,24 @@ class _AdminAppScreenState extends State<AdminAppScreen> {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: _openUsers,
                 ),
+                if (widget.auth case var auth?)
+                  ListTile(
+                    leading: const Icon(Icons.manage_accounts_outlined),
+                    title: const Text('App users'),
+                    subtitle: Text(
+                      'app/$appId/$tkCmsFsAppUserCollectionId: last seen, purge',
+                    ),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => goToAppUsersScreen(
+                      context,
+                      appUsers: TkCmsAppUsersFirestore(
+                        firestore: admin.firestore,
+                        auth: auth,
+                        app: appId,
+                      ),
+                      title: appId,
+                    ),
+                  ),
                 ListTile(
                   leading: const Icon(Icons.history_outlined),
                   title: const Text('Legacy app access'),
