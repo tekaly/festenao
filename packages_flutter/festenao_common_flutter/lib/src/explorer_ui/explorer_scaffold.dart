@@ -2,6 +2,7 @@ import 'package:festenao_theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'explorer_chip.dart';
+import 'explorer_text_style.dart';
 
 /// One step of an [ExplorerBreadcrumb].
 class ExplorerCrumb {
@@ -182,6 +183,7 @@ class ExplorerStatusBar extends StatelessWidget {
                       color: theme.colorScheme.onSurfaceVariant,
                       fontSize: explorerChipFontSize,
                       fontFamily: festenaoMonospaceFontFamily,
+                      fontFamilyFallback: explorerMonospaceFontFallback,
                     ),
               ),
             ),
@@ -254,9 +256,11 @@ class ExplorerScaffold extends StatelessWidget {
         if (crumbs != null && crumbs!.isNotEmpty)
           ExplorerBreadcrumb(crumbs: crumbs!),
         Expanded(child: body),
-        ?statusBar,
       ],
     ),
+    // At the bottom of the scaffold, so that the floating buttons stand
+    // above it rather than over its badges.
+    bottomNavigationBar: statusBar,
     floatingActionButton: floatingActionButton,
   );
 }

@@ -4,7 +4,9 @@
 /// A [FileSystemExplorerScreen] lists a directory of a [FileSystemExplorer]
 /// and opens each entry with what fits it: a json or yaml document in the
 /// object editor, a sembast or sdb database file in the object explorer, a
-/// text file in a text editor.
+/// text file in a text editor, anything else in a hex editor — and a format
+/// the app plugs in with a [FileSystemFileOpener] in its own viewer (see
+/// `pb_explorer_flutter.dart` for protobuf files).
 ///
 /// It works wherever `fs_shim` does — the disk, memory, indexeddb in a browser
 /// — databases included. A read only explorer hides every write action, so
@@ -23,6 +25,20 @@ export 'package:festenao_common/fs/file_system_explorer.dart';
 export 'object_editor_flutter.dart';
 export 'src/explorer_ui/explorer_chip.dart'
     show ExplorerChip, ExplorerChipTone, ExplorerTypeChip, explorerChipFontSize;
+export 'src/explorer_ui/explorer_find.dart'
+    show
+        ExplorerAnyText,
+        ExplorerBytesFinder,
+        ExplorerFindBar,
+        ExplorerFindController,
+        ExplorerFindMode,
+        ExplorerTextFinder,
+        explorerAnyQuery,
+        explorerBytesAsText,
+        explorerFindMaxMatches,
+        explorerFindShortcuts,
+        explorerFindStyles,
+        explorerFirstRangeEndingAfter;
 export 'src/explorer_ui/explorer_scaffold.dart'
     show
         ExplorerBreadcrumb,
@@ -30,6 +46,9 @@ export 'src/explorer_ui/explorer_scaffold.dart'
         ExplorerScaffold,
         ExplorerSectionHeader,
         ExplorerStatusBar;
+export 'src/explorer_ui/explorer_text_style.dart'
+    show explorerMonospaceFontFallback, explorerMonospaceTextStyle;
+export 'src/explorer_ui/explorer_text_view.dart' show ExplorerTextView;
 export 'src/file_system_create_action.dart'
     show
         FileSystemCreateAction,
@@ -64,11 +83,21 @@ export 'src/file_system_demo.dart'
         fillDemoSdbDatabase,
         fillDemoSembastDatabase,
         initFileSystemDemoBuilders;
+export 'src/file_system_file_opener.dart'
+    show
+        FileSystemDirectoryAction,
+        FileSystemFileOpener,
+        fileSystemFileOpenerOf;
 export 'src/file_system_hex_editor.dart'
     show
+        FileSystemHexColumn,
         FileSystemHexFileScreen,
+        FileSystemHexHit,
+        FileSystemHexLayout,
         fileSystemHexBytes,
         fileSystemHexBytesPerRow,
+        fileSystemHexBytesPerRowChoices,
+        fileSystemHexChar,
         fileSystemHexOffset,
         fileSystemHexParse,
         fileSystemHexText,

@@ -1,12 +1,15 @@
 import 'package:festenao_common/data/object_editor.dart';
 import 'package:festenao_common/fs/file_system_explorer.dart';
-import 'package:festenao_theme/theme.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'explorer_ui/explorer_chip.dart';
+import 'explorer_ui/explorer_find.dart';
 import 'explorer_ui/explorer_scaffold.dart';
+import 'explorer_ui/explorer_text_style.dart';
 import 'file_system_create_action.dart';
 import 'file_system_database_list.dart' show fileSystemDatabaseInfoChips;
+import 'file_system_file_opener.dart';
 import 'file_system_hex_editor.dart';
 import 'file_system_transfer.dart';
 import 'object_editor/object_clipboard_flutter.dart';
@@ -118,6 +121,16 @@ class FileSystemExplorerScreen extends StatefulWidget {
   /// the pick is for.
   final String? pickerTitle;
 
+  /// The viewers the app plugs in for the formats the explorer does not know
+  /// (`pbFileSystemOpener` of `pb_explorer_flutter.dart` for `.pb` files):
+  /// a tap opens their files with them, "open as…" offers them for any file.
+  final List<FileSystemFileOpener>? fileOpeners;
+
+  /// The actions the app adds to the app bar, on the directory listed (and
+  /// on the ones opened from it): a view of its own of the directory, for
+  /// instance.
+  final List<FileSystemDirectoryAction>? directoryActions;
+
   /// Explorer screen of [path].
   const FileSystemExplorerScreen({
     super.key,
@@ -128,6 +141,8 @@ class FileSystemExplorerScreen extends StatefulWidget {
     this.createActions,
     this.isPicker = false,
     this.pickerTitle,
+    this.fileOpeners,
+    this.directoryActions,
   });
 
   @override
@@ -149,6 +164,8 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
 
   late final List<FileSystemCreateAction> _createActions =
       widget.createActions ?? defaultFileSystemCreateActions();
+
+  List<FileSystemFileOpener> get _fileOpeners => widget.fileOpeners ?? const [];
 
   void _reload() => setState(() {
     _loading = explorer.list(path);
@@ -191,6 +208,13 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
       }
       return;
     }
+    // A plugged in viewer comes before what the extension guesses.
+    var opener = fileSystemFileOpenerOf(_fileOpeners, entry);
+    if (opener != null) {
+      await opener.open(context, explorer, entry.path);
+      _reload();
+      return;
+    }
     switch (entry.kind) {
       case FileSystemEntryKind.directory:
         await goToFileSystemExplorerScreen(
@@ -200,6 +224,8 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
           valueEditors: widget.valueEditors,
           clipboard: widget.clipboard,
           createActions: widget.createActions,
+          fileOpeners: widget.fileOpeners,
+          directoryActions: widget.directoryActions,
         );
       case FileSystemEntryKind.json:
       case FileSystemEntryKind.yaml:
@@ -319,33 +345,44 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
     }
   }
 
-  /// The "open as…" picker: every [FileSystemOpenAsKind], whatever [entry]'s
-  /// own extension guesses — the way out when the guess is wrong, or the file
-  /// holds more than one thing worth looking at.
+  /// The "open as…" picker: every [FileSystemOpenAsKind] and every plugged
+  /// in [FileSystemFileOpener], whatever [entry]'s own extension guesses —
+  /// the way out when the guess is wrong, or the file holds more than one
+  /// thing worth looking at.
   Future<void> _pickOpenAs(FileSystemEntry entry) async {
-    var kind = await showDialog<FileSystemOpenAsKind>(
+    Widget option(Object value, IconData icon, String label) =>
+        SimpleDialogOption(
+          onPressed: () => Navigator.of(context).pop(value),
+          child: Row(
+            children: [
+              Icon(icon, size: 20),
+              const SizedBox(width: 12),
+              Text(label),
+            ],
+          ),
+        );
+    var choice = await showDialog<Object>(
       context: context,
       builder: (context) => SimpleDialog(
         title: Text('Open ${entry.name} as'),
         children: [
           for (var openAs in FileSystemOpenAsKind.values)
-            SimpleDialogOption(
-              onPressed: () => Navigator.of(context).pop(openAs),
-              child: Row(
-                children: [
-                  Icon(openAs.icon, size: 20),
-                  const SizedBox(width: 12),
-                  Text(openAs.label),
-                ],
-              ),
-            ),
+            option(openAs, openAs.icon, openAs.label),
+          for (var opener in _fileOpeners)
+            option(opener, opener.icon, opener.label),
         ],
       ),
     );
-    if (kind == null || !mounted) {
+    if (choice == null || !mounted) {
       return;
     }
-    await _openAs(entry, kind);
+    switch (choice) {
+      case FileSystemOpenAsKind kind:
+        await _openAs(entry, kind);
+      case FileSystemFileOpener opener:
+        await opener.open(context, explorer, entry.path);
+        _reload();
+    }
   }
 
   /// What the file system reports about [entry]: kind, size, when it was
@@ -388,6 +425,8 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
                   children: [
                     for (var openAs in FileSystemOpenAsKind.values)
                       ExplorerChip(label: openAs.label, icon: openAs.icon),
+                    for (var opener in _fileOpeners)
+                      ExplorerChip(label: opener.label, icon: opener.icon),
                   ],
                 ),
               ],
@@ -618,6 +657,13 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
           ),
         )
       else ...[
+        for (var action
+            in widget.directoryActions ?? <FileSystemDirectoryAction>[])
+          IconButton(
+            icon: Icon(action.icon),
+            tooltip: action.label,
+            onPressed: () => action.onPressed(context, explorer, path),
+          ),
         IconButton(
           icon: const Icon(Icons.archive_outlined),
           tooltip: 'Download this folder as a zip',
@@ -683,14 +729,15 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
               );
             }
             var entry = entries[index - 1];
+            var opener = fileSystemFileOpenerOf(_fileOpeners, entry);
             return ListTile(
-              leading: Icon(fileSystemEntryIcon(entry.kind)),
+              leading: Icon(opener?.icon ?? fileSystemEntryIcon(entry.kind)),
               title: Row(
                 children: [
                   Flexible(child: Text(entry.name)),
                   const SizedBox(width: 8),
                   ExplorerChip(
-                    label: entry.kind.name,
+                    label: opener?.kindLabel ?? entry.kind.name,
                     tone: entry.isDatabase
                         ? ExplorerChipTone.accent
                         : ExplorerChipTone.neutral,
@@ -783,7 +830,12 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
   );
 }
 
-/// A screen showing, and editing when the explorer allows it, a text file.
+/// A screen showing, and editing when the explorer allows it, a text file,
+/// in the monospace font.
+///
+/// Ctrl+F finds (any: case and accents ignored, or exact), the matches
+/// highlighted, F3 or enter going from one to the next; ctrl+S saves. A file
+/// that is not utf8 says so and offers the hex editor instead.
 class FileSystemTextFileScreen extends StatefulWidget {
   /// The file system the file lives in.
   final FileSystemExplorer explorer;
@@ -803,10 +855,77 @@ class FileSystemTextFileScreen extends StatefulWidget {
       _FileSystemTextFileScreenState();
 }
 
+/// A text controller painting the find matches.
+class _FindTextEditingController extends TextEditingController {
+  List<TextRange> _matches = const [];
+  var _current = -1;
+  ({TextStyle match, TextStyle current})? _styles;
+
+  void setMatches(
+    List<TextRange> matches,
+    int current,
+    ({TextStyle match, TextStyle current}) styles,
+  ) {
+    _matches = matches;
+    _current = current;
+    _styles = styles;
+    notifyListeners();
+  }
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    var styles = _styles;
+    if (_matches.isEmpty ||
+        styles == null ||
+        (withComposing && value.isComposingRangeValid)) {
+      return super.buildTextSpan(
+        context: context,
+        style: style,
+        withComposing: withComposing,
+      );
+    }
+    var children = <TextSpan>[];
+    var position = 0;
+    for (var (index, match) in _matches.indexed) {
+      // Matches of a text since changed: ignored until found again.
+      if (match.start < position || match.end > text.length) {
+        continue;
+      }
+      if (match.start > position) {
+        children.add(TextSpan(text: text.substring(position, match.start)));
+      }
+      children.add(
+        TextSpan(
+          text: text.substring(match.start, match.end),
+          style: index == _current ? styles.current : styles.match,
+        ),
+      );
+      position = match.end;
+    }
+    if (position < text.length) {
+      children.add(TextSpan(text: text.substring(position)));
+    }
+    return TextSpan(style: style, children: children);
+  }
+}
+
 class _FileSystemTextFileScreenState extends State<FileSystemTextFileScreen> {
   FileSystemExplorer get explorer => widget.explorer;
 
-  final _controller = TextEditingController();
+  bool get isReadOnly => explorer.isReadOnly;
+
+  final _controller = _FindTextEditingController();
+  final _editorFocusNode = FocusNode(debugLabel: 'text');
+  final _fieldKey = GlobalKey();
+  late final _find = ExplorerFindController(search: _search)
+    ..addListener(_onFind);
+  ExplorerTextFinder? _finder;
+  TextRange? _lastMatch;
+  var _revealCount = 0;
   late Future<String> _loading = _load();
   var _isDirty = false;
 
@@ -814,91 +933,237 @@ class _FileSystemTextFileScreenState extends State<FileSystemTextFileScreen> {
     var content = await explorer.readAsString(widget.path);
     _controller.text = content;
     _isDirty = false;
+    _finder = null;
+    _find.refresh();
     return content;
   }
 
   @override
   void dispose() {
+    _find.dispose();
     _controller.dispose();
+    _editorFocusNode.dispose();
     super.dispose();
   }
 
-  Future<void> _save() async {
-    try {
-      await explorer.writeAsString(widget.path, _controller.text);
-      setState(() => _isDirty = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text('Saved ${widget.path}')));
+  List<TextRange> _search(String query, ExplorerFindMode mode) {
+    var finder = _finder;
+    if (finder == null || finder.text != _controller.text) {
+      finder = _finder = ExplorerTextFinder(_controller.text);
+    }
+    return finder.find(query, mode);
+  }
+
+  void _onFind() {
+    if (!mounted) {
+      return;
+    }
+    _controller.setMatches(
+      _find.matches,
+      _find.current,
+      explorerFindStyles(context),
+    );
+    var match = _find.currentMatch;
+    if (match != null) {
+      _lastMatch = match;
+      if (_find.revealCount != _revealCount) {
+        _revealCount = _find.revealCount;
+        WidgetsBinding.instance.addPostFrameCallback((_) => _reveal(match));
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text('$e')));
+    } else if (_find.isOpen) {
+      _lastMatch = null;
+    } else {
+      // Closed: back in the text, on the last match.
+      var last = _lastMatch;
+      _lastMatch = null;
+      if (last != null && last.end <= _controller.text.length) {
+        _controller.selection = TextSelection(
+          baseOffset: last.start,
+          extentOffset: last.end,
+        );
+        _editorFocusNode.requestFocus();
       }
     }
   }
 
+  /// Scrolls [match] into the view of the text field.
+  void _reveal(TextRange match) {
+    EditableTextState? editable;
+    void visit(Element element) {
+      if (editable != null) {
+        return;
+      }
+      if (element is StatefulElement && element.state is EditableTextState) {
+        editable = element.state as EditableTextState;
+        return;
+      }
+      element.visitChildren(visit);
+    }
+
+    _fieldKey.currentContext?.visitChildElements(visit);
+    if (editable != null && match.end <= _controller.text.length) {
+      editable!.bringIntoView(TextPosition(offset: match.end));
+      editable!.bringIntoView(TextPosition(offset: match.start));
+    }
+  }
+
+  void _snack(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  Future<void> _save() async {
+    if (isReadOnly || !_isDirty) {
+      return;
+    }
+    try {
+      await explorer.writeAsString(widget.path, _controller.text);
+      setState(() => _isDirty = false);
+      _snack('Saved ${widget.path}');
+    } catch (e) {
+      _snack('$e');
+    }
+  }
+
+  Future<void> _openHex() async {
+    await goToFileSystemHexFileScreen(
+      context,
+      explorer: explorer,
+      path: widget.path,
+    );
+    if (!_isDirty && mounted) {
+      setState(() {
+        _loading = _load();
+      });
+    }
+  }
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: Text(widget.path, overflow: TextOverflow.fade),
-      actions: [
-        if (explorer.isReadOnly)
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: Center(child: Icon(Icons.lock_outline, size: 20)),
+  Widget build(BuildContext context) => CallbackShortcuts(
+    bindings: {
+      const SingleActivator(LogicalKeyboardKey.keyS, control: true): _save,
+      const SingleActivator(LogicalKeyboardKey.keyS, meta: true): _save,
+      ...explorerFindShortcuts(_find),
+    },
+    // Somewhere for the shortcuts to start from, before the text is focused
+    // (read only, it never is).
+    child: Focus(
+      autofocus: true,
+      child: ExplorerScaffold(
+        title: widget.path,
+        isReadOnly: isReadOnly,
+        stateChip: isReadOnly
+            ? null
+            : _isDirty
+            ? const ExplorerChip(
+                label: 'unsaved',
+                icon: Icons.edit_outlined,
+                tone: ExplorerChipTone.accent,
+              )
+            : const ExplorerChip(label: 'saved', icon: Icons.check),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            tooltip: 'Find (Ctrl+F)',
+            onPressed: _find.toggle,
           ),
-        IconButton(
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Reload',
-          onPressed: () => setState(() {
-            _loading = _load();
-          }),
+          IconButton(
+            icon: const Icon(Icons.data_array),
+            tooltip: 'Open in the hex editor',
+            onPressed: _openHex,
+          ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: 'Reload',
+            onPressed: () => setState(() {
+              _loading = _load();
+            }),
+          ),
+        ],
+        statusBar: ListenableBuilder(
+          listenable: _controller,
+          builder: (context, _) {
+            var text = _controller.text;
+            var lines = text.isEmpty ? 0 : '\n'.allMatches(text).length + 1;
+            return ExplorerStatusBar(
+              message: '$lines lines · ${text.length} chars',
+              trailing: const [ExplorerChip(label: 'utf8')],
+            );
+          },
         ),
-      ],
+        body: FutureBuilder<String>(
+          future: _loading,
+          builder: (context, snapshot) {
+            if (snapshot.hasError) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${snapshot.error}', textAlign: TextAlign.center),
+                      const SizedBox(height: 16),
+                      FilledButton.tonalIcon(
+                        onPressed: _openHex,
+                        icon: const Icon(Icons.data_array),
+                        label: const Text('Open in the hex editor'),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            return Column(
+              children: [
+                ExplorerFindBar(controller: _find),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: KeyedSubtree(
+                      key: _fieldKey,
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _editorFocusNode,
+                        readOnly: isReadOnly,
+                        maxLines: null,
+                        expands: true,
+                        textAlignVertical: TextAlignVertical.top,
+                        style: explorerMonospaceTextStyle,
+                        decoration: const InputDecoration(
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (_) {
+                          _find.refresh();
+                          if (!_isDirty) {
+                            setState(() => _isDirty = true);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
+        floatingActionButton: isReadOnly
+            ? null
+            : FloatingActionButton(
+                tooltip: _isDirty ? 'Save (Ctrl+S)' : 'Nothing to save',
+                onPressed: _isDirty ? _save : null,
+                backgroundColor: _isDirty
+                    ? null
+                    : Theme.of(context).disabledColor,
+                child: const Icon(Icons.save),
+              ),
+      ),
     ),
-    body: FutureBuilder<String>(
-      future: _loading,
-      builder: (context, snapshot) {
-        if (snapshot.hasError) {
-          return Center(child: Text('${snapshot.error}'));
-        }
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        return Padding(
-          padding: const EdgeInsets.all(8),
-          child: TextField(
-            controller: _controller,
-            readOnly: explorer.isReadOnly,
-            maxLines: null,
-            expands: true,
-            textAlignVertical: TextAlignVertical.top,
-            style: const TextStyle(
-              fontFamily: festenaoMonospaceFontFamily,
-              fontSize: 13,
-            ),
-            decoration: const InputDecoration(border: OutlineInputBorder()),
-            onChanged: (_) {
-              if (!_isDirty) {
-                setState(() => _isDirty = true);
-              }
-            },
-          ),
-        );
-      },
-    ),
-    floatingActionButton: explorer.isReadOnly
-        ? null
-        : FloatingActionButton(
-            tooltip: _isDirty ? 'Save' : 'Nothing to save',
-            onPressed: _isDirty ? _save : null,
-            backgroundColor: _isDirty ? null : Theme.of(context).disabledColor,
-            child: const Icon(Icons.save),
-          ),
   );
 }
 
@@ -910,6 +1175,8 @@ Future<void> goToFileSystemExplorerScreen(
   ObjectValueEditorRegistry? valueEditors,
   FlutterObjectClipboard? clipboard,
   List<FileSystemCreateAction>? createActions,
+  List<FileSystemFileOpener>? fileOpeners,
+  List<FileSystemDirectoryAction>? directoryActions,
 }) => Navigator.of(context).push<void>(
   MaterialPageRoute(
     builder: (_) => FileSystemExplorerScreen(
@@ -918,6 +1185,8 @@ Future<void> goToFileSystemExplorerScreen(
       valueEditors: valueEditors,
       clipboard: clipboard,
       createActions: createActions,
+      fileOpeners: fileOpeners,
+      directoryActions: directoryActions,
     ),
   ),
 );

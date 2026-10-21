@@ -20,7 +20,8 @@ only or read write, on the disk, in memory, or in a browser.
 | The tree, and what opens each entry | `FileSystemExplorer` | `file_system_explorer.dart` |
 | An open database and what browses it | `FileSystemDatabase`, `FileSystemDatabaseKind` | `file_system_explorer.dart` |
 | sembast over `fs_shim` | `getDatabaseFactoryFsShim`, `getSdbFactoryFsShim` | `sembast_fs_shim.dart` |
-| The screens | `FileSystemExplorerScreen`, `FileSystemTextFileScreen` | `festenao_common_flutter` |
+| The screens | `FileSystemExplorerScreen`, `FileSystemTextFileScreen`, `FileSystemHexFileScreen` | `festenao_common_flutter` |
+| A viewer an app plugs in | `FileSystemFileOpener` (`pbFileSystemOpener`, `PbFileScreen`) | `festenao_common_flutter` (`pb_explorer_flutter.dart`) |
 
 `lib/fs/file_system_explorer.dart` imports on the web. `fileSystemIo` is in
 `lib/fs/file_system_explorer_io.dart`.
@@ -193,19 +194,76 @@ straight away. It is what the picker offers unless an app passes its own.
 
 ### 9. Text and binary files
 
-A text file opens in `FileSystemTextFileScreen`. Anything else opens in
-`FileSystemHexFileScreen`: the classic dump — offset, the bytes of the row in
-hex, the printable ones as text — plus, above it, the whole content decoded as
-text when it happens to be valid utf8, which is what tells a mislabelled text
-file from a real binary one at a glance.
+A text file opens in `FileSystemTextFileScreen`, in the monospace font: ctrl+S
+saves, the status bar counts lines and characters, and a file that is not utf8
+says so and offers the hex editor.
 
-A row is edited by tapping it and retyping its bytes, with or without spaces;
-a row may be given fewer or more of them, so the file grows and shrinks from
-its end.
+Anything else opens in `FileSystemHexFileScreen`: the classic dump — offset,
+the bytes of the row in hex and, side by side, the same bytes as text between
+bars like `hexdump -C` — with as many bytes a row as the width holds
+(`FileSystemHexLayout.auto`, 4 to 64; the column menu forces one). Above it,
+the whole content decoded as text when it happens to be valid utf8, which is
+what tells a mislabelled text file from a real binary one at a glance.
+
+Tapping a byte, in either column, selects it in both, and then the keyboard
+edits it: hex digits in the hex column, characters in the text column, the
+arrows (home, end, page up and down) move, delete and backspace remove, insert
+adds a zero byte, the end of the file is a position where typing appends,
+ctrl+S saves. Without a keyboard, the bar of the selection writes or inserts
+bytes typed in hex or as text, deletes, and retypes the whole row — as a long
+press on a row does.
 
 ---
 
-### 10. Picking the directory, and the debug menu
+Every text view and editor of the explorer finds: ctrl+F (or the search
+button) opens the find bar, enter or F3 goes to the next match, shift+enter
+or shift+F3 to the previous one, escape closes it (back in the text, on the
+match). **Any**, the default, trims the query and ignores case and accents
+(`removeDiacritics` of `tekartik_app_text`, then lower case, the matches
+mapped back to the original text); **Exact** takes it as typed; the hex
+editor also finds **Hex** bytes, and reads the bytes as utf8 (latin1
+otherwise) for the text modes. `ExplorerFindBar`, `ExplorerFindController`
+and `ExplorerTextView` are there for other screens. The monospace text
+(`explorerMonospaceTextStyle`) falls back on the platform monospace fonts
+when the app did not load the festenao ones (`loadFestenaoFonts`).
+
+---
+
+### 10. Viewers the app plugs in
+
+A format the explorer does not know gets its own viewer through a
+`FileSystemFileOpener`: the extensions a tap opens with it, plus a label and an
+icon for the listing and "open as…", which offers every plugged in opener for
+any file.
+
+```dart
+await goToFileSystemExplorerScreen(
+  context,
+  explorer: explorer,
+  fileOpeners: [pbFileSystemOpener],
+);
+```
+
+An app adds its own actions to the app bar too, on the directory listed and
+all the way down, with `directoryActions` (`FileSystemDirectoryAction`):
+`tkassetexplorer` switches between the images of a folder and its files that
+way, the explorer knowing nothing of the images.
+
+`pbFileSystemOpener` is the protobuf one, in its own library
+(`festenao_common_flutter/pb_explorer_flutter.dart`) so that only the apps
+listing it link it. `PbFileScreen` shows a `.pb` file without any schema as a
+tree of fields — number, wire type, value — expanding the embedded messages and
+groups, guesses whether a length delimited value is text, a message or bytes
+("view as" changes the guess, packed numbers included), and prints the whole
+file like `protoc --decode_raw`. A writable explorer edits a value in any
+format its wire type allows, renumbers, adds and deletes fields; the messages
+above an edit are encoded again, the untouched fields keep their bytes. It is
+built on `tekartik_app_pb` (`app_common_utils.dart/app_pb`), whose reader does
+not link its writer.
+
+---
+
+### 11. Picking the directory, and the debug menu
 
 `FileSystemRootPickerScreen` picks what the explorer opens on, among the
 directories `path_provider` names — documents, support, temporary, downloads,
@@ -231,7 +289,7 @@ app gets, in `dashboardDebugMenuContent()` and the ready made
 
 ---
 
-### 11. The app's own database factories
+### 12. The app's own database factories
 
 The explorer opens databases through the `fs_shim` bridge by default. Give it
 the factories the app itself uses and it opens the very databases the app

@@ -2,6 +2,8 @@ import 'package:festenao_common/data/object_editor.dart';
 import 'package:festenao_theme/theme.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'explorer_text_style.dart';
+
 /// The size the small labels of the explorer ui are drawn at.
 ///
 /// The text themes leave the size of `labelSmall` to the widget, so the
@@ -95,6 +97,9 @@ class ExplorerChip extends StatelessWidget {
               // draws them, and a badge wants to stay a badge.
               fontSize: explorerChipFontSize,
               fontFamily: monospace ? festenaoMonospaceFontFamily : null,
+              fontFamilyFallback: monospace
+                  ? explorerMonospaceFontFallback
+                  : null,
               fontFeatures: const [FontFeature.tabularFigures()],
               height: 1.2,
             ),

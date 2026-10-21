@@ -63,6 +63,9 @@ const fileSystemTextExtensions = <String>{
   '.properties',
   '.lock',
   '.gitignore',
+  // Protobuf text format, the readable side of `.pb` files.
+  '.textproto',
+  '.pbtxt',
 };
 
 /// The extensions read as [FileSystemEntryKind.database].

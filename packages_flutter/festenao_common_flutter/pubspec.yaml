@@ -40,6 +40,18 @@ dependencies:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
       path: app
+  # The protobuf (.pb) viewer of pb_explorer_flutter.dart.
+  tekartik_app_pb:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      path: app_pb
+    version: '>=0.1.0'
+  # The "any" find: accents removed (TekartikAppTextDiacriticsExt).
+  tekartik_app_text:
+    git:
+      url: https://github.com/tekartik/app_common_utils.dart
+      path: app_text
+    version: '>=1.0.0'
   tekartik_app_dev_menu:
     git:
       url: https://github.com/tekartik/app_common_utils.dart
