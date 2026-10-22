@@ -576,6 +576,38 @@ void testFestenaoServerGroup(
     }
   });
 
+  test('an invalid entity id is refused', () async {
+    var auth = context.clientContext.firebaseAuth;
+    var credentials = context.clientContext.credentials;
+    if (auth == null || noSignIn || credentials == null) {
+      return;
+    }
+    var client = context.projectApiClient;
+    await auth.signInWithEmailAndPassword(
+      email: credentials.email,
+      password: credentials.password,
+    );
+    // An id is never a path: `a/b/c` would name a deeper document, `/test/x`
+    // one from the root of the database (the test collection, should an old
+    // server accept it).
+    for (var entityId in ['a/b/c', '/test/invalid_entity_id', '..', '__x__']) {
+      await _expectApiErrorCode(
+        () => client.createEntity(
+          entity: FsProject()..name.v = 'invalid',
+          entityId: entityId,
+        ),
+        HttpsErrorCode.invalidArgument,
+      );
+      await _expectApiErrorCode(
+        () => client.joinEntity(
+          entityId: entityId,
+          fsUserAccess: TkCmsFsUserAccess()..grantAdminAccess(),
+        ),
+        HttpsErrorCode.invalidArgument,
+      );
+    }
+  });
+
   test('object storage', () async {
     var objectStorageApiClient = ObjectStorageApiClient(
       httpsUri: apiService.httpsApiUri!,

@@ -163,7 +163,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       var query = apiRequest.query<FsCmsEntityCreateApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
       var userId = _requireUserId(apiRequest);
-      var entityId = query.entityId.v;
+      var entityId = _optionalId(query.entityId);
       //var entity = entityAccess.fsEntityRef(entityId).cv()..fsDataFromJsonMap(firestore, query.data.v!);
       var model = documentDataMapFromJsonMap(firestore, asModel(query.data.v!));
       var entity = model.cv<T>();
@@ -191,7 +191,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       var query = apiRequest.query<FsCmsEntityDeleteApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
       var userId = _requireUserId(apiRequest);
-      var entityId = _requireField(query.entityId);
+      var entityId = _requireId(query.entityId);
       var isAppAdmin = await _requireEntityOrAppAdmin(entityId, userId);
       if (isAppAdmin) {
         await entityAccess.adminDeleteEntity(entityId);
@@ -213,7 +213,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       var query = apiRequest.query<FsCmsEntityPurgeApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
       var userId = _requireUserId(apiRequest);
-      var entityId = _requireField(query.entityId);
+      var entityId = _requireId(query.entityId);
       await _requireEntityOrAppAdmin(entityId, userId);
       await entityAccess.purgeEntity(entityId, userId: userId);
 
@@ -235,7 +235,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       var query = apiRequest.query<FsCmsEntityJoinApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
       var userId = _requireUserId(apiRequest);
-      var entityId = _requireField(query.entityId);
+      var entityId = _requireId(query.entityId);
       var access = query.access.v;
       if (access == null) {
         throw (ApiError()
@@ -266,7 +266,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       var query = apiRequest.query<FsCmsEntityLeaveApiQuery<T>>()
         ..fromMap(apiRequest.data.v!);
       var userId = _requireUserId(apiRequest);
-      var entityId = _requireField(query.entityId);
+      var entityId = _requireId(query.entityId);
       await entityAccess.leaveEntity(entityId, userId: userId);
 
       var result = FsCmsEntityLeaveApiResult()..entityId.setValue(entityId);
@@ -281,7 +281,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var query = apiRequest.query<FsCmsEntityCreateInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
     var userId = _requireUserId(apiRequest);
-    var entityId = query.entityId.v!;
+    var entityId = _requireId(query.entityId);
     var email = tkCmsNormalizeInviteEmail(query.email.v);
     var userAccess = TkCmsCvUserAccess()..copyAccessFrom(query);
     var fsEntity = await entityAccess.fsEntityCollectionRef
@@ -307,8 +307,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var query = apiRequest.query<FsCmsEntityAcceptInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
     var userId = _requireUserId(apiRequest);
-    var entityId = query.entityId.v!;
-    var inviteId = query.inviteId.v!;
+    var entityId = _requireId(query.entityId);
+    var inviteId = _requireId(query.inviteId);
     // The email comes from the client (the api request only carries a
     // verified userId), it is checked against the invite email, if any.
     var email = tkCmsNormalizeInviteEmail(query.email.v);
@@ -330,8 +330,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var query = apiRequest.query<FsCmsEntityDeleteInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
     var userId = _requireUserId(apiRequest);
-    var entityId = _requireField(query.entityId);
-    var inviteId = _requireField(query.inviteId);
+    var entityId = _requireId(query.entityId);
+    var inviteId = _requireId(query.inviteId);
     await _requireEntityOrAppAdmin(entityId, userId);
     await entityAccess.deleteInviteEntity(
       inviteId: inviteId,
@@ -363,14 +363,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
             ..noRetry.v = true)
           .exception();
     }
-    var entityId = query.entityId.v;
-    if (entityId == null) {
-      throw (ApiError()
-            ..code.v = apiErrorCodeInternal
-            ..message.v = 'Missing entityId'
-            ..noRetry.v = true)
-          .exception();
-    }
+    var entityId = _requireId(query.entityId);
     var public = query.public.v ?? false;
     var userAccess = await entityAccess
         .fsEntityUserAccessRef(entityId, userId)
@@ -419,14 +412,34 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     return userId;
   }
 
-  /// A required query field, neither null nor empty (an empty id would
-  /// otherwise reach Firestore as an invalid document path).
-  String _requireField(CvField<String> field) {
+  /// A required id of the query, `invalid-argument` when missing or not a
+  /// valid document id (see [_checkId]).
+  String _requireId(CvField<String> field) {
     var value = field.v;
     if (value == null || value.isEmpty) {
       throw (ApiError()
             ..code.v = HttpsErrorCode.invalidArgument
             ..message.v = 'Missing ${field.name}'
+            ..noRetry.v = true)
+          .exception();
+    }
+    return _checkId(field);
+  }
+
+  /// An optional id of the query, null when not set, `invalid-argument` when
+  /// not a valid document id (see [_checkId]).
+  String? _optionalId(CvField<String> field) =>
+      field.v == null ? null : _checkId(field);
+
+  /// The id of [field], `invalid-argument` unless it is a valid document id
+  /// ([tkCmsIsValidDocumentId]): a client id is never a path, `a/b` or `/a/b`
+  /// would name another document than the one of the entity.
+  String _checkId(CvField<String> field) {
+    var value = field.v!;
+    if (!tkCmsIsValidDocumentId(value)) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.invalidArgument
+            ..message.v = 'Invalid ${field.name}'
             ..noRetry.v = true)
           .exception();
     }
@@ -586,7 +599,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var query = apiRequest.query<FsCmsEntityCreateEmailInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
     var userId = _requireUserId(apiRequest);
-    var entityId = _requireField(query.entityId);
+    var entityId = _requireId(query.entityId);
     var email = tkCmsNormalizeInviteEmail(query.email.v);
     if (email == null) {
       throw (ApiError()
@@ -664,8 +677,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var query = apiRequest.query<FsCmsEntityGetUserInfoApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
     var callerUserId = _requireUserId(apiRequest);
-    var entityId = _requireField(query.entityId);
-    var userId = _requireField(query.userId);
+    var entityId = _requireId(query.entityId);
+    var userId = _requireId(query.userId);
     var access = await entityAccess
         .fsEntityUserAccessRef(entityId, userId)
         .get(firestore);
@@ -702,7 +715,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var query = apiRequest.query<FsCmsEntityListEmailInvitesApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
     var userId = _requireUserId(apiRequest);
-    var entityId = _requireField(query.entityId);
+    var entityId = _requireId(query.entityId);
     await _requireEntityOrAppAdmin(entityId, userId);
     var invites = await entityAccess.listEntityEmailInvites(
       entityId,
@@ -720,8 +733,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var query = apiRequest.query<FsCmsEntityDeleteEmailInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
     var userId = _requireUserId(apiRequest);
-    var entityId = _requireField(query.entityId);
-    var inviteId = _requireField(query.inviteId);
+    var entityId = _requireId(query.entityId);
+    var inviteId = _requireId(query.inviteId);
     await _requireEntityOrAppAdmin(entityId, userId);
     await entityAccess.deleteEmailInviteEntity(
       inviteId: inviteId,
@@ -755,7 +768,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       email,
       status: tkCmsEmailInviteStatusPending,
     );
-    var entityId = query.entityId.v;
+    var entityId = _optionalId(query.entityId);
     if (entityId != null) {
       invites = invites
           .where((invite) => invite.entityId.v == entityId)
@@ -776,8 +789,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var query = apiRequest.query<FsCmsEntityAcceptEmailInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
     var userId = _requireUserId(apiRequest);
-    var entityId = _requireField(query.entityId);
-    var inviteId = _requireField(query.inviteId);
+    var entityId = _requireId(query.entityId);
+    var inviteId = _requireId(query.inviteId);
     var email = await _requireVerifiedEmail(userId);
     await _checkEntityEmailInvite(entityId, inviteId);
     await entityAccess.acceptEmailInviteEntity(
@@ -799,8 +812,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var query = apiRequest.query<FsCmsEntityDiscardEmailInviteApiQuery<T>>()
       ..fromMap(apiRequest.data.v!);
     var userId = _requireUserId(apiRequest);
-    var entityId = _requireField(query.entityId);
-    var inviteId = _requireField(query.inviteId);
+    var entityId = _requireId(query.entityId);
+    var inviteId = _requireId(query.inviteId);
     var email = await _requireVerifiedEmail(userId);
     await _checkEntityEmailInvite(entityId, inviteId);
     await entityAccess.discardEmailInviteEntity(
