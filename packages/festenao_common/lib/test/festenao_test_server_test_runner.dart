@@ -12,7 +12,6 @@ import 'package:festenao_common/server/festenao_projects_server_app.dart';
 import 'package:festenao_common/test/entity_set_public_api_test_runner.dart';
 import 'package:tekartik_app_media/mime_type.dart';
 import 'package:tekartik_firebase_functions/ff_server.dart';
-import 'package:tkcms_common/tkcms_app.dart';
 import 'package:tkcms_common/tkcms_common.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
@@ -258,7 +257,8 @@ initFestenaoTestServerContextAllMemory() async {
     callableApi: ffContext.functionsCall.callable(ffServerApp.callCommand),
     httpClientFactory: httpClientFactory,
     httpsApiUri: commandUri,
-    app: tkCmsAppDev,
+    // The server app id: the timestamp command refuses another one.
+    app: ffServerApp.app,
   );
   var fsDatabase = FestenaoFirestoreDatabase(
     firebaseContext: ffContext,

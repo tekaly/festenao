@@ -40,17 +40,51 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
   }) : super(app, apiVersion: apiVersion2);
 
   /// True when this server may handle [app], whether named by an api
-  /// command (`ApiRequest.app`) or a cms site url: a dev server handles no
-  /// prod app, a prod server no dev app (see [festenaoIsDevApp]).
+  /// command (`ApiRequest.app`) or a cms site url.
   ///
-  /// Not checked yet, neither by [onCommand] nor by [handleCmsRequest] (whose
-  /// app is the server one, see [cmsSiteOf]).
-  bool isAppAllowed(String app) =>
-      flavorContext.isProd ? !festenaoIsDevApp(app) : festenaoIsDevApp(app);
+  /// A prod server handles its own app only. Another one (dev, test) also
+  /// handles the dev and test variants of its app (same [festenaoAppRoot],
+  /// see [festenaoIsDevOrTestApp]), never a prod one: `buzzerelio-dev`
+  /// handles `buzzerelio_dev`, `buzzerelio-test` or `buzzerelio_dev_local`,
+  /// not `buzzerelio-prod` nor `buzzerelio`. A request without app is
+  /// refused.
+  ///
+  /// Only checked for the timestamp command for now ([checkApiRequestApp]),
+  /// not by [handleCmsRequest] (whose app is the server one, see
+  /// [cmsSiteOf]).
+  bool isAppAllowed(String? app) {
+    if (app == null) {
+      return false;
+    }
+    if (app == this.app) {
+      return true;
+    }
+    if (flavorContext.isProd) {
+      return false;
+    }
+    return festenaoIsDevOrTestApp(app) &&
+        festenaoAppRoot(app) == festenaoAppRoot(this.app);
+  }
+
+  /// Refuses with `permission-denied` an [apiRequest] whose app is not
+  /// handled here (see [isAppAllowed]).
+  void checkApiRequestApp(ApiRequest apiRequest) {
+    var app = apiRequest.app.v;
+    if (!isAppAllowed(app)) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.permissionDenied
+            ..message.v = 'App $app not served here'
+            ..noRetry.v = true)
+          .exception();
+    }
+  }
 
   @override
   Future<ApiResult> onCommand(ApiRequest apiRequest) async {
     switch (apiRequest.command.v!) {
+      case commandTimestamp:
+        checkApiRequestApp(apiRequest);
+        return super.onCommand(apiRequest);
       default:
         return super.onCommand(apiRequest);
     }

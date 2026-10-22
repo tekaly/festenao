@@ -18,7 +18,6 @@ import 'package:festenao_common/test/quizz_server_test_runner.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
 import 'package:tekartik_firebase_functions_call_rest/functions_call_rest.dart';
 import 'package:test/test.dart';
-import 'package:tkcms_common/tkcms_app.dart';
 import 'package:tkcms_common/tkcms_common.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 import 'package:tkcms_common/tkcms_server.dart';
@@ -103,7 +102,8 @@ Future<FestenaoTestServerEmulatorContext> initEmulatorServerContext() async {
   var apiService = FestenaoApiService(
     httpsApiUri: httpsApiUri,
     callableApi: functionsCall.callableFromUri(callableApiUri),
-    app: tkCmsAppDev,
+    // The functions app id: the timestamp command refuses another one.
+    app: testAppId,
   );
   await apiService.initClient();
 

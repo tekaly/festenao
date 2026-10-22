@@ -61,6 +61,27 @@ void main() {
     expect(festenaoIsDevApp('devotion'), isFalse);
   });
 
+  test('festenaoAppRoot', () {
+    expect(festenaoAppRoot('buzzerelio-dev'), 'buzzerelio');
+    expect(festenaoAppRoot('buzzerelio-prod'), 'buzzerelio');
+    expect(festenaoAppRoot('buzzerelio_dev_local'), 'buzzerelio');
+    expect(festenaoAppRoot('festenao_test'), 'festenao');
+    expect(festenaoAppRoot('festenao'), 'festenao');
+    expect(festenaoAppRoot('festenao-devotion'), 'festenao-devotion');
+    expect(festenaoAppRoot('my-app-devx'), 'my-app');
+  });
+
+  test('festenaoIsDevOrTestApp', () {
+    expect(festenaoIsDevOrTestApp('festenao-dev'), isTrue);
+    expect(festenaoIsDevOrTestApp('festenao_devx'), isTrue);
+    expect(festenaoIsDevOrTestApp('festenao_test'), isTrue);
+    expect(festenaoIsDevOrTestApp('festenao_dev_local'), isTrue);
+    expect(festenaoIsDevOrTestApp('festenao'), isFalse);
+    expect(festenaoIsDevOrTestApp('festenao-prod'), isFalse);
+    expect(festenaoIsDevOrTestApp('festenao-prodx'), isFalse);
+    expect(festenaoIsDevOrTestApp('festenao-devotion'), isFalse);
+  });
+
   group('server cms', () {
     const app = 'festenao-dev';
     late FirebaseContext firebaseContext;
@@ -184,18 +205,65 @@ void main() {
       expect((await get('cms/p1/content/page/news')).statusCode, 200);
     });
 
+    FestenaoServerApp newProdServer() => FestenaoServerApp(
+      context: TkCmsServerAppContext(
+        firebaseContext: firebaseContext,
+        flavorContext: FlavorContext.prod,
+      ),
+    );
+
     test('isAppAllowed', () {
       expect(server.isAppAllowed('festenao-dev'), isTrue);
+      expect(server.isAppAllowed('festenao_dev'), isTrue);
+      expect(server.isAppAllowed('festenao-devx'), isTrue);
+      expect(server.isAppAllowed('festenao_test'), isTrue);
+      expect(server.isAppAllowed('festenao_dev_local'), isTrue);
       expect(server.isAppAllowed('festenao'), isFalse);
-      var prodServer = FestenaoServerApp(
-        context: TkCmsServerAppContext(
-          firebaseContext: firebaseContext,
-          flavorContext: FlavorContext.prod,
-        ),
-      );
+      expect(server.isAppAllowed('festenao-prod'), isFalse);
+      expect(server.isAppAllowed('buzzerelio-dev'), isFalse);
+      expect(server.isAppAllowed('tkcms_dev'), isFalse);
+      expect(server.isAppAllowed(null), isFalse);
+      var prodServer = newProdServer();
       expect(prodServer.cmsCommand, 'cms');
       expect(prodServer.isAppAllowed('festenao'), isTrue);
       expect(prodServer.isAppAllowed('festenao-dev'), isFalse);
+      expect(prodServer.isAppAllowed('festenao_test'), isFalse);
+      expect(prodServer.isAppAllowed('festenao-prod'), isFalse);
+      expect(prodServer.isAppAllowed(null), isFalse);
+    });
+
+    test('timestamp app check', () async {
+      Future<ApiResult> timestamp(FestenaoServerApp server, String? app) =>
+          server.onCommand(
+            ApiRequest(command: commandTimestamp)..app.setValue(app),
+          );
+      Future<void> expectRefused(FestenaoServerApp server, String? app) async {
+        try {
+          await timestamp(server, app);
+          fail('$app should be refused');
+        } on ApiException catch (e) {
+          expect(e.error?.code.v, HttpsErrorCode.permissionDenied);
+        }
+      }
+
+      var prodServer = newProdServer();
+      expect(
+        await timestamp(server, 'festenao-dev'),
+        isA<ApiGetTimestampResponse>(),
+      );
+      expect(
+        await timestamp(server, 'festenao_test'),
+        isA<ApiGetTimestampResponse>(),
+      );
+      expect(
+        await timestamp(prodServer, 'festenao'),
+        isA<ApiGetTimestampResponse>(),
+      );
+      // Dev calling prod, prod calling dev, no app.
+      await expectRefused(server, 'festenao');
+      await expectRefused(prodServer, 'festenao-dev');
+      await expectRefused(server, null);
+      await expectRefused(prodServer, null);
     });
   });
 }

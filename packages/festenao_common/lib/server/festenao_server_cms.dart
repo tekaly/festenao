@@ -25,6 +25,24 @@ bool festenaoIsDevApp(String app) => _devAppRegExp.hasMatch(app);
 
 final _devAppRegExp = RegExp(r'[-_]devx?$');
 
+/// An app id with a flavor suffix, possibly followed by more
+/// (`buzzerelio-dev`, `buzzerelio_prod`, `buzzerelio_dev_local`): the root,
+/// then the flavor.
+final _flavoredAppRegExp = RegExp(r'^(.+)[-_](devx?|prodx?|test)(?:[-_].*)?$');
+
+/// The app id without its flavor suffix: `buzzerelio` for `buzzerelio-dev`,
+/// `buzzerelio-prod` or `buzzerelio_dev_local`, [app] itself without one.
+String festenaoAppRoot(String app) =>
+    _flavoredAppRegExp.firstMatch(app)?.group(1) ?? app;
+
+/// True when [app] is a dev or test app, named with a `dev`, `devx` or
+/// `test` flavor suffix, possibly followed by more (`festenao-dev`,
+/// `festenao_test`, `festenao_dev_local`).
+bool festenaoIsDevOrTestApp(String app) {
+  var flavor = _flavoredAppRegExp.firstMatch(app)?.group(2);
+  return flavor != null && !flavor.startsWith('prod');
+}
+
 /// Document of a project: `app/<app>/project/<projectId>`.
 String festenaoProjectDocumentPath({
   required String app,
