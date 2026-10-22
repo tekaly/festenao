@@ -1,4 +1,6 @@
 import 'package:festenao_theme/legacy_material.dart';
+// flutter_markdown_plus (1.0.12) is still built on the legacy library.
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart' as legacy show Theme;
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:material_ui/material_ui.dart';

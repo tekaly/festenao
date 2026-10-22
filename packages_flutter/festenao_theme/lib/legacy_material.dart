@@ -1,3 +1,6 @@
+// The bridge to the legacy library, the one place festenao imports it for
+// the third party widgets not yet on material_ui (flutter_markdown_plus).
+// ignore: deprecated_member_use
 import 'package:flutter/material.dart' as legacy;
 import 'package:material_ui/material_ui.dart';
 

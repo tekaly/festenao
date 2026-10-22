@@ -3,5 +3,8 @@ output-dir: lib/l10n
 template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
 format: true
+# gen-l10n (3.49 beta included) still lists the flutter_localizations
+# delegates, deprecated for the material_ui ones the app uses (app_intl.dart).
+header: "// ignore_for_file: deprecated_member_use"
 arb-translate-model: gemini-1.5-pro
 # untranslated-messages-file: .untranslated-messages.txt
