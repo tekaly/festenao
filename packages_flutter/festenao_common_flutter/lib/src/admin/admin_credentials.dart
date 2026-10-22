@@ -153,13 +153,24 @@ class AdminCredentialsDb {
   Future<AdminCredentials?> get(String id) =>
       adminCredentialsStore.record(id).get(database);
 
+  /// A new credentials id, `credentials_<millis>`, with a suffix when two
+  /// are added in the same millisecond (the second overwrote the first).
+  Future<String> _newId() async {
+    var base = 'credentials_${DateTime.now().millisecondsSinceEpoch}';
+    var id = base;
+    for (var i = 1; await get(id) != null; i++) {
+      id = '${base}_$i';
+    }
+    return id;
+  }
+
   /// Adds a set of credentials, answering the id it took.
   Future<String> add({
     String? label,
     required String serviceAccount,
     String? projectId,
   }) async {
-    var id = 'credentials_${DateTime.now().millisecondsSinceEpoch}';
+    var id = await _newId();
     await put(
       id,
       label: label,
@@ -189,7 +200,7 @@ class AdminCredentialsDb {
   /// Adds the project [projectId] reached as the gcloud user, answering the
   /// id it took.
   Future<String> addGcloud({String? label, required String projectId}) async {
-    var id = 'credentials_${DateTime.now().millisecondsSinceEpoch}';
+    var id = await _newId();
     await putGcloud(id, label: label, projectId: projectId);
     return id;
   }
