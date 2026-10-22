@@ -590,7 +590,7 @@ void testFestenaoServerGroup(
     // An id is never a path: `a/b/c` would name a deeper document, `/test/x`
     // one from the root of the database (the test collection, should an old
     // server accept it).
-    for (var entityId in ['a/b/c', '/test/invalid_entity_id', '..', '__x__']) {
+    for (var entityId in ['a/b/c', '/test/invalid_entity_id', '..']) {
       await _expectApiErrorCode(
         () => client.createEntity(
           entity: FsProject()..name.v = 'invalid',

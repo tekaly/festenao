@@ -40,9 +40,16 @@ void main() {
 
   test('no raw firestore doc api', () async {
     var path = 'access/app/entity_id/festenao_dev/user_access/attacker';
+    // An unknown command for the deployed app.
     await expectLater(
       newFfApp().onCommand(rawSetRequest(path)),
-      throwsA(isA<UnsupportedError>()),
+      throwsA(
+        isA<ApiException>().having(
+          (e) => e.error?.code.v,
+          'code',
+          apiErrorCodeUnimplemented,
+        ),
+      ),
     );
     expect((await firebaseContext.firestore.doc(path).get()).exists, isFalse);
   });

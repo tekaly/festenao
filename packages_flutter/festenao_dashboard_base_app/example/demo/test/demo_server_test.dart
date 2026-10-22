@@ -103,6 +103,8 @@ void main() {
       var apiService = FestenaoApiService(
         httpClientFactory: httpFactoryMemory.client,
         httpsApiUri: server.uri.replace(path: '/$functionCommandDartV2Dev'),
+        // The server app id: the timestamp command refuses another one.
+        app: server.ffApp!.app,
       );
       await apiService.initClient();
       var timestamp = await apiService.getTimestamp();
