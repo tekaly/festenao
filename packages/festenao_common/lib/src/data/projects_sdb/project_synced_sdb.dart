@@ -14,6 +14,10 @@ import 'package:tekartik_firebase_storage/storage.dart';
 /// `app/<app>/project/<projectUid>/data/<dataId>`.
 ///
 /// Reused by every project-scoped content database (blog, festenao content, …).
+///
+/// The medias are in [storageBucket], the default bucket of [firebaseStorage]
+/// when null. Without either (a server app with no bucket configured, that
+/// only reads the records), the records sync and the medias do not.
 Future<FestenaoSyncedSdb> openProjectFestenaoSyncedSdb({
   FileSystem? fs,
   FileSystem? rootFs,
@@ -29,6 +33,10 @@ Future<FestenaoSyncedSdb> openProjectFestenaoSyncedSdb({
   /// Media contents kept locally, all by default.
   SyncedMediaCacheOptions mediaCacheOptions =
       const SyncedMediaCacheOptions.all(),
+
+  /// The bucket of the medias, the default one of [firebaseStorage] when
+  /// null.
+  String? storageBucket,
 }) async {
   var projectUid = project.uid.v!;
   var dbName = '${dataId}_${app}_${projectUid}_synced.db';
@@ -38,7 +46,8 @@ Future<FestenaoSyncedSdb> openProjectFestenaoSyncedSdb({
     firebaseProjectId: projectUid,
     firestoreRoot: rootDocPath,
     storageRoot: rootDocPath,
-    storageBucket: firebaseStorage.app.options.storageBucket!,
+    storageBucket:
+        storageBucket ?? firebaseStorage.app.options.storageBucket ?? '',
   );
   fileSystem ??= rootFs!.sandbox(path: rootFs.path.join(projectUid, dataId));
   var factory = sdbFactory.sandbox(path: join(projectUid, dataId));

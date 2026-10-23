@@ -529,6 +529,40 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
         .exception();
   }
 
+  /// Requires [userId] to have on [entityId] at least read access, write
+  /// access with [write], admin access with [admin], or to be an app admin;
+  /// `permission-denied` otherwise.
+  ///
+  /// For the handlers of the data of an entity (the commands of a module on a
+  /// project), checking its access rows as the security rules do.
+  Future<void> requireUserAccess({
+    required String entityId,
+    required String userId,
+    bool write = false,
+    bool admin = false,
+  }) async {
+    var access = await entityAccess
+        .fsEntityUserAccessRef(entityId, userId)
+        .get(firestore);
+    if (access.exists) {
+      access.fixAccess();
+      var granted = admin
+          ? access.isAdmin
+          : (write ? access.isWrite : access.isRead);
+      if (granted) {
+        return;
+      }
+    }
+    if (await _isAppAdmin(userId)) {
+      return;
+    }
+    throw (ApiError()
+          ..code.v = HttpsErrorCode.permissionDenied
+          ..message.v = 'No access to this entity'
+          ..noRetry.v = true)
+        .exception();
+  }
+
   /// True when [access] has every right of [wanted]: read, write, admin and
   /// each role (no escalation).
   static bool _accessCovers(

@@ -56,8 +56,16 @@ class FestenaoProjectsServerApp extends FestenaoServerApp {
     ),
   );
 
+  /// The handlers a module registers (the commands of a private module, say),
+  /// tried after the project and quizz ones: add them once, at start.
+  final moduleApiHandlers = <FestenaoApiHandler>[];
+
   /// The handlers tried in order by [onCommand], before the base commands.
-  List<FestenaoApiHandler> get apiHandlers => [projectHandler, quizzHandler];
+  List<FestenaoApiHandler> get apiHandlers => [
+    projectHandler,
+    quizzHandler,
+    ...moduleApiHandlers,
+  ];
 
   @override
   Future<ApiResult> onCommand(ApiRequest apiRequest) async {
