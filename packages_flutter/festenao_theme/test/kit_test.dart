@@ -24,6 +24,13 @@ void main() {
     expect(fkInitials('-P3R0_OkzQ3rNhDvd454'), 'PO');
     expect(fkInitials('  '), '?');
     expect(fkInitials('Élise'), 'É');
+    // Short lowercase words are skipped when there are other words.
+    expect(fkInitials('Festival des Tilleuls 2025'), 'FT');
+    expect(fkInitials('Fête des Glycines 2026 (démo)'), 'FG');
+    expect(fkInitials('Jazz en Baie 2027'), 'JB');
+    expect(fkInitials('Les Nuits du Port 2026'), 'LN');
+    expect(fkInitials('le chat'), 'C');
+    expect(fkInitials('a b'), 'AB');
   });
 
   testWidgets('a row puts its badges under the subtitle when narrow', (

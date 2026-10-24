@@ -600,6 +600,9 @@ class FkTwoPanes extends StatelessWidget {
 
 /// The initials of a name (`Camille Martin`: `CM`), of the local part of an
 /// email (`camille.martin@x`: `CM`), or the first letter of an id.
+///
+/// Short lowercase words (`des`, `du`, `en`, `of`...) are skipped when the
+/// name has other words: `Festival des Tilleuls` is `FT`, not `FD`.
 String fkInitials(String name) {
   var text = name.trim();
   var at = text.indexOf('@');
@@ -609,12 +612,20 @@ String fkInitials(String name) {
   var parts = text
       .split(RegExp(r'[\s._-]+'))
       .where((part) => part.isNotEmpty)
-      .take(2)
       .toList();
   if (parts.isEmpty) {
     return '?';
   }
-  return parts.map((part) => part.characters.first.toUpperCase()).join();
+  var words = parts
+      .where((part) => part.length > 3 || part != part.toLowerCase())
+      .toList();
+  if (words.isEmpty) {
+    words = parts;
+  }
+  return words
+      .take(2)
+      .map((part) => part.characters.first.toUpperCase())
+      .join();
 }
 
 /// A card holding rows separated by lines (members, settings).
