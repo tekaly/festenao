@@ -158,7 +158,7 @@ class _UserView extends StatelessWidget {
         FkSectionTitle(intl.accessAccountSection),
         FkListCard(
           children: [
-            _KeyValueRow(
+            FkKeyValueRow(
               label: intl.accessUserId,
               value: user.id,
               valueStyle: mono,
@@ -169,13 +169,13 @@ class _UserView extends StatelessWidget {
               ),
             ),
             if (email != null)
-              _KeyValueRow(label: intl.emailLabel, value: email),
-            _KeyValueRow(
+              FkKeyValueRow(label: intl.emailLabel, value: email),
+            FkKeyValueRow(
               label: intl.projectAccessRole,
               value: '${role.label(intl)} · ${role.detail(intl)}',
             ),
             if (appRole != null)
-              _KeyValueRow(label: intl.accessAppRole, value: appRole),
+              FkKeyValueRow(label: intl.accessAppRole, value: appRole),
           ],
         ),
         const SizedBox(height: FestenaoSpace.xl),
@@ -197,44 +197,6 @@ class _UserView extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _KeyValueRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final TextStyle? valueStyle;
-  final Widget? trailing;
-
-  const _KeyValueRow({
-    required this.label,
-    required this.value,
-    this.valueStyle,
-    this.trailing,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    var t = context.festenao;
-    var text = Theme.of(context).textTheme;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(16, 12, trailing == null ? 16 : 4, 12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: text.labelMedium?.copyWith(color: t.ink3)),
-                const SizedBox(height: 2),
-                SelectableText(value, style: valueStyle ?? text.bodyMedium),
-              ],
-            ),
-          ),
-          ?trailing,
-        ],
-      ),
     );
   }
 }

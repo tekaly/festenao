@@ -25,10 +25,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get createProjectInfo =>
-      'Créez un livret pour commencer à stocker vos notes. Les livrets locaux sont stockés sur votre appareil, tandis que les livrets synchronisés sont stockés dans le cloud.';
+      'Créez un projet pour commencer. Les projets locaux sont stockés sur votre appareil, tandis que les projets synchronisés sont stockés dans le cloud.';
 
   @override
-  String get createProjectTitle => 'Créer un livret';
+  String get createProjectTitle => 'Créer un projet';
 
   @override
   String get deleteButtonLabel => 'Supprimer';
@@ -59,13 +59,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get leaveButtonLabel => 'Quitter';
 
   @override
-  String get localProjectTitle => 'Livret local';
+  String get localProjectTitle => 'Projet local';
 
   @override
-  String get manageProjectTitle => 'Gérer le livret';
+  String get manageProjectTitle => 'Gérer le projet';
 
   @override
-  String get manageProjectsTitle => 'Gérer les livrets';
+  String get manageProjectsTitle => 'Gérer les projets';
 
   @override
   String get markdownGuideAsset => 'markdown_guide_fr.md';
@@ -174,17 +174,17 @@ class AppLocalizationsFr extends AppLocalizations {
   String get projectAccessWrite => 'Accès éditeur';
 
   @override
-  String get projectDefaultName => 'Livret';
+  String get projectDefaultName => 'Projet';
 
   @override
   String get projectDelete => 'Supprimer le projet';
 
   @override
   String get projectDeleteConfirm =>
-      'Êtes-vous sûr de vouloir supprimer ce livret ?\nToutes les notes de ce livret seront supprimées.';
+      'Êtes-vous sûr de vouloir supprimer ce projet ?\nTout le contenu de ce projet sera supprimé.';
 
   @override
-  String get projectEditTitle => 'Modifier le livret';
+  String get projectEditTitle => 'Modifier le projet';
 
   @override
   String get projectEmailInviteTitle => 'Inviter par e-mail';
@@ -237,38 +237,39 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get projectInviteAccept => 'Accepter l\'invitation du livret';
+  String get projectInviteAccept => 'Accepter l\'invitation';
 
   @override
   String get projectInviteAcceptConfirm =>
-      'Êtes-vous sûr de vouloir accepter l\'invitation de ce livret ?';
+      'Rejoindre ce projet avec l\'accès proposé ?';
 
   @override
-  String get projectInviteDelete => 'Supprimer l\'invitation du livret';
+  String get projectInviteDelete => 'Supprimer l\'invitation';
 
   @override
   String get projectInviteDeleteConfirm =>
-      'Êtes-vous sûr de vouloir supprimer cette invitation du livret ?';
+      'Voulez-vous vraiment supprimer cette invitation ?';
 
   @override
-  String get projectInviteLink => 'Lien d\'invitation du livret';
+  String get projectInviteLink => 'Lien d\'invitation';
 
   @override
   String get projectInviteLinkInformation =>
-      'Envoyez ce lien pour inviter quelqu\'un à ce livret';
+      'Envoyez ce lien pour inviter quelqu\'un à ce projet';
 
   @override
-  String get projectInviteMessage => 'Vous avez une invitation de livret';
+  String get projectInviteMessage =>
+      'Vous avez été invité à rejoindre ce projet';
 
   @override
   String get projectInviteMustBeLoggedIn =>
-      'Vous devez être connecté pour accepter l\'invitation du livret';
+      'Vous devez être connecté pour accepter cette invitation';
 
   @override
-  String get projectInviteNotFound => 'L\'invitation du livret est introuvable';
+  String get projectInviteNotFound => 'Invitation introuvable ou expirée';
 
   @override
-  String get projectInviteTitle => 'Accepter l\'invitation du livret';
+  String get projectInviteTitle => 'Invitation';
 
   @override
   String get projectInviteView => 'Voir l\'invitation';
@@ -277,21 +278,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get projectJoin => 'Rejoindre le projet';
 
   @override
-  String get projectLeave => 'Quitter le livret';
+  String get projectLeave => 'Quitter le projet';
 
   @override
   String get projectLeaveConfirm =>
-      'Êtes-vous sûr de vouloir quitter ce livret ?\nVous ne pourrez pas accéder aux notes contenues dans ce livret';
+      'Êtes-vous sûr de vouloir quitter ce projet ?\nVous ne pourrez plus accéder à son contenu';
 
   @override
-  String get projectNotFound => 'Livret introuvable';
+  String get projectNotFound => 'Projet introuvable';
 
   @override
-  String get projectShare => 'Partager le livret';
+  String get projectShare => 'Partager le projet';
 
   @override
   String get projectShareInformation =>
-      'Cliquez sur le bouton Partager ci-dessous pour inviter quelqu\'un à rejoindre ce livret';
+      'Cliquez sur le bouton Partager ci-dessous pour inviter quelqu\'un à rejoindre ce projet';
 
   @override
   String get projectTypeLocal => 'Local';
@@ -303,18 +304,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get projectViewNotes => 'Voir les notes';
 
   @override
-  String get projectsTitle => 'Carnets';
+  String get projectsTitle => 'Projets';
 
   @override
   String settingCurrentProject(String project) {
-    return 'Livret actuel \'$project\'';
+    return 'Projet actuel \'$project\'';
   }
 
   @override
-  String get settingManageProject => 'Gérer le livret';
+  String get settingManageProject => 'Gérer le projet';
 
   @override
-  String get settingSwitchProject => 'Changer de livret';
+  String get settingSwitchProject => 'Changer de projet';
 
   @override
   String get settingsTitle => 'Paramètres';
@@ -456,6 +457,75 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get exportDownloadStarted => 'Téléchargement lancé.';
+
+  @override
+  String get projectsSubtitle => 'Les projets que vous pouvez ouvrir';
+
+  @override
+  String get projectsNone => 'Aucun projet pour l\'instant';
+
+  @override
+  String get projectNew => 'Nouveau projet';
+
+  @override
+  String get projectIdLabel => 'Identifiant du projet';
+
+  @override
+  String get projectIdOptionalHint => 'Optionnel, généré si vide';
+
+  @override
+  String get projectUrl => 'Url';
+
+  @override
+  String get projectDetailsSection => 'Projet';
+
+  @override
+  String get projectYourRole => 'Votre rôle';
+
+  @override
+  String get projectNotSyncedYet => 'Pas encore synchronisé';
+
+  @override
+  String get projectUsersTitle => 'Utilisateurs';
+
+  @override
+  String get projectShareInvite => 'Partager / inviter';
+
+  @override
+  String get projectShareInviteDetail => 'Inviter par lien ou par email';
+
+  @override
+  String get projectLeaveDetail => 'Vous ne verrez plus ce projet';
+
+  @override
+  String get projectDeleteDetail => 'Supprime le projet pour tout le monde';
+
+  @override
+  String get projectInviteRoleInformation => 'Le rôle donné par l\'invitation';
+
+  @override
+  String get projectInviteGenerate => 'Générer une invitation';
+
+  @override
+  String get projectInviteIdLabel => 'Identifiant de l\'invitation';
+
+  @override
+  String get projectInviteAccepted => 'Invitation acceptée';
+
+  @override
+  String get projectInviteRoleEdit => 'Le rôle donné, modifiable par un admin';
+
+  @override
+  String get copyButtonLabel => 'Copier';
+
+  @override
+  String get linkCopied => 'Lien copié';
+
+  @override
+  String get accessRemoveUser => 'Retirer l\'utilisateur';
+
+  @override
+  String get accessRemoveUserConfirm => 'Retirer cet utilisateur du projet ?';
 
   @override
   String get editLeaveWithoutSaving =>

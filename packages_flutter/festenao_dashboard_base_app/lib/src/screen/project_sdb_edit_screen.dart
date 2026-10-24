@@ -4,18 +4,17 @@ import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common_flutter/festenao_slug_flutter.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_edit_screen_bloc.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_slug_screen.dart';
+import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/kit.dart';
 import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
-import 'package:tekartik_app_flutter_widget/view/body_container.dart';
-import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_indicator.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
-//import 'package:sqflite/src/utils.dart';
-
+/// The project form (name, id, url), on the festenao kit.
 class ProjectSdbEditScreen extends StatefulWidget {
   const ProjectSdbEditScreen({super.key});
 
@@ -153,71 +152,71 @@ class ProjectSdbEditScreenState
           },
           child: Scaffold(
             appBar: AppBar(
-              // Here we take the value from the MyHomePage object that
-              // was created by the App.build method, and use it to set
-              // our appbar title.
-              title: Text(intl.projectEditTitle),
+              title: Text(
+                bloc.isCreate ? intl.projectNew : intl.projectEditTitle,
+              ),
             ),
             body: Stack(
               children: [
                 Form(
                   key: formKey,
-                  child: ListView(
+                  child: FkPage(
+                    maxWidth: FestenaoSpace.formWidth,
                     children: <Widget>[
-                      BodyContainer(
+                      FkSectionTitle(intl.projectDetailsSection),
+                      FkCard(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            const SizedBox(height: 16),
-                            BodyHPadding(
-                              child: TextFormField(
-                                decoration: InputDecoration(
-                                  hintText: _isCreate
-                                      ? 'Project id (optional)'
-                                      : 'Project id',
-                                  labelText: 'Id',
-                                ),
-                                readOnly: !_isCreate,
-                                enabled: _isCreate,
-                                controller: _idController,
-                                maxLines: 1,
+                            TextFormField(
+                              decoration: InputDecoration(
+                                labelText: intl.nameLabel,
+                                prefixIcon: const Icon(Icons.folder_outlined),
                               ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return intl.nameRequired;
+                                }
+                                return null;
+                              },
+                              controller: _nameController,
+                              maxLines: 1,
                             ),
                             const SizedBox(height: 16),
-                            BodyHPadding(
-                              child: TextFormField(
-                                decoration: const InputDecoration(
-                                  hintText: 'Project name',
-                                  labelText: 'Name',
-                                ),
-                                validator: (value) {
-                                  if (value == null || value.trim().isEmpty) {
-                                    return intl.nameRequired;
-                                  }
-                                  return null;
-                                },
-                                controller: _nameController,
-                                maxLines: 1,
+                            TextFormField(
+                              decoration: InputDecoration(
+                                labelText: intl.projectIdLabel,
+                                hintText: _isCreate
+                                    ? intl.projectIdOptionalHint
+                                    : null,
+                                prefixIcon: const Icon(Icons.tag),
                               ),
+                              style: Theme.of(context).textTheme.bodyLarge
+                                  ?.copyWith(
+                                    fontFamily: context.festenao.monoFamily,
+                                    fontSize: 14,
+                                  ),
+                              readOnly: !_isCreate,
+                              enabled: _isCreate,
+                              controller: _idController,
+                              maxLines: 1,
                             ),
-                            const SizedBox(height: 16),
-                            if (_slugController != null)
-                              BodyHPadding(
-                                child: DashboardProjectSlugField(
-                                  controller: _slugController!,
-                                  projectId: _isCreate
-                                      ? null
-                                      : initialProject.fsId,
-                                  currentSlug: _initialSlug,
-                                  onStatusChanged: (status) =>
-                                      _slugStatus = status,
-                                ),
+                            if (_slugController != null) ...[
+                              const SizedBox(height: 16),
+                              DashboardProjectSlugField(
+                                controller: _slugController!,
+                                projectId: _isCreate
+                                    ? null
+                                    : initialProject.fsId,
+                                currentSlug: _initialSlug,
+                                onStatusChanged: (status) =>
+                                    _slugStatus = status,
                               ),
-                            const SizedBox(height: 16),
-                            const SizedBox(height: 64),
+                            ],
                           ],
                         ),
                       ),
+                      const SizedBox(height: 96),
                     ],
                   ),
                 ),
@@ -236,7 +235,7 @@ class ProjectSdbEditScreenState
                     }
                   : null,
               child: const Icon(Icons.save),
-            ), // This trailing comma makes auto-formatting nicer for build methods.
+            ),
           ),
         );
       },

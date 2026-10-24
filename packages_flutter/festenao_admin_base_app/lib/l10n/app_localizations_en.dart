@@ -266,7 +266,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get projectInviteNotFound => 'Project invite not found';
 
   @override
-  String get projectInviteTitle => 'Accept project invite';
+  String get projectInviteTitle => 'Invite';
 
   @override
   String get projectInviteView => 'View invite';
@@ -451,6 +451,75 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exportDownloadStarted => 'Download started';
+
+  @override
+  String get projectsSubtitle => 'The projects you can open';
+
+  @override
+  String get projectsNone => 'No project yet';
+
+  @override
+  String get projectNew => 'New project';
+
+  @override
+  String get projectIdLabel => 'Project ID';
+
+  @override
+  String get projectIdOptionalHint => 'Optional, generated when empty';
+
+  @override
+  String get projectUrl => 'Url';
+
+  @override
+  String get projectDetailsSection => 'Project';
+
+  @override
+  String get projectYourRole => 'Your role';
+
+  @override
+  String get projectNotSyncedYet => 'Not synced yet';
+
+  @override
+  String get projectUsersTitle => 'Users';
+
+  @override
+  String get projectShareInvite => 'Share / invite';
+
+  @override
+  String get projectShareInviteDetail => 'Invite by link or by email';
+
+  @override
+  String get projectLeaveDetail => 'You will no longer see this project';
+
+  @override
+  String get projectDeleteDetail => 'Removes the project for everyone';
+
+  @override
+  String get projectInviteRoleInformation => 'The role given by the invite';
+
+  @override
+  String get projectInviteGenerate => 'Generate an invite';
+
+  @override
+  String get projectInviteIdLabel => 'Invite ID';
+
+  @override
+  String get projectInviteAccepted => 'Invite accepted';
+
+  @override
+  String get projectInviteRoleEdit => 'The role given, editable by an admin';
+
+  @override
+  String get copyButtonLabel => 'Copy';
+
+  @override
+  String get linkCopied => 'Link copied';
+
+  @override
+  String get accessRemoveUser => 'Remove the user';
+
+  @override
+  String get accessRemoveUserConfirm => 'Remove this user from the project?';
 
   @override
   String get editLeaveWithoutSaving =>

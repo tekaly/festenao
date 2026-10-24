@@ -17,7 +17,8 @@ dartff emulator full test (green on the emulator: the entity admin, a stranger
 and the invitee are refused get, both queries, update, set, create and delete;
 not in festenao_noff, which is outside the pub workspace), and the email
 invite section of `ProjectSdbShareScreen` (festenao_dashboard_base_app): an
-email field and a send button using the access checkboxes, the list of the
+email field and a send button using the role chosen at the top of the screen
+(the same choice serves the invite link, since 2026-10-25), the list of the
 invites sent with their status and a revoke action, shown to an admin when
 the bloc has a secured api (`ProjectSdbShareScreenBloc.apiService`, the
 festenao global one by default, hidden otherwise: standalone), the

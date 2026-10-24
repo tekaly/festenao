@@ -1,14 +1,18 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_users_screen_bloc.dart';
-import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
+import 'package:festenao_admin_base_app/view/access_view.dart';
+import 'package:festenao_dashboard_base_app/src/provider/project_access_providers.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_user_edit_screen.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
+import 'package:tkcms_common/tkcms_auth.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
-/// Dashboard screen listing a project's users and their access.
+/// The users of a project and their role, on the festenao kit
+/// ([AdminAccessMembersView], the one of the admin app).
 ///
 /// Reuses [AdminProjectUsersScreenBloc] for the firestore stream and the
 /// dashboard user edit screen for create/edit/delete.
@@ -21,12 +25,34 @@ class ProjectSdbUsersScreen extends StatefulWidget {
 
 class _ProjectSdbUsersScreenState
     extends AutoDisposeBaseState<ProjectSdbUsersScreen> {
+  Future<void> _edit(AdminProjectUsersScreenBloc bloc, String? userId) async {
+    await goToProjectSdbUserEditScreen(
+      context,
+      param: AdminProjectUserEditScreenParam(
+        projectId: bloc.param.id,
+        userId: userId,
+      ),
+      entityAccess: bloc.entityAccess,
+    );
+    bloc.refresh();
+  }
+
   @override
   Widget build(BuildContext context) {
     var intl = festenaoAdminAppIntl(context);
     var bloc = BlocProvider.of<AdminProjectUsersScreenBloc>(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Utilisateurs')),
+      appBar: AppBar(
+        title: Text(intl.projectUsersTitle),
+        actions: [
+          IconButton(
+            tooltip: MaterialLocalizations.of(context)
+                .refreshIndicatorSemanticLabel,
+            icon: const Icon(Icons.refresh),
+            onPressed: bloc.refresh,
+          ),
+        ],
+      ),
       body: StreamBuilder<AdminProjectUsersScreenBlocState>(
         stream: bloc.state,
         builder: (context, snapshot) {
@@ -34,59 +60,42 @@ class _ProjectSdbUsersScreenState
           if (users == null) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (users.isEmpty) {
-            return const Center(child: Text('Aucun utilisateur.'));
-          }
-          return ListView.builder(
-            itemCount: users.length,
-            itemBuilder: (context, index) {
-              var userAccess = users[index];
-              var userName = userAccess.name.v?.trimmedNonEmpty();
-              return ListTile(
-                leading: const CircleAvatar(child: Icon(Icons.person)),
-                title: Text(userName ?? userAccess.id),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (userName != null)
-                      Text(userAccess.id, style: const TextStyle(fontSize: 12)),
-                    Text(accessString(intl, userAccess)),
-                  ],
-                ),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () async {
-                  await goToProjectSdbUserEditScreen(
-                    context,
-                    param: AdminProjectUserEditScreenParam(
-                      projectId: bloc.param.id,
-                      userId: userAccess.id,
-                    ),
-                    entityAccess: bloc.entityAccess,
-                  );
-                  bloc.refresh();
-                },
-              );
-            },
+          return AdminAccessMembersView(
+            users: users,
+            subtitle: intl.accessSubtitle,
+            currentUserId: dashboardCurrentUserIdOrNull(context),
+            actions: [
+              FilledButton.icon(
+                onPressed: () => _edit(bloc, null),
+                icon: const Icon(Icons.person_add_alt_1),
+                label: Text(intl.accessAddUser),
+              ),
+            ],
+            onTap: (access) => _edit(bloc, access.id),
+            footer: kDebugMode ? AdminAccessPathNote(bloc.usersPath) : null,
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Ajouter un utilisateur',
-        onPressed: () async {
-          await goToProjectSdbUserEditScreen(
-            context,
-            param: AdminProjectUserEditScreenParam(
-              projectId: bloc.param.id,
-              userId: null,
-            ),
-            entityAccess: bloc.entityAccess,
-          );
-          bloc.refresh();
-        },
-        child: const Icon(Icons.add),
       ),
     );
   }
+}
+
+/// The id of the signed in user: the dashboard identity when [context] is
+/// below a provider scope, the global identity bloc otherwise, null when
+/// unknown.
+String? dashboardCurrentUserIdOrNull(BuildContext context) {
+  try {
+    var identity = ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(rpdIdentityProvider);
+    if (identity != null) {
+      return identity.userOrAccountId;
+    }
+  } catch (_) {
+    // No provider scope.
+  }
+  return adminCurrentUserIdOrNull();
 }
 
 /// Navigate to the project users management screen.

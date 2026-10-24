@@ -1,19 +1,22 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/route/route_paths.dart';
-import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
+import 'package:festenao_admin_base_app/view/access_view.dart';
 import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_common_flutter/share_link.dart';
 import 'package:festenao_dashboard_base_app/src/provider/project_access_providers.dart';
+import 'package:festenao_dashboard_base_app/src/provider/project_slug_providers.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_share_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_users_screen.dart';
+import 'package:festenao_dashboard_base_app/src/screen/projects_access_screen.dart';
+import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/kit.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
-import 'package:tekartik_app_flutter_widget/view/body_h_padding.dart';
 import 'package:tekartik_app_flutter_widget/view/busy_screen_state_mixin.dart';
 import 'package:tekartik_app_navigator_flutter/content_navigator.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
-import 'package:tkcms_user_app/theme/theme1.dart';
-import 'package:tkcms_user_app/view/body_container.dart';
 
 import 'project_sdb_edit_screen.dart';
 import 'project_slug_screen.dart';
@@ -27,8 +30,10 @@ class ProjectViewResult {
   ProjectViewResult({required this.deleted});
 }
 
-/// The access screen of one entity: what it is, who can reach it, and the
-/// share / leave / delete actions.
+/// The access screen of one entity, on the festenao kit: a header card (its
+/// name, the role of the signed in user, edit), the access rows (users,
+/// share / invite), its details (url, id, role) and the leave / delete
+/// actions.
 ///
 /// It works on any [TkCmsFsEntity]. Which one is scoped, not passed down: the
 /// route overrides [currentEntityAccessProvider] (and
@@ -69,6 +74,7 @@ class ProjectViewScreenState extends ConsumerState<ProjectViewScreen>
     required Future<void> Function() action,
   }) async {
     var intl = festenaoAdminAppIntl(context);
+    var t = context.festenao;
     var result = await busyAction(() async {
       if (await showDialog<bool>(
             context: context,
@@ -87,6 +93,7 @@ class ProjectViewScreenState extends ConsumerState<ProjectViewScreen>
                     onPressed: () {
                       Navigator.of(context).pop(true);
                     },
+                    style: TextButton.styleFrom(foregroundColor: t.bad),
                     child: Text(confirmLabel),
                   ),
                 ],
@@ -135,9 +142,18 @@ class ProjectViewScreenState extends ConsumerState<ProjectViewScreen>
     );
   }
 
+  Future<void> _copy(BuildContext context, String text, String message) async {
+    await Clipboard.setData(ClipboardData(text: text));
+    if (context.mounted) {
+      await muiSnack(context, message);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var intl = festenaoAdminAppIntl(context);
+    var t = context.festenao;
+    var text = Theme.of(context).textTheme;
     var state = ref.watch(rpdProjectAccessProvider(_entityId)).value;
     var project = state?.project;
     var fsProject = state?.fsProject;
@@ -148,138 +164,184 @@ class ProjectViewScreenState extends ConsumerState<ProjectViewScreen>
     var canEdit = project?.isWrite ?? fsProjectAccess?.isWrite ?? false;
     var canDelete = project?.isAdmin ?? fsProjectAccess?.isAdmin ?? false;
     var projectName = project?.name.v ?? fsProject?.name.v;
+    var name = projectName ?? _entityId;
+    var role = project != null
+        ? dashboardProjectRole(project)
+        : AdminAccessRole.of(fsProjectAccess ?? TkCmsFsUserAccess());
+    var slug = ref.watch(dashboardEntitySlugProvider(_entityId)).value;
+    var link = slug == null
+        ? null
+        : appShareLink(dashboardProjectSlugLocation(slug));
+    var mono = text.bodyMedium?.copyWith(fontFamily: t.monoFamily);
 
-    var children = <Widget>[
-      BodyHPadding(
-        child: Text(
-          projectName ?? '',
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-      ),
-      if (project != null)
-        ListTile(
-          leading: const Icon(Icons.folder),
-          title: Text(intl.projectTypeSynced),
-          subtitle: accessText(intl, project),
-        )
-      else if (fsProject != null) ...[
-        ListTile(
-          title: Text(fsProject.name.v ?? ''),
-          subtitle: accessText(intl, fsProjectAccess ?? TkCmsFsUserAccess()),
-        ),
-      ],
-      DashboardProjectUrlTile(entityId: _entityId),
-    ];
+    void openUsers() {
+      goToProjectSdbUsersScreen(
+        context,
+        projectId: _entityId,
+        entityAccess: ref.read(currentEntityAccessProvider),
+      );
+    }
+
+    void openShare() {
+      goToProjectSdbShareScreen(
+        context,
+        projectId: _entityId,
+        projectsDb: ref.read(currentProjectsMirrorDbProvider),
+        entityAccess: ref.read(currentEntityAccessProvider),
+      );
+    }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(projectName ?? ''),
-        actions: !hasEntity
-            ? null
-            : <Widget>[
-                if (canDelete)
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () async {
-                      await _confirmAndDelete(context);
-                    },
-                  ),
-              ],
-      ),
+      appBar: AppBar(title: Text(projectName ?? '')),
       body: !dbProjectReady
           ? const Center(child: CircularProgressIndicator())
-          : ListView(
+          : FkPage(
+              maxWidth: FestenaoSpace.readingWidth,
               children: [
-                BodyContainer(
-                  child: BodyHPadding(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(),
-                        ...children,
-                        Center(
-                          child: IntrinsicWidth(
+                FkCard(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          FkAvatar(
+                            name,
+                            category: adminAccessCategory(_entityId),
+                            size: 56,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 24),
-                                ElevatedButton.icon(
-                                  onPressed: hasEntity
-                                      ? () {
-                                          goToProjectSdbUsersScreen(
-                                            context,
-                                            projectId: _entityId,
-                                            entityAccess: ref.read(
-                                              currentEntityAccessProvider,
-                                            ),
-                                          );
-                                        }
-                                      : null,
-                                  icon: const Icon(Icons.people),
-                                  label: const Text('Utilisateurs'),
-                                ),
-                                const SizedBox(height: 24),
-                                ElevatedButton.icon(
-                                  onPressed: hasEntity
-                                      ? () {
-                                          goToProjectSdbShareScreen(
-                                            context,
-                                            projectId: _entityId,
-                                            projectsDb: ref.read(
-                                              currentProjectsMirrorDbProvider,
-                                            ),
-                                            entityAccess: ref.read(
-                                              currentEntityAccessProvider,
-                                            ),
-                                          );
-                                        }
-                                      : null,
-                                  icon: const Icon(Icons.share),
-                                  label: const Text('Partager / Inviter'),
-                                ),
-                                const SizedBox(height: 24),
-                                ElevatedButton(
-                                  onPressed: hasEntity
-                                      ? () {
-                                          _confirmAndLeave(context);
-                                        }
-                                      : null,
-                                  child: Text(intl.projectLeave),
-                                ),
-                                if (canDelete) ...[
-                                  const SizedBox(height: 24),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: colorError,
+                                Text(name, style: text.titleLarge),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: [
+                                    FkStatusPill(
+                                      role.label(intl),
+                                      status: role.status,
                                     ),
-                                    onPressed: hasEntity
-                                        ? () {
-                                            _confirmAndDelete(context);
-                                          }
-                                        : null,
-                                    child: Text(intl.projectDelete),
-                                  ),
-                                ],
+                                    if (project != null)
+                                      FkStatusPill(
+                                        intl.projectTypeSynced,
+                                        status: FkStatus.ok,
+                                        dot: true,
+                                      )
+                                    else if (hasEntity)
+                                      FkStatusPill(
+                                        intl.projectNotSyncedYet,
+                                        status: FkStatus.warn,
+                                      ),
+                                  ],
+                                ),
                               ],
                             ),
                           ),
+                        ],
+                      ),
+                      if (canEdit && project != null) ...[
+                        const SizedBox(height: 20),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            FilledButton.icon(
+                              onPressed: () async {
+                                await goToProjectEditScreen(
+                                  context,
+                                  project: project,
+                                );
+                              },
+                              icon: const Icon(Icons.edit_outlined),
+                              label: Text(intl.accessEdit),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 64),
                       ],
-                    ),
+                    ],
                   ),
+                ),
+                const SizedBox(height: FestenaoSpace.xl),
+                FkSectionTitle(intl.accessTitle),
+                FkListCard(
+                  children: [
+                    FkRow(
+                      leading: const FkIconBox(Icons.group_outlined),
+                      title: intl.projectUsersTitle,
+                      subtitle: intl.accessSubtitle,
+                      trailing: Icon(Icons.chevron_right, color: t.ink3),
+                      onTap: hasEntity ? openUsers : null,
+                    ),
+                    FkRow(
+                      leading: const FkIconBox(Icons.share_outlined),
+                      title: intl.projectShareInvite,
+                      subtitle: intl.projectShareInviteDetail,
+                      trailing: Icon(Icons.chevron_right, color: t.ink3),
+                      onTap: hasEntity ? openShare : null,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: FestenaoSpace.xl),
+                FkSectionTitle(intl.projectDetailsSection),
+                FkListCard(
+                  children: [
+                    if (link != null)
+                      FkKeyValueRow(
+                        label: intl.projectUrl,
+                        value: link,
+                        trailing: IconButton(
+                          tooltip: intl.copyButtonLabel,
+                          icon: const Icon(Icons.copy, size: 20),
+                          onPressed: () =>
+                              _copy(context, link, intl.linkCopied),
+                        ),
+                      ),
+                    FkKeyValueRow(
+                      label: intl.projectIdLabel,
+                      value: _entityId,
+                      valueStyle: mono,
+                      trailing: IconButton(
+                        tooltip: intl.copyButtonLabel,
+                        icon: const Icon(Icons.copy, size: 20),
+                        onPressed: () =>
+                            _copy(context, _entityId, intl.accessIdCopied),
+                      ),
+                    ),
+                    FkKeyValueRow(
+                      label: intl.projectYourRole,
+                      value: '${role.label(intl)} · ${role.detail(intl)}',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: FestenaoSpace.xl),
+                FkListCard(
+                  children: [
+                    FkRow(
+                      leading: FkIconBox(Icons.logout, color: t.warn),
+                      title: intl.projectLeave,
+                      subtitle: intl.projectLeaveDetail,
+                      trailing: Icon(Icons.chevron_right, color: t.ink3),
+                      onTap: hasEntity ? () => _confirmAndLeave(context) : null,
+                    ),
+                    if (canDelete)
+                      FkRow(
+                        leading: FkIconBox(Icons.delete_outline, color: t.bad),
+                        title: intl.projectDelete,
+                        titleColor: t.bad,
+                        subtitle: intl.projectDeleteDetail,
+                        trailing: Icon(Icons.chevron_right, color: t.ink3),
+                        onTap: hasEntity
+                            ? () => _confirmAndDelete(context)
+                            : null,
+                      ),
+                  ],
                 ),
               ],
             ),
-      floatingActionButton: canEdit
-          ? FloatingActionButton(
-              tooltip: 'Edit',
-              onPressed: () async {
-                await goToProjectEditScreen(context, project: project!);
-              },
-              child: const Icon(Icons.edit),
-            )
-          : null,
     );
   }
 }

@@ -1,7 +1,9 @@
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
-import 'package:festenao_admin_base_app/utils/project_ui_utils.dart';
+import 'package:festenao_admin_base_app/view/access_view.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_invite_view_screen_bloc.dart';
+import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/kit.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
@@ -15,7 +17,9 @@ class ProjectSdbInviteViewResult {
   ProjectSdbInviteViewResult({this.accepted = false, this.deleted = false});
 }
 
-/// Screen to view and accept (or delete) a project invite.
+/// Screen to view and accept (or delete) a project invite, on the festenao
+/// kit: the project and the role given, accept; an admin of the project
+/// changes the role.
 ///
 /// Dashboard counterpart of Notelio's `BookletInviteViewScreen`.
 class ProjectSdbInviteViewScreen extends StatefulWidget {
@@ -65,23 +69,23 @@ class ProjectSdbInviteViewScreen extends StatefulWidget {
 class _ProjectSdbInviteViewScreenState
     extends AutoDisposeBaseState<ProjectSdbInviteViewScreen> {
   bool _busy = false;
-  bool _admin = false;
-  bool _write = false;
-  bool _read = true;
 
   Future<void> _updateRole(
     BuildContext context,
-    ProjectSdbInviteViewScreenBloc bloc, {
-    required bool admin,
-    required bool write,
-    required bool read,
-  }) async {
+    ProjectSdbInviteViewScreenBloc bloc,
+    AdminAccessRole role,
+  ) async {
     setState(() => _busy = true);
+    var flags = role.flags;
     try {
-      await bloc.updateInviteAccess(admin: admin, write: write, read: read);
+      await bloc.updateInviteAccess(
+        admin: flags.admin,
+        write: flags.write,
+        read: flags.read,
+      );
     } catch (e) {
       if (context.mounted) {
-        await muiSnack(context, 'Erreur: $e');
+        await muiSnack(context, 'Error: $e');
       }
     } finally {
       if (mounted) {
@@ -98,8 +102,8 @@ class _ProjectSdbInviteViewScreenState
     var confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Accepter l\'invitation'),
-        content: const Text('Rejoindre ce projet avec l\'accès proposé ?'),
+        title: Text(intl.projectInviteAccept),
+        content: Text(intl.projectInviteAcceptConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -107,7 +111,7 @@ class _ProjectSdbInviteViewScreenState
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Accepter'),
+            child: Text(intl.projectInviteAccept),
           ),
         ],
       ),
@@ -123,7 +127,7 @@ class _ProjectSdbInviteViewScreenState
       }
     } catch (e) {
       if (context.mounted) {
-        await muiSnack(context, 'Erreur: $e');
+        await muiSnack(context, 'Error: $e');
       }
     } finally {
       if (mounted) {
@@ -136,22 +140,22 @@ class _ProjectSdbInviteViewScreenState
     BuildContext context,
     ProjectSdbInviteViewScreenBloc bloc,
   ) async {
+    var intl = festenaoAdminAppIntl(context);
+    var t = context.festenao;
     var confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Supprimer l\'invitation'),
-        content: const Text(
-          'Voulez-vous vraiment supprimer cette invitation ?',
-        ),
+        title: Text(intl.projectInviteDelete),
+        content: Text(intl.projectInviteDeleteConfirm),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
+            child: Text(intl.cancelButtonLabel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Supprimer'),
+            style: TextButton.styleFrom(foregroundColor: t.bad),
+            child: Text(intl.deleteButtonLabel),
           ),
         ],
       ),
@@ -167,6 +171,8 @@ class _ProjectSdbInviteViewScreenState
   @override
   Widget build(BuildContext context) {
     var intl = festenaoAdminAppIntl(context);
+    var t = context.festenao;
+    var text = Theme.of(context).textTheme;
     var bloc = BlocProvider.of<ProjectSdbInviteViewScreenBloc>(context);
     return ValueStreamBuilder<ProjectSdbInviteViewScreenBlocState>(
       stream: bloc.state,
@@ -177,16 +183,158 @@ class _ProjectSdbInviteViewScreenState
         var canAccept = !_busy && (invite?.exists ?? false) && user != null;
         var canEditRole = canAccept && (state?.userProject?.isAdmin ?? false);
 
-        if (invite != null && invite.exists && !_busy) {
-          var ua = invite.userAccess.v!;
-          _admin = ua.admin.v ?? false;
-          _write = ua.write.v ?? false;
-          _read = ua.read.v ?? false;
+        Widget body;
+        if (state == null) {
+          body = const Center(child: CircularProgressIndicator());
+        } else {
+          Widget content;
+          if (user == null) {
+            content = FkCard(
+              child: FkEmpty(
+                icon: Icons.login,
+                message: intl.projectInviteMustBeLoggedIn,
+              ),
+            );
+          } else if (state.accepted) {
+            content = FkCard(
+              child: FkEmpty(
+                icon: Icons.check_circle_outline,
+                message: intl.projectInviteAccepted,
+              ),
+            );
+          } else if (invite?.exists != true) {
+            content = FkCard(
+              child: FkEmpty(
+                icon: Icons.link_off,
+                message: intl.projectInviteNotFound,
+              ),
+            );
+          } else {
+            var access = invite!.userAccess.v!;
+            var role = AdminAccessRole.of(access);
+            var entityName = invite.entity.v?.name.v ?? bloc.projectId;
+            content = Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                FkCard(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          FkAvatar(
+                            entityName,
+                            category: adminAccessCategory(bloc.projectId),
+                            size: 56,
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  intl.projectInviteMessage,
+                                  style: text.bodyMedium?.copyWith(
+                                    color: t.ink2,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(entityName, style: text.titleLarge),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: [
+                                    FkStatusPill(
+                                      role.label(intl),
+                                      status: role.status,
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          FilledButton.icon(
+                            onPressed: canAccept
+                                ? () => _accept(context, bloc)
+                                : null,
+                            icon: const Icon(Icons.check),
+                            label: Text(intl.projectInviteAccept),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (canEditRole) ...[
+                  const SizedBox(height: FestenaoSpace.xl),
+                  FkSectionTitle(intl.projectAccessRole),
+                  FkCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          intl.projectInviteRoleEdit,
+                          style: text.bodyMedium?.copyWith(color: t.ink2),
+                        ),
+                        const SizedBox(height: 12),
+                        SegmentedButton<AdminAccessRole>(
+                          showSelectedIcon: false,
+                          emptySelectionAllowed: true,
+                          segments: [
+                            for (var choice in AdminAccessRole.assignable)
+                              ButtonSegment(
+                                value: choice,
+                                label: Text(choice.label(intl)),
+                              ),
+                          ],
+                          selected: {if (role != AdminAccessRole.none) role},
+                          onSelectionChanged:
+                              _busy || role == AdminAccessRole.none
+                              ? null
+                              : (selection) => _updateRole(
+                                  context,
+                                  bloc,
+                                  selection.isEmpty ? role : selection.first,
+                                ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Icon(Icons.info_outline, size: 16, color: t.ink3),
+                            const SizedBox(width: 6),
+                            Expanded(
+                              child: Text(
+                                role.detail(intl),
+                                style: text.bodySmall?.copyWith(color: t.ink2),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            );
+          }
+          body = FkPage(
+            maxWidth: FestenaoSpace.readingWidth,
+            children: [content],
+          );
         }
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text('Invitation'),
+            title: Text(intl.projectInviteTitle),
             actions: [
               if (canAccept)
                 IconButton(
@@ -196,119 +344,7 @@ class _ProjectSdbInviteViewScreenState
                 ),
             ],
           ),
-          body: state == null
-              ? const Center(child: CircularProgressIndicator())
-              : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    if (user == null) ...[
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Vous devez être connecté pour accepter cette '
-                        'invitation.',
-                      ),
-                    ] else if (state.accepted) ...[
-                      const SizedBox(height: 16),
-                      const Text('Invitation acceptée.'),
-                    ] else if (invite?.exists != true) ...[
-                      const SizedBox(height: 16),
-                      const Text('Invitation introuvable ou expirée.'),
-                    ] else ...[
-                      const SizedBox(height: 16),
-                      const Text('Vous avez été invité à rejoindre ce projet.'),
-                      const SizedBox(height: 16),
-                      ListTile(
-                        title: Text(invite!.entity.v?.name.v ?? '(projet)'),
-                        subtitle: canEditRole
-                            ? const Text('Niveau d\'accès (Édition)')
-                            : accessText(intl, invite.userAccess.v!),
-                      ),
-                      if (canEditRole) ...[
-                        CheckboxListTile(
-                          title: Text(intl.projectAccessAdmin),
-                          value: _admin,
-                          onChanged: !_busy
-                              ? (on) {
-                                  var newAdmin = on ?? false;
-                                  var newWrite = _write;
-                                  var newRead = _read;
-                                  if (newAdmin) {
-                                    newWrite = true;
-                                    newRead = true;
-                                  }
-                                  _updateRole(
-                                    context,
-                                    bloc,
-                                    admin: newAdmin,
-                                    write: newWrite,
-                                    read: newRead,
-                                  );
-                                }
-                              : null,
-                        ),
-                        CheckboxListTile(
-                          title: Text(intl.projectAccessWrite),
-                          value: _write,
-                          onChanged: !_busy
-                              ? (on) {
-                                  var newWrite = on ?? false;
-                                  var newAdmin = _admin;
-                                  var newRead = _read;
-                                  if (newWrite) {
-                                    newRead = true;
-                                  } else {
-                                    newAdmin = false;
-                                  }
-                                  _updateRole(
-                                    context,
-                                    bloc,
-                                    admin: newAdmin,
-                                    write: newWrite,
-                                    read: newRead,
-                                  );
-                                }
-                              : null,
-                        ),
-                        CheckboxListTile(
-                          title: Text(intl.projectAccessRead),
-                          value: _read,
-                          onChanged: !_busy
-                              ? (on) {
-                                  var newRead = on ?? false;
-                                  var newWrite = _write;
-                                  var newAdmin = _admin;
-                                  if (!newRead) {
-                                    newWrite = false;
-                                    newAdmin = false;
-                                  }
-                                  _updateRole(
-                                    context,
-                                    bloc,
-                                    admin: newAdmin,
-                                    write: newWrite,
-                                    read: newRead,
-                                  );
-                                }
-                              : null,
-                        ),
-                      ],
-                      const SizedBox(height: 16),
-                      Center(
-                        child: ElevatedButton(
-                          onPressed: () => _accept(context, bloc),
-                          child: const Text('Accepter l\'invitation'),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-          floatingActionButton: canAccept
-              ? FloatingActionButton(
-                  tooltip: 'Accepter',
-                  onPressed: () => _accept(context, bloc),
-                  child: const Icon(Icons.check),
-                )
-              : null,
+          body: body,
         );
       },
     );

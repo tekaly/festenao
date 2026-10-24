@@ -1,7 +1,9 @@
+import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common_flutter/festenao_slug_flutter.dart';
 import 'package:festenao_common_flutter/share_link.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
+import 'package:festenao_theme/kit.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:material_ui/material_ui.dart';
@@ -78,8 +80,8 @@ class _DashboardProjectSlugScreenState
   );
 }
 
-/// The url of a project (`<origin>/p/<slug>`) with a copy button, nothing
-/// when it has none (or is not a project).
+/// The url of a project (`<origin>/p/<slug>`) as a row of a list card, with
+/// a copy button; nothing when it has none (or is not a project).
 class DashboardProjectUrlTile extends ConsumerWidget {
   /// The firestore id of the entity.
   final String entityId;
@@ -89,23 +91,23 @@ class DashboardProjectUrlTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    var intl = festenaoAdminAppIntl(context);
     var slug = ref.watch(dashboardEntitySlugProvider(entityId)).value;
     if (slug == null) {
       return const SizedBox.shrink();
     }
     var link = appShareLink(dashboardProjectSlugLocation(slug));
-    return ListTile(
-      leading: const Icon(Icons.link),
-      title: const Text('Url'),
-      subtitle: SelectableText(link),
+    return FkKeyValueRow(
+      label: intl.projectUrl,
+      value: link,
       trailing: IconButton(
-        tooltip: 'Copy',
-        icon: const Icon(Icons.copy),
+        tooltip: intl.copyButtonLabel,
+        icon: const Icon(Icons.copy, size: 20),
         onPressed: () async {
           await Clipboard.setData(ClipboardData(text: link));
           if (context.mounted) {
             ScaffoldMessenger.maybeOf(context)
-                ?.showSnackBar(const SnackBar(content: Text('Link copied')));
+                ?.showSnackBar(SnackBar(content: Text(intl.linkCopied)));
           }
         },
       ),

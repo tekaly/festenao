@@ -347,7 +347,7 @@
   "@projectInviteNotFound": {
     "description": "Project invite not found"
   },
-  "projectInviteTitle": "Accept project invite",
+  "projectInviteTitle": "Invite",
   "@projectInviteTitle": {
     "description": "Project invite title"
   },
@@ -606,6 +606,98 @@
   "exportDownloadStarted": "Download started",
   "@exportDownloadStarted": {
     "description": "Snack bar once a download started"
+  },
+  "projectsSubtitle": "The projects you can open",
+  "@projectsSubtitle": {
+    "description": "Subtitle of the projects screen"
+  },
+  "projectsNone": "No project yet",
+  "@projectsNone": {
+    "description": "Empty list of projects"
+  },
+  "projectNew": "New project",
+  "@projectNew": {
+    "description": "Button creating a project, title of its screen"
+  },
+  "projectIdLabel": "Project ID",
+  "@projectIdLabel": {
+    "description": "Label of the project id field"
+  },
+  "projectIdOptionalHint": "Optional, generated when empty",
+  "@projectIdOptionalHint": {
+    "description": "Hint of the project id field when creating a project"
+  },
+  "projectUrl": "Url",
+  "@projectUrl": {
+    "description": "Label of the url of a project"
+  },
+  "projectDetailsSection": "Project",
+  "@projectDetailsSection": {
+    "description": "Section of the project details (id, url)"
+  },
+  "projectYourRole": "Your role",
+  "@projectYourRole": {
+    "description": "Label of the role of the signed in user on the project"
+  },
+  "projectNotSyncedYet": "Not synced yet",
+  "@projectNotSyncedYet": {
+    "description": "Pill of a project known from firestore only"
+  },
+  "projectUsersTitle": "Users",
+  "@projectUsersTitle": {
+    "description": "Title of the users screen and of its row on the project screen"
+  },
+  "projectShareInvite": "Share / invite",
+  "@projectShareInvite": {
+    "description": "Row opening the share screen"
+  },
+  "projectShareInviteDetail": "Invite by link or by email",
+  "@projectShareInviteDetail": {
+    "description": "Line under the share row"
+  },
+  "projectLeaveDetail": "You will no longer see this project",
+  "@projectLeaveDetail": {
+    "description": "Line under the leave row"
+  },
+  "projectDeleteDetail": "Removes the project for everyone",
+  "@projectDeleteDetail": {
+    "description": "Line under the delete row"
+  },
+  "projectInviteRoleInformation": "The role given by the invite",
+  "@projectInviteRoleInformation": {
+    "description": "Above the role choice of a new invite"
+  },
+  "projectInviteGenerate": "Generate an invite",
+  "@projectInviteGenerate": {
+    "description": "Button creating an invite link"
+  },
+  "projectInviteIdLabel": "Invite ID",
+  "@projectInviteIdLabel": {
+    "description": "Label of the invite id"
+  },
+  "projectInviteAccepted": "Invite accepted",
+  "@projectInviteAccepted": {
+    "description": "Shown once an invite was accepted"
+  },
+  "projectInviteRoleEdit": "The role given, editable by an admin",
+  "@projectInviteRoleEdit": {
+    "description": "Above the role choice of an existing invite an admin can change"
+  },
+  "copyButtonLabel": "Copy",
+  "@copyButtonLabel": {
+    "description": "Copy button"
+  },
+  "linkCopied": "Link copied",
+  "@linkCopied": {
+    "description": "Snack bar after copying a link"
+  },
+  "accessRemoveUser": "Remove the user",
+  "@accessRemoveUser": {
+    "description": "Title of the dialog removing a user access"
+  },
+  "accessRemoveUserConfirm": "Remove this user from the project?",
+  "@accessRemoveUserConfirm": {
+    "description": "Content of the dialog removing a user access"
   },
   "editLeaveWithoutSaving": "You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition and discard your changes",
   "@editLeaveWithoutSaving": {

@@ -570,7 +570,7 @@ abstract class AppLocalizations {
   /// Project invite title
   ///
   /// In en, this message translates to:
-  /// **'Accept project invite'**
+  /// **'Invite'**
   String get projectInviteTitle;
 
   /// View invite
@@ -920,6 +920,144 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Download started'**
   String get exportDownloadStarted;
+
+  /// Subtitle of the projects screen
+  ///
+  /// In en, this message translates to:
+  /// **'The projects you can open'**
+  String get projectsSubtitle;
+
+  /// Empty list of projects
+  ///
+  /// In en, this message translates to:
+  /// **'No project yet'**
+  String get projectsNone;
+
+  /// Button creating a project, title of its screen
+  ///
+  /// In en, this message translates to:
+  /// **'New project'**
+  String get projectNew;
+
+  /// Label of the project id field
+  ///
+  /// In en, this message translates to:
+  /// **'Project ID'**
+  String get projectIdLabel;
+
+  /// Hint of the project id field when creating a project
+  ///
+  /// In en, this message translates to:
+  /// **'Optional, generated when empty'**
+  String get projectIdOptionalHint;
+
+  /// Label of the url of a project
+  ///
+  /// In en, this message translates to:
+  /// **'Url'**
+  String get projectUrl;
+
+  /// Section of the project details (id, url)
+  ///
+  /// In en, this message translates to:
+  /// **'Project'**
+  String get projectDetailsSection;
+
+  /// Label of the role of the signed in user on the project
+  ///
+  /// In en, this message translates to:
+  /// **'Your role'**
+  String get projectYourRole;
+
+  /// Pill of a project known from firestore only
+  ///
+  /// In en, this message translates to:
+  /// **'Not synced yet'**
+  String get projectNotSyncedYet;
+
+  /// Title of the users screen and of its row on the project screen
+  ///
+  /// In en, this message translates to:
+  /// **'Users'**
+  String get projectUsersTitle;
+
+  /// Row opening the share screen
+  ///
+  /// In en, this message translates to:
+  /// **'Share / invite'**
+  String get projectShareInvite;
+
+  /// Line under the share row
+  ///
+  /// In en, this message translates to:
+  /// **'Invite by link or by email'**
+  String get projectShareInviteDetail;
+
+  /// Line under the leave row
+  ///
+  /// In en, this message translates to:
+  /// **'You will no longer see this project'**
+  String get projectLeaveDetail;
+
+  /// Line under the delete row
+  ///
+  /// In en, this message translates to:
+  /// **'Removes the project for everyone'**
+  String get projectDeleteDetail;
+
+  /// Above the role choice of a new invite
+  ///
+  /// In en, this message translates to:
+  /// **'The role given by the invite'**
+  String get projectInviteRoleInformation;
+
+  /// Button creating an invite link
+  ///
+  /// In en, this message translates to:
+  /// **'Generate an invite'**
+  String get projectInviteGenerate;
+
+  /// Label of the invite id
+  ///
+  /// In en, this message translates to:
+  /// **'Invite ID'**
+  String get projectInviteIdLabel;
+
+  /// Shown once an invite was accepted
+  ///
+  /// In en, this message translates to:
+  /// **'Invite accepted'**
+  String get projectInviteAccepted;
+
+  /// Above the role choice of an existing invite an admin can change
+  ///
+  /// In en, this message translates to:
+  /// **'The role given, editable by an admin'**
+  String get projectInviteRoleEdit;
+
+  /// Copy button
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copyButtonLabel;
+
+  /// Snack bar after copying a link
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get linkCopied;
+
+  /// Title of the dialog removing a user access
+  ///
+  /// In en, this message translates to:
+  /// **'Remove the user'**
+  String get accessRemoveUser;
+
+  /// Content of the dialog removing a user access
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this user from the project?'**
+  String get accessRemoveUserConfirm;
 
   /// Unsaved changes dialog content when the screen cannot save from the dialog
   ///

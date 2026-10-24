@@ -92,4 +92,30 @@ void main() {
     expect(find.text('Nobody yet'), findsOneWidget);
     expect(find.text('Add'), findsOneWidget);
   });
+
+  testWidgets('a key value row and a coloured row title', (tester) async {
+    var tokens = festenaoThemeFestenao
+        .themeData(Brightness.light)
+        .extension<FestenaoTokens>()!;
+    await _pump(
+      tester,
+      FkListCard(
+        children: [
+          FkKeyValueRow(
+            label: 'User ID',
+            value: 'camille_martin',
+            trailing: IconButton(
+              icon: const Icon(Icons.copy),
+              onPressed: () {},
+            ),
+          ),
+          FkRow(title: 'Delete', titleColor: tokens.bad),
+        ],
+      ),
+    );
+    expect(find.text('User ID'), findsOneWidget);
+    expect(find.byType(SelectableText), findsOneWidget);
+    expect(find.byIcon(Icons.copy), findsOneWidget);
+    expect(tester.widget<Text>(find.text('Delete')).style?.color, tokens.bad);
+  });
 }

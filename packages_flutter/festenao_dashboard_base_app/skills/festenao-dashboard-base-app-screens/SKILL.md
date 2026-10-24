@@ -60,13 +60,21 @@ class MyDebugScreen extends StatelessWidget {
   the route scope when null. The project home lists the project (from the
   local projects db, `ProjectHomeScreenBloc`) and the entries to the demos,
   quizz, images and medias.
-* Access: `DashboardProjectsAccessScreen(selectMode:)` (the user's
-  projects, a sync action, a FAB creating one through
-  `goToProjectEditScreen(context, project: null)`, which writes the entity
-  with `projectDb.createEntity`); `selectProject(context)` pops a
-  `SelectProjectResult` (`projectId`); `DashboardProjectAccessScreen(projectId:)`
-  is `ProjectViewScreen(entityId:)` with its share, leave and delete
-  actions, on the scoped `currentEntityAccessProvider`. The helpers
+* Access, on the festenao kit (`package:festenao_theme/kit.dart`, the look
+  of the admin access screens: `FkPage`, cards, rows, role pills, the
+  `AdminAccessRole` of festenao_admin_base_app, every text from the admin
+  l10n): `DashboardProjectsAccessScreen(selectMode:)` (the user's projects
+  as rows with their avatar and role, a sync action, a "New project" header
+  button creating one through `goToProjectEditScreen(context, project: null)`,
+  which writes the entity with `projectDb.createEntity`);
+  `selectProject(context)` pops a `SelectProjectResult` (`projectId`);
+  `DashboardProjectAccessScreen(projectId:)` is `ProjectViewScreen(entityId:)`:
+  a header card (name, role and synced pills, Edit), the Users and
+  Share / invite rows, the details (url, id, role) and the leave / delete
+  rows, on the scoped `currentEntityAccessProvider`. The users screen is
+  `AdminAccessMembersView` and the user form `AdminUserEditScreenMixin`
+  (one role per person), both shared with the admin app; the share screen
+  picks the role of the next invite (link or email) once. The helpers
   `goToProjectSdbShareScreen(context, projectId:, entityAccess:, projectsDb:)`,
   `goToProjectSdbUsersScreen(context, projectId:, entityAccess:)`,
   `goToProjectSdbInviteViewScreen(context, projectId:, inviteId:, ...)` and

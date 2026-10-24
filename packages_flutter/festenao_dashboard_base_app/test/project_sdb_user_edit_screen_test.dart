@@ -136,12 +136,14 @@ void main() {
         .controller!
         .text;
 
+    AppLocalizations intlOf(WidgetTester tester) => festenaoAdminAppIntl(
+      tester.element(find.byType(ProjectSdbUserEditScreen)),
+    );
+
     testWidgets('an existing member is filled when it opens', (tester) async {
       await pumpScreen(tester, memberUserId);
-      expect(find.text('Remplir depuis le compte'), findsOneWidget);
-      var intl = festenaoAdminAppIntl(
-        tester.element(find.byType(ProjectSdbUserEditScreen)),
-      );
+      var intl = intlOf(tester);
+      expect(find.text(intl.accessFillFromAccount), findsOneWidget);
       expect(fieldText(tester, intl.nameLabel), 'Camille Martin');
       expect(
         fieldText(tester, intl.emailLabel),
@@ -151,13 +153,14 @@ void main() {
 
     testWidgets('the button reports a refusal', (tester) async {
       await pumpScreen(tester, null);
+      var intl = intlOf(tester);
       await tester.enterText(
-        find.widgetWithText(TextFormField, 'User ID'),
+        find.widgetWithText(TextFormField, intl.accessUserId),
         strangerUserId,
       );
-      await tester.tap(find.text('Remplir depuis le compte'));
+      await tester.tap(find.text(intl.accessFillFromAccount));
       await settle(tester);
-      expect(find.text('Vous ne pouvez pas lire ce compte'), findsOneWidget);
+      expect(find.text(intl.accessFillNotAllowed), findsOneWidget);
     });
   });
 }

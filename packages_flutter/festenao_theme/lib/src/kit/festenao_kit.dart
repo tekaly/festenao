@@ -670,6 +670,10 @@ class FkRow extends StatelessWidget {
   /// Width under which the badges go under the subtitle.
   final double narrowWidth;
 
+  /// The colour of the title, the ink by default (the bad colour of a
+  /// destructive action).
+  final Color? titleColor;
+
   /// A list row.
   const FkRow({
     super.key,
@@ -681,6 +685,7 @@ class FkRow extends StatelessWidget {
     this.trailing,
     this.onTap,
     this.narrowWidth = 440,
+    this.titleColor,
   });
 
   @override
@@ -707,7 +712,12 @@ class FkRow extends StatelessWidget {
                         spacing: 8,
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
-                          Text(title, style: text.titleSmall),
+                          Text(
+                            title,
+                            style: titleColor == null
+                                ? text.titleSmall
+                                : text.titleSmall?.copyWith(color: titleColor),
+                          ),
                           ?titleTrailing,
                         ],
                       ),
@@ -735,6 +745,56 @@ class FkRow extends StatelessWidget {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// A row of a list card showing one value under its label (an id, an email,
+/// a url): the value is selectable, a trailing widget (a copy button) sits
+/// on the right.
+class FkKeyValueRow extends StatelessWidget {
+  /// The label, above the value.
+  final String label;
+
+  /// The value.
+  final String value;
+
+  /// The style of the value, the body by default (monospace for an id).
+  final TextStyle? valueStyle;
+
+  /// The last widget (a copy button), always on the right.
+  final Widget? trailing;
+
+  /// A key value row.
+  const FkKeyValueRow({
+    super.key,
+    required this.label,
+    required this.value,
+    this.valueStyle,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var t = context.festenao;
+    var text = Theme.of(context).textTheme;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 12, trailing == null ? 16 : 4, 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: text.labelMedium?.copyWith(color: t.ink3)),
+                const SizedBox(height: 2),
+                SelectableText(value, style: valueStyle ?? text.bodyMedium),
+              ],
+            ),
+          ),
+          ?trailing,
+        ],
       ),
     );
   }
