@@ -8,19 +8,70 @@ service account. This is how it finds one, and what it does with the apps.
 
 Never from the code. In this order:
 
-1. `FESTENAO_SERVICE_ACCOUNT`: the json itself, or the path of a json file
-   (`~/` allowed). Read from the process environment, then from the ds env
-   user file (`~/.config/tekartik/process_run/env.yaml` on linux, what
-   `ds env var set` writes), so it works from a terminal, an IDE launch
-   configuration, or neither.
-2. The files of `~/.config/tekartik/festenao/service_accounts`, one
-   `<project_id>.json` per firebase project (a file the variable points to is
-   counted once).
-3. In an admin build only: pasted in its *Credentials* screen, kept in a local
-   sdb database. The first two are copied there at start
-   (`adminCredentialsImportFound`), the variable selected when it is set.
+1. `.local/service_account_enc.json` in the directory the build or tool is
+   started from: the obfuscated json of the project that folder is about,
+   written by a support tool of the project (below). Selected when there is
+   one: `cd` into the checkout of a project and start `festenaodash` to
+   manage that project.
+2. `FESTENAO_SERVICE_ACCOUNT`: the json itself (plain or obfuscated), or the
+   path of a json file (`~/` allowed). Read from the process environment, then
+   from the ds env user file (`~/.config/tekartik/process_run/env.yaml` on
+   linux, what `ds env var set` writes), so it works from a terminal, an IDE
+   launch configuration, or neither.
+3. The files of `~/.config/tekartik/festenao/service_accounts`, one
+   `<project_id>.json` per firebase project (a file already found, or holding
+   the same key, is counted once).
+4. In an admin build only: pasted in its *Credentials* screen (plain or
+   obfuscated), kept in a local sdb database. The first three are copied
+   there at start (`adminCredentialsImportFound`), one entry per source (the
+   local file one per project, `found_local_<project_id>`), and stay for the
+   next runs; the local file is selected when there is one, else the
+   variable when it is set.
 
 Everything is stored unencrypted: it is for a developer machine.
+
+## The obfuscated file of a project folder
+
+A project whose support package embeds its service account (aes encrypted in
+a private package) writes it for the admin build with one call,
+`festenaoWriteServiceAccountEncFile` of
+`festenao_common/firebase/festenao_service_account_io.dart`:
+
+```dart
+// tkhostelio_support/tool/tkhostelio_write_service_account.dart
+Future<void> main() async {
+  var path = await festenaoWriteServiceAccountEncFile(
+    tkhostelioServiceAccountMap,
+  );
+  stdout.writeln('written to $path'); // <cwd>/.local/service_account_enc.json
+}
+```
+
+The file (`festenaoServiceAccountEncMap`, json indented, mode 600) keeps the
+project id, the account email and the key id in clear and the whole service
+account aes encrypted (`enc`) with a random password written next to it
+(`password`):
+
+```json
+{
+  "type": "service_account_enc",
+  "project_id": "tkhostelio",
+  "client_email": "firebase-adminsdk-fbsvc@tkhostelio.iam.gserviceaccount.com",
+  "private_key_id": "c87e...",
+  "password": "<32 characters>",
+  "enc": "<aes, base 64>"
+}
+```
+
+The password being in the file, this is an obfuscation: it keeps the key out
+of a glance, a grep or a secret scanner, nothing more, for a git ignored
+file (`.local/`) on a machine that holds the key anyway. The readers decode
+it wherever a service account json is accepted (the local file, the
+variable, the directory files, the pasted json):
+`festenaoServiceAccountMapDecode` / `festenaoServiceAccountMapFromEncMap`,
+`festenaoServiceAccountMapIsEnc` telling the format.
+`dashboard_app_write_service_account_dev.dart` of festenaoprv_support writes
+the festenao-free-dev one as `.local/service_account_dev_enc.json`, a sample.
 
 ## Storing it: `festenao_service_account`
 
@@ -43,6 +94,21 @@ The ds env value is written quoted, so a json stays a string in the yaml
 file. Nothing else of the ds env file is printed.
 
 ## Running the admin build
+
+As a global command, `festenaodash` (`bin/festenaodash.dart` of the
+festenaoprv dashboard app, on `tekartik_flutter_build/app_launcher.dart`):
+the release is built from the sources on the first run (`deploy/<platform>`,
+`lib/main_host.dart` is `main_admin_sdk.dart` for the desktop builders) and
+started in the current directory, where it finds the local file:
+
+```sh
+flutter pub global activate --source path festenaoprv/packages_flutter/festenaoprv_dashboard_app
+cd tkhostelio/tkhostelio_support   # holds .local/service_account_enc.json
+festenaodash                       # tkhostelio selected, kept for the next runs
+festenaodash -- --upgrade          # rebuild after a change of the sources
+```
+
+Or from the sources:
 
 ```sh
 cd festenaoprv/packages_flutter/festenaoprv_dashboard_app

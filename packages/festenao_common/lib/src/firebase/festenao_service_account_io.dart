@@ -22,6 +22,15 @@ const festenaoServiceAccountEnvKey = 'FESTENAO_SERVICE_ACCOUNT';
 /// then the ds env user file.
 const festenaoGcloudProjectEnvKey = 'FESTENAO_GCLOUD_PROJECT';
 
+/// The service account file an admin build or tool reads in the directory it
+/// is started from: the obfuscated json ([festenaoServiceAccountEncMap],
+/// written by [festenaoWriteServiceAccountEncFile]) of the project that
+/// folder (a checkout) is about, git ignored.
+///
+/// Found first by [festenaoFindServiceAccounts], so that a `cd` into the
+/// folder of a project and the admin command select its account.
+const festenaoServiceAccountLocalEncPath = '.local/service_account_enc.json';
+
 /// The application default credentials file the admin sdk reads: the one of
 /// `GOOGLE_APPLICATION_CREDENTIALS`, or else the one
 /// `gcloud auth application-default login` writes
@@ -61,6 +70,9 @@ String festenaoServiceAccountDirPath() =>
 
 /// Where a service account was found.
 enum FestenaoServiceAccountOrigin {
+  /// The [festenaoServiceAccountLocalEncPath] file of the current directory.
+  local,
+
   /// The [festenaoServiceAccountEnvKey] variable.
   env,
 
@@ -76,7 +88,8 @@ class FestenaoServiceAccount {
   /// What the user is told it comes from, never the content.
   final String source;
 
-  /// The service account, as its json reads.
+  /// The service account, as its json reads (decoded when the file or the
+  /// variable held its obfuscated json).
   final Map<String, Object?> map;
 
   /// The file it was read from, null when the variable holds the json.
@@ -102,6 +115,14 @@ class FestenaoServiceAccount {
   /// The json, indented as a service account file is.
   String get json => const JsonEncoder.withIndent('  ').convert(map);
 
+  /// True when [other] is this account read elsewhere: the same file, or
+  /// the same key of the same account.
+  bool sameAs(FestenaoServiceAccount other) =>
+      (path != null &&
+          other.path != null &&
+          normalize(path!) == normalize(other.path!)) ||
+      (clientEmail == other.clientEmail && privateKeyId == other.privateKeyId);
+
   /// The project, the account and the source, never the key.
   @override
   String toString() => '$projectId $clientEmail ($source)';
@@ -109,7 +130,8 @@ class FestenaoServiceAccount {
 
 /// The service accounts found, and why some could not be read.
 class FestenaoServiceAccountsFound {
-  /// The ones read, the variable one first.
+  /// The ones read: the local file one, then the variable one, then the
+  /// files, each account once.
   final List<FestenaoServiceAccount> accounts;
 
   /// What went wrong, one line each (a missing file, a json without key...).
@@ -125,6 +147,12 @@ class FestenaoServiceAccountsFound {
     required this.errors,
     this.gcloudProjectId,
   });
+
+  /// The one of [festenaoServiceAccountLocalEncPath] in the current
+  /// directory, null when there is no such file.
+  FestenaoServiceAccount? get fromLocal => accounts
+      .where((account) => account.origin == FestenaoServiceAccountOrigin.local)
+      .firstOrNull;
 
   /// The one of [festenaoServiceAccountEnvKey], null when it is not set.
   FestenaoServiceAccount? get fromEnv => accounts
@@ -176,7 +204,27 @@ String? festenaoGcloudProjectFromEnv({Map<String, String>? environment}) =>
       valueOf(userEnvironment[key], 'ds env');
 }
 
-/// Reads the service account file [path], throwing a [StateError] naming the
+/// The service account of the json [text] read from [source], plain or
+/// obfuscated ([festenaoServiceAccountMapDecode]); a [StateError] naming
+/// [source] when it is not a usable one.
+Map<String, Object?> _mapFromText(String text, String source) {
+  Map<String, Object?>? map;
+  try {
+    map = festenaoServiceAccountMapDecode(
+      festenaoServiceAccountMapFromText(text),
+    );
+  } on StateError catch (e) {
+    throw StateError('$source: ${e.message}');
+  }
+  var error = festenaoServiceAccountMapError(map);
+  if (error != null) {
+    throw StateError('$source: $error');
+  }
+  return map!;
+}
+
+/// Reads the service account file [path], plain or obfuscated
+/// ([festenaoServiceAccountEncMap]), throwing a [StateError] naming the
 /// file when it is missing or not a usable service account.
 Future<FestenaoServiceAccount> festenaoReadServiceAccountFile(
   String path, {
@@ -187,15 +235,11 @@ Future<FestenaoServiceAccount> festenaoReadServiceAccountFile(
   if (!file.existsSync()) {
     throw StateError('${source ?? path}: no file ${file.path}');
   }
-  var map = festenaoServiceAccountMapFromText(await file.readAsString());
-  var error = festenaoServiceAccountMapError(map);
-  if (error != null) {
-    throw StateError('${source ?? path}: $error');
-  }
+  var map = _mapFromText(await file.readAsString(), source ?? file.path);
   return FestenaoServiceAccount(
     origin: origin,
     source: source ?? file.path,
-    map: map!,
+    map: map,
     path: file.path,
   );
 }
@@ -212,21 +256,36 @@ Future<FestenaoServiceAccount?> festenaoServiceAccountFromEnv({
   var source = '\$$festenaoServiceAccountEnvKey (${envValue.where})';
   var value = envValue.value;
   if (value.startsWith('{')) {
-    var map = festenaoServiceAccountMapFromText(value);
-    var error = festenaoServiceAccountMapError(map);
-    if (error != null) {
-      throw StateError('$source: $error');
-    }
     return FestenaoServiceAccount(
       origin: FestenaoServiceAccountOrigin.env,
       source: source,
-      map: map!,
+      map: _mapFromText(value, source),
     );
   }
   return festenaoReadServiceAccountFile(
     value,
     origin: FestenaoServiceAccountOrigin.env,
     source: '$source $value',
+  );
+}
+
+/// The service account of the [festenaoServiceAccountLocalEncPath] file of
+/// the current directory (its obfuscated json, or a plain one), null when
+/// there is no such file, a [StateError] when it does not read as one.
+///
+/// [localPath] replaces the file, for tests.
+Future<FestenaoServiceAccount?> festenaoServiceAccountFromLocal({
+  String? localPath,
+}) async {
+  var file = File(localPath ?? festenaoServiceAccountLocalEncPath);
+  if (!file.existsSync()) {
+    return null;
+  }
+  var path = normalize(file.absolute.path);
+  return festenaoReadServiceAccountFile(
+    path,
+    origin: FestenaoServiceAccountOrigin.local,
+    source: path,
   );
 }
 
@@ -258,15 +317,20 @@ Future<List<FestenaoServiceAccount>> festenaoServiceAccountsFromDir({
   return accounts;
 }
 
-/// Every service account this machine holds: the one of
-/// [festenaoServiceAccountEnvKey] first, then the files of [dirPath], a file
-/// the variable already points to (or holding the same key) only once.
+/// Every service account this machine holds, each once: the one of
+/// [festenaoServiceAccountLocalEncPath] in the current directory first, then
+/// the one of [festenaoServiceAccountEnvKey], then the files of [dirPath]; a
+/// file already found (or holding the same key) is not listed again.
 ///
 /// The project of [festenaoGcloudProjectEnvKey] comes along, an error said
 /// when there are no application default credentials to reach it with.
+///
+/// [environment], [dirPath] and [localPath] replace the variables, the
+/// directory and the local file, for tests.
 Future<FestenaoServiceAccountsFound> festenaoFindServiceAccounts({
   Map<String, String>? environment,
   String? dirPath,
+  String? localPath,
 }) async {
   var errors = <String>[];
   var gcloudProjectId = festenaoGcloudProjectFromEnv(environment: environment);
@@ -282,11 +346,19 @@ Future<FestenaoServiceAccountsFound> festenaoFindServiceAccounts({
     }
   }
   var accounts = <FestenaoServiceAccount>[];
-  try {
-    var fromEnv = await festenaoServiceAccountFromEnv(environment: environment);
-    if (fromEnv != null) {
-      accounts.add(fromEnv);
+  void add(FestenaoServiceAccount? account) {
+    if (account != null && !accounts.any(account.sameAs)) {
+      accounts.add(account);
     }
+  }
+
+  try {
+    add(await festenaoServiceAccountFromLocal(localPath: localPath));
+  } on StateError catch (e) {
+    errors.add(e.message);
+  }
+  try {
+    add(await festenaoServiceAccountFromEnv(environment: environment));
   } on StateError catch (e) {
     errors.add(e.message);
   }
@@ -294,18 +366,7 @@ Future<FestenaoServiceAccountsFound> festenaoFindServiceAccounts({
     dirPath: dirPath,
     errors: errors,
   );
-  for (var account in fromDir) {
-    var known = accounts.any(
-      (other) =>
-          (other.path != null &&
-              normalize(other.path!) == normalize(account.path!)) ||
-          (other.clientEmail == account.clientEmail &&
-              other.privateKeyId == account.privateKeyId),
-    );
-    if (!known) {
-      accounts.add(account);
-    }
-  }
+  fromDir.forEach(add);
   return FestenaoServiceAccountsFound(
     accounts: accounts,
     errors: errors,
@@ -335,6 +396,37 @@ Future<String> festenaoWriteServiceAccountFile(
   );
   await _chmod('600', file.path);
   return file.path;
+}
+
+/// Writes the obfuscated json of [serviceAccount]
+/// ([festenaoServiceAccountEncMap], indented) to [path],
+/// [festenaoServiceAccountLocalEncPath] of the current directory by default,
+/// creating its folder; readable by the user only on posix. Answers the
+/// absolute path.
+///
+/// What a support tool of a project calls with the service account it
+/// embeds, so that `festenaodash` (the festenao admin build) started in that
+/// folder manages the project:
+///
+/// ```dart
+/// await festenaoWriteServiceAccountEncFile(myProjectServiceAccountMap);
+/// ```
+///
+/// Throws an [ArgumentError] when [serviceAccount] is not a usable service
+/// account.
+Future<String> festenaoWriteServiceAccountEncFile(
+  Map serviceAccount, {
+  String path = festenaoServiceAccountLocalEncPath,
+  String? password,
+}) async {
+  var encMap = festenaoServiceAccountEncMap(serviceAccount, password: password);
+  var file = File(path);
+  await file.parent.create(recursive: true);
+  await file.writeAsString(
+    '${const JsonEncoder.withIndent('  ').convert(encMap)}\n',
+  );
+  await _chmod('600', file.path);
+  return normalize(file.absolute.path);
 }
 
 /// Deletes the service account file of [projectId] in [dirPath], answering

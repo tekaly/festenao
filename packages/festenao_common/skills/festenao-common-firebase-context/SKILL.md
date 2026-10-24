@@ -66,12 +66,23 @@ it into the `FirebaseContext` the rest of the code receives.
   instead.
 * The service account of an admin build or tool comes from the machine, never
   from the code: `firebase/festenao_service_account_io.dart` (io only) reads
-  `FESTENAO_SERVICE_ACCOUNT` (the json or a file path, the environment then
-  the ds env user file) with `festenaoServiceAccountFromEnv()`, and every
-  account (that one plus the files of
-  `~/.config/tekartik/festenao/service_accounts/<project_id>.json`) with
-  `festenaoFindServiceAccounts()`. The `festenao_service_account` command of
-  `festenao_support` writes them; errors never quote the key.
+  `.local/service_account_enc.json` of the current directory with
+  `festenaoServiceAccountFromLocal()`, `FESTENAO_SERVICE_ACCOUNT` (the json
+  or a file path, the environment then the ds env user file) with
+  `festenaoServiceAccountFromEnv()`, and every account (those plus the files
+  of `~/.config/tekartik/festenao/service_accounts/<project_id>.json`, each
+  once) with `festenaoFindServiceAccounts()`, the local one first. The
+  `festenao_service_account` command of `festenao_support` writes the files;
+  errors never quote the key.
+* The local file is the obfuscated json a support tool of a project writes
+  with `festenaoWriteServiceAccountEncFile(itsServiceAccountMap)` (project
+  id, email and key id in clear, the account aes encrypted with a random
+  password kept in the file: obfuscation, for a git ignored file); the
+  festenaoprv `festenaodash` command started in that folder selects it.
+  `festenaoServiceAccountEncMap`, `festenaoServiceAccountMapIsEnc`,
+  `festenaoServiceAccountMapDecode` (plain or obfuscated, what every reader
+  and `festenaoServiceAccountMapError` go through) in
+  `firebase/firebase_service_account.dart`, web importable.
 * `admin/festenao_apps_admin.dart`: `FestenaoAppsAdmin(firestore:,
   listDocumentIds:)` lists the apps (`apps()`, the ids without a document
   included when `listDocumentIds` can, i.e. the admin sdk

@@ -2,11 +2,16 @@
 /// this machine holds, and firebase through the admin sdk.
 ///
 /// [adminCredentialsImportFound] copies the service account of
+/// `.local/service_account_enc.json` in the directory the app was started
+/// from (the obfuscated json a support tool of a project writes, see
+/// `festenaoWriteServiceAccountEncFile`), the one of
 /// `FESTENAO_SERVICE_ACCOUNT` (the json or a file path, from the environment
 /// or the ds env user file) and the files of
 /// `~/.config/tekartik/festenao/service_accounts` into the credentials
-/// database, so they show with the pasted ones; the `festenao_service_account`
-/// command of `festenao_support` writes them.
+/// database, so they show with the pasted ones and stay for the next runs;
+/// the `festenao_service_account` command of `festenao_support` writes the
+/// files. The local one is selected when there is one: `cd` into the folder
+/// of a project and start the app (`festenaodash`) to manage that project.
 ///
 /// `FESTENAO_GCLOUD_PROJECT` names a project reached as the gcloud user
 /// instead (`gcloud auth application-default login`), no service account
@@ -35,7 +40,8 @@ export 'package:festenao_common/firebase/festenao_service_account_io.dart'
         festenaoApplicationDefaultCredentialsPath,
         festenaoGcloudProjectEnvKey,
         festenaoServiceAccountDirPath,
-        festenaoServiceAccountEnvKey;
+        festenaoServiceAccountEnvKey,
+        festenaoServiceAccountLocalEncPath;
 export 'package:festenao_common/firebase/firebase_admin_sdk.dart'
     show festenaoAdminFirebaseAdminSdk;
 
@@ -49,43 +55,58 @@ const adminCredentialsGcloudEnvId = 'found_gcloud_env';
 /// under.
 String adminCredentialsFileId(String projectId) => 'found_file_$projectId';
 
+/// The id the credentials of the `.local/service_account_enc.json` file of
+/// [projectId] (in the directory the app was started from) are kept under:
+/// one per project, so the account of every folder the app was started from
+/// stays available.
+String adminCredentialsLocalId(String projectId) => 'found_local_$projectId';
+
 /// Copies the service accounts found on this machine
 /// ([festenaoFindServiceAccounts]) into [credentialsDb], answering what was
 /// found (and what could not be read).
 ///
-/// Each source has an id of its own, rewritten on every call: the variable
+/// Each source has an id of its own, rewritten on every call: the local file
+/// of its project ([adminCredentialsLocalId]), the variable
 /// ([adminCredentialsEnvId]), each file ([adminCredentialsFileId]) and the
-/// gcloud project ([adminCredentialsGcloudEnvId]). The gcloud project is
-/// selected when it is set (what a launcher passes), else the variable when it
-/// is set, else the first one found when nothing is selected yet; the copies
-/// stay in the database (unencrypted, it is a local build) until deleted
-/// there.
+/// gcloud project ([adminCredentialsGcloudEnvId]). The local file is
+/// selected when there is one (the project of the folder the app was started
+/// from), else the gcloud project when it is set (what a launcher passes),
+/// else the variable when it is set, else the first one found when nothing is
+/// selected yet; the copies stay in the database (unencrypted, it is a local
+/// build) until deleted there.
 ///
-/// [environment] and [dirPath] replace the variables and the directory, for
-/// tests.
+/// [environment], [dirPath] and [localPath] replace the variables, the
+/// directory and the local file, for tests.
 Future<FestenaoServiceAccountsFound> adminCredentialsImportFound(
   AdminCredentialsDb credentialsDb, {
   Map<String, String>? environment,
   String? dirPath,
+  String? localPath,
 }) async {
   var found = await festenaoFindServiceAccounts(
     environment: environment,
     dirPath: dirPath,
+    localPath: localPath,
   );
   String? firstId;
   for (var account in found.accounts) {
-    var isEnv = account.origin == FestenaoServiceAccountOrigin.env;
-    var id = isEnv
-        ? adminCredentialsEnvId
-        : adminCredentialsFileId(account.projectId);
+    var projectId = account.projectId;
+    var (id, label) = switch (account.origin) {
+      FestenaoServiceAccountOrigin.local => (
+        adminCredentialsLocalId(projectId),
+        '$projectId ($festenaoServiceAccountLocalEncPath)',
+      ),
+      FestenaoServiceAccountOrigin.env => (
+        adminCredentialsEnvId,
+        '$projectId (\$$festenaoServiceAccountEnvKey)',
+      ),
+      FestenaoServiceAccountOrigin.file => (
+        adminCredentialsFileId(projectId),
+        '$projectId (file)',
+      ),
+    };
     firstId ??= id;
-    await credentialsDb.put(
-      id,
-      label: isEnv
-          ? '${account.projectId} (\$$festenaoServiceAccountEnvKey)'
-          : '${account.projectId} (file)',
-      serviceAccount: account.json,
-    );
+    await credentialsDb.put(id, label: label, serviceAccount: account.json);
   }
   var gcloudProjectId = found.gcloudProjectId;
   if (gcloudProjectId != null) {
@@ -94,6 +115,10 @@ Future<FestenaoServiceAccountsFound> adminCredentialsImportFound(
       label: '$gcloudProjectId (\$$festenaoGcloudProjectEnvKey)',
       projectId: gcloudProjectId,
     );
+  }
+  if (found.fromLocal case var local?) {
+    await credentialsDb.setCurrentId(adminCredentialsLocalId(local.projectId));
+  } else if (gcloudProjectId != null) {
     await credentialsDb.setCurrentId(adminCredentialsGcloudEnvId);
   } else if (found.fromEnv != null) {
     await credentialsDb.setCurrentId(adminCredentialsEnvId);

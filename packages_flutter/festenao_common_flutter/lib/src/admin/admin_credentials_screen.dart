@@ -361,7 +361,7 @@ class _AdminCredentialsEditScreenState
               minLines: 6,
               style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
               decoration: InputDecoration(
-                labelText: 'Service account json',
+                labelText: 'Service account json, plain or obfuscated',
                 errorText: _error,
                 border: const OutlineInputBorder(),
               ),

@@ -4,8 +4,10 @@ import 'package:tekartik_app_cv_sdb/app_cv_sdb.dart';
 /// One set of admin credentials: a service account, and what it reaches; or
 /// a project only, reached as the gcloud user ([gcloud]).
 ///
-/// The service account is kept as the json text it was pasted as, so nothing
-/// of it is lost to a round trip through a model.
+/// The service account is kept as the json text it was pasted as (a service
+/// account, or its obfuscated json `service_account_enc`, decoded by
+/// [serviceAccountMap]), so nothing of it is lost to a round trip through a
+/// model.
 class AdminCredentials extends ScvStringRecordBase {
   /// What the list displays, the project id when it was left empty.
   final label = CvField<String>('label');
@@ -13,7 +15,7 @@ class AdminCredentials extends ScvStringRecordBase {
   /// The firebase project the service account belongs to.
   final projectId = CvField<String>('projectId');
 
-  /// The service account json, as it was pasted.
+  /// The service account json, as it was pasted (plain or obfuscated).
   final serviceAccount = CvField<String>('serviceAccount');
 
   /// True when [projectId] is reached as the gcloud user of the machine (the
@@ -38,7 +40,8 @@ class AdminCredentials extends ScvStringRecordBase {
         : label;
   }
 
-  /// The service account as a map, null when the json does not read as one.
+  /// The service account as a map (decoded when obfuscated), null when the
+  /// json does not read as one.
   Map<String, Object?>? get serviceAccountMap =>
       adminServiceAccountMap(serviceAccount.v);
 }
@@ -82,15 +85,26 @@ SdbDatabaseSchema adminCredentialsDatabaseSchema() => SdbDatabaseSchema(
   ],
 );
 
-/// The service account json [text] as a map, null when it is not one.
-Map<String, Object?>? adminServiceAccountMap(String? text) =>
-    festenaoServiceAccountMapFromText(text);
+/// The service account json [text] as a map, decoded when it is the
+/// obfuscated json (`service_account_enc`, see
+/// `festenaoServiceAccountEncMap`); null when it is not one, or does not
+/// decode.
+Map<String, Object?>? adminServiceAccountMap(String? text) {
+  try {
+    return festenaoServiceAccountMapDecode(
+      festenaoServiceAccountMapFromText(text),
+    );
+  } on StateError {
+    return null;
+  }
+}
 
 /// The `project_id` of the service account json [text], null when it has none.
 String? adminServiceAccountProjectId(String? text) =>
     adminServiceAccountMap(text)?['project_id'] as String?;
 
-/// What is wrong with the service account json [text], null when nothing is.
+/// What is wrong with the service account json [text] (plain or obfuscated),
+/// null when nothing is.
 ///
 /// It checks the fields a service account is unusable without, so a typo is
 /// caught when it is pasted rather than on the first request.

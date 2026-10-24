@@ -101,6 +101,77 @@ void main() {
     expect(await db.currentId(), id);
   });
 
+  test(
+    'the local file, selected over the variable, kept per project',
+    () async {
+      var localPath = '${tempDir.path}${Platform.pathSeparator}sa_enc.json';
+      await festenaoWriteServiceAccountEncFile(
+        _serviceAccount('p1'),
+        path: localPath,
+      );
+      var found = await adminCredentialsImportFound(
+        db,
+        environment: {
+          festenaoServiceAccountEnvKey: jsonEncode(_serviceAccount('p2')),
+        },
+        dirPath: dirPath,
+        localPath: localPath,
+      );
+      expect(found.errors, isEmpty);
+      expect(found.fromLocal!.projectId, 'p1');
+      var list = await db.list();
+      expect(list.map((credentials) => credentials.displayName), [
+        'p1 (.local/service_account_enc.json)',
+        'p2 (\$FESTENAO_SERVICE_ACCOUNT)',
+      ]);
+      expect(await db.currentId(), adminCredentialsLocalId('p1'));
+      var current = (await db.current())!;
+      expect(current.projectId.v, 'p1');
+      // Kept decoded: the json of the service account itself.
+      expect(current.serviceAccountMap, _serviceAccount('p1'));
+      expect(current.serviceAccount.v, contains('PRIVATE KEY'));
+
+      // Started from another folder: its account added, the first one kept.
+      await festenaoWriteServiceAccountEncFile(
+        _serviceAccount('p3'),
+        path: localPath,
+      );
+      await adminCredentialsImportFound(
+        db,
+        environment: {},
+        dirPath: dirPath,
+        localPath: localPath,
+      );
+      list = await db.list();
+      expect(list.map((credentials) => credentials.displayName), [
+        'p1 (.local/service_account_enc.json)',
+        'p2 (\$FESTENAO_SERVICE_ACCOUNT)',
+        'p3 (.local/service_account_enc.json)',
+      ]);
+      expect(await db.currentId(), adminCredentialsLocalId('p3'));
+
+      // No local file: the previous selection stays.
+      File(localPath).deleteSync();
+      await adminCredentialsImportFound(
+        db,
+        environment: {},
+        dirPath: dirPath,
+        localPath: localPath,
+      );
+      expect(await db.currentId(), adminCredentialsLocalId('p3'));
+    },
+  );
+
+  test('the obfuscated json pasted', () async {
+    var enc = festenaoServiceAccountEncMap(_serviceAccount('p1'));
+    expect(adminServiceAccountError(jsonEncode(enc)), isNull);
+    expect(adminServiceAccountProjectId(jsonEncode(enc)), 'p1');
+    expect(adminServiceAccountMap(jsonEncode(enc)), _serviceAccount('p1'));
+    var damaged = jsonEncode({...enc, 'password': 'x' * 32});
+    expect(adminServiceAccountError(damaged), contains('does not decrypt'));
+    expect(adminServiceAccountMap(damaged), isNull);
+  });
+
   test('the gcloud project, selected over the variable', () async {
     var adcPath = '${tempDir.path}${Platform.pathSeparator}adc.json';
     File(adcPath).writeAsStringSync('{"type": "authorized_user"}');

@@ -19,7 +19,9 @@
   dart run festenao_support:festenao_service_account list
   ```
 
-  See `doc/admin_service_account.md` of the festenao repository.
+  See `doc/admin_service_account.md` of the festenao repository, with the
+  `.local/service_account_enc.json` a project's support tool writes
+  (`festenaoWriteServiceAccountEncFile`) for the `festenaodash` admin build.
 
 ## Libraries
 

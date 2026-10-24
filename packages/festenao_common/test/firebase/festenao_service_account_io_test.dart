@@ -141,9 +141,88 @@ void main() {
     expect(found.fromEnv, isNull);
   });
 
+  test('local obfuscated file', () async {
+    var localPath = join(tempDir.path, 'checkout', '.local', 'sa_enc.json');
+    expect(await festenaoServiceAccountFromLocal(localPath: localPath), isNull);
+
+    var written = await festenaoWriteServiceAccountEncFile(
+      _serviceAccount('p3'),
+      path: localPath,
+    );
+    expect(written, localPath);
+    var content = File(localPath).readAsStringSync();
+    expect(content, isNot(contains('PRIVATE KEY')));
+    expect(content, contains('"project_id": "p3"'));
+    expect(content, endsWith('}\n'));
+    if (!Platform.isWindows) {
+      expect(File(localPath).statSync().modeString(), 'rw-------');
+    }
+
+    // Read back decoded, from the local file, as a file, through the variable.
+    var account = (await festenaoServiceAccountFromLocal(
+      localPath: localPath,
+    ))!;
+    expect(account.origin, FestenaoServiceAccountOrigin.local);
+    expect(account.map, _serviceAccount('p3'));
+    expect(account.source, localPath);
+    expect(account.path, localPath);
+    expect((await festenaoReadServiceAccountFile(localPath)).map, account.map);
+    expect(
+      (await festenaoServiceAccountFromEnv(
+        environment: {festenaoServiceAccountEnvKey: content},
+      ))!.map,
+      account.map,
+    );
+
+    // Found first, once: the variable points to it, the directory holds the
+    // same key.
+    await festenaoWriteServiceAccountFile(
+      _serviceAccount('p3'),
+      dirPath: dirPath,
+    );
+    await festenaoWriteServiceAccountFile(
+      _serviceAccount('p1'),
+      dirPath: dirPath,
+    );
+    var found = await festenaoFindServiceAccounts(
+      environment: {festenaoServiceAccountEnvKey: localPath},
+      dirPath: dirPath,
+      localPath: localPath,
+    );
+    expect(found.accounts.map((account) => account.projectId), ['p3', 'p1']);
+    expect(found.fromLocal!.source, localPath);
+    expect(found.fromEnv, isNull);
+    expect(found.errors, isEmpty);
+
+    // A damaged local file is an error, the others are still found.
+    File(localPath).writeAsStringSync(
+      content.replaceFirst('"password": "', '"password": "x'),
+    );
+    found = await festenaoFindServiceAccounts(
+      environment: {},
+      dirPath: dirPath,
+      localPath: localPath,
+    );
+    expect(found.accounts.map((account) => account.projectId), ['p1', 'p3']);
+    expect(found.fromLocal, isNull);
+    expect(found.errors, [
+      allOf(
+        startsWith(localPath),
+        contains('does not decrypt'),
+        isNot(contains('PRIVATE KEY')),
+      ),
+    ]);
+  });
+
   test('write refuses a broken service account', () async {
     await expectLater(
       festenaoWriteServiceAccountFile({'project_id': 'p1'}, dirPath: dirPath),
+      throwsArgumentError,
+    );
+    await expectLater(
+      festenaoWriteServiceAccountEncFile({
+        'project_id': 'p1',
+      }, path: join(tempDir.path, 'enc.json')),
       throwsArgumentError,
     );
   });
