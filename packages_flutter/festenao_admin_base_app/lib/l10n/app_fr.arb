@@ -162,5 +162,12 @@
   "linkCopied": "Lien copié",
   "accessRemoveUser": "Retirer l'utilisateur",
   "accessRemoveUserConfirm": "Retirer cet utilisateur du projet ?",
+  "dashboardHomeTitle": "Festenao Dashboard",
+  "dashboardWelcome": "Bienvenue sur Festenao Dashboard",
+  "dashboardAccount": "Compte",
+  "dashboardLogs": "Journaux",
+  "dashboardLogsDetail": "Explorateur et bac à sable",
+  "dashboardDebug": "Débogage",
+  "dashboardYourProjects": "Vos projets",
   "editLeaveWithoutSaving": "Vous avez des modifications non enregistrées\n\nVous pouvez continuer l'édition en choisissant d'annuler ou quitter l'édition en supprimant vos modifications"
 }

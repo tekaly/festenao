@@ -51,10 +51,13 @@ class MyDebugScreen extends StatelessWidget {
 * Every screen exposes its `routeName` and `routeLocationPart` consts; they
   feed the `RoutePathDef`s of `router.dart`, which are what you navigate
   with (`context.pushPath(def, parameters:)`), never those strings.
-* `DashboardHomePage`: the projects of the signed in user
-  (`rpdUserProjectsProvider`), links to `projectsAccessPath` and
-  `dashboardLogsPath`, a FAB to `goToAuthScreen`, and in debug mode a tile
-  doing `context.pushNamed('debug')`: declare a route named `debug`.
+* `DashboardHomePage`, on the kit: a header (who is signed in), the
+  pending email invites, rows to `projectsAccessPath` and
+  `dashboardLogsPath`, the projects of the signed in user
+  (`rpdUserProjectsProvider` on `identity.userOrAccountId`), an account
+  button in the app bar to `goToAuthScreen` (a sign in card when signed
+  out), and in debug mode a row doing `context.pushNamed('debug')`: declare
+  a route named `debug`.
 * `DashboardProjectHomeScreen({projectId})` and
   `DashboardProjectContentHomeScreen({projectId, dataId})` read the ids from
   the route scope when null. The project home lists the project (from the

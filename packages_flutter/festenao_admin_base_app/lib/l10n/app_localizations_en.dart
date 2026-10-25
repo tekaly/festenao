@@ -522,6 +522,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get accessRemoveUserConfirm => 'Remove this user from the project?';
 
   @override
+  String get dashboardHomeTitle => 'Festenao Dashboard';
+
+  @override
+  String get dashboardWelcome => 'Welcome to Festenao Dashboard';
+
+  @override
+  String get dashboardAccount => 'Account';
+
+  @override
+  String get dashboardLogs => 'Logs';
+
+  @override
+  String get dashboardLogsDetail => 'Explorer and playground';
+
+  @override
+  String get dashboardDebug => 'Debug';
+
+  @override
+  String get dashboardYourProjects => 'Your projects';
+
+  @override
   String get editLeaveWithoutSaving =>
       'You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition and discard your changes';
 }

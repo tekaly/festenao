@@ -1059,6 +1059,48 @@ abstract class AppLocalizations {
   /// **'Remove this user from the project?'**
   String get accessRemoveUserConfirm;
 
+  /// Title of the dashboard home page
+  ///
+  /// In en, this message translates to:
+  /// **'Festenao Dashboard'**
+  String get dashboardHomeTitle;
+
+  /// Header of the dashboard home page
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome to Festenao Dashboard'**
+  String get dashboardWelcome;
+
+  /// Tooltip of the account button of the home page
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get dashboardAccount;
+
+  /// Row opening the logs explorer
+  ///
+  /// In en, this message translates to:
+  /// **'Logs'**
+  String get dashboardLogs;
+
+  /// Line under the logs row
+  ///
+  /// In en, this message translates to:
+  /// **'Explorer and playground'**
+  String get dashboardLogsDetail;
+
+  /// Row opening the debug screen (debug builds)
+  ///
+  /// In en, this message translates to:
+  /// **'Debug'**
+  String get dashboardDebug;
+
+  /// Section of the projects of the signed in user on the home page
+  ///
+  /// In en, this message translates to:
+  /// **'Your projects'**
+  String get dashboardYourProjects;
+
   /// Unsaved changes dialog content when the screen cannot save from the dialog
   ///
   /// In en, this message translates to:

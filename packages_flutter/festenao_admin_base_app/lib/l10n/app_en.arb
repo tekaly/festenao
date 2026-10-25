@@ -699,6 +699,34 @@
   "@accessRemoveUserConfirm": {
     "description": "Content of the dialog removing a user access"
   },
+  "dashboardHomeTitle": "Festenao Dashboard",
+  "@dashboardHomeTitle": {
+    "description": "Title of the dashboard home page"
+  },
+  "dashboardWelcome": "Welcome to Festenao Dashboard",
+  "@dashboardWelcome": {
+    "description": "Header of the dashboard home page"
+  },
+  "dashboardAccount": "Account",
+  "@dashboardAccount": {
+    "description": "Tooltip of the account button of the home page"
+  },
+  "dashboardLogs": "Logs",
+  "@dashboardLogs": {
+    "description": "Row opening the logs explorer"
+  },
+  "dashboardLogsDetail": "Explorer and playground",
+  "@dashboardLogsDetail": {
+    "description": "Line under the logs row"
+  },
+  "dashboardDebug": "Debug",
+  "@dashboardDebug": {
+    "description": "Row opening the debug screen (debug builds)"
+  },
+  "dashboardYourProjects": "Your projects",
+  "@dashboardYourProjects": {
+    "description": "Section of the projects of the signed in user on the home page"
+  },
   "editLeaveWithoutSaving": "You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition and discard your changes",
   "@editLeaveWithoutSaving": {
     "description": "Unsaved changes dialog content when the screen cannot save from the dialog"

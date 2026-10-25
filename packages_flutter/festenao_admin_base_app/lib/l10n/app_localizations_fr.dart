@@ -528,6 +528,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get accessRemoveUserConfirm => 'Retirer cet utilisateur du projet ?';
 
   @override
+  String get dashboardHomeTitle => 'Festenao Dashboard';
+
+  @override
+  String get dashboardWelcome => 'Bienvenue sur Festenao Dashboard';
+
+  @override
+  String get dashboardAccount => 'Compte';
+
+  @override
+  String get dashboardLogs => 'Journaux';
+
+  @override
+  String get dashboardLogsDetail => 'Explorateur et bac à sable';
+
+  @override
+  String get dashboardDebug => 'Débogage';
+
+  @override
+  String get dashboardYourProjects => 'Vos projets';
+
+  @override
   String get editLeaveWithoutSaving =>
       'Vous avez des modifications non enregistrées\n\nVous pouvez continuer l\'édition en choisissant d\'annuler ou quitter l\'édition en supprimant vos modifications';
 }
