@@ -3,9 +3,7 @@
 # downgrade, each step being a separate job.
 name: Run CI workflow flutter analyze
 on:
-  # No run on push (2026-10-25): run it by hand (workflow_dispatch) or wait
-  # for the weekly run.
-  # push:
+  push:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 0'  # every sunday at midnight
