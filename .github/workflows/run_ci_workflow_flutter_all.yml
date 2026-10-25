@@ -2,7 +2,9 @@
 # jobs (pub get, analyze, format, test, build) for each os/channel.
 name: Run CI workflow flutter all
 on:
-  push:
+  # No run on push (2026-10-25): run it by hand (workflow_dispatch) or wait
+  # for the weekly run.
+  # push:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 0'  # every sunday at midnight
