@@ -1,3 +1,4 @@
+import 'package:festenao_admin_base_app/auth/auth.dart';
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/view/access_view.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
@@ -6,6 +7,7 @@ import 'package:festenao_theme/design.dart';
 import 'package:festenao_theme/kit.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
+import 'package:tekartik_firebase_ui_auth/ui_auth.dart';
 import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 import 'package:tkcms_common/tkcms_firestore.dart';
 
@@ -116,9 +118,56 @@ class _ProjectSdbInviteViewScreenState
         ],
       ),
     );
-    if (confirmed != true) {
+    if (confirmed != true || !context.mounted) {
       return;
     }
+    await _acceptConfirmed(context, bloc);
+  }
+
+  /// Signed out: signs in, then accepts on the auth screen continue button
+  /// (no confirmation, that was it). Back signed in, the invite shows with
+  /// its accept button.
+  Future<void> _signInAndAccept(
+    BuildContext context,
+    ProjectSdbInviteViewScreenBloc bloc,
+    FirebaseUiAuthService uiAuthService,
+  ) async {
+    var intl = festenaoAdminAppIntl(context);
+    var result = await uiAuthService.pushAuthScreenToContinue(
+      context,
+      firebaseAuth: bloc.firebaseAuth,
+      authContinue: FirebaseUiAuthContinue(label: intl.projectInviteAccept),
+    );
+    if (!result.continued) {
+      return;
+    }
+    setState(() => _busy = true);
+    ProjectSdbInviteViewScreenBlocState state;
+    try {
+      // The invite reads once the screen follows the sign in.
+      state = await bloc
+          .waitForInvite(userId: result.user!.uid)
+          .timeout(const Duration(seconds: 30));
+    } catch (e) {
+      if (context.mounted) {
+        await muiSnack(context, 'Error: $e');
+      }
+      return;
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+    // Not found: the screen says so.
+    if (state.invite?.exists == true && context.mounted) {
+      await _acceptConfirmed(context, bloc);
+    }
+  }
+
+  Future<void> _acceptConfirmed(
+    BuildContext context,
+    ProjectSdbInviteViewScreenBloc bloc,
+  ) async {
     setState(() => _busy = true);
     try {
       await bloc.acceptInvite();
@@ -189,10 +238,24 @@ class _ProjectSdbInviteViewScreenState
         } else {
           Widget content;
           if (user == null) {
+            var uiAuthService = globalAuthFlutterUiServiceOrNull;
             content = FkCard(
               child: FkEmpty(
                 icon: Icons.login,
                 message: intl.projectInviteMustBeLoggedIn,
+                action: uiAuthService == null
+                    ? null
+                    : FilledButton.icon(
+                        onPressed: _busy
+                            ? null
+                            : () => _signInAndAccept(
+                                context,
+                                bloc,
+                                uiAuthService,
+                              ),
+                        icon: const Icon(Icons.login),
+                        label: Text(intl.projectInviteSignInAndAccept),
+                      ),
               ),
             );
           } else if (state.accepted) {

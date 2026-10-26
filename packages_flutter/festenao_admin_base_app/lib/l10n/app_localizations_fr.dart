@@ -266,6 +266,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vous devez être connecté pour accepter cette invitation';
 
   @override
+  String get projectInviteSignInAndAccept => 'Se connecter et accepter';
+
+  @override
   String get projectInviteNotFound => 'Invitation introuvable ou expirée';
 
   @override

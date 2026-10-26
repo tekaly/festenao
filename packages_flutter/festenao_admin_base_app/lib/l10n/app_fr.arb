@@ -76,6 +76,7 @@
   "projectInviteLinkInformation": "Envoyez ce lien pour inviter quelqu'un à ce projet",
   "projectInviteMessage": "Vous avez été invité à rejoindre ce projet",
   "projectInviteMustBeLoggedIn": "Vous devez être connecté pour accepter cette invitation",
+  "projectInviteSignInAndAccept": "Se connecter et accepter",
   "projectInviteNotFound": "Invitation introuvable ou expirée",
   "projectInviteTitle": "Invitation",
   "projectInviteView": "Voir l'invitation",

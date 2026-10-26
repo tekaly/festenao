@@ -561,6 +561,12 @@ abstract class AppLocalizations {
   /// **'You must be logged in to accept a project invite'**
   String get projectInviteMustBeLoggedIn;
 
+  /// Project invite, signed out: opens the sign in, then accepts the invite
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in and accept'**
+  String get projectInviteSignInAndAccept;
+
   /// Project invite not found
   ///
   /// In en, this message translates to:

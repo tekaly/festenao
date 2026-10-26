@@ -263,6 +263,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'You must be logged in to accept a project invite';
 
   @override
+  String get projectInviteSignInAndAccept => 'Sign in and accept';
+
+  @override
   String get projectInviteNotFound => 'Project invite not found';
 
   @override

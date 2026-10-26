@@ -127,6 +127,17 @@ class ProjectSdbInviteViewScreenBloc
   TkCmsFirestoreDatabaseServiceEntityAccess<TkCmsFsEntity> get _projectDb =>
       entityAccess ?? globalFestenaoFirestoreDatabase.projectDb;
 
+  /// The auth the screen follows: signing in through it shows the invite.
+  FirebaseAuth get firebaseAuth => globalTkCmsFbIdentityBloc.auth;
+
+  /// The state once [userId] is signed in and the invite read (it may not
+  /// exist).
+  Future<ProjectSdbInviteViewScreenBlocState> waitForInvite({
+    required String userId,
+  }) => state.firstWhere(
+    (state) => state.user?.uid == userId && state.invite != null,
+  );
+
   /// Accept the invite, granting access to the current user.
   Future<void> acceptInvite() async {
     var onAcceptInvite = this.onAcceptInvite;

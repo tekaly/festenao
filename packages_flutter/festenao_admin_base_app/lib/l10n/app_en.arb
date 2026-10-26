@@ -343,6 +343,10 @@
   "@projectInviteMustBeLoggedIn": {
     "description": "Project invite not logged in message"
   },
+  "projectInviteSignInAndAccept": "Sign in and accept",
+  "@projectInviteSignInAndAccept": {
+    "description": "Project invite, signed out: opens the sign in, then accepts the invite"
+  },
   "projectInviteNotFound": "Project invite not found",
   "@projectInviteNotFound": {
     "description": "Project invite not found"
