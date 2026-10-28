@@ -3,6 +3,7 @@ import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_dashboard_base_app/src/provider/auth_rpd.dart';
 import 'package:festenao_dashboard_base_app/src/provider/auth_screen.dart';
 import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
+import 'package:festenao_dashboard_base_app/src/provider/project_slug_providers.dart';
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_dashboard_base_app/src/screen/pending_email_invites_view.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_leading.dart';
@@ -52,17 +53,18 @@ class DashboardHomePage extends ConsumerWidget {
 }
 
 /// The page, for [identity] (null when signed out).
-class _HomeBody extends StatelessWidget {
+class _HomeBody extends ConsumerWidget {
   final TkCmsFbIdentity? identity;
 
   const _HomeBody({required this.identity});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     var intl = festenaoAdminAppIntl(context);
     var t = context.festenao;
     var identity = this.identity;
     var signedIn = identity != null;
+    var isAppAdmin = signedIn && ref.watch(dashboardIsAppAdminProvider);
     return FkPage(
       maxWidth: 960,
       children: [
@@ -105,6 +107,16 @@ class _HomeBody extends StatelessWidget {
                     context.pushPath(projectsAccessPath);
                   },
                 ),
+                if (isAppAdmin)
+                  FkRow(
+                    leading: const FkIconBox(Icons.link),
+                    title: intl.slugsTitle,
+                    subtitle: intl.slugsDetail,
+                    trailing: Icon(Icons.chevron_right, color: t.ink3),
+                    onTap: () {
+                      context.pushPath(dashboardSlugsPath);
+                    },
+                  ),
                 FkRow(
                   leading: const FkIconBox(Icons.analytics_outlined),
                   title: intl.dashboardLogs,

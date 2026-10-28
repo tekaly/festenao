@@ -1,12 +1,13 @@
 import 'package:festenao_dashboard_base_app/src/router/dashboard_route_paths.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_access_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_slug_screen.dart';
+import 'package:festenao_dashboard_base_app/src/screen/project_slugs_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/projects_access_screen.dart';
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 
 /// The project access feature: the list of the projects the user has access to,
-/// the access screen of one project, and the url of a project (`/p/<slug>`)
-/// resolved to it.
+/// the access screen of one project, the url of a project (`/p/<slug>`)
+/// resolved to it, and every url in use (`/slugs`, the app admins).
 ///
 /// Mounted under the root route rather than at the top level: `/projects_access`
 /// opened directly (a fresh page load on the web) then builds the root page
@@ -42,6 +43,9 @@ class DashboardAccessRouteModule implements NestedFeatureRouteModule {
           DashboardRouteParams.projectId: projectId,
         }),
       ),
+    ),
+    dashboardSlugsPath.goRoute(
+      builder: (context, state) => const DashboardSlugsScreen(),
     ),
   ];
 }

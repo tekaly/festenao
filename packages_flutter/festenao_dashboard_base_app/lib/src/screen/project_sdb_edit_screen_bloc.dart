@@ -19,8 +19,17 @@ class ProjectSdbEditScreenBlocState {
   /// The current slug of the project url (`/p/<slug>`), null when none.
   final String? slug;
 
+  /// True when the user chooses the url: an app admin or a holder of the app
+  /// `slug` role (see [FestenaoFirestoreDatabaseSlugRightsExt.canSetSlug]).
+  final bool canSetSlug;
+
   /// Projects screen bloc state
-  ProjectSdbEditScreenBlocState({this.project, this.identity, this.slug});
+  ProjectSdbEditScreenBlocState({
+    this.project,
+    this.identity,
+    this.slug,
+    this.canSetSlug = false,
+  });
 }
 
 /// Projects screen bloc
@@ -42,6 +51,16 @@ class ProjectEditScreenBloc
         add(ProjectSdbEditScreenBlocState());
       } else {
         String? slug;
+        var canSetSlug = identity.isServiceAccount;
+        if (!canSetSlug) {
+          try {
+            canSetSlug = await globalFestenaoFirestoreDatabase.canSetSlug(
+              identity.userOrAccountId,
+            );
+          } catch (_) {
+            // Offline, or not readable: no url.
+          }
+        }
         var project = this.project;
         if (project != null) {
           try {
@@ -61,6 +80,7 @@ class ProjectEditScreenBloc
             project: project,
             identity: identity,
             slug: slug,
+            canSetSlug: canSetSlug,
           ),
         );
       }

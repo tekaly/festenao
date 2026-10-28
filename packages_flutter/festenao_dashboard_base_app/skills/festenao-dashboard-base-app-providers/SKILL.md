@@ -14,7 +14,9 @@ description: >-
   mediaEntriesProvider, locationEntriesProvider, SdbProjectContent,
   SdfContentSdb, the Sdf* records), the blog demo (blogEntriesProvider,
   DbBlog), the quizz providers (quizzDatabaseProvider,
-  quizzApiServiceProvider) and dashboardEntitySlugProvider. Not the routes
+  quizzApiServiceProvider) and the slug providers (dashboardEntitySlugProvider,
+  dashboardProjectUrlSlugsProvider, dashboardCanSetSlugProvider,
+  dashboardIsAppAdminProvider, dashboardAppSlugsProvider). Not the routes
   nor the screens.
 ---
 
@@ -159,7 +161,15 @@ class ArtistCount extends ConsumerWidget {
   disposed with the screens), `quizzUserPlayUriBuilderProvider` (override
   when the player app is hosted apart).
 * `dashboardEntitySlugProvider(entityId)` streams the `slug` of a project
-  document, null for another entity type.
+  document, null for another entity type (`dashboardEntityHasUrlProvider`
+  tells which). `dashboardProjectUrlSlugsProvider(projectId)` streams every
+  slug of a project, the current one first. `dashboardAppUserAccessProvider`
+  streams the app access of the signed in user (`access/app/entity_id/<app>/
+  user_access/<uid>`), from which `dashboardCanSetSlugProvider` (app admin
+  or app `slug` role, a service account always) and
+  `dashboardIsAppAdminProvider`; `dashboardAppSlugsProvider` lists every
+  slug of the app (app admins). Override `dashboardCanSetSlugProvider` with
+  a value in widget tests.
 
 ### Tests
 

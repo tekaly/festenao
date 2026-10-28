@@ -82,8 +82,12 @@ enum FestenaoUserAccessGrant {
   }
 
   /// Sets the rights of [userAccess] to this grant only, whatever they were
-  /// (a super admin made a reader loses the role), the other fields kept.
+  /// (a super admin made a reader loses the role), the other fields and
+  /// roles (the app `slug` role...) kept.
   void applyTo(TkCmsCvUserAccessCommon userAccess) {
+    var otherRoles = userAccess.roles
+        .where((role) => role != roleSuperAdmin && role != roleAdmin)
+        .toList();
     userAccess
       ..read.v = null
       ..write.v = null
@@ -99,6 +103,8 @@ enum FestenaoUserAccessGrant {
       case FestenaoUserAccessGrant.superAdmin:
         userAccess.grantSuperAdminAccess();
     }
+    var roles = [...userAccess.roles, ...otherRoles];
+    userAccess.role.v = roles.isEmpty ? null : roles.join(',');
     userAccess.fixAccess();
   }
 
@@ -319,6 +325,36 @@ class FestenaoAppsAdmin {
     if (email != null) {
       access.email.v = email;
     }
+    await entityAccess.setEntityUserAccess(
+      entityId: entityId,
+      userId: userId,
+      userAccess: access,
+    );
+  }
+
+  /// Gives [userId] the role [role] on [entityId] of [entityAccess] (the
+  /// app `slug` role, see `festenaoSlugRole`), or removes it, on both sides;
+  /// its rights and other roles kept. A user without an access gets one
+  /// holding the role only.
+  Future<void> setUserRole(
+    TkCmsFirestoreDatabaseServiceEntityAccess entityAccess,
+    String entityId,
+    String userId, {
+    required String role,
+    required bool granted,
+  }) async {
+    var access = await entityAccess
+        .fsEntityUserAccessRef(entityId, userId)
+        .cast<TkCmsEditedFsUserAccess>()
+        .get(firestore);
+    if (!access.exists && !granted) {
+      return;
+    }
+    var roles = access.roles.where((other) => other != role).toList();
+    if (granted) {
+      roles.add(role);
+    }
+    access.role.v = roles.isEmpty ? null : roles.join(',');
     await entityAccess.setEntityUserAccess(
       entityId: entityId,
       userId: userId,

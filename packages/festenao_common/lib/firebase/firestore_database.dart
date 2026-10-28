@@ -30,12 +30,19 @@ class FsProject extends TkCmsFsProject {
   /// screens showing the project.
   final slug = CvField<String>('slug');
 
+  /// Every slug of the project url: [slug] first, then the other ones that
+  /// still open it (the extra urls, see
+  /// `FestenaoFirestoreDatabaseSlugExt.addProjectSlug`, and the previous
+  /// slugs); the registry copy for the screens, missing on the projects
+  /// whose slug was set before it existed.
+  final slugs = CvListField<String>('slugs');
+
   /// The modules on in the project (the features its apps show), every
   /// module when null; see `FestenaoFirestoreDatabaseModulesExt`.
   final modules = CvListField<String>('modules');
 
   @override
-  CvFields get fields => [...super.fields, slug, modules];
+  CvFields get fields => [...super.fields, slug, slugs, modules];
 }
 
 /// User private entity database.

@@ -64,6 +64,22 @@ void main() {
       expect((await registry.resolve('fest'))!.alias.v, isFalse);
       expect(await registry.resolve('fest-2025'), isNull);
     });
+    test('an extra slug, then the list', () async {
+      await registry.claim(slug: 'fest', entityType: 'event', entityId: 'e1');
+      await registry.claim(
+        slug: 'fest-2027',
+        entityType: 'event',
+        entityId: 'e1',
+        alias: true,
+      );
+      // Both resolve, the current one unchanged.
+      expect((await registry.resolve('fest'))!.alias.v, isFalse);
+      expect((await registry.resolve('fest-2027'))!.alias.v, isTrue);
+      await registry.claim(slug: 'cafe', entityType: 'event', entityId: 'e2');
+      var list = await registry.list();
+      expect(list.map((doc) => doc.slug), ['cafe', 'fest', 'fest-2027']);
+      expect(list.map((doc) => doc.entityId.v), ['e2', 'e1', 'e1']);
+    });
     test('claimFromText and release', () async {
       expect(
         await registry.claimFromText(

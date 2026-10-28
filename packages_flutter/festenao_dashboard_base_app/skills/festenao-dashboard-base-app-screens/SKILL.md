@@ -11,7 +11,8 @@ description: >-
   ContentImageScreen, ContentImageEditScreen, ContentMediasScreen,
   ContentMediaScreen, ContentMediaEditScreen, goToContentXxxScreen), the
   project url widgets (DashboardProjectSlugScreen, DashboardProjectUrlTile,
-  DashboardProjectSlugField), the debug screen (DashboardDebugScreen,
+  DashboardProjectSlugField, DashboardProjectSlugsScreen,
+  DashboardSlugsScreen), the debug screen (DashboardDebugScreen,
   dashboardDebugMenuContent), the demos (BlogDemoScreen, ContentDemoScreen)
   and the quizz screens (QuizzHomeScreen, QuizzQuestionEditScreen,
   QuizzControlScreen, QuizzTvScreen) and the shared views of any app
@@ -94,15 +95,25 @@ class MyDebugScreen extends StatelessWidget {
   path with `context.pushPath`. `dataId` defaults to
   `SdbProjectContent.defaultDataId` where optional.
 * Project url: `DashboardProjectSlugScreen(slug:, projectLocation:,
-  fsDatabase:)` resolves `/p/<slug>` with `resolveProjectSlug` (an old slug
-  is followed) then `context.go(projectLocation(projectId))`, shows
-  "No project" when unknown; `dashboardProjectSlugLocation(slug)`;
-  `DashboardProjectUrlTile(entityId:)` shows `<origin>/p/<slug>` with a
-  copy button, nothing without a slug; `DashboardProjectSlugField(controller:,
-  projectId:, currentSlug:, fsDatabase:, onStatusChanged:)` checks the
-  availability in the registry as the user types, save only on
-  `FestenaoSlugStatus.available` (or unchanged), then
-  `globalFestenaoFirestoreDatabase.setProjectSlug(projectId, slug)`.
+  fsDatabase:)` resolves `/p/<slug>` with `resolveProjectUrlSegment` (an
+  old or extra slug is followed, a project without a slug opens at its id)
+  then `context.go(projectLocation(projectId))`, shows "No project" when
+  unknown; `dashboardProjectSlugLocation(slugOrId)`;
+  `DashboardProjectUrlTile(entityId:)` shows `<origin>/p/<slug>` (or
+  `/p/<projectId>`) with a copy button, nothing for another entity type;
+  `DashboardProjectSlugField(controller:, projectId:, currentSlug:,
+  fsDatabase:, onStatusChanged:)` checks the availability in the registry
+  as the user types, save only on `FestenaoSlugStatus.available` (or
+  unchanged), then `globalFestenaoFirestoreDatabase.setProjectSlug(projectId,
+  slug)`.
+* Who chooses a url: only the app admins and the holders of the app
+  `slug` role (`dashboardCanSetSlugProvider`, festenao_common
+  `festenaoSlugRole`, rules `slugAppRight`); the edit form hides the url
+  field from everyone else. `goToDashboardProjectSlugsScreen(context,
+  projectId:)` lists the urls of a project (the current one first), adds
+  one, makes one current, removes one (read only without the right);
+  `DashboardSlugsScreen` (`/slugs`, a home row for the app admins) lists
+  every slug of the app with release.
 * Debug: `dashboardDebugMenuContent(packageName:)` inside a `muiBodyWidget`
   or `muiScreenWidget` adds the shared items (the file system explorer);
   `DashboardDebugScreen(packageName:, title:)` for an app with nothing else,
@@ -134,7 +145,8 @@ class MyDebugScreen extends StatelessWidget {
   creates the project for the signed in user (admin), with its modules and
   its url (`FestenaoSlugTakenException` before anything is created when the
   slug is taken), adds it to the local projects and returns its id; the app
-  then seeds its own content.
+  then seeds its own content. Pass a slug only when
+  `dashboardCanSetSlugProvider` is true (the rules refuse it otherwise).
 * Name clashes with festenao_admin_base_app: `ProjectViewScreen`,
   `ProjectViewResult`, `SelectProjectResult`, `selectProject`,
   `ProjectLeading`, `goToProjectEditScreen`, `goToProjectViewScreen` exist

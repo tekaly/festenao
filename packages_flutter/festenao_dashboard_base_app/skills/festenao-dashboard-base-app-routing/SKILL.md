@@ -10,7 +10,7 @@ description: >-
   customOverrides, the RoutePathDefs (dashboardHomePath, dashboardProjectPath,
   dashboardProjectDataPath, contentImagesPath, contentMediasPath,
   projectsAccessPath, projectAccessPath, dashboardProjectSlugPath,
-  dashboardLogsPath, blogDemoPath, quizzHomePath...), DashboardRouteParams,
+  dashboardSlugsPath, dashboardLogsPath, blogDemoPath, quizzHomePath...), DashboardRouteParams,
   dashboardProjectScope(state, child:, dataId:) feeding
   currentProjectIdProvider / currentDataIdProvider, context.pushPath
   navigation and ContentNavigatorGoRouterBridge. Not the providers nor the
@@ -54,7 +54,8 @@ final dashboardRouter = GoRouter(
 * `dashboardBaseRouteModules()` returns, in order, `DashboardContentRouteModule`
   (`/`, `/project/:project_id`, `/project/:project_id/data/:data_id` and the
   image screens below it), `DashboardAccessRouteModule` (`/projects_access`,
-  `/project_access/:project_id`, `/p/:slug`), `DashboardMediaRouteModule`
+  `/project_access/:project_id`, `/p/:slug`, `/slugs`),
+  `DashboardMediaRouteModule`
   (the media screens under the data route), `DashboardDemoRouteModule`
   (`blog_demo`, `legacy_blog_demo`, `content_demo` under the project),
   `DashboardQuizzRouteModule` (`quizz`, `quizz/question_create`,

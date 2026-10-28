@@ -27,6 +27,7 @@ export 'src/screen/project_sdb_user_edit_screen.dart';
 export 'src/screen/project_sdb_users_screen.dart';
 export 'src/screen/project_sdb_view_screen.dart';
 export 'src/screen/project_slug_screen.dart';
+export 'src/screen/project_slugs_screen.dart';
 export 'src/screen/projects_access_screen.dart';
 export 'src/screen/projects_sdb_screen_bloc.dart';
 export 'src/screen/quizz/quizz_control_screen.dart';

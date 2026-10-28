@@ -31,6 +31,12 @@ class FestenaoRulesOptions {
   /// written by the admins of the entity a slug points to (and the server).
   final bool slugs;
 
+  /// With [slugs], keep the slug writes to the app admins and the holders of
+  /// the app `slug` role (administering the entity), the app admins listing
+  /// them (see [TkCmsEntityRules.addSlugRules] `appRight`); everyone else
+  /// shares the generated id.
+  final bool slugAppRight;
+
   /// Creates preset options.
   const FestenaoRulesOptions({
     this.userAccess = false,
@@ -39,6 +45,7 @@ class FestenaoRulesOptions {
     this.maxDepth = 1,
     this.header,
     this.slugs = false,
+    this.slugAppRight = false,
   });
 }
 
@@ -319,7 +326,9 @@ void _addSlugRules(TkCmsFirestoreRules tkCms, FestenaoRulesOptions options) {
   }
   tkCms.rules.blankLine();
   for (var depth = 1; depth <= options.maxDepth; depth++) {
-    tkCms.level(depth).addSlugRules(clientWrite: true);
+    tkCms
+        .level(depth)
+        .addSlugRules(clientWrite: true, appRight: options.slugAppRight);
   }
 }
 

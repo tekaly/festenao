@@ -20,6 +20,7 @@ import 'package:tkcms_admin_app/audi/tkcms_audi.dart';
 
 import 'project_sdb_edit_screen.dart';
 import 'project_slug_screen.dart';
+import 'project_slugs_screen.dart';
 
 /// What the access screen pops when the entity is gone.
 class ProjectViewResult {
@@ -168,10 +169,12 @@ class ProjectViewScreenState extends ConsumerState<ProjectViewScreen>
     var role = project != null
         ? dashboardProjectRole(project)
         : AdminAccessRole.of(fsProjectAccess ?? TkCmsFsUserAccess());
+    // A project opens at its slug, or at its id without one.
+    var hasUrl = ref.watch(dashboardEntityHasUrlProvider);
     var slug = ref.watch(dashboardEntitySlugProvider(_entityId)).value;
-    var link = slug == null
-        ? null
-        : appShareLink(dashboardProjectSlugLocation(slug));
+    var link = hasUrl
+        ? appShareLink(dashboardProjectSlugLocation(slug ?? _entityId))
+        : null;
     var mono = text.bodyMedium?.copyWith(fontFamily: t.monoFamily);
 
     void openUsers() {
@@ -289,7 +292,7 @@ class ProjectViewScreenState extends ConsumerState<ProjectViewScreen>
                 FkSectionTitle(intl.projectDetailsSection),
                 FkListCard(
                   children: [
-                    if (link != null)
+                    if (link != null) ...[
                       FkKeyValueRow(
                         label: intl.projectUrl,
                         value: link,
@@ -300,6 +303,19 @@ class ProjectViewScreenState extends ConsumerState<ProjectViewScreen>
                               _copy(context, link, intl.linkCopied),
                         ),
                       ),
+                      FkRow(
+                        leading: const FkIconBox(Icons.link),
+                        title: intl.projectUrls,
+                        subtitle: intl.projectUrlsDetail,
+                        trailing: Icon(Icons.chevron_right, color: t.ink3),
+                        onTap: hasEntity
+                            ? () => goToDashboardProjectSlugsScreen(
+                                context,
+                                projectId: _entityId,
+                              )
+                            : null,
+                      ),
+                    ],
                     FkKeyValueRow(
                       label: intl.projectIdLabel,
                       value: _entityId,

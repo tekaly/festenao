@@ -10,12 +10,15 @@ import 'package:material_ui/material_ui.dart';
 
 import '../provider/project_slug_providers.dart';
 
-/// The location of the project url [slug] (`/p/<slug>`).
+/// The location of the project url [slug] (`/p/<slug>`), or of a project
+/// without a slug (`/p/<projectId>`).
 String dashboardProjectSlugLocation(String slug) =>
     '/$festenaoProjectUrlPathSegment/$slug';
 
 /// `/p/:slug`: the url of a project, resolved to the project (following an
-/// old slug) and replaced by [projectLocation] of its id.
+/// old slug, or the id of a project without one, see
+/// [FestenaoFirestoreDatabaseSlugExt.resolveProjectUrlSegment]) and replaced
+/// by [projectLocation] of its id.
 ///
 /// The dashboard opens the access screen of the project; a public app opens
 /// the project content (festenaoprv user plus app: its blog).
@@ -45,9 +48,8 @@ class DashboardProjectSlugScreen extends StatefulWidget {
 class _DashboardProjectSlugScreenState
     extends State<DashboardProjectSlugScreen> {
   late final Future<String?> _projectId =
-      (widget.fsDatabase ?? globalFestenaoFirestoreDatabase).resolveProjectSlug(
-        widget.slug.toLowerCase(),
-      );
+      (widget.fsDatabase ?? globalFestenaoFirestoreDatabase)
+          .resolveProjectUrlSegment(widget.slug);
 
   @override
   Widget build(BuildContext context) => FutureBuilder<String?>(
@@ -80,8 +82,9 @@ class _DashboardProjectSlugScreenState
   );
 }
 
-/// The url of a project (`<origin>/p/<slug>`) as a row of a list card, with
-/// a copy button; nothing when it has none (or is not a project).
+/// The url of a project (`<origin>/p/<slug>`, `<origin>/p/<projectId>`
+/// without a slug) as a row of a list card, with a copy button; nothing when
+/// it is not a project.
 class DashboardProjectUrlTile extends ConsumerWidget {
   /// The firestore id of the entity.
   final String entityId;
@@ -92,11 +95,11 @@ class DashboardProjectUrlTile extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     var intl = festenaoAdminAppIntl(context);
-    var slug = ref.watch(dashboardEntitySlugProvider(entityId)).value;
-    if (slug == null) {
+    if (!ref.watch(dashboardEntityHasUrlProvider)) {
       return const SizedBox.shrink();
     }
-    var link = appShareLink(dashboardProjectSlugLocation(slug));
+    var slug = ref.watch(dashboardEntitySlugProvider(entityId)).value;
+    var link = appShareLink(dashboardProjectSlugLocation(slug ?? entityId));
     return FkKeyValueRow(
       label: intl.projectUrl,
       value: link,

@@ -59,7 +59,10 @@ class FirestoreRulesEmulator {
 
   final _client = http.Client();
   final _contexts = <FirebaseContext>[];
-  var _appCount = 0;
+
+  /// Counts the apps of every emulator of the isolate: the firebase app
+  /// names are global, a second emulator would reuse `user_1`.
+  static var _appCount = 0;
 
   FirestoreRulesEmulator._({
     required this.projectId,

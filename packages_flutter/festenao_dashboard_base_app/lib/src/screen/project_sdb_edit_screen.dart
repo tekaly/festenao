@@ -32,6 +32,10 @@ class ProjectSdbEditScreenState
   String? _initialSlug;
   var _slugStatus = FestenaoSlugStatus.empty;
 
+  /// Only the app admins and the holders of the app `slug` role choose the
+  /// url; the others share the project id.
+  var _canSetSlug = false;
+
   bool _gotInitialProject = false;
 
   /// True when creating a new project (id can be specified).
@@ -122,6 +126,7 @@ class ProjectSdbEditScreenState
             ),
           );
           _initialSlug = state.slug;
+          _canSetSlug = state.canSetSlug;
           _slugController = audiAddTextEditingController(
             TextEditingController(text: _initialSlug),
           );
@@ -201,7 +206,7 @@ class ProjectSdbEditScreenState
                               controller: _idController,
                               maxLines: 1,
                             ),
-                            if (_slugController != null) ...[
+                            if (_slugController != null && _canSetSlug) ...[
                               const SizedBox(height: 16),
                               DashboardProjectSlugField(
                                 controller: _slugController!,

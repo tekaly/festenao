@@ -1,4 +1,5 @@
 import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_common/festenao_slug.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common_flutter/admin_explorer_flutter.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -139,6 +140,29 @@ void main() {
       await grantOf(admin.appAccess, 'my-app', 'alice'),
       FestenaoUserAccessGrant.admin,
     );
+
+    // The app slug role, toggled from the menu.
+    Future<bool> canSetSlug() async =>
+        (await admin.appAccess
+                .fsEntityUserAccessRef('my-app', 'alice')
+                .get(firestore))
+            .hasRole(festenaoSlugRole);
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await _settle(tester);
+    await tester.tap(find.text('slug role'));
+    await _settle(tester);
+    expect(await canSetSlug(), isTrue);
+    expect(find.text('slug'), findsOneWidget);
+    expect(
+      await grantOf(admin.appAccess, 'my-app', 'alice'),
+      FestenaoUserAccessGrant.admin,
+    );
+    await tester.tap(find.byType(PopupMenuButton<String>));
+    await _settle(tester);
+    await tester.tap(find.text('slug role'));
+    await _settle(tester);
+    expect(await canSetSlug(), isFalse);
+    expect(find.text('slug'), findsNothing);
     await tester.tap(find.byType(PopupMenuButton<String>));
     await _settle(tester);
     await tester.tap(find.text('Remove the access'));

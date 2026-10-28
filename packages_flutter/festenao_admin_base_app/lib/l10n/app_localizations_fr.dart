@@ -554,4 +554,55 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get editLeaveWithoutSaving =>
       'Vous avez des modifications non enregistrées\n\nVous pouvez continuer l\'édition en choisissant d\'annuler ou quitter l\'édition en supprimant vos modifications';
+
+  @override
+  String get projectUrls => 'Adresses';
+
+  @override
+  String get projectUrlsDetail => 'Les adresses qui ouvrent le projet';
+
+  @override
+  String get projectUrlsNone =>
+      'Pas d\'adresse propre : le projet s\'ouvre avec son identifiant';
+
+  @override
+  String get projectUrlCurrent => 'Actuelle';
+
+  @override
+  String get projectUrlMakeCurrent => 'En faire l\'adresse actuelle';
+
+  @override
+  String get projectUrlRemove => 'Retirer';
+
+  @override
+  String projectUrlRemoveConfirm(String url) {
+    return 'Retirer $url ? Ses liens ne marcheront plus et quelqu\'un d\'autre pourra la prendre.';
+  }
+
+  @override
+  String get projectUrlAdd => 'Ajouter l\'adresse';
+
+  @override
+  String get projectUrlNotAllowed =>
+      'Seuls les administrateurs de l\'application et les utilisateurs autorisés à choisir les adresses les changent.';
+
+  @override
+  String get slugsTitle => 'Adresses utilisées';
+
+  @override
+  String get slugsDetail => 'Toutes les adresses /p/ de l\'application';
+
+  @override
+  String get slugsEmpty => 'Aucune adresse pour l\'instant';
+
+  @override
+  String get slugAlias => 'Alias';
+
+  @override
+  String get slugRelease => 'Libérer';
+
+  @override
+  String slugReleaseConfirm(String url) {
+    return 'Libérer $url ? Ses liens ne marcheront plus et quelqu\'un d\'autre pourra la prendre.';
+  }
 }

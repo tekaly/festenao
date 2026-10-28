@@ -1112,6 +1112,96 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition and discard your changes'**
   String get editLeaveWithoutSaving;
+
+  /// Section and screen title of the urls of a project (/p/<slug>)
+  ///
+  /// In en, this message translates to:
+  /// **'Urls'**
+  String get projectUrls;
+
+  /// Subtitle of the project urls row
+  ///
+  /// In en, this message translates to:
+  /// **'The addresses opening the project'**
+  String get projectUrlsDetail;
+
+  /// Shown when a project has no slug
+  ///
+  /// In en, this message translates to:
+  /// **'No url of its own: the project opens at its id'**
+  String get projectUrlsNone;
+
+  /// Pill of the current (canonical) url of a project
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get projectUrlCurrent;
+
+  /// Menu action making an url the canonical one
+  ///
+  /// In en, this message translates to:
+  /// **'Make it the current url'**
+  String get projectUrlMakeCurrent;
+
+  /// Menu action removing an url of a project
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get projectUrlRemove;
+
+  /// Confirmation before removing an url
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {url}? Its links stop working and anyone may take it.'**
+  String projectUrlRemoveConfirm(String url);
+
+  /// Button adding the typed url to a project
+  ///
+  /// In en, this message translates to:
+  /// **'Add the url'**
+  String get projectUrlAdd;
+
+  /// Shown to a user without the slug right
+  ///
+  /// In en, this message translates to:
+  /// **'Only the app admins and the users allowed to choose the urls change them.'**
+  String get projectUrlNotAllowed;
+
+  /// Title of the app admin screen listing every slug
+  ///
+  /// In en, this message translates to:
+  /// **'Urls in use'**
+  String get slugsTitle;
+
+  /// Subtitle of the row opening the urls in use
+  ///
+  /// In en, this message translates to:
+  /// **'Every /p/ address of the app'**
+  String get slugsDetail;
+
+  /// Empty list of slugs
+  ///
+  /// In en, this message translates to:
+  /// **'No url yet'**
+  String get slugsEmpty;
+
+  /// Pill of a slug that is not the current url of its entity
+  ///
+  /// In en, this message translates to:
+  /// **'Alias'**
+  String get slugAlias;
+
+  /// Action deleting a slug
+  ///
+  /// In en, this message translates to:
+  /// **'Release'**
+  String get slugRelease;
+
+  /// Confirmation before releasing a slug
+  ///
+  /// In en, this message translates to:
+  /// **'Release {url}? Its links stop working and anyone may take it.'**
+  String slugReleaseConfirm(String url);
 }
 
 class _AppLocalizationsDelegate

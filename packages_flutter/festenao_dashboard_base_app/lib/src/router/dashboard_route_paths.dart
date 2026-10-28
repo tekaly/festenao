@@ -155,6 +155,13 @@ final dashboardProjectSlugPath = dashboardHomePath.child(
   name: 'project_slug',
 );
 
+/// `/slugs`, every url in use in the app (its admins), a child of
+/// [dashboardHomePath] for the same reason as [projectsAccessPath].
+final dashboardSlugsPath = dashboardHomePath.child(
+  'slugs',
+  name: 'dashboard_slugs',
+);
+
 /// `/logs`, a child of [dashboardHomePath] for the same reason as
 /// [projectsAccessPath].
 final dashboardLogsPath = dashboardHomePath.child(

@@ -51,5 +51,22 @@ void main() {
     expect(find.text('project $projectId'), findsOneWidget);
     expect(dashboardProjectSlugLocation('my-blog'), '/p/my-blog');
     expect(festenaoProjectUrlPathSegment, 'p');
+
+    // A project without a slug opens at its id.
+    late String otherId;
+    await tester.runAsync(() async {
+      otherId = await db.projectDb.createEntity(
+        userId: 'u1',
+        entity: FsProject()..name.v = 'Other',
+      );
+    });
+    router.go('/p/$otherId');
+    for (var i = 0; i < 20; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text('project $otherId'), findsOneWidget);
   });
 }

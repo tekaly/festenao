@@ -734,5 +734,75 @@
   "editLeaveWithoutSaving": "You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition and discard your changes",
   "@editLeaveWithoutSaving": {
     "description": "Unsaved changes dialog content when the screen cannot save from the dialog"
+  },
+  "projectUrls": "Urls",
+  "@projectUrls": {
+    "description": "Section and screen title of the urls of a project (/p/<slug>)"
+  },
+  "projectUrlsDetail": "The addresses opening the project",
+  "@projectUrlsDetail": {
+    "description": "Subtitle of the project urls row"
+  },
+  "projectUrlsNone": "No url of its own: the project opens at its id",
+  "@projectUrlsNone": {
+    "description": "Shown when a project has no slug"
+  },
+  "projectUrlCurrent": "Current",
+  "@projectUrlCurrent": {
+    "description": "Pill of the current (canonical) url of a project"
+  },
+  "projectUrlMakeCurrent": "Make it the current url",
+  "@projectUrlMakeCurrent": {
+    "description": "Menu action making an url the canonical one"
+  },
+  "projectUrlRemove": "Remove",
+  "@projectUrlRemove": {
+    "description": "Menu action removing an url of a project"
+  },
+  "projectUrlRemoveConfirm": "Remove {url}? Its links stop working and anyone may take it.",
+  "@projectUrlRemoveConfirm": {
+    "description": "Confirmation before removing an url",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "projectUrlAdd": "Add the url",
+  "@projectUrlAdd": {
+    "description": "Button adding the typed url to a project"
+  },
+  "projectUrlNotAllowed": "Only the app admins and the users allowed to choose the urls change them.",
+  "@projectUrlNotAllowed": {
+    "description": "Shown to a user without the slug right"
+  },
+  "slugsTitle": "Urls in use",
+  "@slugsTitle": {
+    "description": "Title of the app admin screen listing every slug"
+  },
+  "slugsDetail": "Every /p/ address of the app",
+  "@slugsDetail": {
+    "description": "Subtitle of the row opening the urls in use"
+  },
+  "slugsEmpty": "No url yet",
+  "@slugsEmpty": {
+    "description": "Empty list of slugs"
+  },
+  "slugAlias": "Alias",
+  "@slugAlias": {
+    "description": "Pill of a slug that is not the current url of its entity"
+  },
+  "slugRelease": "Release",
+  "@slugRelease": {
+    "description": "Action deleting a slug"
+  },
+  "slugReleaseConfirm": "Release {url}? Its links stop working and anyone may take it.",
+  "@slugReleaseConfirm": {
+    "description": "Confirmation before releasing a slug",
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
   }
 }

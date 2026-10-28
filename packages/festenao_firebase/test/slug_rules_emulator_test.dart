@@ -20,5 +20,8 @@ Future<void> main() async {
     runSlugRulesTests(
       (rules) => FirestoreRulesEmulatorTestContext.create(rules: rules),
     );
+    runSlugAppRightRulesTests(
+      (rules) => FirestoreRulesEmulatorTestContext.create(rules: rules),
+    );
   }, timeout: const Timeout(Duration(minutes: 5)));
 }

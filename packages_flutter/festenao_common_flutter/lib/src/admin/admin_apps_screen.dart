@@ -1,6 +1,7 @@
 import 'package:festenao_common/admin/festenao_apps_admin.dart';
 import 'package:festenao_common/api/festenao_app_user.dart';
 import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_common/festenao_slug.dart' show festenaoSlugRole;
 import 'package:festenao_common/firebase/firebase_auth.dart';
 import 'package:festenao_common/firebase/firebase_users_explorer.dart';
 import 'package:flutter/services.dart';
@@ -60,17 +61,31 @@ Widget _grantChip(FestenaoUserAccessGrant? grant) => ExplorerChip(
   },
 );
 
-/// The menu changing an access: one entry per grant, then its removal
-/// (`revoke`).
+/// The menu action toggling the role [role].
+String _roleAction(String role) => 'role:$role';
+
+/// The menu changing an access: one entry per grant, one per role of
+/// [roles] (checked when in [heldRoles]), then its removal (`revoke`).
 List<PopupMenuEntry<String>> _accessMenuItems(
-  FestenaoUserAccessGrant? current,
-) => [
+  FestenaoUserAccessGrant? current, {
+  List<String> roles = const [],
+  List<String> heldRoles = const [],
+}) => [
   for (var grant in FestenaoUserAccessGrant.values.reversed)
     CheckedPopupMenuItem(
       value: grant.name,
       checked: grant == current,
       child: Text(grant.label),
     ),
+  if (roles.isNotEmpty) ...[
+    const PopupMenuDivider(),
+    for (var role in roles)
+      CheckedPopupMenuItem(
+        value: _roleAction(role),
+        checked: heldRoles.contains(role),
+        child: Text('$role role'),
+      ),
+  ],
   const PopupMenuDivider(),
   const PopupMenuItem(value: 'revoke', child: Text('Remove the access')),
 ];
@@ -307,6 +322,7 @@ class _AdminAppScreenState extends State<AdminAppScreen> {
       defaultGrant: projectId == null
           ? FestenaoUserAccessGrant.admin
           : FestenaoUserAccessGrant.write,
+      roles: projectId == null ? const [festenaoSlugRole] : const [],
     );
     _reload();
   }
@@ -415,7 +431,8 @@ class _AdminAppScreenState extends State<AdminAppScreen> {
 }
 
 /// The users having an access on one entity (an app, a project): change it
-/// (read, write, admin, super admin), remove it, give one to another user.
+/// (read, write, admin, super admin), toggle the [roles], remove it, give
+/// one to another user.
 ///
 /// Both sides of the tkcms entity access are written, see
 /// [FestenaoAppsAdmin.setUserAccess].
@@ -439,6 +456,10 @@ class AdminEntityUserAccessScreen extends StatefulWidget {
   /// What a user added is given at first.
   final FestenaoUserAccessGrant defaultGrant;
 
+  /// The roles toggled from the menu of a user, shown when held (the app
+  /// `slug` role: who chooses the project urls, see `festenaoSlugRole`).
+  final List<String> roles;
+
   /// Access screen of [entityId].
   const AdminEntityUserAccessScreen({
     super.key,
@@ -448,6 +469,7 @@ class AdminEntityUserAccessScreen extends StatefulWidget {
     this.auth,
     this.title,
     this.defaultGrant = FestenaoUserAccessGrant.read,
+    this.roles = const [],
   });
 
   @override
@@ -488,6 +510,28 @@ class _AdminEntityUserAccessScreenState
       grant == null
           ? 'Access of $label removed'
           : '$label is ${grant.label} of ${widget.entityId}',
+    );
+    if (done && mounted) {
+      _reload();
+    }
+  }
+
+  Future<void> _setRole(
+    TkCmsEditedFsUserAccess access,
+    String role, {
+    required bool granted,
+  }) async {
+    var label = festenaoAdminUserAccessLabel(access);
+    var done = await _run(
+      context,
+      () => admin.setUserRole(
+        widget.entityAccess,
+        widget.entityId,
+        access.id,
+        role: role,
+        granted: granted,
+      ),
+      granted ? '$label has the $role role' : '$label lost the $role role',
     );
     if (done && mounted) {
       _reload();
@@ -580,6 +624,7 @@ class _AdminEntityUserAccessScreenState
   Widget _buildTile(TkCmsEditedFsUserAccess access) {
     var grant = FestenaoUserAccessGrant.of(access);
     var label = festenaoAdminUserAccessLabel(access);
+    var heldRoles = widget.roles.where(access.hasRole).toList();
     var subtitle = [
       if (access.email.v case var email? when email != label) email,
       if (access.id != label) access.id,
@@ -591,19 +636,30 @@ class _AdminEntityUserAccessScreenState
           Flexible(child: Text(label, overflow: TextOverflow.ellipsis)),
           const SizedBox(width: 8),
           _grantChip(grant),
+          for (var role in heldRoles) ...[
+            const SizedBox(width: 4),
+            ExplorerChip(label: role),
+          ],
         ],
       ),
       subtitle: subtitle.isEmpty ? null : Text(subtitle),
       trailing: PopupMenuButton<String>(
         icon: const Icon(Icons.more_vert, size: 20),
-        itemBuilder: (_) => _accessMenuItems(grant),
-        onSelected: (action) => action == 'revoke'
-            ? _revoke(access)
-            : _set(
-                access.id,
-                label,
-                FestenaoUserAccessGrant.values.byName(action),
-              ),
+        itemBuilder: (_) =>
+            _accessMenuItems(grant, roles: widget.roles, heldRoles: heldRoles),
+        onSelected: (action) {
+          if (action == 'revoke') {
+            _revoke(access);
+            return;
+          }
+          for (var role in widget.roles) {
+            if (action == _roleAction(role)) {
+              _setRole(access, role, granted: !heldRoles.contains(role));
+              return;
+            }
+          }
+          _set(access.id, label, FestenaoUserAccessGrant.values.byName(action));
+        },
       ),
       onTap: () async {
         await goToAdminUserAccessScreen(
@@ -1065,6 +1121,7 @@ Future<void> goToAdminEntityUserAccessScreen(
   FirebaseAuth? auth,
   String? title,
   FestenaoUserAccessGrant defaultGrant = FestenaoUserAccessGrant.read,
+  List<String> roles = const [],
 }) => Navigator.of(context).push<void>(
   MaterialPageRoute(
     builder: (_) => AdminEntityUserAccessScreen(
@@ -1074,6 +1131,7 @@ Future<void> goToAdminEntityUserAccessScreen(
       auth: auth,
       title: title,
       defaultGrant: defaultGrant,
+      roles: roles,
     ),
   ),
 );

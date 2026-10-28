@@ -1,5 +1,6 @@
 import 'package:festenao_common/admin/festenao_apps_admin.dart';
 import 'package:festenao_common/festenao_firestore.dart';
+import 'package:festenao_common/festenao_slug.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:tekartik_firebase_firestore_sembast/firestore_sembast.dart';
 import 'package:test/test.dart';
@@ -35,6 +36,16 @@ void main() {
         [true, true, false],
       );
       expect(access.role.v, isNull);
+    });
+
+    test('applyTo keeps the other roles', () {
+      var access = FestenaoUserAccessGrant.superAdmin.toUserAccess()
+        ..role.v = '$roleSuperAdmin,$festenaoSlugRole';
+      FestenaoUserAccessGrant.read.applyTo(access);
+      expect(access.role.v, festenaoSlugRole);
+      FestenaoUserAccessGrant.superAdmin.applyTo(access);
+      expect(access.roles, [roleSuperAdmin, festenaoSlugRole]);
+      expect(access.hasSuperAdminRole, isTrue);
     });
 
     test('of', () {
@@ -115,6 +126,71 @@ void main() {
     expect(await admin.userAccesses(admin.appAccess, 'app1'), isEmpty);
     expect(
       (await admin.appAccess.fsUserEntityAccessRef('u1', 'app1').get(firestore))
+          .exists,
+      isFalse,
+    );
+  });
+
+  test('app slug role, both sides', () async {
+    await admin.setUserAccess(
+      admin.appAccess,
+      'app1',
+      'u1',
+      grant: FestenaoUserAccessGrant.read,
+    );
+    await admin.setUserRole(
+      admin.appAccess,
+      'app1',
+      'u1',
+      role: festenaoSlugRole,
+      granted: true,
+    );
+    var entitySide = await admin.appAccess
+        .fsEntityUserAccessRef('app1', 'u1')
+        .get(firestore);
+    expect(entitySide.canSetSlug, isTrue);
+    expect(entitySide.isRead, isTrue);
+    var userSide = await admin.appAccess
+        .fsUserEntityAccessRef('u1', 'app1')
+        .get(firestore);
+    expect(userSide.hasRole(festenaoSlugRole), isTrue);
+
+    // A grant change keeps it.
+    await admin.setUserAccess(
+      admin.appAccess,
+      'app1',
+      'u1',
+      grant: FestenaoUserAccessGrant.write,
+    );
+    entitySide = await admin.appAccess
+        .fsEntityUserAccessRef('app1', 'u1')
+        .get(firestore);
+    expect(entitySide.canSetSlug, isTrue);
+
+    await admin.setUserRole(
+      admin.appAccess,
+      'app1',
+      'u1',
+      role: festenaoSlugRole,
+      granted: false,
+    );
+    entitySide = await admin.appAccess
+        .fsEntityUserAccessRef('app1', 'u1')
+        .get(firestore);
+    expect(entitySide.canSetSlug, isFalse);
+    expect(entitySide.role.v, isNull);
+    expect(entitySide.isWrite, isTrue);
+
+    // Nothing to remove from a user without access.
+    await admin.setUserRole(
+      admin.appAccess,
+      'app1',
+      'u2',
+      role: festenaoSlugRole,
+      granted: false,
+    );
+    expect(
+      (await admin.appAccess.fsEntityUserAccessRef('app1', 'u2').get(firestore))
           .exists,
       isFalse,
     );

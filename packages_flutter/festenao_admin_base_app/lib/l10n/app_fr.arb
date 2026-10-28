@@ -170,5 +170,20 @@
   "dashboardLogsDetail": "Explorateur et bac à sable",
   "dashboardDebug": "Débogage",
   "dashboardYourProjects": "Vos projets",
-  "editLeaveWithoutSaving": "Vous avez des modifications non enregistrées\n\nVous pouvez continuer l'édition en choisissant d'annuler ou quitter l'édition en supprimant vos modifications"
+  "editLeaveWithoutSaving": "Vous avez des modifications non enregistrées\n\nVous pouvez continuer l'édition en choisissant d'annuler ou quitter l'édition en supprimant vos modifications",
+  "projectUrls": "Adresses",
+  "projectUrlsDetail": "Les adresses qui ouvrent le projet",
+  "projectUrlsNone": "Pas d'adresse propre : le projet s'ouvre avec son identifiant",
+  "projectUrlCurrent": "Actuelle",
+  "projectUrlMakeCurrent": "En faire l'adresse actuelle",
+  "projectUrlRemove": "Retirer",
+  "projectUrlRemoveConfirm": "Retirer {url} ? Ses liens ne marcheront plus et quelqu'un d'autre pourra la prendre.",
+  "projectUrlAdd": "Ajouter l'adresse",
+  "projectUrlNotAllowed": "Seuls les administrateurs de l'application et les utilisateurs autorisés à choisir les adresses les changent.",
+  "slugsTitle": "Adresses utilisées",
+  "slugsDetail": "Toutes les adresses /p/ de l'application",
+  "slugsEmpty": "Aucune adresse pour l'instant",
+  "slugAlias": "Alias",
+  "slugRelease": "Libérer",
+  "slugReleaseConfirm": "Libérer {url} ? Ses liens ne marcheront plus et quelqu'un d'autre pourra la prendre."
 }

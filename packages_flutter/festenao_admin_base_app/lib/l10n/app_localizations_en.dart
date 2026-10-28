@@ -548,4 +548,55 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get editLeaveWithoutSaving =>
       'You have unsaved changes\n\nYou can continue editing by choosing cancel or quit edition and discard your changes';
+
+  @override
+  String get projectUrls => 'Urls';
+
+  @override
+  String get projectUrlsDetail => 'The addresses opening the project';
+
+  @override
+  String get projectUrlsNone =>
+      'No url of its own: the project opens at its id';
+
+  @override
+  String get projectUrlCurrent => 'Current';
+
+  @override
+  String get projectUrlMakeCurrent => 'Make it the current url';
+
+  @override
+  String get projectUrlRemove => 'Remove';
+
+  @override
+  String projectUrlRemoveConfirm(String url) {
+    return 'Remove $url? Its links stop working and anyone may take it.';
+  }
+
+  @override
+  String get projectUrlAdd => 'Add the url';
+
+  @override
+  String get projectUrlNotAllowed =>
+      'Only the app admins and the users allowed to choose the urls change them.';
+
+  @override
+  String get slugsTitle => 'Urls in use';
+
+  @override
+  String get slugsDetail => 'Every /p/ address of the app';
+
+  @override
+  String get slugsEmpty => 'No url yet';
+
+  @override
+  String get slugAlias => 'Alias';
+
+  @override
+  String get slugRelease => 'Release';
+
+  @override
+  String slugReleaseConfirm(String url) {
+    return 'Release $url? Its links stop working and anyone may take it.';
+  }
 }

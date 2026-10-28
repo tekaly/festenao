@@ -21,6 +21,14 @@ const tkCmsRulesUserAccessCollectionId = 'user_access';
 /// The `slug` registry collection (`festenao_common` `FestenaoSlugRegistry`).
 const tkCmsRulesSlugCollectionId = 'slug';
 
+/// The app role of the users who write slugs besides the app admins
+/// (`festenao_common` `festenaoSlugRole`), see
+/// [TkCmsEntityRules.addSlugRules].
+const tkCmsRulesSlugRole = 'slug';
+
+/// The `role` field of an access document (roles, comma separated).
+const tkCmsRulesRoleField = 'role';
+
 /// The `public/get` world readable documents.
 const tkCmsRulesPublicGetPath = 'public/get';
 
@@ -300,6 +308,46 @@ class TkCmsEntityRules {
               .eq(f.param('userId'));
     },
   );
+
+  /// `isAppAdmin(<parent>, userId)`: the user is an admin of the app, the
+  /// top level entity (`access/{top}/entity_id/{topId}/user_access/{userId}`
+  /// says `admin: true`). Below the top level only.
+  RulesFunction get isAppAdminFunction => _function('isAppAdmin', ['userId'], (
+    f,
+  ) {
+    var doc = f.let('doc', rulesGet(_appUserAccessPath(f)));
+    return doc.isNotNull & doc.data.get(tkCmsRulesAdminAccess, false).eq(true);
+  });
+
+  /// `canWriteSlug(<parent>, entity, entityId, userId)`: an app admin, or a
+  /// holder of the app [tkCmsRulesSlugRole] who administers the entity.
+  /// Below the top level only.
+  RulesFunction get canWriteSlugFunction =>
+      _function('canWriteSlug', ['entity', 'entityId', 'userId'], (f) {
+        var doc = f.let('doc', rulesGet(_appUserAccessPath(f)));
+        var parentVars = _parentParamsOf(f);
+        return doc.isNotNull &
+            (doc.data.get(tkCmsRulesAdminAccess, false).eq(true) |
+                (doc.data
+                        .get(tkCmsRulesRoleField, '')
+                        .call('split', [','])
+                        .hasAny([tkCmsRulesSlugRole]) &
+                    hasEntityAdminAccessFunction.call([
+                      ...parentVars,
+                      f.param('entity'),
+                      f.param('entityId'),
+                      f.param('userId'),
+                    ])));
+      });
+
+  /// The app access document of the user of [f]: the top level entity one.
+  RulesPath _appUserAccessPath(RulesFunctionScope f) {
+    if (level.depth < 1) {
+      throw StateError('No app above the top level ($level)');
+    }
+    var parentVars = _parentParamsOf(f);
+    return userAccessPath([], parentVars[0], parentVars[1], f.param('userId'));
+  }
 
   /// `inviteMatchesInviteCode(<parent>, entity, userId, inviteCode)`: the
   /// user holds an admin `invite_access/{inviteCode}` document (standalone
@@ -788,18 +836,43 @@ class TkCmsEntityRules {
   /// creates it, updates it (the entity before and after the write: moving
   /// it to an alias) and deletes it; otherwise only the server writes them.
   ///
+  /// With [appRight] (below the top level, the app) a client write needs
+  /// the app right instead ([canWriteSlugFunction]): an app admin writes
+  /// any slug, a holder of the app [tkCmsRulesSlugRole] the slugs of the
+  /// entities it administers, nobody else; and the app admins list them
+  /// (the view of every slug in use).
+  ///
   /// The no-api creator rules ([addCreatorRules]) skip `slug` (see
   /// [tkCmsRulesCreatorReservedCollectionIds]).
-  void addSlugRules({bool clientWrite = false}) {
+  void addSlugRules({bool clientWrite = false, bool appRight = false}) {
     rules.comment(
-      clientWrite
+      appRight
+          ? 'Slugs: get only, written by the app admins and the holders of\n'
+                'the app slug role administering their entity, listed by the\n'
+                'app admins'
+          : clientWrite
           ? 'Slugs: get only, written by the admins of their entity'
           : 'Slugs: get only, written by the server',
     );
     rules.match(level.pattern('/$tkCmsRulesSlugCollectionId/{slug}'), (m) {
       m.allow([RulesMethod.get], true);
-      if (clientWrite) {
-        var parentVars = level.parentVars(m);
+      var parentVars = level.parentVars(m);
+      if (appRight) {
+        RulesExpr writerOf(RulesExpr data) => canWriteSlugFunction.call([
+          ...parentVars,
+          data.get('entityType', ''),
+          data.get('entityId', ''),
+          uid,
+        ]);
+        m.allow([
+          RulesMethod.list,
+        ], signedIn & isAppAdminFunction.call([...parentVars, uid]));
+        m.allow([RulesMethod.create], signedIn & writerOf(requestResourceData));
+        m.allow([
+          RulesMethod.update,
+        ], signedIn & writerOf(resourceData) & writerOf(requestResourceData));
+        m.allow([RulesMethod.delete], signedIn & writerOf(resourceData));
+      } else if (clientWrite) {
         RulesExpr adminOf(RulesExpr data) => hasEntityAdminAccessFunction.call([
           ...parentVars,
           data.get('entityType', ''),

@@ -7,20 +7,24 @@
 /// app/<app>/slug/<slug>        FsFestenaoSlug {entityType, entityId, alias}
 /// ```
 ///
-/// Resolving a link is one `get` (the rules let anyone get a slug document,
-/// never list them). Claiming one is a transaction: the document is created
+/// Resolving a link is one `get` (the rules let anyone get a slug document;
+/// only the server, and the app admins when the rules check the app right,
+/// list them). Claiming one is a transaction: the document is created
 /// only if it does not exist or already points to the same entity, so two
 /// entities never share a slug. When an entity moves to a new slug its old
 /// one stays as an [FsFestenaoSlug.alias], so the links already shared keep
 /// working (and nobody else can take it over).
 ///
-/// Written by the api function of an app (admin firestore), or by the entity
-/// admins themselves in an app with no backend, as the rules allow.
+/// Written by the api function of an app (admin firestore), or by the users
+/// the rules allow in an app with no backend: the entity admins, or only
+/// the app admins and the users holding the app `slug` role (see
+/// [festenaoSlugRole]).
 library;
 
 import 'package:tkcms_common/tkcms_firestore_v2.dart';
 
 import 'slug.dart';
+import 'slug_rights.dart';
 
 /// The collection of the slug documents, under the root document.
 const festenaoSlugCollectionId = 'slug';
@@ -161,8 +165,9 @@ class FestenaoSlugRegistry {
   /// Throws [FestenaoSlugTakenException] when it points to another entity,
   /// [FestenaoSlugInvalidException] when not valid. [previousSlug], the
   /// current slug of the entity, becomes an alias when [keepAlias] (its
-  /// links keep working), or is released. Every read happens before the
-  /// first write, as firestore transactions require.
+  /// links keep working), or is released. With [alias] the slug is an extra
+  /// url of the entity, its current one unchanged. Every read happens
+  /// before the first write, as firestore transactions require.
   Future<void> txnClaim(
     CvFirestoreTransaction txn, {
     required String slug,
@@ -170,6 +175,7 @@ class FestenaoSlugRegistry {
     required String entityId,
     String? previousSlug,
     bool keepAlias = true,
+    bool alias = false,
   }) async {
     _checkValid(slug);
     var existing = await txn.refGet(ref(slug));
@@ -186,7 +192,7 @@ class FestenaoSlugRegistry {
       FsFestenaoSlug()
         ..entityType.v = entityType
         ..entityId.v = entityId
-        ..alias.v = false
+        ..alias.v = alias
         ..created.v = existing.exists ? existing.created.v ?? now : now
         ..updated.v = now,
     );
@@ -214,6 +220,7 @@ class FestenaoSlugRegistry {
     required String entityId,
     String? previousSlug,
     bool keepAlias = true,
+    bool alias = false,
   }) => firestore.cvRunTransaction(
     (txn) => txnClaim(
       txn,
@@ -222,6 +229,7 @@ class FestenaoSlugRegistry {
       entityId: entityId,
       previousSlug: previousSlug,
       keepAlias: keepAlias,
+      alias: alias,
     ),
   );
 
@@ -265,6 +273,13 @@ class FestenaoSlugRegistry {
         .where(FsFestenaoSlug().entityId.name, isEqualTo: entityId)
         .get(firestore);
     return list.where((doc) => doc.entityType.v == entityType).toList();
+  }
+
+  /// Every slug of the registry, sorted (a list: the server, or an app
+  /// admin as the rules allow, see `festenao_firebase` `addSlugRules`).
+  Future<List<FsFestenaoSlug>> list() async {
+    var list = await collection.get(firestore);
+    return list.toList()..sort((a, b) => a.slug.compareTo(b.slug));
   }
 
   /// Release [slug] if it points to [entityType] [entityId].

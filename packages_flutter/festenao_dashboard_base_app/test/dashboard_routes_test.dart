@@ -53,6 +53,7 @@ void main() {
         '/projects_access',
         '/project_access/:project_id',
         '/p/:slug',
+        '/slugs',
         '/logs',
       ]);
     });
