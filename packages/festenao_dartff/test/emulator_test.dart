@@ -254,6 +254,10 @@ Future<void> main() async {
     });
 
     group('emulator_test', () {
+      test('info', () async {
+        var info = await testContext.apiService.getInfo();
+        expect(info.emulator.v, isTrue);
+      });
       adminAccessTestRunner(() async => testContext.clientContext);
       testFestenaoServerGroup(
         () async => testContext,
