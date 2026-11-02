@@ -66,6 +66,7 @@ class FestenaoSyncedSdb {
     var source = SyncedSourceFirestore(
       firestore: firestore,
       rootPath: sourceOptions.firestoreRoot,
+      partition: sourceOptions.partition,
     );
     _syncedDbSynchronizer = SyncedSdbSynchronizer(
       db: db.syncedSdb,

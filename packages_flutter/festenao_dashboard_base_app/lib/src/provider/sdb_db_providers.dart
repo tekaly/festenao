@@ -43,8 +43,10 @@ class SdbProjectsContentCache {
     Firestore? firestore,
   }) : firestore = firestore ?? Firestore.instance;
 
+  /// A project may hold several data ids open (an app with its content and
+  /// its own data ids), two projects at once (a copy).
   final _lru = LruMap<(String, String), SdbProjectContent>(
-    maximumSize: 4,
+    maximumSize: 8,
     dispose: (entry) => entry.value.dispose(),
   );
 
@@ -83,9 +85,14 @@ class SdbProjectContentOptions {
   final String dataId;
   final SdbOpenDatabaseOptions openDatabaseOptions;
 
+  /// The partition of the records of the data id for the user of a project
+  /// (their access), if any: see [SyncedSourcePartition].
+  final SyncedSourcePartition? Function(SdbUserProject project)? partitionOf;
+
   SdbProjectContentOptions({
     required this.dataId,
     required this.openDatabaseOptions,
+    this.partitionOf,
   });
 }
 
@@ -125,8 +132,8 @@ class SdbProjectContent {
     () async {
       initSdfConstructors();
       try {
-        var openOptions =
-            _map[dataId]?.openDatabaseOptions ?? sdfContentOpenOptions;
+        var options = _map[dataId];
+        var openOptions = options?.openDatabaseOptions ?? sdfContentOpenOptions;
         var festenaoSyncedSdb = await openProjectFestenaoSyncedSdb(
           fs: fs,
           app: cache.app,
@@ -137,6 +144,7 @@ class SdbProjectContent {
           firestore: Firestore.instance,
           firebaseStorage: FirebaseStorage.instance,
           openOptions: openOptions,
+          partition: options?.partitionOf?.call(project),
         );
         _festenaoSyncedSdb = festenaoSyncedSdb;
         contentSdb = SdfContentSdb(

@@ -2,6 +2,8 @@ import 'package:festenao_common/data/festenao_fs.dart';
 import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:tekaly_sdb_synced/sdb_scv.dart';
 import 'package:tekaly_sdb_synced/synced_sdb.dart';
+import 'package:tekaly_sdb_synced/synced_sdb_internals.dart'
+    show sdbSyncMetaStoreRef, sdbSyncRecordStoreRef;
 import 'package:tekartik_common_utils/foundation/constants.dart';
 
 import 'import.dart';
@@ -51,6 +53,11 @@ class FestenaoSdb {
   /// The name of the SDB database.
   final String dbName;
 
+  /// The name the database had before, if any: when [dbName] holds nothing
+  /// yet (never synchronized, no local change) and this one does, it is
+  /// moved to [dbName] on open.
+  final String? previousDbName;
+
   /// Options for SDB database open, validation, and schema version management.
   final SyncedSdbOptions syncedSdbOptions;
   late final SyncedSdb _db;
@@ -58,6 +65,7 @@ class FestenaoSdb {
   /// A future that completes when SDB and [FestenaoMediaSdb] are fully initialized and ready.
   Future<void> get ready => _ready;
   late final _ready = () async {
+    await _movePreviousDatabase();
     await _db.ready;
     _mediaDb = FestenaoMediaSdb(fs: fs, database: await _db.database);
   }();
@@ -77,8 +85,10 @@ class FestenaoSdb {
     required this.dbName,
     SyncedSdbOptions? syncedSdbOptions,
     required this.fs,
+    this.previousDbName,
   }) : syncedSdbOptions = syncedSdbOptions ?? festenaoSyncedSdbOptions {
     _db = SyncedSdb(
+      name: dbName,
       databaseFactory: sdbFactory,
       options: this.syncedSdbOptions,
     );
@@ -92,6 +102,70 @@ class FestenaoSdb {
 
   /// Returns the underlying [SyncedSdb] client wrapper.
   SyncedSdb get syncedSdb => _db;
+
+  /// True when the database [name] was synchronized or holds local changes
+  /// (it is created when missing).
+  Future<bool> _isInUse(String name) async {
+    var db = await sdbFactory.openDatabase(
+      name,
+      options: syncedSdbOptions.openDatabaseOptions,
+    );
+    try {
+      return await sdbSyncMetaStoreRef.count(db) > 0 ||
+          await sdbSyncRecordStoreRef.count(db) > 0;
+    } finally {
+      await db.close();
+    }
+  }
+
+  /// Moves the database [previousDbName] to [dbName] when only the previous
+  /// one is in use (sync state and local changes included), then deletes it.
+  Future<void> _movePreviousDatabase() async {
+    var previousDbName = this.previousDbName;
+    if (previousDbName == null || previousDbName == dbName) {
+      return;
+    }
+    if (await _isInUse(dbName)) {
+      return;
+    }
+    if (await _isInUse(previousDbName)) {
+      await _copyDatabase(previousDbName, dbName);
+    }
+    await sdbFactory.deleteDatabase(previousDbName);
+  }
+
+  /// Copies every record of the database [from] into [to], both opened with
+  /// the schema (`sdbImportDatabase` ignores the path of a sandboxed
+  /// factory, it is not used).
+  Future<void> _copyDatabase(String from, String to) async {
+    var options = syncedSdbOptions.openDatabaseOptions;
+    var fromDb = await sdbFactory.openDatabase(from, options: options);
+    try {
+      var toDb = await sdbFactory.openDatabase(to, options: options);
+      try {
+        for (var name in fromDb.storeNames) {
+          var store = SdbStoreRef<Object, Object>(name);
+          var records = await store.findRecords(fromDb);
+          if (records.isEmpty) {
+            continue;
+          }
+          await toDb.inStoresTransaction(
+            [store],
+            SdbTransactionMode.readWrite,
+            (txn) async {
+              for (var record in records) {
+                await record.ref.put(txn, record.value);
+              }
+            },
+          );
+        }
+      } finally {
+        await toDb.close();
+      }
+    } finally {
+      await fromDb.close();
+    }
+  }
 
   /*
   bool _test = false;
