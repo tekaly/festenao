@@ -151,6 +151,47 @@ void main() {
       );
     });
 
+    testWidgets('a role switch of the app sets the custom role', (
+      tester,
+    ) async {
+      festenaoAddAccessRoleToggle(
+        FestenaoAccessRoleToggle(
+          role: 'volunteer',
+          title: (_) => 'Volunteer',
+          subtitle: (_) => 'Their own records only',
+        ),
+      );
+      addTearDown(festenaoAccessRoleToggles.clear);
+      await pumpScreen(tester, memberUserId);
+      var intl = intlOf(tester);
+      var toggle = find.widgetWithText(SwitchListTile, 'Volunteer');
+      expect(find.text('Their own records only'), findsOneWidget);
+      expect(tester.widget<SwitchListTile>(toggle).value, isFalse);
+
+      await tester.ensureVisible(toggle);
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(tester.widget<SwitchListTile>(toggle).value, isTrue);
+      expect(fieldText(tester, intl.accessCustomRole), 'volunteer');
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(fieldText(tester, intl.accessCustomRole), isEmpty);
+
+      // Saved on the access, the member still reading.
+      await tester.tap(toggle);
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.save));
+      await settle(tester);
+      var access = await tester.runAsync(
+        () => context.fsDatabase.projectDb
+            .fsEntityUserAccessRef(entityId, memberUserId)
+            .get(context.ffContext.firestore),
+      );
+      expect(access?.role.v, 'volunteer');
+      expect(access?.read.v, isTrue);
+      expect(access?.write.v ?? false, isFalse);
+    });
+
     testWidgets('the button reports a refusal', (tester) async {
       await pumpScreen(tester, null);
       var intl = intlOf(tester);

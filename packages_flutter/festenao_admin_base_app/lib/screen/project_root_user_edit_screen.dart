@@ -80,6 +80,39 @@ final allRoles = [
   null,
 ];
 
+/// A role an app offers as a switch of the access edit form, under the
+/// rights (the volunteers of a festival app...): on, the access has this
+/// role (its custom role, see the advanced fields); off, none.
+class FestenaoAccessRoleToggle {
+  /// The role, the `role` of the access.
+  final String role;
+
+  /// Its title, in the language shown.
+  final String Function(BuildContext context) title;
+
+  /// What it does, in the language shown.
+  final String Function(BuildContext context)? subtitle;
+
+  /// A role switch of the access edit form.
+  const FestenaoAccessRoleToggle({
+    required this.role,
+    required this.title,
+    this.subtitle,
+  });
+}
+
+/// The role switches of the access edit form: none by default, an app adds
+/// its own at startup ([festenaoAddAccessRoleToggle]).
+final festenaoAccessRoleToggles = <FestenaoAccessRoleToggle>[];
+
+/// Adds [toggle] to [festenaoAccessRoleToggles], replacing the one of the
+/// same role (an app initialized twice).
+void festenaoAddAccessRoleToggle(FestenaoAccessRoleToggle toggle) {
+  festenaoAccessRoleToggles
+    ..removeWhere((existing) => existing.role == toggle.role)
+    ..add(toggle);
+}
+
 mixin AdminUserEditScreenMixin implements AutoDispose {
   late final TextEditingController idController;
   late final TextEditingController roleController;
@@ -162,6 +195,21 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
     admin.value = flags.admin;
     write.value = flags.write;
     read.value = flags.read;
+  }
+
+  /// Gives the access the custom [role] ([on], reading at least) or takes
+  /// it away (a switch of [festenaoAccessRoleToggles]).
+  void setToggleRole(String role, bool on) {
+    if (on) {
+      roleController.text = role;
+      if (!read.value && !write.value && !admin.value) {
+        setRole(AdminAccessRole.reader);
+      }
+    } else if (roleController.text.trim() == role) {
+      roleController.text = '';
+    }
+    var value = roleController.text.trim();
+    selectedRole.add(allRoles.contains(value) ? value : null);
   }
 
   /// The account, the role and the advanced fields of an access, on the
@@ -301,6 +349,20 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
                                 ),
                               ],
                             ),
+                            for (var toggle in festenaoAccessRoleToggles)
+                              ValueListenableBuilder<TextEditingValue>(
+                                valueListenable: roleController,
+                                builder: (context, value, _) => SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  value: value.text.trim() == toggle.role,
+                                  title: Text(toggle.title(context)),
+                                  subtitle: toggle.subtitle == null
+                                      ? null
+                                      : Text(toggle.subtitle!(context)),
+                                  onChanged: (on) =>
+                                      setToggleRole(toggle.role, on),
+                                ),
+                              ),
                           ],
                         );
                       },
@@ -312,23 +374,30 @@ mixin AdminUserEditScreenMixin implements AutoDispose {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        DropdownButtonFormField<String?>(
-                          decoration: InputDecoration(
-                            labelText: intl.accessAppRole,
-                            helperText: intl.accessAppRoleHelper,
-                          ),
-                          initialValue: selectedRole.valueOrNull,
-                          items: [
-                            for (var option in allRoles)
-                              DropdownMenuItem(
-                                value: option,
-                                child: Text(option ?? '—'),
+                        // Follows a role set by a switch above.
+                        StreamBuilder<String?>(
+                          stream: selectedRole,
+                          initialData: selectedRole.valueOrNull,
+                          builder: (context, snapshot) =>
+                              DropdownButtonFormField<String?>(
+                                key: ValueKey(snapshot.data),
+                                decoration: InputDecoration(
+                                  labelText: intl.accessAppRole,
+                                  helperText: intl.accessAppRoleHelper,
+                                ),
+                                initialValue: snapshot.data,
+                                items: [
+                                  for (var option in allRoles)
+                                    DropdownMenuItem(
+                                      value: option,
+                                      child: Text(option ?? '—'),
+                                    ),
+                                ],
+                                onChanged: (value) {
+                                  selectedRole.add(value);
+                                  roleController.text = value ?? '';
+                                },
                               ),
-                          ],
-                          onChanged: (value) {
-                            selectedRole.add(value);
-                            roleController.text = value ?? '';
-                          },
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
