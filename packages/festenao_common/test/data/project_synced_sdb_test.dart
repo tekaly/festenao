@@ -4,6 +4,7 @@ import 'package:festenao_common/data/src/festenao_synced_sdb.dart'
     show FestenaoSyncedSdb;
 import 'package:festenao_common/data/src/import.dart';
 import 'package:fs_shim/fs_memory.dart';
+import 'package:path/path.dart';
 import 'package:tekaly_sdb_synced/synced_sdb.dart';
 import 'package:tekaly_sdb_synced/synced_source.dart'
     show SyncedSourcePartition;
@@ -74,7 +75,8 @@ void main() {
       openOptions: _openOptions,
     );
     var db = await synced.db.syncedSdb.database;
-    expect(db.name, 'p1/presence/presence_test_p1_synced.db');
+    // In the project sandbox (the platform separator).
+    expect(db.name, join('p1', 'presence', 'presence_test_p1_synced.db'));
     expect((await _userItemStore.record('a').get(db))?.userId.v, 'u1');
     // Still to push: the move kept the change pending.
     await synced.synchronize();
