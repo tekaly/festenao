@@ -1,13 +1,17 @@
+import 'dart:typed_data';
+
+import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/data/src/festenao_synced_sdb.dart'
     show FestenaoSyncedSdb;
 import 'package:festenao_common/data/src/import.dart';
 import 'package:fs_shim/fs_memory.dart';
-import 'package:path/path.dart';
 import 'package:tekaly_sdb_synced/synced_sdb.dart';
 import 'package:tekaly_sdb_synced/synced_source.dart'
     show SyncedSourcePartition;
+import 'package:tekaly_synced_db_common/synced_db_common_firestore.dart'
+    show SyncedSourceFirestore;
 import 'package:test/test.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
@@ -75,8 +79,9 @@ void main() {
       openOptions: _openOptions,
     );
     var db = await synced.db.syncedSdb.database;
-    // In the project sandbox (the platform separator).
-    expect(db.name, join('p1', 'presence', 'presence_test_p1_synced.db'));
+    // Named in the project sandbox (idb_shim 2.11.2: a database opened
+    // through a sandbox has the name opened in the sandbox).
+    expect(db.name, 'presence_test_p1_synced.db');
     expect((await _userItemStore.record('a').get(db))?.userId.v, 'u1');
     // Still to push: the move kept the change pending.
     await synced.synchronize();
@@ -87,6 +92,36 @@ void main() {
           .exists,
       isTrue,
     );
+    await _close(synced);
+  });
+
+  test('a new media record is pushed once, uploaded', () async {
+    var firebaseContext = await _initFirebase();
+    var synced = await openProjectFestenaoSyncedSdb(
+      fs: newFileSystemMemory(),
+      app: 'test',
+      sdbFactory: newSdbFactoryMemory(),
+      project: SdbUserProject()..uid.v = 'p1',
+      dataId: 'content',
+      firestore: firebaseContext.firestore,
+      firebaseStorage: firebaseContext.storage,
+      openOptions: _openOptions,
+    );
+    var id = await synced.db.mediaDb.addMediaFile(
+      file: FestenaoMediaFile.from(filename: 'a.jpg'),
+      bytes: Uint8List.fromList([1, 2, 3]),
+    );
+    await synced.synchronize();
+    var source = SyncedSourceFirestore(
+      firestore: firebaseContext.firestore,
+      rootPath: 'app/test/project/p1/data/content',
+    );
+    var sourceRecord = await source.getSourceRecord(
+      SyncedDataSourceRef(store: 'media', key: id),
+    );
+    expect(sourceRecord!.record.v!.value.v!['uploaded'], isTrue);
+    // A single change: the record did not go up before its upload.
+    expect((await source.getMetaInfo())!.lastChangeId.v, 1);
     await _close(synced);
   });
 

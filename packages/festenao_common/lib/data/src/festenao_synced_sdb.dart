@@ -90,6 +90,9 @@ class FestenaoSyncedSdb {
     // Synchronize the media now and after each database synchronization
     // (new or deleted media records, local media to upload).
     _mediaSynchronizer.startAutoSync(_syncedDbSynchronizer.onSynced());
+    // New media contents are uploaded before the push of their records: a
+    // record goes up once, already uploaded.
+    _mediaSynchronizer.uploadBeforeSyncUp(_syncedDbSynchronizer);
   }
 
   /// Synchronize medias.
