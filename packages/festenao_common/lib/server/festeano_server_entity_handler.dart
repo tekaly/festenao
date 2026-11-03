@@ -1,4 +1,5 @@
 import 'package:festenao_common/api/festenao_api_fs_entity.dart';
+import 'package:festenao_common/api/festenao_api_user_plan.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:festenao_common/server/festenao_email_invite_mailer.dart';
 import 'package:tekartik_common_utils/common_utils_import.dart';
@@ -23,6 +24,12 @@ typedef FestenaoEntityJoinCheck =
       required TkCmsFsUserAccess userAccess,
     });
 
+/// The entities of a type a user creates through the api when no app admin
+/// set their own limit (their plan, `app/<app>/user_plan`), read on each
+/// creation; null for no default limit (the limit an app admin set a user
+/// still applies).
+typedef FestenaoEntityCreateLimit = int? Function();
+
 /// Options for entity handler.
 class FestenaoEntityHandlerOptions {
   /// Creates a new [FestenaoEntityHandlerOptions] with optional
@@ -32,6 +39,7 @@ class FestenaoEntityHandlerOptions {
     this.setPublicCheck,
     this.emailInviteMailer,
     this.joinCheck,
+    this.createLimit,
   });
 
   /// Custom ID generator function.
@@ -49,6 +57,13 @@ class FestenaoEntityHandlerOptions {
   /// join an entity; none by default: such a user is given access through an
   /// invite only.
   final FestenaoEntityJoinCheck? joinCheck;
+
+  /// The create limit, none by default. When set, the creators are recorded
+  /// (`app/<app>/creator`), [festenaoEntityGetCreateLimitCommand] is served
+  /// and a user creates through the api as many entities as the limit an
+  /// app admin set them, or as it returns (an app admin any), a deleted
+  /// entity freeing its place.
+  final FestenaoEntityCreateLimit? createLimit;
 }
 
 /// Entity handler for Festenao entities.
@@ -62,6 +77,12 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
 
   /// Entity access for Firestore operations.
   final TkCmsFirestoreDatabaseServiceEntityAccess<T> entityAccess;
+
+  /// The app of its entities, whose admins are the app admins: when set, it
+  /// serves only the requests naming it (a server serving the entities of
+  /// several apps has a handler per app), the server's app and every request
+  /// otherwise.
+  final String? appId;
 
   /// Firestore instance.
   Firestore get firestore => entityAccess.firestore;
@@ -83,12 +104,16 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     required this.app,
     required this.entityAccess,
     this.options = const FestenaoEntityHandlerOptions(),
+    this.appId,
   });
 
   /// Handles the command if it's an entity command, otherwise returns null.
   @override
   Future<ApiResult?> onCommandOrNull(ApiRequest apiRequest) async {
     var command = apiRequest.command.v!;
+    if (appId != null && (apiRequest.app.v ?? _serverAppId) != appId) {
+      return null;
+    }
     if (command == festenaoEntityCreateCommand(_entityType)) {
       return await onCreateCommand(apiRequest);
     } else if (command == festenaoEntityDeleteCommand(_entityType)) {
@@ -122,6 +147,9 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       return await onDiscardEmailInviteCommand(apiRequest);
     } else if (command == festenaoEntityGetUserInfoCommand(_entityType)) {
       return await onGetUserInfoCommand(apiRequest);
+    } else if (options.createLimit != null &&
+        command == festenaoEntityGetCreateLimitCommand(_entityType)) {
+      return await onGetCreateLimitCommand(apiRequest);
     }
 
     // compat
@@ -167,12 +195,35 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       //var entity = entityAccess.fsEntityRef(entityId).cv()..fsDataFromJsonMap(firestore, query.data.v!);
       var model = documentDataMapFromJsonMap(firestore, asModel(query.data.v!));
       var entity = model.cv<T>();
+      var createLimit = options.createLimit;
+      if (createLimit != null) {
+        var limit = await getCreateLimit(userId, createLimit: createLimit());
+        if (!limit.canCreate) {
+          throw (ApiError()
+                ..code.v = HttpsErrorCode.resourceExhausted
+                ..message.v = 'Create limit reached (${limit.createLimit.v})'
+                ..noRetry.v = true)
+              .exception();
+        }
+        // Created alive, counted.
+        entity
+          ..deleted.v = null
+          ..deletedTimestamp.v = null;
+      }
       entityId = await entityAccess.createEntity(
         userId: userId,
         entity: entity,
         entityId: entityId,
         customIdGenerator: options.customIdGenerator,
       );
+      if (createLimit != null) {
+        await _creatorRef(entityId).set(
+          firestore,
+          FsFestenaoEntityCreator()
+            ..userId.v = userId
+            ..created.v = Timestamp.now(),
+        );
+      }
       var path = entityAccess.fsEntityRef(entityId).path;
       var result = FsCmsEntityCreateApiResult()
         ..entityId.setValue(entityId)
@@ -180,6 +231,68 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
         ..path.v = path;
       return result;
     }
+  }
+
+  CvDocumentReference<FsFestenaoEntityCreator> _creatorRef(String entityId) =>
+      festenaoEntityCreatorCollection(
+        _requireAppId(),
+        _entityType,
+      ).doc(entityId);
+
+  String _requireAppId() =>
+      _appId ?? (throw StateError('A create limit needs an app id'));
+
+  /// How many entities [userId] may create (the one an app admin set them,
+  /// [createLimit] otherwise, none for an app admin or when both are null)
+  /// and created through the api, not deleted.
+  Future<FsCmsEntityGetCreateLimitApiResult<T>> getCreateLimit(
+    String userId, {
+    required int? createLimit,
+  }) async {
+    var appId = _requireAppId();
+    var appAdmin = await _isAppAdmin(userId);
+    var plan = await festenaoUserPlanCollection(
+      appId,
+    ).doc(userId).get(firestore);
+    var userLimit = plan.createLimitOf(_entityType);
+    var creators = await festenaoEntityCreatorCollection(
+      appId,
+      _entityType,
+    ).query().where('userId', isEqualTo: userId).get(firestore);
+    var count = 0;
+    for (var creator in creators) {
+      var entity = await entityAccess.fsEntityRef(creator.id).get(firestore);
+      if (entity.exists && entity.deleted.v != true) {
+        count++;
+      }
+    }
+    return FsCmsEntityGetCreateLimitApiResult<T>()
+      ..userId.v = userId
+      ..appAdmin.v = appAdmin
+      ..userCreateLimit.v = userLimit
+      ..createLimit.v = appAdmin ? null : (userLimit ?? createLimit)
+      ..createCount.v = count;
+  }
+
+  /// Handles [festenaoEntityGetCreateLimitCommand] (with a create limit):
+  /// the signed in user's, or anyone's for an app admin.
+  Future<FsCmsEntityGetCreateLimitApiResult<T>> onGetCreateLimitCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var callerId = _requireUserId(apiRequest);
+    var query = apiRequest.query<FsCmsEntityGetCreateLimitApiQuery<T>>();
+    var userId = query.userId.v ?? callerId;
+    if (userId != callerId && !await _isAppAdmin(callerId)) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.permissionDenied
+            ..message.v = 'Not an app admin'
+            ..noRetry.v = true)
+          .exception();
+    }
+    return await getCreateLimit(
+      userId,
+      createLimit: options.createLimit?.call(),
+    );
   }
 
   /// Handles the delete entity command (entity admin or app admin): marks
@@ -492,7 +605,9 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
 
   /// The app id of the server, whose app entity holds the global admins;
   /// null for a server without one (then only entity admins exist).
-  String? get _appId {
+  String? get _appId => appId ?? _serverAppId;
+
+  String? get _serverAppId {
     var app = this.app;
     return app is TkAppCmsServerAppBase ? app.appFlavorContext.app : null;
   }

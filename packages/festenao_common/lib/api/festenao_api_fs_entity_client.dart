@@ -178,6 +178,19 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     );
   }
 
+  /// How many entities the signed in user may create and created, or
+  /// [userId] for an app admin (`permission-denied` otherwise); served when
+  /// the entity handler of the server has a create limit.
+  Future<FsCmsEntityGetCreateLimitApiResult<T>> getCreateLimit({
+    String? userId,
+  }) async {
+    return await apiService.getApiResult<FsCmsEntityGetCreateLimitApiResult<T>>(
+      ApiRequest(command: entityAccess.info.getCreateLimitCommand)..setQuery(
+        FsCmsEntityGetCreateLimitApiQuery<T>()..userId.setValue(userId),
+      ),
+    );
+  }
+
   /// Deletes (revokes) an email invite of the entity (admin side), whatever
   /// its status.
   Future<void> deleteEntityEmailInvite({

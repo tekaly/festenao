@@ -10,6 +10,11 @@ import 'package:festenao_dashboard_base_app/src/provider/project_access_provider
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 
+/// Creates a project from its document and returns its id, in place of the
+/// signed in user writing it: a server command, for an app that limits the
+/// projects a user creates.
+typedef DashboardProjectCreator = Future<String> Function(FsProject project);
+
 /// Creates the project [name] for the signed in user, its admin, with its
 /// [modules] (every module when null) and its url [slug] (`/p/<slug>`) when
 /// given, and adds it to the local projects of the user; returns its id.
@@ -17,11 +22,15 @@ import 'package:tkcms_common/tkcms_auth.dart';
 /// Throws [FestenaoSlugTakenException] before creating anything when [slug]
 /// is taken (checked first; when another project takes it in between, the
 /// project is created without its url and the exception is thrown).
+///
+/// [creator] creates it when set (its admin the signed in user), the user
+/// writes it otherwise.
 Future<String> dashboardCreateProject(
   WidgetRef ref, {
   required String name,
   String? slug,
   List<String>? modules,
+  DashboardProjectCreator? creator,
 }) async {
   var userId = ref.read(rpdIdentityProvider)?.userOrAccountId;
   if (userId == null) {
@@ -37,10 +46,9 @@ Future<String> dashboardCreateProject(
   if (modules != null) {
     fsProject.modules.v = modules;
   }
-  var projectId = await fsDb.projectDb.createEntity(
-    userId: userId,
-    entity: fsProject,
-  );
+  var projectId = creator != null
+      ? await creator(fsProject)
+      : await fsDb.projectDb.createEntity(userId: userId, entity: fsProject);
   var synchronizer = UserProjectsSdbSynchronizer(
     projectsSdb: ref.read(rpdUserProjectsDbProvider),
     fsProjects: fsDb.projectDb,

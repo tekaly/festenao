@@ -117,6 +117,14 @@ const festenaoGetUserInfoCommand = 'get-user-info';
 String festenaoEntityGetUserInfoCommand(String entityType) =>
     '${festenaoEntityCommandPrefix(entityType)}$festenaoGetUserInfoCommand';
 
+/// Command name for reading how many entities of a type a user may create
+/// and created, served by an entity handler with a create limit.
+const festenaoGetCreateLimitCommand = 'get-create-limit';
+
+/// Command name for reading the create limit of a user.
+String festenaoEntityGetCreateLimitCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}$festenaoGetCreateLimitCommand';
+
 /// Initializes API builders for Festenao file system entities.
 void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
   initTkCmsFsUserAccessBuilders();
@@ -141,6 +149,8 @@ void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
     FsCmsEntityCheckEmailInvitesApiResult<T>.new,
     FsCmsEntityGetUserInfoApiQuery<T>.new,
     FsCmsEntityGetUserInfoApiResult<T>.new,
+    FsCmsEntityGetCreateLimitApiQuery<T>.new,
+    FsCmsEntityGetCreateLimitApiResult<T>.new,
   ]);
 }
 
@@ -205,6 +215,10 @@ extension FestenaoFirestoreDatabaseEntityCollectionInfoApiExt<
 
   /// Command for reading the account information of a user.
   String get getUserInfoCommand => festenaoEntityGetUserInfoCommand(entityType);
+
+  /// Command for reading the create limit of a user.
+  String get getCreateLimitCommand =>
+      festenaoEntityGetCreateLimitCommand(entityType);
 }
 
 /// API query for creating a CMS entity.
@@ -552,5 +566,51 @@ class FsCmsEntityGetUserInfoApiResult<T extends TkCmsFsEntity>
     emailVerified,
     disabled,
     hasAccess,
+  ];
+}
+
+/// API query for reading how many entities a user may create and created
+/// ([festenaoEntityGetCreateLimitCommand]): the signed in user's, or
+/// [userId]'s for an app admin.
+class FsCmsEntityGetCreateLimitApiQuery<T extends TkCmsFsEntity>
+    extends ApiQuery {
+  /// The user, the signed in one when null.
+  final userId = CvField<String>('userId');
+
+  @override
+  late final CvFields fields = [userId];
+}
+
+/// API result of [FsCmsEntityGetCreateLimitApiQuery].
+class FsCmsEntityGetCreateLimitApiResult<T extends TkCmsFsEntity>
+    extends ApiResult {
+  /// The user.
+  final userId = CvField<String>('userId');
+
+  /// The entities they may create, null for no limit (an app admin).
+  final createLimit = CvField<int>('createLimit');
+
+  /// The limit an app admin set them (their plan), null for the default.
+  final userCreateLimit = CvField<int>('userCreateLimit');
+
+  /// The entities they created through the api and not deleted.
+  final createCount = CvField<int>('createCount');
+
+  /// Whether they are an app admin.
+  final appAdmin = CvField<bool>('appAdmin');
+
+  /// Whether they may create one more.
+  bool get canCreate {
+    var limit = createLimit.v;
+    return limit == null || (createCount.v ?? 0) < limit;
+  }
+
+  @override
+  late final CvFields fields = [
+    userId,
+    createLimit,
+    userCreateLimit,
+    createCount,
+    appAdmin,
   ];
 }
