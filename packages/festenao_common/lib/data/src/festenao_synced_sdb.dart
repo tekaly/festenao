@@ -4,8 +4,6 @@ import 'package:festenao_common/data/festenao_media_source_firebase.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:path/path.dart';
 import 'package:tekaly_sdb_synced/synced_sdb.dart';
-import 'package:tekaly_sdb_synced_media/synced_media.dart'
-    show SyncedMediaCacheOptions;
 import 'package:tekaly_sembast_synced/synced_db_firestore.dart';
 import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:tkcms_common/tkcms_storage.dart';

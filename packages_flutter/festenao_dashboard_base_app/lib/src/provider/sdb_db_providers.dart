@@ -1,5 +1,7 @@
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_common/data/festenao_media_sdb.dart';
+import 'package:festenao_common/data/festenao_media_sdb_synchronizer.dart'
+    show SyncedMediaCacheOptions;
 import 'package:festenao_common/data/festenao_media_source.dart';
 import 'package:festenao_common/data/festenao_projects_fs.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
@@ -89,10 +91,16 @@ class SdbProjectContentOptions {
   /// (their access), if any: see [SyncedSourcePartition].
   final SyncedSourcePartition? Function(SdbUserProject project)? partitionOf;
 
+  /// The media contents kept locally, all of them when null (a data id read
+  /// for its records only passes `SyncedMediaCacheOptions.lru()`: downloaded
+  /// on demand, nothing prefetched).
+  final SyncedMediaCacheOptions? mediaCacheOptions;
+
   SdbProjectContentOptions({
     required this.dataId,
     required this.openDatabaseOptions,
     this.partitionOf,
+    this.mediaCacheOptions,
   });
 }
 
@@ -145,6 +153,8 @@ class SdbProjectContent {
           firebaseStorage: FirebaseStorage.instance,
           openOptions: openOptions,
           partition: options?.partitionOf?.call(project),
+          mediaCacheOptions:
+              options?.mediaCacheOptions ?? const SyncedMediaCacheOptions.all(),
         );
         _festenaoSyncedSdb = festenaoSyncedSdb;
         contentSdb = SdfContentSdb(

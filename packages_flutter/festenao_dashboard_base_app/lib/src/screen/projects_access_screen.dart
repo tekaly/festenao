@@ -65,6 +65,13 @@ class DashboardProjectsAccessScreen extends ConsumerWidget {
   }
 }
 
+/// What the *New project* button of [DashboardProjectsAccessScreen] does:
+/// null (the default) opens the dashboard project create screen
+/// ([goToProjectEditScreen], a direct Firestore write); an app creating its
+/// projects another way (through its api, with its own screen) overrides it.
+final dashboardNewProjectActionProvider =
+    Provider<Future<void> Function(BuildContext context)?>((ref) => null);
+
 /// The role of the signed in user on [project].
 AdminAccessRole dashboardProjectRole(SdbUserProject project) =>
     AdminAccessRole.ofFlags(
@@ -75,14 +82,14 @@ AdminAccessRole dashboardProjectRole(SdbUserProject project) =>
 
 /// The project list, with the pending email invites of the user on top, an
 /// empty state when there is none, a signed out state.
-class _ProjectList extends StatelessWidget {
+class _ProjectList extends ConsumerWidget {
   final ProjectsAccessState state;
   final bool selectMode;
 
   const _ProjectList({required this.state, required this.selectMode});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     var intl = festenaoAdminAppIntl(context);
     var t = context.festenao;
     var projects = state.projects;
@@ -96,7 +103,12 @@ class _ProjectList extends StatelessWidget {
             if (signedIn)
               FilledButton.icon(
                 onPressed: () async {
-                  await goToProjectEditScreen(context, project: null);
+                  var newProject = ref.read(dashboardNewProjectActionProvider);
+                  if (newProject != null) {
+                    await newProject(context);
+                  } else {
+                    await goToProjectEditScreen(context, project: null);
+                  }
                 },
                 icon: const Icon(Icons.add),
                 label: Text(intl.projectNew),

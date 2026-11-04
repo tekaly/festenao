@@ -5,6 +5,10 @@ import 'package:tekaly_sdb_synced_media/synced_media.dart'
 
 import 'festenao_media_sdb.dart';
 
+// The media cache options of a synchronizer (and of a project content).
+export 'package:tekaly_sdb_synced_media/synced_media.dart'
+    show SyncedMediaCacheOptions;
+
 /// Class to synchronize a local [FestenaoMediaSdb] with a `FestenaoMediaSource`
 /// (see `SyncedMediaSdbSynchronizer`).
 class FestenaoMediaSdbSynchronizer extends SyncedMediaSdbSynchronizer {
