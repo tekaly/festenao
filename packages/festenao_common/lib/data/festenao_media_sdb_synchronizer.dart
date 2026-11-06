@@ -32,6 +32,7 @@ class FestenaoMediaSdbSynchronizer extends SyncedMediaSdbSynchronizer {
     required super.source,
     super.cacheOptions = const SyncedMediaCacheOptions.all(),
     super.storeUrl,
+    super.deferRemoteDelete,
   });
 
   /// Compare existing keys and fix inconsistencies

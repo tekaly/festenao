@@ -5,6 +5,11 @@ import 'package:tkcms_common/tkcms_storage.dart';
 import '../festenao_firestore.dart';
 import 'festenao_media.dart';
 
+/// The cache control of an uploaded content, which never changes (a new
+/// media gets a new path): `FestenaoMediaSourceFirebase(cacheControl: ...)`.
+export 'package:tekaly_sdb_synced_media/synced_media_storage.dart'
+    show syncedMediaStorageCacheControlImmutable;
+
 /// Database record class for media files in Festenao
 /// The uid is the file uid
 class FsFestenaoMediaFile extends CvFirestoreDocumentBase {
