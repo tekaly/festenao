@@ -5,6 +5,7 @@ import 'package:tkcms_common/tkcms_server.dart';
 
 import 'festeano_server_app.dart';
 import 'festeano_server_entity_handler.dart';
+import 'festenao_app_status_handler.dart';
 import 'festenao_email_invite_mailer.dart';
 import 'festenao_user_plan_handler.dart';
 
@@ -37,6 +38,11 @@ class FestenaoProjectsServerApp extends FestenaoServerApp {
   /// the blocked users), none by default: once set at start, its commands
   /// are served and the commands of a blocked user refused.
   FestenaoUserPlanHandler? userPlanHandler;
+
+  /// The status of the apps (normal, read only, maintenance), none by
+  /// default: once set at start, [onCommand] first refuses the commands it
+  /// does not allow ([FestenaoAppStatusHandler.requireAvailable]).
+  FestenaoAppStatusHandler? appStatusHandler;
 
   /// Project handler.
   late final projectHandler = FestenaoEntityHandler(
@@ -99,6 +105,7 @@ class FestenaoProjectsServerApp extends FestenaoServerApp {
 
   @override
   Future<ApiResult> onCommand(ApiRequest apiRequest) async {
+    await appStatusHandler?.requireAvailable(apiRequest);
     await userPlanHandler?.requireNotBlocked(apiRequest);
     for (var handler in apiHandlers) {
       var result = await handler.onCommandOrNull(apiRequest);
