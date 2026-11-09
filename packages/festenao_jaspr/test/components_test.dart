@@ -5,6 +5,7 @@
 @TestOn('vm')
 library;
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:festenao_jaspr/server.dart';
@@ -90,7 +91,39 @@ void main() {
             ?.attributes['content'],
         'summary_large_image',
       );
-      expect(response.body, contains(r'"name":"<\/script>"'));
+      expect(response.body, contains(r'"name":"\u003c/script>"'));
+    });
+
+    testServer('a JSON-LD value cannot swallow the page', (tester) async {
+      // `<!--` then `<script` would make the html parser ignore the closing
+      // `</script>` of the JSON-LD, the rest of the page read as the script.
+      const jsonLd = {
+        '@type': 'Event',
+        'name': 'Open air <!--<script> bring a chair',
+        'description': '</script><b>x</b>',
+      };
+      var response = await _render(
+        tester,
+        body: [
+          const SiteHead(
+            SiteHeadData(
+              lang: SiteLang.en,
+              siteName: 'Youpi',
+              title: 'Open air',
+              description: 'An event.',
+              jsonLd: jsonLd,
+            ),
+          ),
+          const h1([.text('The event')]),
+          const p(classes: 'after', [.text('Bring a chair.')]),
+        ],
+      );
+      var document = response.document!;
+      var script = document.querySelector('script[type="application/ld+json"]');
+      expect(jsonDecode(script!.text), jsonLd);
+      expect(document.querySelector('h1')?.text, 'The event');
+      expect(document.querySelector('p.after')?.text, 'Bring a chair.');
+      expect(document.querySelector('b'), isNull);
     });
 
     testServer('a 404 page: noindex, no canonical, no hreflang', (

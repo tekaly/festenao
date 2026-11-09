@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:festenao_jaspr/festenao_jaspr.dart';
 import 'package:test/test.dart';
 
@@ -42,7 +44,18 @@ void main() {
 
   group('jsonLdEncode', () {
     test('a closing tag cannot end the script', () {
-      expect(jsonLdEncode({'name': '</script>'}), r'{"name":"<\/script>"}');
+      expect(jsonLdEncode({'name': '</script>'}), r'{"name":"\u003c/script>"}');
+    });
+
+    test('every < is escaped, the json decodes to the same value', () {
+      var data = {
+        '@type': 'Event',
+        'name': 'Open air <!--<script> bring a chair',
+        'description': ['a < b', '</SCRIPT >', '<!--', r'<\/'],
+      };
+      var json = jsonLdEncode(data);
+      expect(json, isNot(contains('<')));
+      expect(jsonDecode(json), data);
     });
   });
 }
