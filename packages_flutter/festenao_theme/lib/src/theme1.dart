@@ -28,16 +28,17 @@ const colorGrey = Colors.grey;
 /// The Poppins font family: the font of the poppins themes, for an app
 /// building its own theme with it.
 ///
-/// Bundled as a plain Flutter font (see the package's `pubspec.yaml`) rather
-/// than fetched by google_fonts at runtime, so it renders the same offline,
-/// in tests, and on a device with no network.
+/// Shipped as assets of this package and registered under this bare name by
+/// `loadFestenaoFonts()` (nothing in the app pubspec), rather than fetched by
+/// google_fonts at runtime: the same offline, in tests, and on a device with
+/// no network.
 const festenaoPoppinsFontFamily = poppinsFontFamily;
 
 /// The monospace font family the explorers draw hex dumps and raw text
 /// with: JetBrains Mono, bundled the same way as [festenaoPoppinsFontFamily].
 const festenaoMonospaceFontFamily = jetBrainsMonoFontFamily;
 
-/// Dark theme with the Poppins font.
+/// Dark theme with the Poppins font (`loadFestenaoFonts()` first).
 ThemeData poppinsThemeData1({Color? seedColor}) {
   return themeData1(
     fontFamily: festenaoPoppinsFontFamily,
@@ -45,7 +46,7 @@ ThemeData poppinsThemeData1({Color? seedColor}) {
   );
 }
 
-/// Light theme with the Poppins font.
+/// Light theme with the Poppins font (`loadFestenaoFonts()` first).
 ThemeData poppinsThemeDataLight1({Color? seedColor}) {
   return themeDataLight1(
     fontFamily: festenaoPoppinsFontFamily,
@@ -67,7 +68,7 @@ ThemeData themeDataLight1({
   );
 }
 
-/// Dark theme (light with [brightness]): a color scheme seeded with
+/// Dark theme by default (light with [brightness]): a color scheme seeded with
 /// [seedColor] (the festenao blue by default), floating snack bars on the
 /// seed color, outlined inputs, seed colored buttons.
 ThemeData themeData1({

@@ -80,7 +80,8 @@ class FestenaoThemePreset {
   /// The colour that stands for the theme in a picker.
   Color get swatch => palette(Brightness.light).accent;
 
-  /// The Material theme in [brightness].
+  /// The Material theme in [brightness], a new one on each call: build it
+  /// once (a final field, or the `FestenaoThemeController` that caches it).
   ThemeData themeData(Brightness brightness) => festenaoThemeDataFromPalette(
     palette(brightness),
     radii: radii,

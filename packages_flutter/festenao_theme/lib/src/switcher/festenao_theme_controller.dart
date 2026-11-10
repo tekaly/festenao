@@ -112,15 +112,20 @@ class _FestenaoThemeStoreMemory implements FestenaoThemeStore {
 /// ```dart
 /// var controller = FestenaoThemeController(
 ///   presets: festenaoThemePresetsByIds(['festenao', 'obsidian', 'contrast']),
-///   store: FestenaoThemeStore.from(read: ..., write: ...),
+///   // One string in the app preferences (`obsidian|dark`).
+///   store: FestenaoThemeStore.from(
+///     read: () => prefs.getString('theme'),
+///     write: (value) => prefs.setString('theme', value),
+///   ),
 /// );
-/// await controller.load();
+/// await controller.load(); // before runApp, it replaces the current choice
 /// runApp(FestenaoThemeBuilder(
 ///   controller: controller,
 ///   builder: (context, controller) => MaterialApp(
 ///     theme: controller.theme,
 ///     darkTheme: controller.darkTheme,
 ///     themeMode: controller.mode,
+///     home: const HomeScreen(),
 ///   ),
 /// ));
 /// ```

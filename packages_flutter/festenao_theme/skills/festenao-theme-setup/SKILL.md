@@ -1,185 +1,293 @@
 ---
 name: festenao-theme-setup
 description: >-
-  Use when giving a Festenao/Tekaly Flutter app its ThemeData: themeData1
-  (dark) and themeDataLight1 (light), their Poppins variants
-  poppinsThemeData1 / poppinsThemeDataLight1, the seedColor, fontFamily,
-  textTheme and brightness parameters, the festenaoPoppinsFontFamily
-  constant, loadFestenaoFonts() registering the bundled Poppins and
-  JetBrains Mono under their bare names at runtime (nothing in the app
-  pubspec), colorFestenaoFormBlueSelected, and
-  addPoppinsLicense()/poppinsFontFamily from
-  package:festenao_theme/theme.dart and
-  package:festenao_theme/fonts/poppins/poppins_font.dart.
+  Use when giving a Festenao/Tekaly Flutter app (material_ui) its look with
+  festenao_theme: the presets of package:festenao_theme/design.dart
+  (festenaoThemePresets, festenaoThemeFestenao, festenaoThemePresetById,
+  festenaoThemePresetsByIds, FestenaoThemePreset.seed, preset.themeData),
+  FestenaoPalette and festenaoThemeDataFromPalette, the FestenaoTokens read
+  with context.festenao (ink, ok, warn, bad, accent, soft, category, radii),
+  the Fk* widget kit of kit.dart (FkPage, FkHeader, FkCard, FkListCard, FkRow,
+  FkStatusPill, FkGrid, FkStatTile, FkAvatar), the theme switcher of
+  switcher.dart (FestenaoThemeController, FestenaoThemeStore,
+  FestenaoThemeBuilder, FestenaoThemeButton, FestenaoThemeModeButton,
+  FestenaoThemeSettings), loadFestenaoFonts() registering Poppins and
+  JetBrains Mono at runtime, and the older seed theme of theme.dart
+  (themeData1, themeDataLight1, poppinsThemeData1).
 ---
 
 # App theme (festenao_theme)
 
-`festenao_theme` builds the shared Material 3 `ThemeData` of the festenao
-apps: a color scheme seeded from one color (festenao blue by default) plus a
-handful of fixed rules — floating snack bars, outlined inputs, seed colored
-buttons — in a light and a dark flavour, optionally with the Poppins font.
+`festenao_theme` gives the festenao Flutter apps one look: named presets
+(light and dark) on a neutral paper and ink with one accent, the design
+tokens a screen reads, a small widget kit drawn with them, a theme switcher
+kept in the app preferences, and the Poppins and JetBrains Mono fonts. It is
+built on `material_ui`, the Material library that replaces
+`package:flutter/material.dart`. Every Flutter platform, no plugin.
 
 ## Guidelines
 
-* Dependency (not on pub.dev, git only):
+* Dependency (not on pub.dev, git only), with `material_ui`:
 
   ```yaml
   dependencies:
+    material_ui: ">=1.5.0"
     festenao_theme:
       git:
         url: https://github.com/tekaly/festenao
         path: packages_flutter/festenao_theme
   ```
 
-* Imports: `package:festenao_theme/theme.dart` for the themes, and
-  `package:festenao_theme/fonts/poppins/poppins_font.dart` for
-  `poppinsFontFamily` and `addPoppinsLicense()`. Never import
-  `package:festenao_theme/src/...`; `theme.dart` deliberately exports only
-  `themeData1`, `themeDataLight1`, `poppinsThemeData1`,
-  `poppinsThemeDataLight1`, `festenaoPoppinsFontFamily`,
-  `colorFestenaoFormBlueSelected` and the font loader (`loadFestenaoFonts`,
-  `loadFestenaoFont`, `poppinsFont`, `poppinsExtraBoldFont`,
-  `jetBrainsMonoFont`) — the other color constants of the source are
-  private to the package.
-* `ThemeData themeData1({TextTheme? textTheme, String? fontFamily, Brightness?
-  brightness, Color? seedColor})` is the one builder; `brightness` defaults to
-  `Brightness.dark` and `seedColor` to `Colors.blue`.
-  `themeDataLight1({textTheme, fontFamily, seedColor})` is the same call with
-  `Brightness.light` — it takes **no** `brightness` parameter. Pass both to
-  `MaterialApp(theme: themeDataLight1(), darkTheme: themeData1(), themeMode:
-  ...)`; despite the name, `themeData1()` is the *dark* one.
-* Everything is derived from `seedColor`: `ColorScheme.fromSeed`, the snack bar
-  background, the input `OutlineInputBorder` side, `textTheme.labelSmall`, the
-  elevated button and the FAB background. The foreground on those is black or
-  white depending on whether the seed is dark, so one `seedColor:` argument
-  re-skins the app — do not `copyWith` a different `colorScheme` afterwards,
-  the snack bar/button colors would no longer follow it.
-* Fixed rules you inherit (and should not re-declare per screen):
-  `SnackBarBehavior.floating` with `elevation: 20`,
-  `FloatingLabelBehavior.always` and an outlined border on inputs, a grey
-  `DividerThemeData`, elevated buttons with `EdgeInsets.symmetric(horizontal:
-  32, vertical: 24)` padding and a `FontWeight.w600` label, and
-  `VisualDensity.adaptivePlatformDensity`.
-* Poppins: `poppinsThemeData1({seedColor})` /
-  `poppinsThemeDataLight1({seedColor})` are `themeData1` /`themeDataLight1`
-  with `fontFamily: festenaoPoppinsFontFamily`, the bare `'Poppins'` family
-  (same constant as `poppinsFontFamily`). Use it when you build your own
-  `ThemeData` but want the same family.
-* Fonts: the package ships Poppins (400, italic, 500, 600, 700, and 800 on
-  demand) and JetBrains Mono NL (400 to 700) as plain assets.
-  `await loadFestenaoFonts()` in `main`, after
-  `WidgetsFlutterBinding.ensureInitialized()` and before `runApp`, registers
-  them under the bare names `Poppins` and `JetBrains Mono` (one
-  `FontLoader` per family, once) and adds their licenses. The app pubspec
-  declares nothing. Until it completes text uses the platform font; a
-  failure is reported with `FlutterError.reportError`, never thrown.
-  `loadFestenaoFonts(extra: [poppinsExtraBoldFont])` adds weight 800,
-  `loadFestenaoFont(jetBrainsMonoFont, family: 'monospace')` registers a
-  font under another name too.
-* `addPoppinsLicense()` registers the OFL license text with
-  `LicenseRegistry` by reading
-  `packages/festenao_theme/fonts/poppins/OFL.txt` from the root bundle (the
-  package declares that asset). `loadFestenaoFonts()` calls it; it adds the
-  license once however often it is called.
-* `colorFestenaoFormBlueSelected` is `Colors.blue[300]` and is nullable
-  (`Color?`) — it is the highlight of a selected form answer; use `??` or `!`
-  where a non-null `Color` is required.
-* Anti-patterns: hardcoding `Colors.blue` in widgets instead of reading
-  `Theme.of(context).colorScheme`; rebuilding a theme inside `build()` on
-  every frame (build it once, e.g. in a final field or a provider);
-  declaring Poppins in the app pubspec `fonts:` (the loader does it) or
-  using `TextStyle(fontFamily: 'Poppins', package: 'festenao_theme')`: a
-  package prefix leaks into every bare family merged under it
-  (`'monospace'` becomes `packages/festenao_theme/monospace`).
-* Testing: the builders are plain functions, so a `flutter_test` `test()` is
-  enough — assert on `theme.brightness`, `theme.snackBarTheme.backgroundColor`,
-  `theme.inputDecorationTheme.border`, `theme.textTheme.bodyMedium?.fontFamily`
-  as `test/theme_test.dart` does.
+* Import `package:material_ui/material_ui.dart`, never
+  `package:flutter/material.dart`: the types differ (a `ThemeData` of this
+  package is not the `ThemeData` of `flutter/material.dart`, their
+  `Colors.blue` and enums are not equal). A third party widget still on
+  `flutter/material.dart` goes in `legacyMaterialScreen(screen)` /
+  `legacyMaterialLeaf(widget)` of `package:festenao_theme/legacy_material.dart`.
+* Libraries: `design.dart` (presets, palettes, tokens, theme builder, and the
+  font loader re-exported), `kit.dart` (the `Fk*` widgets), `switcher.dart`
+  (controller and widgets), `fonts.dart` (family names such as
+  `poppinsFontFamily`, licenses), `theme.dart` (the older seed theme). Never
+  import `package:festenao_theme/src/...`.
+* Fonts: `await loadFestenaoFonts()` in `main`, after
+  `WidgetsFlutterBinding.ensureInitialized()` and before `runApp` (start it
+  early, it can overlap the other init). It registers Poppins (400, italic,
+  500, 600, 700) and JetBrains Mono NL (400 to 700) under the bare names
+  `Poppins` and `JetBrains Mono`, once, and adds their OFL licenses. The app
+  pubspec declares nothing. Text drawn before it completes uses the platform
+  font; a failure is reported with `FlutterError.reportError`, never thrown,
+  not retried. `loadFestenaoFonts(extra: [poppinsExtraBoldFont])` adds 800;
+  `loadFestenaoFont(jetBrainsMonoFont, family: 'monospace')` registers a font
+  under another name too. Do not declare these fonts in a `fonts:` section,
+  nor use `TextStyle(package: 'festenao_theme')`.
+* Presets: `festenaoThemePresets` (Festenao, Basalte, Arcade, Obsidian,
+  Guinguette, Nocturne, Contraste `contrast`, Papier, Ardoise, then the seed
+  ones Violet, Teal, Coral, Forest, Ocean, Graphite, Lagon), each a
+  `FestenaoThemePreset` with an `id` (stored in preferences), a `name`, a
+  `description`. `preset.themeData(Brightness.light)` builds a new
+  `ThemeData` on each call: build it once (a final field, or the
+  controller). `festenaoThemePresetById(id)` gives the Festenao preset for an
+  unknown id; `festenaoThemePresetsByIds(['festenao', 'obsidian'])` skips the
+  unknown ones. Your own: `FestenaoThemePreset.seed(id:, name:, description:,
+  seed:, variant:)`, or hand made with `light:` / `dark:` palettes.
+* Tokens: `context.festenao` (or `FestenaoTokens.of(context)`) gives the
+  palette of the current theme: `ink`, `ink2`, `ink3`, `paper`, `card`,
+  `sunk`, `line`, `lineStrong`, `accent`, `onAccent`, `accentText`, `ok`,
+  `warn`, `bad`, `info`, `muted`, `soft(color)` (a tint for a badge
+  background), `category(i)` (six colours, cycling), `radii`, `cardShadow`,
+  `labelStyle(context)`, `upperLabels`. Read them instead of hard coded
+  colours: a screen then follows every preset and brightness. Under a theme
+  not built by festenao they are derived from its colour scheme.
+* Kit (`kit.dart`): `FkPage(children:)` (scrolls, pads, caps the width),
+  `FkHeader(title:, subtitle:, badge:, actions:)`, `FkSectionTitle`,
+  `FkCard`, `FkListCard(children: [FkRow(...), FkKeyValueRow(...)])`,
+  `FkStatusPill(label, status: FkStatus.ok)`, `FkIconBox`, `FkAvatar(name,
+  category:)`, `FkStatTile`, `FkTimeTile`, `FkGrid(children:, minTileWidth:,
+  maxColumns:)`, `FkTwoPanes(main:, side:)`, `FkEmpty`, `fkInitials(name)`,
+  `FkWidth.of(width)` (compact, medium from 600, expanded from 1000). The
+  layouts use a `LayoutBuilder`: they need a bounded width (`FkGrid` in a
+  horizontal list throws, `Infinity` columns).
+* Switcher (`switcher.dart`): `FestenaoThemeController(presets:, initial:,
+  mode:, store:)` (presets never empty, all by default), `await
+  controller.load()` before `runApp` (it replaces the current choice: later,
+  it would undo a change of the user), then `FestenaoThemeBuilder(controller:,
+  builder: (context, controller) => MaterialApp(theme: controller.theme,
+  darkTheme: controller.darkTheme, themeMode: controller.mode))`. Below it,
+  `FestenaoThemeButton()` (presets and modes in a menu),
+  `FestenaoThemeModeButton()` (system, light, dark) and
+  `FestenaoThemeSettings()` find the controller in the `FestenaoThemeScope`.
+  `FestenaoThemeStore.from(read:, write:)` keeps one string (`ardoise|dark`)
+  in any preferences, `memory()` for tests; writes are not awaited. A stored
+  preset not offered any more falls back to the first offered. Texts in
+  English or French (locale), or `texts:`.
+* Older seed theme (`theme.dart`), for apps not moved to the presets:
+  `themeData1({textTheme, fontFamily, brightness, seedColor})` is **dark** by
+  default, `themeDataLight1({textTheme, fontFamily, seedColor})` the light
+  one (no `brightness` parameter); `seedColor` defaults to `Colors.blue`.
+  Everything follows the seed: `ColorScheme.fromSeed`, floating snack bars
+  (`elevation: 20`) on the seed colour, `FloatingLabelBehavior.always` and
+  an outlined input border, the `labelSmall` colour, elevated buttons
+  (`horizontal: 32, vertical: 24` padding, w600 label) and the FAB, with a
+  black or white foreground; a grey divider;
+  `VisualDensity.adaptivePlatformDensity`. `poppinsThemeData1()` /
+  `poppinsThemeDataLight1()` add `fontFamily: festenaoPoppinsFontFamily`
+  (`'Poppins'`, call `loadFestenaoFonts()` first).
+  `colorFestenaoFormBlueSelected` is `Colors.blue[300]`, a nullable `Color?`.
+  `theme.dart` also exports the font loader and `addPoppinsLicense` /
+  `addJetBrainsMonoLicense`; the other colours of its source are not
+  exported.
+* Tests: `flutter test` draws every family as squares until the fonts are
+  loaded; widget tests need nothing, a test wanting the real fonts awaits
+  `loadFestenaoFonts()`. Theme builders are plain functions, a `test()` is
+  enough.
 
 ## Examples
 
-### MaterialApp with the light and dark themes
+### An app on a preset, with the switcher
 
 ```dart
-import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/switcher.dart';
+import 'package:material_ui/material_ui.dart';
 
-void main() => runApp(const MyApp());
-
-/// The themes are built once, not in build().
-final _lightTheme = themeDataLight1();
-final _darkTheme = themeData1();
-
-/// themeData1() is the dark one, themeDataLight1() the light one.
-class MyApp extends StatelessWidget {
-  /// Constructor.
-  const MyApp({super.key});
-
-  @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'My app',
-    theme: _lightTheme,
-    darkTheme: _darkTheme,
-    themeMode: ThemeMode.system,
-    home: const HomeScreen(),
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  var fonts = loadFestenaoFonts();
+  var controller = FestenaoThemeController(
+    presets: festenaoThemePresetsByIds(['festenao', 'ardoise', 'contrast']),
+    // FestenaoThemeStore.from(read:, write:) on the app preferences.
+    store: FestenaoThemeStore.memory(),
+  );
+  await controller.load();
+  await fonts;
+  runApp(
+    FestenaoThemeBuilder(
+      controller: controller,
+      builder: (context, controller) => MaterialApp(
+        theme: controller.theme,
+        darkTheme: controller.darkTheme,
+        themeMode: controller.mode,
+        home: const HomeScreen(),
+      ),
+    ),
   );
 }
 
-/// Everything below reads the theme, never a hardcoded color.
+/// Reads the tokens, never a hard coded colour.
 class HomeScreen extends StatelessWidget {
   /// Constructor.
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Home')),
-    body: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Outlined, with an always floating label, from the theme.
-          const TextField(decoration: InputDecoration(labelText: 'Name')),
-          const Divider(),
-          ElevatedButton(
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              // Floating, seed colored, from the theme.
-              const SnackBar(content: Text('Saved')),
-            ),
-            child: const Text('Save'),
-          ),
-        ],
+  Widget build(BuildContext context) {
+    var t = context.festenao;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home'),
+        actions: const [FestenaoThemeButton()],
       ),
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {},
-      child: const Icon(Icons.add),
+      body: Center(
+        child: Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: t.soft(t.ok),
+            borderRadius: BorderRadius.circular(t.radii.pill),
+          ),
+          child: Text('Arrived', style: TextStyle(color: t.ok)),
+        ),
+      ),
+    );
+  }
+}
+```
+
+### A screen with the kit
+
+```dart
+import 'package:festenao_theme/kit.dart';
+import 'package:material_ui/material_ui.dart';
+
+/// A page of members: header, stat tiles, a list card.
+class MembersScreen extends StatelessWidget {
+  /// Constructor.
+  const MembersScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: FkPage(
+      children: [
+        FkHeader(
+          title: 'Members',
+          subtitle: '2 people',
+          actions: [
+            FilledButton(onPressed: () {}, child: const Text('Invite')),
+          ],
+        ),
+        const FkGrid(
+          children: [
+            FkStatTile(
+              label: 'Arrived',
+              value: '12',
+              suffix: '/ 40',
+              icon: Icons.check,
+              progress: 0.3,
+              status: FkStatus.ok,
+            ),
+            FkStatTile(
+              label: 'To check',
+              value: '3',
+              icon: Icons.flag,
+              status: FkStatus.warn,
+            ),
+          ],
+        ),
+        const FkSectionTitle('People'),
+        FkListCard(
+          children: [
+            FkRow(
+              leading: const FkAvatar('Camille Martin'),
+              title: 'Camille Martin',
+              subtitle: 'camille@example.com',
+              badges: const [FkStatusPill('Admin', status: FkStatus.accent)],
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {},
+            ),
+            const FkKeyValueRow(label: 'Id', value: 'a1b2c3'),
+          ],
+        ),
+      ],
     ),
   );
 }
 ```
 
-### Poppins and a custom seed color
+### A preset of your own
+
+```dart
+import 'package:festenao_theme/design.dart';
+import 'package:material_ui/material_ui.dart';
+
+/// A seed preset: the accent derived from one colour on the neutral paper.
+const myPreset = FestenaoThemePreset.seed(
+  id: 'mine',
+  name: 'Mine',
+  description: 'A green accent',
+  seed: Color(0xFF2E7D32),
+);
+
+/// The presets offered: two festenao ones and mine.
+final myPresets = [
+  ...festenaoThemePresetsByIds(['festenao', 'contrast']),
+  myPreset,
+];
+
+/// A theme from a palette tuned by hand.
+final myTheme = festenaoThemeDataFromPalette(
+  festenaoNeutralLight.copyWith(
+    accent: const Color(0xFF7048C2),
+    accentText: const Color(0xFF5A35A8),
+  ),
+  radii: const FestenaoRadii(card: 20),
+);
+```
+
+### The older seed theme
 
 ```dart
 import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<void> main() async {
-  // rootBundle is used to read the font files and the license text.
   WidgetsFlutterBinding.ensureInitialized();
-  // Register Poppins and JetBrains Mono under their bare names, with their
-  // OFL licenses: nothing to declare in the app pubspec.
   await loadFestenaoFonts();
   runApp(const MyApp());
 }
 
-/// One seed color re-skins everything: scheme, snack bars, inputs, buttons.
-final _seedColor = Colors.deepPurple;
-final _lightTheme = poppinsThemeDataLight1(seedColor: _seedColor);
-final _darkTheme = poppinsThemeData1(seedColor: _seedColor);
+/// themeData1 is the dark one, themeDataLight1 the light one; built once.
+final _lightTheme = poppinsThemeDataLight1(seedColor: Colors.deepPurple);
+final _darkTheme = poppinsThemeData1(seedColor: Colors.deepPurple);
 
-/// App using the Poppins themes.
+/// App using the seed theme.
 class MyApp extends StatelessWidget {
   /// Constructor.
   const MyApp({super.key});
@@ -188,83 +296,52 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) => MaterialApp(
     theme: _lightTheme,
     darkTheme: _darkTheme,
-    home: const Scaffold(body: Center(child: Text('Poppins'))),
+    home: Scaffold(
+      appBar: AppBar(title: const Text('Home')),
+      body: Container(
+        // Nullable: Colors.blue[300].
+        color: colorFestenaoFormBlueSelected ?? Colors.blue,
+        child: const ListTile(title: Text('Selected answer')),
+      ),
+    ),
   );
 }
 ```
 
-### Building on top of the theme
+### Testing
 
 ```dart
-import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
-
-/// Same font and rules, but a text theme of your own and a green seed.
-ThemeData buildAppTheme() => themeDataLight1(
-  seedColor: Colors.green,
-  // The bare Poppins family, registered by loadFestenaoFonts().
-  fontFamily: festenaoPoppinsFontFamily,
-  textTheme: const TextTheme(
-    bodyMedium: TextStyle(fontSize: 15),
-    titleLarge: TextStyle(fontWeight: FontWeight.w700),
-  ),
-);
-
-/// A selected form answer, using the exported highlight color.
-/// It is nullable (Colors.blue[300]), so provide a fallback.
-class FormAnswerTile extends StatelessWidget {
-  /// Answer label.
-  final String label;
-
-  /// Whether the answer is the selected one.
-  final bool selected;
-
-  /// Constructor.
-  const FormAnswerTile({
-    super.key,
-    required this.label,
-    required this.selected,
-  });
-
-  @override
-  Widget build(BuildContext context) => Container(
-    color: selected
-        ? (colorFestenaoFormBlueSelected ??
-              Theme.of(context).colorScheme.primaryContainer)
-        : null,
-    child: ListTile(title: Text(label)),
-  );
-}
-```
-
-### Testing the theme rules
-
-```dart
-import 'package:festenao_theme/theme.dart';
-import 'package:flutter/material.dart';
+import 'package:festenao_theme/design.dart';
+import 'package:festenao_theme/switcher.dart';
+import 'package:festenao_theme/theme.dart' show themeData1, themeDataLight1;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
-  test('light and dark share the rules', () {
-    var dark = themeData1();
-    var light = themeDataLight1();
-    expect(dark.brightness, Brightness.dark);
-    expect(light.brightness, Brightness.light);
-    for (var theme in [dark, light]) {
-      expect(theme.snackBarTheme.behavior, SnackBarBehavior.floating);
-      expect(theme.snackBarTheme.backgroundColor, Colors.blue);
-      expect(theme.inputDecorationTheme.border, isA<OutlineInputBorder>());
-      expect(theme.floatingActionButtonTheme.backgroundColor, Colors.blue);
-    }
+  test('a preset carries its tokens', () {
+    var theme = festenaoThemeArdoise.themeData(Brightness.dark);
+    var tokens = theme.extension<FestenaoTokens>()!;
+    expect(theme.brightness, Brightness.dark);
+    expect(theme.colorScheme.primary, tokens.accent);
   });
 
-  test('the seed color drives the accents', () {
-    // A plain family name: the theme only records it.
-    var theme = themeDataLight1(seedColor: Colors.green, fontFamily: 'Custom');
-    expect(theme.snackBarTheme.backgroundColor, Colors.green);
-    expect(theme.textTheme.bodyMedium?.fontFamily, 'Custom');
-    // A light seed gets dark foregrounds.
-    expect(theme.floatingActionButtonTheme.foregroundColor, Colors.black);
+  test('the switcher keeps the choice', () async {
+    var store = FestenaoThemeStore.memory();
+    var controller = FestenaoThemeController(
+      presets: [festenaoThemeArdoise, festenaoThemeObsidian],
+      store: store,
+    );
+    controller.selectPreset(festenaoThemeObsidian);
+    controller.selectMode(ThemeMode.dark);
+    await pumpEventQueue(); // the write is not awaited
+    expect(await store.read(), 'obsidian|dark');
+  });
+
+  test('the older theme follows the seed', () {
+    expect(themeData1().brightness, Brightness.dark);
+    var light = themeDataLight1(seedColor: Colors.green);
+    expect(light.snackBarTheme.backgroundColor, Colors.green);
+    expect(light.snackBarTheme.behavior, SnackBarBehavior.floating);
   });
 }
 ```
