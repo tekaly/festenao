@@ -470,7 +470,11 @@ Future<void> _chmod(String mode, String path) async {
     return;
   }
   try {
-    await Process.run('chmod', [mode, path]);
+    await Shell(
+      verbose: false,
+      throwOnError: false,
+      stdin: const Stream<List<int>>.empty(),
+    ).runExecutableArguments('chmod', [mode, path]);
   } catch (_) {
     // Best effort, the file is written anyway.
   }
