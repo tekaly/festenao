@@ -1,15 +1,21 @@
-import 'package:firebase_ui_auth/firebase_ui_auth.dart';
-import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
+import 'package:tekartik_firebase_flutter_ui_auth/ui_auth.dart';
 
-/// Initializes the Firebase UI authentication providers for email and Google.
+/// Sets the Firebase UI auth providers: email/password and Google with
+/// [clientId], for the default firebase app.
 ///
-/// This function should be called once at the application startup.
+/// Call it once at startup, before any auth screen is shown. Lazy, as
+/// [FirebaseUiAuthServiceFlutter.configureProviders] (which it calls): the
+/// providers are configured by the first auth screen, so Google Sign-In does
+/// not start (nor set its `g_state` cookie on the web) before the user opens
+/// one, and the firebase app may be initialized after this call.
 ///
-/// It configures [FirebaseUIAuth] with an [EmailAuthProvider] and a
-/// [GoogleProvider] with the specified [clientId].
+/// [clientId] is the Google OAuth client id of the running platform: the web
+/// client id on the web, the iOS client id on iOS and macOS (Android ignores
+/// it and reads `google-services.json`).
+///
+/// It replaces the providers of an earlier
+/// [FirebaseUiAuthServiceFlutter.configureProviders] call not yet applied
+/// (the last call before the first auth screen wins).
 Future<void> initFestenaoGoogleAuth({required String clientId}) async {
-  FirebaseUIAuth.configureProviders([
-    EmailAuthProvider(),
-    GoogleProvider(clientId: clientId),
-  ]);
+  firebaseUiAuthServiceFlutter.configureProviders(googleAuthClientId: clientId);
 }

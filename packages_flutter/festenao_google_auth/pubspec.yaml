@@ -26,6 +26,16 @@ dev_dependencies:
     git:
       url: https://github.com/tekartik/common_flutter.dart
       path: packages/lints_flutter
+  # example/main.dart
+  material_ui: ">=1.5.0"
+  tekartik_firebase_auth_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: auth_flutter
+  tekartik_firebase_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: firebase_flutter
 
 flutter:
   uses-material-design: true

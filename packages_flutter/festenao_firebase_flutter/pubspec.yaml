@@ -1,5 +1,5 @@
 name: festenao_firebase_flutter
-description: "Firebase (auth, firestore, storage)"
+description: "Dependency bundle (no library): the Flutter firebase app, auth, firestore, storage and native sign in screens of the tekartik firebase packages."
 version: 1.0.0
 publish_to: none
 
