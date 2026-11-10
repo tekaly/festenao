@@ -102,6 +102,72 @@ void main() {
     expect(await db.resolveProjectSlug('other'), otherId);
   });
 
+  test('a slug moved to another project', () async {
+    var registry = db.slugRegistry();
+    var firstId = await createProject('Fest 2026');
+    var nextId = await createProject('Fest 2027');
+    // Nobody has it: as setProjectSlug.
+    await db.moveProjectSlug('fest', firstId);
+    expect(await db.resolveProjectSlug('fest'), firstId);
+    expect((await getProject(firstId)).urlSlugs, ['fest']);
+    // Its own already: nothing changes.
+    await db.moveProjectSlug('fest', firstId);
+    expect((await getProject(firstId)).urlSlugs, ['fest']);
+
+    // Taken from the first project, which had it alone: back to its id.
+    await db.setProjectSlug(nextId, 'fest-2027');
+    await db.moveProjectSlug('fest', nextId);
+    expect(await db.resolveProjectSlug('fest'), nextId);
+    var first = await getProject(firstId);
+    expect(first.slug.v, isNull);
+    expect(first.urlSlugs, isEmpty);
+    expect(first.urlSegment, firstId);
+    // The previous slug of the next one: an alias, its links keep working.
+    var next = await getProject(nextId);
+    expect(next.slug.v, 'fest');
+    expect(next.urlSlugs, ['fest', 'fest-2027']);
+    expect((await registry.resolve('fest'))!.alias.v, isFalse);
+    expect((await registry.resolve('fest-2027'))!.alias.v, isTrue);
+    expect(await db.resolveProjectSlug('fest-2027'), nextId);
+
+    // Taken from a project with another slug: that one becomes its
+    // current one.
+    await db.setProjectSlug(firstId, 'fest-2026');
+    await db.moveProjectSlug('fest', firstId);
+    await db.moveProjectSlug('fest', nextId);
+    first = await getProject(firstId);
+    expect(first.slug.v, 'fest-2026');
+    expect(first.urlSlugs, ['fest-2026']);
+    expect((await registry.resolve('fest-2026'))!.alias.v, isFalse);
+    expect(await db.resolveProjectSlug('fest-2026'), firstId);
+    expect(await db.resolveProjectSlug('fest'), nextId);
+    // An alias taken: the current slug of its project stays.
+    await db.moveProjectSlug('fest-2027', firstId);
+    next = await getProject(nextId);
+    expect(next.slug.v, 'fest');
+    expect(next.urlSlugs, ['fest']);
+    first = await getProject(firstId);
+    expect(first.urlSlugs, ['fest-2027', 'fest-2026']);
+    expect((await registry.list()).map((slug) => slug.slug).toList()..sort(), [
+      'fest',
+      'fest-2026',
+      'fest-2027',
+    ]);
+
+    // Not a project's, not valid, no such project.
+    await registry.claim(slug: 'an-event', entityType: 'event', entityId: 'e1');
+    await expectLater(
+      db.moveProjectSlug('an-event', firstId),
+      throwsA(isA<FestenaoSlugTakenException>()),
+    );
+    await expectLater(
+      db.moveProjectSlug('Not Valid', firstId),
+      throwsA(isA<FestenaoSlugInvalidException>()),
+    );
+    await expectLater(db.moveProjectSlug('fest', 'missing'), throwsStateError);
+    expect(await db.resolveProjectSlug('fest'), nextId);
+  });
+
   test('resolveProjectUrlSegment', () async {
     var projectId = await createProject('Blog');
     await db.setProjectSlug(projectId, 'blog');

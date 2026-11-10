@@ -141,6 +141,111 @@ extension FestenaoFirestoreDatabaseSlugExt on FestenaoFirestoreDatabase {
     });
   }
 
+  /// Give the url [slug] to the project [projectId], taking it from the
+  /// project that has it (the next edition of a festival, a copy made to
+  /// try something): one transaction for the registry and both project
+  /// documents, the url opens one project or the other, never nothing.
+  ///
+  /// [slug] becomes the current slug of [projectId], its previous one an
+  /// alias (as [setProjectSlug]). The project it is taken from falls back
+  /// to the next of its slugs, or to its id. The same as [setProjectSlug]
+  /// when no other project has it.
+  ///
+  /// Throws [FestenaoSlugTakenException] when an entity that is not a
+  /// project has it, [FestenaoSlugInvalidException] when not valid.
+  Future<void> moveProjectSlug(
+    String slug,
+    String projectId, {
+    FestenaoSlugOptions options = festenaoSlugOptionsDefault,
+  }) async {
+    var registry = slugRegistry(options: options);
+    var error = options.check(slug);
+    if (error != null) {
+      throw FestenaoSlugInvalidException(slug, error);
+    }
+    await firestore.cvRunTransaction((txn) async {
+      // Every read before the first write.
+      var target = await _txnGetProject(txn, projectId);
+      var existing = await txn.refGet(registry.ref(slug));
+      FsProject? source;
+      FsFestenaoSlug? sourceNext;
+      var sourceRemaining = <String>[];
+      if (existing.exists &&
+          !existing.isEntity(festenaoProjectSlugEntityType, projectId)) {
+        var sourceId = existing.entityId.v;
+        if (existing.entityType.v != festenaoProjectSlugEntityType ||
+            sourceId == null) {
+          throw FestenaoSlugTakenException(slug);
+        }
+        // A project deleted since: its slug is simply taken over.
+        var project = await txn.refGet(projectDb.fsEntityRef(sourceId));
+        if (project.exists) {
+          source = project;
+          sourceRemaining = project.urlSlugs
+              .where((other) => other != slug)
+              .toList();
+          if (project.slug.v == slug && sourceRemaining.isNotEmpty) {
+            var next = await txn.refGet(registry.ref(sourceRemaining.first));
+            if (next.exists &&
+                next.isEntity(festenaoProjectSlugEntityType, sourceId)) {
+              sourceNext = next;
+            }
+          }
+        }
+      }
+      var previousSlug = target.slug.v;
+      FsFestenaoSlug? previous;
+      if (previousSlug != null && previousSlug != slug) {
+        previous = await txn.refGet(registry.ref(previousSlug));
+      }
+
+      var now = Timestamp.now();
+      txn.refSet(
+        registry.ref(slug),
+        FsFestenaoSlug()
+          ..entityType.v = festenaoProjectSlugEntityType
+          ..entityId.v = projectId
+          ..alias.v = false
+          ..created.v = existing.exists ? existing.created.v ?? now : now
+          ..updated.v = now,
+      );
+      if (previous != null &&
+          previous.exists &&
+          previous.isEntity(festenaoProjectSlugEntityType, projectId)) {
+        txn.refSet(
+          registry.ref(previousSlug!),
+          FsFestenaoSlug()
+            ..copyFrom(previous)
+            ..alias.v = true
+            ..updated.v = now,
+        );
+      }
+      _txnSetProjectSlugs(
+        txn,
+        projectId,
+        slug: slug,
+        slugs: [slug, ...target.urlSlugs.where((other) => other != slug)],
+      );
+      if (source != null) {
+        if (sourceNext != null) {
+          txn.refSet(
+            registry.ref(sourceNext.slug),
+            FsFestenaoSlug()
+              ..copyFrom(sourceNext)
+              ..alias.v = false
+              ..updated.v = now,
+          );
+        }
+        _txnSetProjectSlugs(
+          txn,
+          source.id,
+          slug: source.slug.v == slug ? sourceNext?.slug : source.slug.v,
+          slugs: sourceRemaining,
+        );
+      }
+    });
+  }
+
   /// Release the url [slug] of the project [projectId]. When it was the
   /// current one, the next of [FsProject.slugs] takes its place.
   Future<void> removeProjectSlug(
