@@ -9,8 +9,8 @@ const _passcodeKey = 'passcode';
 
 /// Sanitizes a raw passcode into a fixed-length digit string, matching
 /// what [flutter_screen_lock]'s default numeric keypad expects. Non-digit
-/// characters are dropped; missing digits are padded with the tail of
-/// `'0000000000'`.
+/// characters are dropped, then the digits are truncated to [length] or
+/// right padded with `0` (`'7'` gives `'7000'`). [length] must be positive.
 String kioskSanitizePasscode(String raw, {int length = 4}) {
   var digits = raw
       .split('')
@@ -67,6 +67,10 @@ class FestenaoKioskController {
   );
 
   /// Updates and persists the passcode.
+  ///
+  /// [value] is stored as given; the code compared is
+  /// [kioskSanitizePasscode] of it (`'12'` needs `1200`). The settings screen
+  /// saves only exactly [passcodeLength] digits.
   Future<void> setPasscode(String value) async {
     await ready;
     _prefsOrNull!.setString(_passcodeKey, value);

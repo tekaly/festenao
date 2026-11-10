@@ -3,7 +3,8 @@ name: festenao-markdown-widget
 description: >-
   Use when a Festenao Flutter screen has to render a markdown string (CMS page
   text, help/about content, an LLM answer): the FestenaoMarkdownWidget widget
-  (data, shrinkWrap, textScaler) and the interchangeable entry points
+  (data, shrinkWrap, textScaler, styleSheet, onTapLink) and the
+  interchangeable entry points
   package:festenao_markdown/markdown.dart, markdown_plus.dart and
   gpt_markdown.dart, which wrap flutter_markdown_plus MarkdownBody and
   MarkdownStyleSheet behind a single indirection.
@@ -18,10 +19,12 @@ swapped without touching the apps.
 
 ## Guidelines
 
-* Dependency (not on pub.dev, git only):
+* Dependency (not on pub.dev, git only), with `material_ui` (the app's
+  Material library):
 
   ```yaml
   dependencies:
+    material_ui: ">=1.5.0"
     festenao_markdown:
       git:
         url: https://github.com/tekaly/festenao
@@ -37,21 +40,28 @@ swapped without touching the apps.
 * Never import `flutter_markdown_plus`, `markdown` or `MarkdownBody` in app
   code: that is exactly the coupling this package exists to prevent.
 * `FestenaoMarkdownWidget({required String data, bool? shrinkWrap = true,
-  TextScaler? textScaler})` — that is the whole API. `data` is the raw markdown
-  string; there is no `onTapLink`, `selectable` or `styleSheet` parameter, and
-  no async/file loading: read the text yourself and pass the `String`.
-* It renders a `MarkdownBody` styled from `MarkdownStyleSheet.fromTheme(
-  Theme.of(context))`, so it inherits the ambient `ThemeData` — change the
-  app/section theme (or wrap it in a `Theme`) to restyle headings and code
-  blocks. `textScaler` is applied on top of that style sheet; a null
-  `textScaler` keeps the theme's own scaling.
+  TextScaler? textScaler, MarkdownStyleSheet? styleSheet,
+  MarkdownTapLinkCallback? onTapLink})` — that is the whole API. `data` is the
+  raw markdown string (GitHub flavored); there is no `selectable` parameter
+  and no async/file loading: read the text yourself and pass the `String`.
+  `MarkdownStyleSheet` and `MarkdownTapLinkCallback` are exported by the
+  three entry points.
+* It renders a `MarkdownBody` styled from the app's **material_ui** theme
+  (festenao_theme's legacy material bridge maps it for flutter_markdown_plus).
+  Restyle with the material_ui `Theme` (a section `Theme`), or `styleSheet`
+  (merged over the theme styles: text styles merged, other values replaced).
+  A `Theme` of `package:flutter/material.dart` is ignored. `textScaler` is
+  applied on top; a null `textScaler` keeps the theme's own scaling.
+* Links do nothing without `onTapLink: (text, href, title) {...}`: open
+  `href` with url_launcher, or route inside the app. Images with an http(s)
+  url are loaded from the network.
 * `MarkdownBody` does **not** scroll. `shrinkWrap: true` (the default) sizes it
   to its content, which is what you want inside a `ListView`,
   `SingleChildScrollView` or `Column`. Pass `shrinkWrap: false` only when the
   widget is given bounded constraints (inside an `Expanded`, a `SizedBox`), and
-  provide the scrolling yourself.
-* It needs a `Material`/`Theme` ancestor (`Theme.of(context)`): inside a
-  `MaterialApp` in the app, and inside a `MaterialApp` in widget tests.
+  provide the scrolling yourself. `shrinkWrap: null` means `false`.
+* It needs an app above it (a material_ui `MaterialApp`, for the theme and the
+  localizations): in the app, and in widget tests.
 * Testing: `testWidgets` + `pumpWidget(MaterialApp(home: Scaffold(body:
   FestenaoMarkdownWidget(data: '# Hello'))))`, then
   `expect(find.text('Hello'), findsOneWidget)` — the heading markers are
@@ -65,7 +75,7 @@ swapped without touching the apps.
 
 ```dart
 import 'package:festenao_markdown/markdown.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Scrollable screen rendering a markdown document.
 class MarkdownPageScreen extends StatelessWidget {
@@ -98,10 +108,10 @@ class MarkdownPageScreen extends StatelessWidget {
 
 ```dart
 import 'package:festenao_markdown/markdown.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A fixed height markdown preview, slightly smaller than the body text,
-/// restyled through the ambient theme.
+/// restyled through the ambient material_ui theme.
 class MarkdownPreview extends StatelessWidget {
   /// Raw markdown content.
   final String content;
@@ -128,12 +138,42 @@ class MarkdownPreview extends StatelessWidget {
 }
 ```
 
+### Style sheet and links
+
+```dart
+import 'package:festenao_markdown/markdown.dart';
+import 'package:material_ui/material_ui.dart';
+
+/// Primary coloured titles, links shown in a snack bar (use url_launcher to
+/// open them).
+class MarkdownWithLinks extends StatelessWidget {
+  /// Raw markdown content.
+  final String content;
+
+  /// Constructor.
+  const MarkdownWithLinks({super.key, required this.content});
+
+  @override
+  Widget build(BuildContext context) => FestenaoMarkdownWidget(
+    data: content,
+    styleSheet: MarkdownStyleSheet(
+      h1: TextStyle(color: Theme.of(context).colorScheme.primary),
+    ),
+    onTapLink: (text, href, title) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('$text: $href')));
+    },
+  );
+}
+```
+
 ### Widget test
 
 ```dart
 import 'package:festenao_markdown/markdown.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   testWidgets('renders the markdown text', (tester) async {

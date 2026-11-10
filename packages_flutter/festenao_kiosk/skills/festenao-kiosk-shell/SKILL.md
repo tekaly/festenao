@@ -35,9 +35,15 @@ It pulls in neither go_router nor riverpod.
   everything). Never import `package:festenao_kiosk/src/...`.
 * Wrap the whole app once, **above** the `MaterialApp` / `MaterialApp.router`:
   `FestenaoKioskApp(child: ...)`. Optional parameters: `sdbFactory` (defaults
-  to `getSdbFactory(packageName: 'festenao_kiosk')`, i.e. sqflite on
+  to `getSdbFactory(packageName: 'festenao_kiosk')`, i.e. SQLite (ffi) on
   mobile/desktop, IndexedDB on web), `prefsName` (default `'festenao_kiosk'`),
-  `defaultPasscode` (default `'0000'`), `passcodeLength` (default `4`).
+  `defaultPasscode` (default `'0000'`, set your own), `passcodeLength`
+  (default `4`). They are read once, on the first build.
+* Linux and Windows: pass the app's own factory,
+  `sdbFactory: getSdbFactory(packageName: 'my_app')`. The default one moves
+  the databases folder of the whole app to `festenao_kiosk/databases` (one
+  shared SQLite factory there, see tekartik_app_flutter_idb): the app's own
+  databases opened afterwards land there too.
 * Read the controller with `FestenaoKioskApp.of(context)` from any descendant.
   It asserts when no `FestenaoKioskApp` is above. `FestenaoKioskScope` is the
   raw `InheritedWidget` behind it — do not use it directly.
@@ -50,10 +56,17 @@ It pulls in neither go_router nor riverpod.
     `passcodeLength` digits.
   * `setPasscode(value)` awaits `ready`, stores the **raw** string and saves;
     sanitizing happens on read, so `'12ab34'` is stored as is and matched as
-    `'1234'`.
+    `'1234'`, and `'12'` as `'1200'`: validate operator input before (exactly
+    `passcodeLength` digits), as the settings screen does.
   * `goToSettings(context)` pushes a `MaterialPageRoute` with
     `FestenaoKioskSettingsScreen` — it uses `Navigator`, so it works under any
-    router as long as a `Navigator` is in scope.
+    router as long as a `Navigator` is in scope. The screen shows the code in
+    effect (the default one until a passcode is saved) and saves only exactly
+    `passcodeLength` digits (an error text otherwise). It is **not** protected
+    by itself: open it after `checkPasscode` (from the escape button), never
+    from a visible menu.
+  * The passcode is stored in clear in the prefs: it keeps visitors out, not
+    someone with access to the device storage.
   * `checkPasscode(context)` shows the `flutter_screen_lock` keypad and
     resolves to `true` only when the right code was entered (`false` on cancel
     or on an unmounted context). Always `await` it and re-check
@@ -91,7 +104,7 @@ It pulls in neither go_router nor riverpod.
 
 ```dart
 import 'package:festenao_kiosk/festenao_kiosk.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   runApp(
@@ -131,7 +144,7 @@ class KioskHomeScreen extends StatelessWidget {
 
 ```dart
 import 'package:festenao_kiosk/festenao_kiosk.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A long press that only exits the current screen once unlocked.
 class ExitKioskArea extends StatelessWidget {
@@ -156,7 +169,7 @@ class ExitKioskArea extends StatelessWidget {
 
 ```dart
 import 'package:festenao_kiosk/festenao_kiosk.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Plain Navigator 1 route table, merged with the app's own routes.
 Map<String, WidgetBuilder> appRoutes() => {

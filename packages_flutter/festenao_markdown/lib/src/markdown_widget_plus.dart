@@ -8,21 +8,30 @@ import 'package:material_ui/material_ui.dart';
 export 'package:flutter_markdown_plus/flutter_markdown_plus.dart'
     show MarkdownStyleSheet, MarkdownTapLinkCallback;
 
-/// A widget that displays markdown content using the [MarkdownWidget] package.
+/// Shows the markdown [data] (GitHub flavored, rendered by
+/// flutter_markdown_plus `MarkdownBody`), styled from the app's material_ui
+/// theme.
+///
+/// It does not scroll: keep [shrinkWrap] (the default) inside a `ListView` or
+/// a `Column`. Restyle it with the material_ui `Theme`, [textScaler] or
+/// [styleSheet]; the `Theme` of `package:flutter/material.dart` is ignored.
 class FestenaoMarkdownWidget extends StatefulWidget {
-  /// Whether to shrink the widget to fit its content.
+  /// Whether to shrink the widget to fit its content (`true` by default);
+  /// `false` or `null` fill bounded constraints.
   final bool? shrinkWrap;
 
   /// The markdown content to display.
   final String data;
 
-  /// The text scaler to use for scaling the text.
+  /// The text scaler to use for scaling the text (null keeps the theme's).
   final TextScaler? textScaler;
 
-  /// Styles on top of the ones derived from the theme.
+  /// Styles on top of the ones derived from the theme (merged: the text
+  /// styles are merged, the other values replaced).
   final MarkdownStyleSheet? styleSheet;
 
-  /// Called when a link is tapped.
+  /// Called when a link is tapped, with its text, href and title; links do
+  /// nothing without it.
   final MarkdownTapLinkCallback? onTapLink;
 
   /// The constructor for [FestenaoMarkdownWidget].

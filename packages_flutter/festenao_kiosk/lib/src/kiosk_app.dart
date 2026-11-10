@@ -24,9 +24,16 @@ class FestenaoKioskApp extends StatefulWidget {
   /// The rest of your app (a `MaterialApp`, `MaterialApp.router`, ...).
   final Widget child;
 
-  /// Sdb factory backing the prefs storage. Defaults to the platform sdb
-  /// factory (sqflite on mobile/desktop, IndexedDB on web) — pass one
-  /// explicitly (e.g. an in-memory factory) for tests.
+  /// Sdb factory backing the prefs storage. Defaults to
+  /// `getSdbFactory(packageName: 'festenao_kiosk')` (SQLite on mobile and
+  /// desktop, IndexedDB on web) — pass one explicitly (e.g. an in-memory
+  /// factory) for tests.
+  ///
+  /// On Linux and Windows pass the app's own factory
+  /// (`getSdbFactory(packageName: 'my_app')`): the default one moves the
+  /// databases folder of the whole app (one shared SQLite factory there).
+  ///
+  /// Read once, on the first build, like the other parameters.
   final SdbFactory? sdbFactory;
 
   /// Name of the prefs database. Defaults to `festenao_kiosk`.

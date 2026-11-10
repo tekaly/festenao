@@ -1,9 +1,14 @@
 import 'package:material_ui/material_ui.dart';
 
 import 'kiosk_app.dart';
+import 'kiosk_controller.dart';
 
 /// Kiosk settings screen: lets the operator configure the escape
-/// passcode. Push it directly (`Navigator.push`), via
+/// passcode. It shows the code in effect and saves only exactly
+/// [FestenaoKioskController.passcodeLength] digits. It is not protected by
+/// itself: open it after [FestenaoKioskController.checkPasscode].
+///
+/// Push it directly (`Navigator.push`), via
 /// `FestenaoKioskController.goToSettings`, or wire it into your own
 /// router (go_router, Navigator 2.0, ...) using `festenaoKioskSettingsRoute`
 /// as the path.
@@ -22,6 +27,9 @@ class _FestenaoKioskSettingsScreenState
   var _loaded = false;
   var _loading = false;
 
+  /// Shown under the field when the entered passcode is refused.
+  String? _error;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -37,9 +45,29 @@ class _FestenaoKioskSettingsScreenState
   Future<void> _load() async {
     var controller = FestenaoKioskApp.of(context);
     await controller.ready;
-    _passcodeController.text = controller.passcodeOrNull ?? '';
+    // Closed meanwhile: the text controller is disposed.
+    if (!mounted) {
+      return;
+    }
+    // The code in effect (the default one until a passcode is saved), so
+    // that saving the untouched field keeps it.
+    _passcodeController.text = controller.passcode;
+    setState(() => _loaded = true);
+  }
+
+  /// Saves the entered passcode, only when it is exactly
+  /// [FestenaoKioskController.passcodeLength] digits (the code the keypad
+  /// asks for).
+  Future<void> _save(FestenaoKioskController controller) async {
+    var length = controller.passcodeLength;
+    var text = _passcodeController.text.trim();
+    if (!RegExp('^[0-9]{$length}\$').hasMatch(text)) {
+      setState(() => _error = 'Enter exactly $length digits');
+      return;
+    }
+    await controller.setPasscode(text);
     if (mounted) {
-      setState(() => _loaded = true);
+      Navigator.of(context).pop();
     }
   }
 
@@ -68,20 +96,14 @@ class _FestenaoKioskSettingsScreenState
                       label: Text(
                         'Passcode (${controller.passcodeLength} digits)',
                       ),
+                      errorText: _error,
                     ),
                   ),
                 ],
               ),
             ),
       floatingActionButton: FloatingActionButton(
-        onPressed: !_loaded
-            ? null
-            : () async {
-                await controller.setPasscode(_passcodeController.text);
-                if (context.mounted) {
-                  Navigator.of(context).pop();
-                }
-              },
+        onPressed: !_loaded ? null : () => _save(controller),
         child: const Icon(Icons.check),
       ),
     );
