@@ -58,8 +58,12 @@ void main() {
         var data = await DemoData.create();
 
         // Firestore: the collections, and a sub collection under a document.
+        // 'app' only holds the slug registry under the missing document
+        // app/demo: Firestore (and the sembast firestore since the level 5
+        // listCollections fix) lists it too.
         var collections = await data.firestore.listCollections();
         expect(collections.map((collection) => collection.id).toSet(), {
+          'app',
           'settings',
           'user',
           'event',
