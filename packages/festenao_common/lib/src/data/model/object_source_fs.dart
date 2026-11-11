@@ -130,12 +130,27 @@ class FsObjectCollection extends ObjectCollection {
   @override
   String get name => directory.path;
 
+  /// The file listed for each id: `config.yml` or `Other.JSON` is not the
+  /// file the first extension names.
+  final _paths = <String, String>{};
+
+  /// The ids, sorted, at most [limit] of them (the first ones in order).
+  ///
+  /// Two files of the same id (`config.yaml` and `config.yml`) give it once,
+  /// the file of the first extension of [format] preferred.
   @override
   Future<List<String>> listIds({int? limit}) async {
     if (!await directory.exists()) {
       return [];
     }
-    var ids = <String>[];
+    var paths = <String, String>{};
+    int extensionRank(String path) {
+      var rank = format.extensions.indexOf(
+        directory.fs.path.extension(path).toLowerCase(),
+      );
+      return rank < 0 ? format.extensions.length : rank;
+    }
+
     await for (var entity in directory.list()) {
       if (entity is! File) {
         continue;
@@ -143,19 +158,33 @@ class FsObjectCollection extends ObjectCollection {
       if (!format.matchesPath(entity.path)) {
         continue;
       }
-      ids.add(directory.fs.path.basenameWithoutExtension(entity.path));
-      if (limit != null && ids.length >= limit) {
-        break;
+      var id = directory.fs.path.basenameWithoutExtension(entity.path);
+      var existing = paths[id];
+      if (existing == null ||
+          extensionRank(entity.path) < extensionRank(existing) ||
+          (extensionRank(entity.path) == extensionRank(existing) &&
+              entity.path.compareTo(existing) < 0)) {
+        paths[id] = entity.path;
       }
     }
-    ids.sort();
+    var ids = paths.keys.toList()..sort();
+    if (limit != null && ids.length > limit) {
+      ids = ids.sublist(0, limit);
+    }
+    for (var id in ids) {
+      _paths[id] = paths[id]!;
+    }
     return ids;
   }
 
   @override
   ObjectSource source(String id) => FsObjectSource(
     directory.fs.file(
-      directory.fs.path.join(directory.path, '$id${format.extensions.first}'),
+      _paths[id] ??
+          directory.fs.path.join(
+            directory.path,
+            '$id${format.extensions.first}',
+          ),
     ),
     format: format,
     typeRegistry: typeRegistry,

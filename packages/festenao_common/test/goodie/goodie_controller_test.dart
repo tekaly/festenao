@@ -96,6 +96,23 @@ Future<void> main() async {
     // ignore: avoid_print
     print(state);
   });
+  test('config without goodie list', () async {
+    var controller = GoodieController(
+      firestore: firestore,
+      firestorePath: 'session/session_no_goodies',
+    );
+    var now = DateTime.utc(2024, 1, 1);
+    await firestore.cvSet(
+      controller.fsGoodiesConfigRef.cv()..winningChance.v = 1,
+    );
+    expect(await controller.findRandomGoodie(now: now), isNull);
+    await firestore.cvSet(
+      controller.fsGoodiesConfigRef.cv()
+        ..mode.v = modeOnce
+        ..winningChance.v = 1,
+    );
+    expect(await controller.findRandomGoodie(now: now), isNull);
+  }, timeout: const Timeout(Duration(seconds: 30)));
   test('once  playerWinRandomGoodie', () async {
     var sessionId = 'session_test_1';
     var controller = GoodieController(

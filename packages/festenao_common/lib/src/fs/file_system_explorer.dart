@@ -608,9 +608,12 @@ class FileSystemExplorer {
   }
 
   /// Deletes the file or directory at [path], a directory with what it holds.
+  ///
+  /// Throws a [FileSystemExplorerPathException] on the root itself (`''`,
+  /// `.`, `sub/..`...).
   Future<void> delete(String path) async {
     _checkWritable('delete $path');
-    if (path.isEmpty) {
+    if (_isRoot(path)) {
       throw FileSystemExplorerPathException(path);
     }
     var fsPath = this.fsPath(path);
@@ -623,15 +626,39 @@ class FileSystemExplorer {
   }
 
   /// Renames the entry at [path] to [newName], in the same directory.
+  ///
+  /// Throws a [FileSystemExplorerPathException] on the root or on a [newName]
+  /// that is not a plain name (empty, `.`, `..`, holding a `/` or a `\`), and
+  /// a [StateError] when something already sits at the new name.
   Future<FileSystemEntry> rename(String path, String newName) async {
     _checkWritable('rename $path');
-    if (path.isEmpty || newName.isEmpty || newName.contains('/')) {
+    if (_isRoot(path)) {
+      throw FileSystemExplorerPathException(path);
+    }
+    if (newName.isEmpty ||
+        newName == '.' ||
+        newName == '..' ||
+        newName.contains('/') ||
+        newName.contains(r'\')) {
       throw FileSystemExplorerPathException(newName);
     }
+    path = p.posix.normalize(path);
     var parent = p.posix.dirname(path);
     var newPath = parent == '.' ? newName : p.posix.join(parent, newName);
+    if (newPath == path) {
+      // Same name, nothing to do.
+      var existing = await entry(path);
+      if (existing != null) {
+        return existing;
+      }
+    }
     var fsPath = this.fsPath(path);
     var newFsPath = this.fsPath(newPath);
+    // An exact name match: on a case insensitive file system, renaming
+    // `a.json` to `A.json` finds the entry itself at the new path.
+    if (await _hasEntryNamed(parent, newName)) {
+      throw StateError('$newPath already exists');
+    }
     var type = await fileSystem.type(fsPath);
     if (type == FileSystemEntityType.directory) {
       await fileSystem.directory(fsPath).rename(newFsPath);
@@ -639,6 +666,25 @@ class FileSystemExplorer {
       await fileSystem.file(fsPath).rename(newFsPath);
     }
     return (await entry(newPath))!;
+  }
+
+  /// True when the explorer path [path] is the root itself.
+  bool _isRoot(String path) =>
+      p.posix.normalize(path.isEmpty ? '.' : path) == '.';
+
+  /// True when the directory [parent] (an explorer path, `.` for the root)
+  /// holds an entry named exactly [name].
+  Future<bool> _hasEntryNamed(String parent, String name) async {
+    var directory = fileSystem.directory(fsPath(parent == '.' ? '' : parent));
+    if (!await directory.exists()) {
+      return false;
+    }
+    await for (var entity in directory.list()) {
+      if (fileSystem.path.basename(entity.path) == name) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// The sembast factory and the path it takes.

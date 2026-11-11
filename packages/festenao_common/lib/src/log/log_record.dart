@@ -116,29 +116,66 @@ class LogRecord {
       if (sentAt != null) 'sentAt': sentAt!.toIso8601String(),
     };
 
-    // Verify raw size limit (256 KB)
-    final encodedLength = utf8.encode(jsonEncode(map)).length;
-    if (encodedLength > maxLogRecordSizeBytes) {
-      // Over budget: truncate stackTrace or message
-      final excess = encodedLength - maxLogRecordSizeBytes;
-      if (map['stackTrace'] is String) {
-        final st = map['stackTrace'] as String;
-        if (st.length > excess + 100) {
-          map['stackTrace'] =
-              '${st.substring(0, st.length - excess - 100)}...[truncated]';
-        } else {
-          map.remove('stackTrace');
+    // Size limit (256 KB) of the encoded record, in UTF-8 bytes: the error,
+    // then the stack trace, then the message are cut.
+    var excess = _encodedSize(map) - maxLogRecordSizeBytes;
+    for (final key in const ['error', 'stackTrace', 'message']) {
+      if (excess <= 0) {
+        break;
+      }
+      final value = map[key];
+      if (value is! String) {
+        continue;
+      }
+      var keepBytes = utf8.encode(value).length;
+      while (excess > 0 && keepBytes > 0) {
+        keepBytes -= excess + _truncatedSuffix.length;
+        if (keepBytes < 0) {
+          keepBytes = 0;
         }
-      } else if (map['message'] is String) {
-        final msg = map['message'] as String;
-        if (msg.length > excess + 100) {
-          map['message'] =
-              '${msg.substring(0, msg.length - excess - 100)}...[truncated]';
-        }
+        map[key] = keepBytes == 0
+            ? _truncatedSuffix
+            : '${_utf8Prefix(value, keepBytes)}$_truncatedSuffix';
+        excess = _encodedSize(map) - maxLogRecordSizeBytes;
       }
     }
 
     return map;
+  }
+
+  static const _truncatedSuffix = '...[truncated]';
+
+  static int _encodedSize(Map<String, Object?> map) =>
+      utf8.encode(jsonEncode(map)).length;
+
+  /// The longest prefix of [input] whose UTF-8 encoding fits in [maxBytes],
+  /// a surrogate pair never split.
+  static String _utf8Prefix(String input, int maxBytes) {
+    var bytes = 0;
+    var index = 0;
+    while (index < input.length) {
+      final unit = input.codeUnitAt(index);
+      var units = 1;
+      int unitBytes;
+      if (unit < 0x80) {
+        unitBytes = 1;
+      } else if (unit < 0x800) {
+        unitBytes = 2;
+      } else if ((unit & 0xFC00) == 0xD800 &&
+          index + 1 < input.length &&
+          (input.codeUnitAt(index + 1) & 0xFC00) == 0xDC00) {
+        unitBytes = 4;
+        units = 2;
+      } else {
+        unitBytes = 3;
+      }
+      if (bytes + unitBytes > maxBytes) {
+        break;
+      }
+      bytes += unitBytes;
+      index += units;
+    }
+    return input.substring(0, index);
   }
 
   /// Creates a [LogRecord] from a serialized map.

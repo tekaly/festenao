@@ -1,4 +1,6 @@
 import 'package:festenao_firebase/firestore_rules_sim.dart';
+import 'package:festenao_firebase/firestore_rules_test_runner.dart'
+    show FirestoreRulesSimTestContext;
 import 'package:tekartik_firebase_firestore/firestore.dart';
 import 'package:test/test.dart';
 
@@ -375,6 +377,29 @@ void main() {
       expect(decision.allowed, isTrue);
     });
 
+    test('access call limit of a query', () async {
+      // A query is a single request for the limit: 10, not the 20 of
+      // batches and transactions.
+      var rules = FirestoreRules();
+      rules.match('/many/{docId}', (m) {
+        var expr = lit(true);
+        for (var i = 0; i < 11; i++) {
+          expr = expr & rulesExists(docPath(['doc', 'd$i'])).not();
+        }
+        m.allow([RulesMethod.list], expr);
+      });
+      var ctx = await FirestoreRulesSimTestContext.create(rules: rules);
+      try {
+        await ctx.adminFirestore.doc('many/x').set({'a': 1});
+        await expectLater(
+          ctx.firestore.collection('many').get(),
+          throwsA(isA<FirestoreRulesPermissionDeniedException>()),
+        );
+      } finally {
+        await ctx.close();
+      }
+    });
+
     test('error absorption', () async {
       var rules = FirestoreRules();
       rules.match('/t/{docId}', (m) {
@@ -399,6 +424,42 @@ void main() {
       expect(await run(RulesMethod.get), isFalse);
       expect(await run(RulesMethod.create), isTrue);
       expect(await run(RulesMethod.update), isFalse);
+    });
+
+    test('timestamp year, month and day are utc', () async {
+      // The engine reads them in UTC: around midnight UTC the local date
+      // differs whatever the time zone of the machine (one of the two times
+      // below is on another day in any time zone but UTC).
+      var rules = FirestoreRules();
+      rules.match('/t/{docId}', (m) {
+        m.allow([RulesMethod.get], requestTime.call('year').eq(2026));
+        m.allow([RulesMethod.list], requestTime.call('month').eq(12));
+        m.allow([RulesMethod.create], requestTime.call('day').eq(31));
+      });
+      var evaluator = RulesEvaluator(rules);
+      Future<bool> run(RulesMethod method, DateTime time) async =>
+          (await evaluator.evaluate(
+            RulesRequest(
+              method: method,
+              path: method == RulesMethod.list ? 't' : 't/x',
+              auth: null,
+              requestResourceData: method == RulesMethod.create ? {} : null,
+              time: Timestamp.fromDateTime(time),
+            ),
+            MapReader({}),
+          )).allowed;
+      for (var time in [
+        DateTime.utc(2026, 12, 31, 0, 30),
+        DateTime.utc(2026, 12, 31, 23, 30),
+      ]) {
+        for (var method in [
+          RulesMethod.get,
+          RulesMethod.list,
+          RulesMethod.create,
+        ]) {
+          expect(await run(method, time), isTrue, reason: '$method $time');
+        }
+      }
     });
   });
 

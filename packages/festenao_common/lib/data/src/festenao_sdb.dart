@@ -92,12 +92,16 @@ class FestenaoSdb {
       databaseFactory: sdbFactory,
       options: this.syncedSdbOptions,
     );
-    _ready.then((_) {
-      if (kFlutterDebugMode) {
-        // ignore: avoid_print
-        print('sdb ready');
-      }
-    });
+    _ready.then<void>(
+      (_) {
+        if (kFlutterDebugMode) {
+          // ignore: avoid_print
+          print('sdb ready');
+        }
+      },
+      // A failed open is reported by [ready], not here.
+      onError: (Object _) {},
+    );
   }
 
   /// Returns the underlying [SyncedSdb] client wrapper.

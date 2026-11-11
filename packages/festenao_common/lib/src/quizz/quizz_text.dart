@@ -24,14 +24,17 @@ String quizzFormatDateTime(DateTime dateTime) {
 }
 
 /// Formats a remaining time as `mm:ss`, rounded up to the next second.
+///
+/// 59500 ms is `01:00`, at most `99:59`.
 String quizzFormatRemainingMsTime(int ms) {
   ms = ms.boundedMin(0);
-  int seconds;
-  var mn = (ms ~/ 60000).bounded(0, 99);
-  if (ms == 0) {
-    seconds = 0;
-  } else {
-    seconds = (ms % 60000) ~/ 1000 + 1;
+  // Rounded up as a whole, then split (59.5s is a minute).
+  var totalSeconds = (ms + 999) ~/ 1000;
+  var mn = totalSeconds ~/ 60;
+  var seconds = totalSeconds % 60;
+  if (mn > 99) {
+    mn = 99;
+    seconds = 59;
   }
   return '${mn.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 }

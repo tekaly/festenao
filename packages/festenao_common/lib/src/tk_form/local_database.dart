@@ -195,13 +195,20 @@ extension DbSurveyExt on DbSurvey {
 
 /// Answer extension
 extension TkFormPlayerQuestionAnswerExt on TkFormPlayerQuestionAnswer {
-  /// Gets the survey answer model from the form player question answer.
-  CvSurveyAnswer get cvSurveyAnswer {
+  /// Gets the survey answer model from the form player question answer,
+  /// without question id, see [toCvSurveyAnswer].
+  CvSurveyAnswer get cvSurveyAnswer => toCvSurveyAnswer();
+
+  /// The survey answer model of the question [questionId] (the answer id,
+  /// that the survey answers are looked up with).
+  CvSurveyAnswer toCvSurveyAnswer({String? questionId}) {
     var self = this;
     var cvSurveyAnswer = CvSurveyAnswer();
+    cvSurveyAnswer.id.setValue(questionId);
     cvSurveyAnswer.answerInt.v = self.intValue;
     cvSurveyAnswer.choiceId.v = self.choiceId;
     cvSurveyAnswer.answerText.v = self.textValue;
+    cvSurveyAnswer.choiceIds.setValue(self.choiceIds);
 
     return cvSurveyAnswer;
   }

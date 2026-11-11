@@ -121,10 +121,17 @@ void testQuizzServerGroup(Future<QuizzTestContext> Function() initContext) {
         tags: [quizzTestTag],
         quizId: quizId,
       );
+      // The server draws the goodies of the UTC day of the client local
+      // timestamp, and refuses one 30 minutes away from its time: now2 (a
+      // later player) is one minute after now, or one minute before it when
+      // that would be the next day (a run between 23:59 and 24:00 UTC).
       var now = Timestamp.now();
-      var now1 = Timestamp.now();
+      var nowDateTime = now.toDateTime(isUtc: true);
+      var oneMinuteLater = nowDateTime.add(const Duration(minutes: 1));
       var now2 = Timestamp.fromDateTime(
-        now1.toDateTime().add(const Duration(minutes: 1)),
+        oneMinuteLater.day == nowDateTime.day
+            ? oneMinuteLater
+            : nowDateTime.subtract(const Duration(minutes: 1)),
       );
       var sessionId = quiz.sessionId.v!;
 

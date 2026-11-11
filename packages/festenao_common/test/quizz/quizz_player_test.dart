@@ -122,6 +122,43 @@ Future<void> main() async {
       sw.stop();
       scoreController.dispose();
     });
+    test('waitForPlayerResults stops on dispose', () async {
+      var scoreController = ScoreComputerController(
+        _OfflineQuizzDatabase(firestore: firebaseContext.firestore),
+        controllerId: '1',
+      );
+      var future = scoreController.waitForPlayerResults(
+        quizId: 'quiz1',
+        noNewPlayerDuration: const Duration(milliseconds: 20),
+        noPlayerDuration: const Duration(milliseconds: 20),
+        sleepStepMs: 5,
+      );
+      await sleep(50);
+      scoreController.dispose();
+      await future.timeout(const Duration(seconds: 2));
+    }, timeout: const Timeout(Duration(seconds: 30)));
+    test('waitForPlayerResults gives up after errors', () async {
+      var scoreController = ScoreComputerController(
+        _OfflineQuizzDatabase(firestore: firebaseContext.firestore),
+        controllerId: '1',
+      );
+      try {
+        await expectLater(
+          scoreController
+              .waitForPlayerResults(
+                quizId: 'quiz1',
+                noNewPlayerDuration: const Duration(milliseconds: 20),
+                noPlayerDuration: const Duration(milliseconds: 20),
+                sleepStepMs: 5,
+                maxErrorCount: 3,
+              )
+              .timeout(const Duration(seconds: 2)),
+          throwsA(isA<StateError>()),
+        );
+      } finally {
+        scoreController.dispose();
+      }
+    }, timeout: const Timeout(Duration(seconds: 30)));
   });
   group('gd controller', () {
     test('create/run', () async {
@@ -207,4 +244,13 @@ Future<void> main() async {
       controller.dispose();
     });
   });
+}
+
+/// A database whose player count always fails (offline).
+class _OfflineQuizzDatabase extends QuizzFirestoreDatabase {
+  _OfflineQuizzDatabase({required super.firestore});
+
+  @override
+  Future<int> quizCountPlayers(String quizId) async =>
+      throw StateError('offline');
 }

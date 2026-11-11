@@ -19,29 +19,18 @@ CalendarDay parseCalendarDayOrThrow(String text) {
 
 /// Compatibility extension on [CalendarTime].
 extension CalendarTimeCompatExt on CalendarTime {
-  /// Converts to input string format.
-  String toInputString() {
-    var hours = (seconds ~/ 3600);
-    var minutes = (seconds ~/ 60) % 60;
-    return '${from2Digits(hours)}:${from2Digits(minutes)}';
-  }
+  /// Converts to input string format (`26:00`, `-00:30`).
+  String toInputString() => _secondsToInputString(seconds);
 
-  /// Return a time in the even timezone as UTC
+  /// The date time of this time on [day], UTC by default (see
+  /// `dayTimeToDateTime`), the local wall clock time when [isLocal] is true
+  /// (see `dayTimeToLocalDateTime`): a negative time is on the previous day,
+  /// the seconds are kept.
   DateTime toDateTime(CalendarDay day, {bool? isLocal = false}) {
-    var year = day.dateTime.year;
-    var month = day.dateTime.month;
-    var monthDay = day.dateTime.day;
-    var hours = (seconds ~/ 3600) % 24;
-    var minutes = (seconds ~/ 60) % 60;
-
-    DateTime dateTime;
     if (isLocal ?? false) {
-      dateTime = DateTime(year, month, monthDay, hours, minutes);
-    } else {
-      dateTime = DateTime.utc(year, month, monthDay, hours, minutes);
+      return dayTimeToLocalDateTime(day, this);
     }
-    dateTime = dateTime.add(Duration(hours: totalDays * 24));
-    return dateTime;
+    return dayTimeToDateTime(day, this);
   }
 
   /// Total hours.
@@ -57,6 +46,16 @@ extension CalendarDayCompatExt on CalendarDay {
   DateTime toDateTime(CalendarTime time, {bool? isLocal = false}) {
     return time.toDateTime(this, isLocal: isLocal);
   }
+}
+
+/// `HH:MM` of [seconds], hours past 24 kept, `-` first when negative.
+String _secondsToInputString(int seconds) {
+  if (seconds < 0) {
+    return '-${_secondsToInputString(-seconds)}';
+  }
+  var hours = (seconds ~/ 3600);
+  var minutes = (seconds ~/ 60) % 60;
+  return '${from2Digits(hours)}:${from2Digits(minutes)}';
 }
 
 /// Formats a 2-digit number.
@@ -112,30 +111,15 @@ class CalendarTimeCompat implements Comparable<CalendarTimeCompat> {
     return '${from2Digits(hours)}:${from2Digits(minutes)}';
   }
 
-  /// Converts to input string format.
-  String toInputString() {
-    var hours = (_seconds ~/ 3600);
-    var minutes = (_seconds ~/ 60) % 60;
-    return '${from2Digits(hours)}:${from2Digits(minutes)}';
-  }
+  /// Converts to input string format (`26:00`, `-00:30`).
+  String toInputString() => _secondsToInputString(_seconds);
 
-  /// Return a time in the even timezone as UTC
-  DateTime toDateTime(CalendarDayCompat day, {bool? isLocal = false}) {
-    var year = day.dateTime.year;
-    var month = day.dateTime.month;
-    var monthDay = day.dateTime.day;
-    var hours = (_seconds ~/ 3600) % 24;
-    var minutes = (_seconds ~/ 60) % 60;
-
-    DateTime dateTime;
-    if (isLocal ?? false) {
-      dateTime = DateTime(year, month, monthDay, hours, minutes);
-    } else {
-      dateTime = DateTime.utc(year, month, monthDay, hours, minutes);
-    }
-    dateTime = dateTime.add(Duration(hours: totalDays * 24));
-    return dateTime;
-  }
+  /// The date time of this time on [day], as
+  /// [CalendarTimeCompatExt.toDateTime] does.
+  DateTime toDateTime(CalendarDayCompat day, {bool? isLocal = false}) =>
+      CalendarTime(
+        seconds: _seconds,
+      ).toDateTime(CalendarDay(dateTime: day.dateTime), isLocal: isLocal);
 
   /// Total hours.
   int get totalHours => _seconds ~/ 3600;

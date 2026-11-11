@@ -22,7 +22,7 @@ quiz, played alone on a device with a random question set and a goodie to
 win. The code was extracted from the quizz2023 apps into `festenao_common`
 (pure dart), `festenao_common_flutter` (widgets) and
 `festenao_dashboard_base_app` (admin screens and riverpod providers), the
-user plus app of festenaoprv being the player side.
+player side being an app of its own.
 
 ## Guidelines
 
@@ -90,9 +90,14 @@ user plus app of festenaoprv being the player side.
   rootDocumentResolver: festenaoQuizzRootDocumentResolver(app:)))` scores it
   from the quiz correct answers (or the client `correct` flags for gd, with
   a goodie draw) and writes the player, the same result twice giving the
-  same player id. Add it to a server app's `onCommand` through
-  `onCommandOrNull` (`FestenaoServerAppTest`, `festenao_dartff` and
-  `festenaoprv_dartff` have it).
+  same player id. It refuses (`invalid-argument`, no retry) a quiz,
+  project, data or session id that is not a document id, a `quizType` or a
+  gd `sessionId` other than the stored quiz's; a negative `elapsedMs`
+  counts as 0. Add it to a server app's `onCommand` through
+  `onCommandOrNull` (`FestenaoServerAppTest` and `festenao_dartff` have
+  it).
+* `QuizzTimeService`: `dispose()` stops its timers; `fixedOnce` throws a
+  `StateError` when disposed before an offset was measured.
 * The correct answers are encrypted with `quizzModelEncryptionCodec`, an
   app sets its own 32 characters password once with
   `quizzSetModelEncryptionPassword` before any quiz is created (changing it
@@ -113,7 +118,7 @@ user plus app of festenaoprv being the player side.
   `quizzApiServiceProvider` defaulting to the global festenao api service,
   `quizzUserPlayUriBuilderProvider` for the player link) are in
   `provider.dart`. The player screen (`QuizzPlayScreen`,
-  `/project/:project_id/quizz/:quiz_id`) is in `festenaoprv_user_plus_app`.
+  `/project/:project_id/quizz/:quiz_id`) is in the player app.
 * Tests: `test/quizz/*` in `festenao_common` (memory firestore and the
   memory server), `testQuizzServerGroup(() async => QuizzTestContext(...))`
   (`package:festenao_common/test/quizz_server_test_runner.dart`) runs the

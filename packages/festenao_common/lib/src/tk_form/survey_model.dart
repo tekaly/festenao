@@ -238,8 +238,10 @@ CvMapModel cvSurveyQuestionAnswersToMap(
         if (question.choices.v != null) {
           for (var choice in question.choices.v!) {
             if (choice.id.v == answer.choiceId.v) {
-              if (choice.otherAnswerType.v == surveyAnswerTypeText) {
-                map[key] = answer.answerText.v;
+              // An "other" choice (text or int): the typed value, stored as
+              // text by the player.
+              if (choice.otherAnswerType.isNotNull) {
+                map[key] = answer.answerInt.v ?? answer.answerText.v;
               }
               map[key] ??= choice.sheetValue.v ?? choice.text.v;
               break;

@@ -134,12 +134,27 @@ class ObjectStorageSdb extends ObjectStorage {
   String _toFsPath(String posixPath) =>
       objectStorageFsPath(fileSystem, rootPath, posixPath);
 
+  /// The record key of [path]: normalized as the file system path is, so
+  /// `/songs/a.bin`, `songs//a.bin` and `songs/a.bin` are the same object.
+  String _key(String path) => objectStorageNormalizePath(path);
+
+  /// The prefix of the keys below the location [key] (`''` for the root).
+  String _prefix(String key) => key.isEmpty ? '' : '$key/';
+
+  SdbFindOptions<String> _belowOptions(String prefix) => SdbFindOptions(
+    filter: SdbFilter.custom((record) {
+      var pathValue = record[_sdbObjectModel.path.name] as String?;
+      return pathValue != null && pathValue.startsWith(prefix);
+    }),
+  );
+
   /// Checks if the local database record exists and the file is present in the filesystem.
   Future<bool> hasLocalContent(String path) async {
     await ready;
-    var record = await sdbObjectStore.record(path).get(db);
+    var key = _key(path);
+    var record = await sdbObjectStore.record(key).get(db);
     if (record == null) return false;
-    var file = fileSystem.file(_toFsPath(path));
+    var file = fileSystem.file(_toFsPath(key));
     return await file.exists();
   }
 
@@ -153,16 +168,17 @@ class ObjectStorageSdb extends ObjectStorage {
     Uint8List? data,
   }) async {
     await ready;
+    var key = _key(path);
     var record = SdbObjectRecord()
       ..name.v = name
-      ..path.v = path
+      ..path.v = key
       ..size.v = size
       ..mimeType.v = mimeType
       ..modified.v = modified?.toUtc().toIso8601String();
-    await sdbObjectStore.record(path).put(db, record);
+    await sdbObjectStore.record(key).put(db, record);
 
     if (data != null) {
-      var fsPath = _toFsPath(path);
+      var fsPath = _toFsPath(key);
       var file = fileSystem.file(fsPath);
       var parentDir = file.parent;
       if (!await parentDir.exists()) {
@@ -175,11 +191,12 @@ class ObjectStorageSdb extends ObjectStorage {
   @override
   Future<void> delete(String path) async {
     await ready;
+    var key = _key(path);
 
-    var record = await sdbObjectStore.record(path).get(db);
+    var record = await sdbObjectStore.record(key).get(db);
     if (record != null) {
-      await sdbObjectStore.record(path).delete(db);
-      var fsPath = _toFsPath(path);
+      await sdbObjectStore.record(key).delete(db);
+      var fsPath = _toFsPath(key);
       var file = fileSystem.file(fsPath);
       if (await file.exists()) {
         await file.delete();
@@ -187,15 +204,10 @@ class ObjectStorageSdb extends ObjectStorage {
       return;
     }
 
-    var prefix = path.endsWith('/') ? path : '$path/';
+    var prefix = _prefix(key);
     var records = await sdbObjectStore.findRecords(
       db,
-      options: SdbFindOptions(
-        filter: SdbFilter.custom((record) {
-          var pathValue = record[_sdbObjectModel.path.name] as String?;
-          return pathValue != null && pathValue.startsWith(prefix);
-        }),
-      ),
+      options: _belowOptions(prefix),
     );
 
     for (var r in records) {
@@ -206,50 +218,39 @@ class ObjectStorageSdb extends ObjectStorage {
       }
     }
 
-    await sdbObjectStore.rawRef.delete(
-      db,
-      options: SdbFindOptions(
-        filter: SdbFilter.custom((record) {
-          var pathValue = record[_sdbObjectModel.path.name] as String?;
-          return pathValue != null && pathValue.startsWith(prefix);
-        }),
-      ),
-    );
+    await sdbObjectStore.rawRef.delete(db, options: _belowOptions(prefix));
 
-    var fsPath = _toFsPath(path);
+    var fsPath = _toFsPath(key);
     var dir = fileSystem.directory(fsPath);
     if (await dir.exists()) {
       await dir.delete(recursive: true);
     }
   }
 
-  @override
-  Future<Uint8List> download(String path) async {
-    await ready;
-    var record = await sdbObjectStore.record(path).get(db);
+  /// The content file of the object [key], throws when there is none.
+  Future<File> _contentFile(String key, String path) async {
+    var record = await sdbObjectStore.record(key).get(db);
     if (record == null) {
       throw Exception('File not found: $path');
     }
-    var fsPath = _toFsPath(path);
-    var file = fileSystem.file(fsPath);
+    var file = fileSystem.file(_toFsPath(key));
     if (!await file.exists()) {
       throw Exception('File content not found: $path');
     }
+    return file;
+  }
+
+  @override
+  Future<Uint8List> download(String path) async {
+    await ready;
+    var file = await _contentFile(_key(path), path);
     return Uint8List.fromList(await file.readAsBytes());
   }
 
   @override
   Future<Uint8List> downloadPart(String path, int start, int size) async {
     await ready;
-    var record = await sdbObjectStore.record(path).get(db);
-    if (record == null) {
-      throw Exception('File not found: $path');
-    }
-    var fsPath = _toFsPath(path);
-    var file = fileSystem.file(fsPath);
-    if (!await file.exists()) {
-      throw Exception('File content not found: $path');
-    }
+    var file = await _contentFile(_key(path), path);
     try {
       var stream = file.openRead(start, start + size);
       var bytes = <int>[];
@@ -275,15 +276,7 @@ class ObjectStorageSdb extends ObjectStorage {
     int? chunkSize,
   }) async* {
     await ready;
-    var record = await sdbObjectStore.record(path).get(db);
-    if (record == null) {
-      throw Exception('File not found: $path');
-    }
-    var fsPath = _toFsPath(path);
-    var file = fileSystem.file(fsPath);
-    if (!await file.exists()) {
-      throw Exception('File content not found: $path');
-    }
+    var file = await _contentFile(_key(path), path);
     int? end;
     if (size != null) {
       end = (start ?? 0) + size;
@@ -294,8 +287,9 @@ class ObjectStorageSdb extends ObjectStorage {
   @override
   Future<ObjectStorageMeta> getItem(String path) async {
     await ready;
+    var key = _key(path);
 
-    var record = await sdbObjectStore.record(path).get(db);
+    var record = await sdbObjectStore.record(key).get(db);
     if (record != null) {
       return _SdbMeta(
         name: record.name.v!,
@@ -307,24 +301,18 @@ class ObjectStorageSdb extends ObjectStorage {
       );
     }
 
-    var prefix = path.endsWith('/') ? path : '$path/';
     var count = await sdbObjectStore.count(
       db,
-      options: SdbFindOptions(
-        filter: SdbFilter.custom((record) {
-          var pathValue = record[_sdbObjectModel.path.name] as String?;
-          return pathValue != null && pathValue.startsWith(prefix);
-        }),
-      ),
+      options: _belowOptions(_prefix(key)),
     );
 
     if (count > 0) {
-      var name = path
+      var name = key
           .split('/')
           .lastWhere((part) => part.isNotEmpty, orElse: () => '');
       return _SdbMeta(
         name: name,
-        path: path,
+        path: key,
         size: null,
         mimeType: null,
         isLocation: true,
@@ -342,15 +330,10 @@ class ObjectStorageSdb extends ObjectStorage {
   }) async {
     await ready;
 
-    var prefix = path.isEmpty ? '' : (path.endsWith('/') ? path : '$path/');
+    var prefix = _prefix(_key(path));
     var records = await sdbObjectStore.findRecords(
       db,
-      options: SdbFindOptions(
-        filter: SdbFilter.custom((record) {
-          var pathValue = record[_sdbObjectModel.path.name] as String?;
-          return pathValue != null && pathValue.startsWith(prefix);
-        }),
-      ),
+      options: _belowOptions(prefix),
     );
 
     var items = <ObjectStorageMeta>[];
@@ -364,7 +347,7 @@ class ObjectStorageSdb extends ObjectStorage {
       var parts = relativePath.split('/');
       if (parts.length > 1) {
         var dirName = parts.first;
-        var dirPosixPath = prefix.isEmpty ? dirName : '$prefix$dirName';
+        var dirPosixPath = '$prefix$dirName';
 
         if (seenLocations.add(dirPosixPath)) {
           items.add(
@@ -405,9 +388,7 @@ class ObjectStorageSdb extends ObjectStorage {
   }) async {
     await ready;
 
-    var filePosixPath = path.isEmpty
-        ? name
-        : (path.endsWith('/') ? '$path$name' : '$path/$name');
+    var filePosixPath = _key('${_prefix(_key(path))}$name');
 
     // 1. Put metadata
     var modified = DateTime.now().toUtc();

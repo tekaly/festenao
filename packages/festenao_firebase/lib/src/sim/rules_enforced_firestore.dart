@@ -303,7 +303,8 @@ class RulesEnforcedFirestore
         resourceData: (equalities == null || equalities.isEmpty)
             ? null
             : equalities,
-        multi: true,
+        // A query is a single request for the access call limit (10).
+        multi: false,
       ),
       _reader,
     );

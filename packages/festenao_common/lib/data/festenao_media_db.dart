@@ -1,9 +1,12 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:festenao_common/data/festenao_db.dart';
 import 'package:festenao_common/data/festenao_media.dart';
 import 'package:festenao_common/festenao_sembast.dart';
 import 'package:fs_shim/fs_shim.dart';
+import 'package:tekaly_sdb_synced_media/synced_media.dart'
+    show syncedMediaIsValidPath;
 
 /// Exception class for errors related to the FestenaoMediaDb.
 class FestenaoMediaDbException implements Exception {
@@ -114,13 +117,25 @@ class FestenaoMediaDb {
     Future<Database>? futureDatabase,
   }) : _futureDatabase = futureDatabase ?? Future.value(database) {
     cvAddConstructors([DbFestenaoMediaFile.new, DbFestenaoMediaFileStatus.new]);
-    () async {
-      database = (await _futureDatabase);
-    }();
+    // A failed open is reported by [ready] (and every call), not here.
+    unawaited(
+      _futureDatabase.then<void>((database) {
+        this.database = database;
+      }, onError: (Object _) {}),
+    );
+  }
+
+  /// The local file of the media content at [path] (relative), which must be
+  /// valid (see `syncedMediaIsValidPath`): it comes from a synced record.
+  File _localFile(String path) {
+    if (!syncedMediaIsValidPath(path)) {
+      throw FestenaoMediaDbException('Invalid media path $path');
+    }
+    return fs.file(fs.path.normalize(path));
   }
 
   Future<void> _writeMediaFileBytes(String path, Uint8List bytes) async {
-    var fsFile = fs.file(path);
+    var fsFile = _localFile(path);
     await fsFile.parent.create(recursive: true);
     await fsFile.writeAsBytes(bytes);
   }
@@ -166,8 +181,7 @@ class FestenaoMediaDb {
       throw FestenaoMediaDbException('Media file deleted for ID: $fileId');
     }
 
-    var path = _ensurePath(fileId, fileRecord);
-    return fs.file(path);
+    return _localFile(_ensurePath(fileId, fileRecord));
   }
 
   /// Reads the media file bytes for the given [fileId].
@@ -186,7 +200,7 @@ class FestenaoMediaDb {
         'Media file path is missing for ID: $fileId',
       );
     }
-    return fs.path.normalize(fileRecord.path.v!);
+    return fileRecord.path.v!;
   }
 
   /// Deletes the media file for the given [fileId].
@@ -219,8 +233,11 @@ class FestenaoMediaDb {
       return;
     }
     var path = _ensurePath(fileId, fileRecord);
-
-    final storageFile = fs.file(path);
+    if (!syncedMediaIsValidPath(path)) {
+      // Nothing was written there
+      return;
+    }
+    final storageFile = _localFile(path);
 
     if (await storageFile.exists()) {
       await storageFile.delete();
@@ -342,11 +359,15 @@ class FestenaoMediaDb {
     await _writeMediaFileBytes(ref.path, bytes);
   }
 
-  /// Delete media file bytes
+  /// Delete media file bytes (nothing to delete at an invalid path).
   Future<void> deleteMediaFileBytes(FestenaoMediaFileRef ref) async {
-    var fsFile = fs.file(ref.path);
+    if (!syncedMediaIsValidPath(ref.path)) {
+      // Nothing was written there
+      return;
+    }
+    var fsFile = _localFile(ref.path);
     try {
-      await fsFile.delete(recursive: true);
+      await fsFile.delete();
     } catch (e) {
       // ignore: avoid_print
       print('Error deleting file $fsFile');

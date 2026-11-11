@@ -133,6 +133,7 @@ mixin DbArticleMixin on DbStringRecord implements DbArticle {
     image,
     thumbnail,
     squareImage,
+    sort,
   ];
 }
 

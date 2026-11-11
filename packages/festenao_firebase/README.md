@@ -5,6 +5,55 @@ simulator that replicates the emulator, an emulator harness, and the
 tkcms/festenao rule sets with the presets that generate the rules files of the
 festenao firebase contexts.
 
+## Getting started
+
+A git package (not on pub.dev), in `pubspec.yaml`:
+
+```yaml
+dependencies:
+  festenao_firebase:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages/festenao_firebase
+```
+
+Write rules and check them in memory, no emulator needed:
+
+```dart
+import 'package:festenao_firebase/firestore_rules_sim.dart';
+
+Future<void> main() async {
+  var rules = FirestoreRules()..denyAll();
+  rules.match('/user/{userId}', (m) {
+    m.allow([RulesMethod.read], requestAuthUid.eq(m.v('userId')));
+  });
+  print(rules.toRulesText()); // the firestore.rules file
+
+  var evaluator = RulesEvaluator(rules);
+  var decision = await evaluator.evaluate(
+    RulesRequest(
+      method: RulesMethod.get,
+      path: 'user/u1',
+      auth: FirestoreRulesAuth(uid: 'u1'),
+    ),
+    _NoDocuments(),
+  );
+  print(decision.allowed); // true
+}
+
+/// The documents `get()` and `exists()` read (none here).
+class _NoDocuments implements RulesDocumentReader {
+  @override
+  Future<Map<String, Object?>?> read(String path) async => null;
+}
+```
+
+Platforms: the builder, the writer, the simulator and the rule sets are
+pure Dart (VM, web, Flutter). `firestore_rules_emulator.dart` and
+`firestore_rules_test_runner.dart` are io only (they start the firebase
+emulator through the `firebase` cli, java needed). The emulator always runs a
+`demo-` project: no login, never a real project.
+
 ## Libraries
 
 | Library | Content |
@@ -94,13 +143,21 @@ The evaluator replicates the engine: nested matches, single and recursive
 wildcards (unbound on `list`, using one is an evaluation error), any matching
 `allow` grants, evaluation errors deny, `&&`/`||` short circuit, `get()` of a
 missing document is `null`, member access on a missing key is an error,
-`get()`/`exists()` are cached per request and limited to 10 documents (20 in
-batches and transactions). Writes see `resource` (before) and
+`get()`/`exists()` are cached per request and limited to 10 documents (a
+single get and a query; 20 in batches and transactions), timestamp
+`year()`/`month()`/`day()` are UTC. Writes see `resource` (before) and
 `request.resource` (after, merges and field values resolved); batches and
 transactions are checked against the state before them. A `list` sees as
 `resource.data` the `where(field, isEqualTo: value)` constraints of the query
 (top level fields only, none: no `resource`). Not supported:
-`collectionGroup`, `getAfter`.
+`collectionGroup`, `getAfter`, `FieldValue.increment`, the `timestamp` and
+`duration` namespaces, `map.diff()`.
+
+Pitfall: a function sees the wildcards of the match that calls it in the
+simulator; the real compiler only gives it its parameters, its `let`s and the
+wildcards of the block it is declared in (pass the wildcards as parameters,
+as the tkcms rules do). Run the suite on the emulator before deploying a new
+rule set.
 
 ## Emulator
 
@@ -114,6 +171,12 @@ await emulator.loadRules(otherRulesText);      // hot swap
 await emulator.setCustomUserClaims(uid, {'role': 'admin'}); // sign in again after
 await emulator.stop();
 ```
+
+`start()` takes `projectId` (a `demo-` one by default), `firestorePort` and
+`authPort` (8080 and 9099 by default), and the contexts talk to those ports.
+The machine has one emulator at a time: `start()` waits for the emulator lock
+of `tekartik_firebase_emulator` (another test or session using it), and
+reuses an emulator already running on the ports (it hot loads the rules).
 
 No custom claims were needed to bypass the rules: the emulator accepts the
 `owner` token (`FirestoreRest.useFirestoreEmulator(owner: true)`), and the

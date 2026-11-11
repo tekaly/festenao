@@ -36,7 +36,27 @@ class QuizzTimeService {
   int get timestampMs => timestamp.millisecondsSinceEpoch;
 
   /// Completes once the offset has been measured at least once.
-  Future<void> get fixedOnce async => await _offsetSubject.first;
+  ///
+  /// Throws a [StateError] when disposed before.
+  Future<void> get fixedOnce async {
+    if (_offsetSubject.hasValue) {
+      return;
+    }
+    if (!_disposed) {
+      try {
+        await _offsetSubject.first;
+        return;
+      } on StateError catch (e, st) {
+        // Closed without value (disposed while waiting), see below.
+        if (!_disposed) {
+          Error.throwWithStackTrace(e, st);
+        }
+      }
+    }
+    throw StateError(
+      'QuizzTimeService disposed before the server offset was measured',
+    );
+  }
 
   var _needFix = true;
   final _lock = Lock();
@@ -50,12 +70,32 @@ class QuizzTimeService {
   /// Sets a known offset (restored from prefs).
   set offsetFromServer(int offsetMs) {
     offsetFromServerTimestampMs = offsetMs;
-    _offsetSubject.add(offsetMs);
+    _addOffset(offsetMs);
+  }
+
+  void _addOffset(int offsetMs) {
+    if (!_offsetSubject.isClosed) {
+      _offsetSubject.add(offsetMs);
+    }
+  }
+
+  /// The pending sleeps, ended on dispose.
+  final _sleeps = <_Sleep>{};
+
+  /// Sleeps [ms], or less when disposed meanwhile.
+  Future<void> _sleep(int ms) {
+    if (_disposed) {
+      return Future<void>.value();
+    }
+    late _Sleep sleep;
+    sleep = _Sleep(Duration(milliseconds: ms), () => _sleeps.remove(sleep));
+    _sleeps.add(sleep);
+    return sleep.future;
   }
 
   /// Starts the periodic synchronization (no-op without provider).
   void run() {
-    if (_running || _timestampProviderOrNull == null) {
+    if (_running || _disposed || _timestampProviderOrNull == null) {
       return;
     }
     _running = true;
@@ -64,9 +104,9 @@ class QuizzTimeService {
       while (!_disposed) {
         await fixTimestamp();
         if (_needFix) {
-          await sleep(10000);
+          await _sleep(10000);
         } else {
-          await sleep(60 * 60 * 1000);
+          await _sleep(60 * 60 * 1000);
         }
       }
     }().unawait();
@@ -75,7 +115,10 @@ class QuizzTimeService {
     () async {
       while (!_disposed) {
         var before = DateTime.timestamp();
-        await sleep(1000);
+        await _sleep(1000);
+        if (_disposed) {
+          break;
+        }
         var after = DateTime.timestamp();
         var diff = after.difference(before).inMilliseconds;
         if (diff.abs() > 5000) {
@@ -107,6 +150,9 @@ class QuizzTimeService {
         var before = DateTime.timestamp();
         var serverTime = await provider.fetchNow();
         var after = DateTime.timestamp();
+        if (_disposed) {
+          break;
+        }
 
         var diff = after.difference(before).inMilliseconds;
         var now = before.add(Duration(milliseconds: diff ~/ 2));
@@ -118,11 +164,12 @@ class QuizzTimeService {
             '[time_sync] server: $serverTime, local: $now, offset: $offsetMs, diff: $diff',
           );
         }
-        // less than 1 second, take it
-        if (diff < 1000 || offsetMs > diff) {
+        // less than 1 second, or an offset (ahead or behind) larger than the
+        // round trip, take it
+        if (diff < 1000 || offsetMs.abs() > diff) {
           _needFix = false;
           offsetFromServerTimestampMs = offsetMs;
-          _offsetSubject.add(offsetMs);
+          _addOffset(offsetMs);
           break;
         }
       } catch (e, st) {
@@ -133,14 +180,41 @@ class QuizzTimeService {
           print(st);
         }
       }
-      await sleep(sleepMs);
+      await _sleep(sleepMs);
       sleepMs = (sleepMs * 1.5).toInt().boundedMax(60000);
     }
   }
 
-  /// Stops the synchronization.
+  /// Stops the synchronization, ending the pending sleeps (no timer left).
   void dispose() {
     _disposed = true;
+    for (var sleep in _sleeps.toList()) {
+      sleep.end();
+    }
+    _sleeps.clear();
     _offsetSubject.close();
+  }
+}
+
+/// A sleep that can end early.
+class _Sleep {
+  final _completer = Completer<void>();
+  late final Timer _timer;
+
+  _Sleep(Duration duration, void Function() onDone) {
+    _timer = Timer(duration, () {
+      onDone();
+      end();
+    });
+  }
+
+  Future<void> get future => _completer.future;
+
+  /// Ends the sleep now.
+  void end() {
+    _timer.cancel();
+    if (!_completer.isCompleted) {
+      _completer.complete();
+    }
   }
 }

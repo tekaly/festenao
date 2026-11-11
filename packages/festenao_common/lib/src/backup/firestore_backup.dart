@@ -167,10 +167,73 @@ class FirestoreBackup {
     var collection = firestore.collection(path);
     var snapshot = await (limit == null ? collection : collection.limit(limit))
         .get();
+    var readIds = <String>{};
     for (var doc in snapshot.docs) {
+      readIds.add(doc.ref.id);
       documents[doc.ref.path] = doc.data;
       await _readSubCollections(doc.ref, documents, depth: depth - 1);
     }
+    // A document with no data of its own (an app root) is not in the query
+    // but its sub collections are: walk them too, when they can be listed.
+    for (var ref in await _listMissingDocuments(
+      collection,
+      readIds,
+      limit: limit,
+    )) {
+      await _readSubCollections(ref, documents, depth: depth - 1);
+    }
+  }
+
+  /// The documents of [collection] that have no data but sub collections,
+  /// the ones a query leaves out: listed (at most [limit] documents in all,
+  /// the ones read included), [readIds] being the ones the query found.
+  ///
+  /// Empty when the backend cannot list them or the sub collections cannot
+  /// be walked.
+  Future<List<DocumentReference>> _listMissingDocuments(
+    CollectionReference collection,
+    Set<String> readIds, {
+    int? limit,
+  }) async {
+    if (!walksSubCollections ||
+        !firestore.service.supportsListMissingDocuments) {
+      return const [];
+    }
+    var refs = <DocumentReference>[];
+    var listed = 0;
+    String? pageToken;
+    // A page may hold fewer documents than asked while more remain.
+    while (limit == null || listed < limit) {
+      var result = await collection.listDocuments(
+        options: FirestoreListDocumentsOptions(
+          pageSize: limit == null ? null : limit - listed,
+          pageToken: pageToken,
+        ),
+      );
+      listed += result.refs.length;
+      for (var ref in result.refs) {
+        if (!readIds.contains(ref.id)) {
+          refs.add(ref);
+        }
+      }
+      var nextPageToken = result.nextPageToken;
+      if (nextPageToken == null ||
+          nextPageToken == pageToken ||
+          result.refs.isEmpty) {
+        break;
+      }
+      pageToken = nextPageToken;
+    }
+    if (limit != null && refs.isNotEmpty) {
+      // Capped, the query and the listing may not hold the same documents:
+      // keep the missing ones only.
+      var snapshots = await firestore.getAll(refs);
+      return [
+        for (var snapshot in snapshots)
+          if (!snapshot.exists) snapshot.ref,
+      ];
+    }
+    return refs;
   }
 
   Future<void> _readDocument(

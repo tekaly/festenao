@@ -801,15 +801,25 @@ class QuizzFirestoreDatabase {
       if (players.isEmpty) {
         break;
       }
-      var batch = firestore.cvBatch();
-      for (var i = 0; i < players.length; i++) {
-        var player = players[i];
-        batch.cvUpdate(
-          fsQuizPlayer(quizId, player.ref.id).cv()..rank.v = ++rank,
-        );
+      // Sorted by validity first: the invalid players come last and are
+      // never ranked (filtered here, no extra index needed).
+      var rankedPlayers = players
+          .where(
+            (player) =>
+                player.data[fsQuizPlayerModel.validity.name] !=
+                quizPlayerValidityInvalid,
+          )
+          .toList();
+      if (rankedPlayers.isNotEmpty) {
+        var batch = firestore.cvBatch();
+        for (var player in rankedPlayers) {
+          batch.cvUpdate(
+            fsQuizPlayer(quizId, player.ref.id).cv()..rank.v = ++rank,
+          );
+        }
+        await batch.commit();
       }
-      await batch.commit();
-      if (players.length < step) {
+      if (players.length < step || rankedPlayers.length < players.length) {
         break;
       }
       if (computeOnlyFirst3) {
@@ -1074,10 +1084,13 @@ class QuizzFirestoreDatabase {
                 )
                 .toList();
         }
-        var totalGoodieCount = state.goodies.v!.fold<int>(
-          0,
-          (previousValue, element) => previousValue + element.remainingCount,
-        );
+        // No goodie list in the config: nothing to win.
+        var totalGoodieCount = (state.goodies.v ?? const <CvGdGoodieState>[])
+            .fold<int>(
+              0,
+              (previousValue, element) =>
+                  previousValue + element.remainingCount,
+            );
 
         var index = (chance / winningChance) * totalGoodieCount;
 

@@ -208,10 +208,12 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
   /// is not the one of a site.
   ///
   /// Override to change the url shape (an app id in front, a default data
-  /// id...).
+  /// id...). The ids must be document ids ([tkCmsIsValidDocumentId]): an
+  /// encoded `/` in a segment is not a site.
   (FestenaoCmsSiteRef, CmsSiteRequest)? cmsSiteOf(CmsSiteRequest request) {
     var siteRequest = request.shift(2);
-    if (siteRequest == null) {
+    if (siteRequest == null ||
+        !request.segments.take(2).every(tkCmsIsValidDocumentId)) {
       return null;
     }
     return (
@@ -283,7 +285,7 @@ class FestenaoServerApp extends TkAppCmsServerAppBase {
       );
       return await handler.handlePath(siteRequest.path);
     } catch (e) {
-      return CmsResponse.text('Error: $e', statusCode: 500);
+      return const CmsResponse.text('Internal error', statusCode: 500);
     }
   }
 

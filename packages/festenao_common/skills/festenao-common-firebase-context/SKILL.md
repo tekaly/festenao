@@ -50,7 +50,9 @@ it into the `FirebaseContext` the rest of the code receives.
   `festenaoInitFirebaseMemory()` (everything in memory, no functions),
   `initFirebaseServicesLocalMemory(projectId:)` and
   `initFirebaseServicesLocalSembast(databaseFactory:, projectId:)` (memory
-  or on disk, with in process functions, the base of the local servers),
+  or on disk, with in process functions, the base of the local servers;
+  its sdb twin `initFirebaseServicesLocalSdb(sdbFactory:, projectId:)` is
+  the one for new code),
   `festenaoInitFirebaseSim(uri:)` (a client of the sim server),
   `festenaoInitFirebaseRest(options:)` / `festenaoInitFirebaseServicesContextRest(appOptions:,
   googleAuthOptions:)` (REST with a user signed in, persisted on disk, the
@@ -77,8 +79,8 @@ it into the `FirebaseContext` the rest of the code receives.
 * The local file is the obfuscated json a support tool of a project writes
   with `festenaoWriteServiceAccountEncFile(itsServiceAccountMap)` (project
   id, email and key id in clear, the account aes encrypted with a random
-  password kept in the file: obfuscation, for a git ignored file); the
-  festenaoprv `festenaodash` command started in that folder selects it.
+  password kept in the file: obfuscation, for a git ignored file); a tool
+  started in that folder selects it.
   `festenaoServiceAccountEncMap`, `festenaoServiceAccountMapIsEnc`,
   `festenaoServiceAccountMapDecode` (plain or obfuscated, what every reader
   and `festenaoServiceAccountMapError` go through) in

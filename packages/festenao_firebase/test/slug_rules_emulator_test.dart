@@ -17,9 +17,13 @@ Future<void> main() async {
     return;
   }
   group('emulator', () {
-    runSlugRulesTests(
-      (rules) => FirestoreRulesEmulatorTestContext.create(rules: rules),
-    );
+    // In a group of its own: its context (and the emulator lock) is closed
+    // before the next group starts another one.
+    group('slug', () {
+      runSlugRulesTests(
+        (rules) => FirestoreRulesEmulatorTestContext.create(rules: rules),
+      );
+    });
     runSlugAppRightRulesTests(
       (rules) => FirestoreRulesEmulatorTestContext.create(rules: rules),
     );

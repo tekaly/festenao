@@ -2,6 +2,7 @@ import 'dart:async';
 import '../log_record.dart';
 import '../reader/log_query_filter.dart';
 import 'log_storage.dart';
+import 'log_storage_prv.dart';
 
 /// In-memory implementation of [LogStorage] supporting multi-segment indexing,
 /// size limits (256KB per record, 10MB per segment, 100MB total), rotation, and purging.
@@ -65,7 +66,9 @@ class MemoryLogStorage implements LogStorage {
     final active = _activeSegment;
     active.addRecord(record);
 
-    _streamController.add(record);
+    if (!_streamController.isClosed) {
+      _streamController.add(record);
+    }
 
     if (active.summary.sizeBytes >= maxSegmentSizeBytes) {
       await rotateSegment();
@@ -110,7 +113,11 @@ class MemoryLogStorage implements LogStorage {
           allSent = false;
         }
       }
-      if (allSent && seg.records.isNotEmpty && seg.summary.status == 'sealed') {
+      if (logSegmentBecomesFullySent(
+        seg.summary,
+        allSent: allSent,
+        recordCount: seg.records.length,
+      )) {
         seg.summary = LogSegmentSummary(
           segmentId: seg.summary.segmentId,
           name: seg.summary.name,

@@ -36,6 +36,9 @@ class FsLogStorage implements LogStorage {
   /// its appends).
   final _lock = Lock();
 
+  /// The appends not awaited, waited for by [close].
+  final _pending = LogPendingOperations();
+
   /// Creates an [FsLogStorage] instance.
   FsLogStorage({
     required this.fileSystem,
@@ -109,7 +112,10 @@ class FsLogStorage implements LogStorage {
   }
 
   @override
-  Future<void> appendRecord(LogRecord record) async {
+  Future<void> appendRecord(LogRecord record) =>
+      _pending.track(_appendRecord(record));
+
+  Future<void> _appendRecord(LogRecord record) async {
     await init();
     await _lock.synchronized(() async {
       final active = _activeSegmentSummary!;
@@ -120,7 +126,9 @@ class FsLogStorage implements LogStorage {
 
       await file.writeAsString(line, mode: FileMode.append);
 
-      _streamController.add(record);
+      if (!_streamController.isClosed) {
+        _streamController.add(record);
+      }
 
       _activeSegmentSummary = logSegmentSummaryAddRecord(
         active,
@@ -206,16 +214,18 @@ class FsLogStorage implements LogStorage {
           final file = _segmentFile(segSummary.segmentId);
           final lines = records.map((r) => jsonEncode(r.toMap())).join('\n');
           await file.writeAsString(lines.isEmpty ? '' : '$lines\n');
-
-          if (allSent &&
-              records.isNotEmpty &&
-              segSummary.status == logSegmentStatusSealed) {
-            _segmentSummaries[segIdx] = logSegmentSummaryWithStatus(
-              segSummary,
-              logSegmentStatusFullySent,
-            );
-            await _saveMasterIndex();
-          }
+        }
+        // Also when its records were all sent before it was sealed.
+        if (logSegmentBecomesFullySent(
+          segSummary,
+          allSent: allSent,
+          recordCount: records.length,
+        )) {
+          _segmentSummaries[segIdx] = logSegmentSummaryWithStatus(
+            segSummary,
+            logSegmentStatusFullySent,
+          );
+          await _saveMasterIndex();
         }
       }
     });
@@ -326,8 +336,17 @@ class FsLogStorage implements LogStorage {
 
   @override
   Future<void> close() async {
-    // Wait for the pending writes.
+    // Wait for the pending writes, the ones still waiting for init included.
+    await _pending.wait();
+    await _waitInit();
     await _lock.synchronized(() {});
     await _streamController.close();
+  }
+
+  /// Waits for a running init, its failure ignored.
+  Future<void> _waitInit() async {
+    try {
+      await _initFuture;
+    } catch (_) {}
   }
 }

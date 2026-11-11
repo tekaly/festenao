@@ -1,6 +1,20 @@
 import 'package:fs_shim/fs.dart';
 import 'package:path/path.dart' as p;
 
+/// The object storage [posixPath] normalized: relative to the root (a leading
+/// `/` is dropped), `.`, `..` and duplicated or trailing `/` resolved, `''`
+/// for the root itself.
+///
+/// A path going above the root throws an [ArgumentError].
+String objectStorageNormalizePath(String posixPath) {
+  var relativePath = posixPath.replaceFirst(RegExp(r'^/+'), '');
+  var normalized = p.posix.normalize(relativePath.isEmpty ? '.' : relativePath);
+  if (normalized == '..' || normalized.startsWith('../')) {
+    throw ArgumentError.value(posixPath, 'path', 'outside of the storage');
+  }
+  return normalized == '.' ? '' : normalized;
+}
+
 /// The [fileSystem] path of the object storage [posixPath] below [rootPath].
 ///
 /// A leading `/` is relative to the root, `.` and `..` are resolved, a path
@@ -10,13 +24,8 @@ String objectStorageFsPath(
   String rootPath,
   String posixPath,
 ) {
-  var relativePath = posixPath.replaceFirst(RegExp(r'^/+'), '');
-  var normalized = p.posix.normalize(relativePath.isEmpty ? '.' : relativePath);
-  if (normalized == '..' || normalized.startsWith('../')) {
-    throw ArgumentError.value(posixPath, 'path', 'outside of the storage');
-  }
   var parts = p.posix
-      .split(normalized)
+      .split(objectStorageNormalizePath(posixPath))
       .where((part) => part.isNotEmpty && part != '.');
   return fileSystem.path.joinAll([rootPath, ...parts]);
 }

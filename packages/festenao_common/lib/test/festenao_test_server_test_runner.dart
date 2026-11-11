@@ -435,7 +435,8 @@ void testFestenaoServerGroup(
       );
       expect(entity.name.v, name);
       var entityId = entity.id;
-      expect(entityId, entityId);
+      // Created under the requested id.
+      expect(entityId, createEntityId);
 
       if (!noFirestoreCheck) {
         entity = await projectDb

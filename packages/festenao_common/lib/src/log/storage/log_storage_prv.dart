@@ -1,5 +1,40 @@
+import 'dart:async';
+
 import '../log_record.dart';
 import 'log_storage.dart';
+
+/// The operations still running (the appends the logger does not wait for),
+/// waited for by a close.
+class LogPendingOperations {
+  final _pending = <Future<void>>{};
+
+  /// Tracks [future] until it completes; returns a future completing like it
+  /// (its error included).
+  Future<T> track<T>(Future<T> future) {
+    var done = Completer<void>();
+    _pending.add(done.future);
+    return future.whenComplete(() {
+      _pending.remove(done.future);
+      done.complete();
+    });
+  }
+
+  /// Waits for the tracked operations, the ones started meanwhile included.
+  Future<void> wait() async {
+    while (_pending.isNotEmpty) {
+      await Future.wait(_pending.toList());
+    }
+  }
+}
+
+/// True when a [summary] whose records are all sent ([allSent], [recordCount]
+/// records) becomes [logSegmentStatusFullySent]: a sealed segment, whether
+/// its last records were sent now or before it was sealed.
+bool logSegmentBecomesFullySent(
+  LogSegmentSummary summary, {
+  required bool allSent,
+  required int recordCount,
+}) => allSent && recordCount > 0 && summary.status == logSegmentStatusSealed;
 
 /// Status of the segment receiving the new records.
 const logSegmentStatusActive = 'active';

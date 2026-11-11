@@ -95,6 +95,10 @@ class UserProjectsSdbSynchronizer with AutoDisposeMixin {
     };
     var toDelete = dbProjects.map((e) => e.id).toSet();
     var toSet = <SdbUserProject>[];
+    // Existing records replaced as a whole, by id: a right removed from the
+    // access (admin revoked) is removed locally too, which a copyFrom (a
+    // merge of the fields set) would not do.
+    var toReplace = <String, SdbUserProject>{};
     for (var fsProject in fsProjectList) {
       var uid = fsProject.id;
       var userProjectAccess = accessMap[uid];
@@ -114,15 +118,17 @@ class UserProjectsSdbSynchronizer with AutoDisposeMixin {
       if (existing != null) {
         toDelete.remove(existing.id);
         if (existing.needUpdate(newDbProject)) {
-          existing.copyFrom(newDbProject);
-          toSet.add(existing);
+          toReplace[existing.id] = newDbProject;
         }
       } else {
         toSet.add(newDbProject);
       }
     }
     if (debugProjectsDbSynchronizer) {
-      _log('applyUserProjects toDelete $toDelete toSet $toSet');
+      _log(
+        'applyUserProjects toDelete $toDelete toSet $toSet '
+        'toReplace $toReplace',
+      );
     }
     await projectsDb.db.inScvStoresTransaction(
       [dbProjectUserStore, dbProjectStore],
@@ -132,11 +138,10 @@ class UserProjectsSdbSynchronizer with AutoDisposeMixin {
           await dbProjectStore.record(id).delete(txn);
         }
         for (var project in toSet) {
-          if (project.idOrNull == null) {
-            await dbProjectStore.add(txn, project);
-          } else {
-            await dbProjectStore.record(project.id).put(txn, project);
-          }
+          await dbProjectStore.add(txn, project);
+        }
+        for (var entry in toReplace.entries) {
+          await dbProjectStore.record(entry.key).put(txn, entry.value);
         }
         await projectsDb.clientSetCurrentIdentityId(txn, dbIdentityId);
       },
@@ -158,7 +163,10 @@ class UserProjectsSdbSynchronizer with AutoDisposeMixin {
     if (debugProjectsDbSynchronizer) {
       _log('fsProject $fsProject');
     }
-    var exists = fsProject.exists && fsProject.deleted.v != true;
+    // No access document: the user lost access, the project goes (as in
+    // applyUserProjects).
+    var exists =
+        fsProject.exists && fsProject.deleted.v != true && fsUserAccess.exists;
     await projectsSdb.ready;
     var db = projectsSdb.db;
     await dbProjectStore.inTransaction(db, SdbTransactionMode.readWrite, (

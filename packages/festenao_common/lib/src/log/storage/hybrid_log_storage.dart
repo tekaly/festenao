@@ -18,6 +18,9 @@ class HybridLogStorage implements LogStorage {
 
   Future<void>? _initFuture;
 
+  /// The appends not awaited, waited for by [close].
+  final _pending = LogPendingOperations();
+
   /// Creates a hybrid log storage instance.
   HybridLogStorage({required this.sdbStorage, required this.fsStorage});
 
@@ -30,10 +33,15 @@ class HybridLogStorage implements LogStorage {
   }
 
   @override
-  Future<void> appendRecord(LogRecord record) async {
+  Future<void> appendRecord(LogRecord record) =>
+      _pending.track(_appendRecord(record));
+
+  Future<void> _appendRecord(LogRecord record) async {
     await init();
     await sdbStorage.appendRecord(record);
-    _streamController.add(record);
+    if (!_streamController.isClosed) {
+      _streamController.add(record);
+    }
   }
 
   @override
@@ -142,8 +150,11 @@ class HybridLogStorage implements LogStorage {
 
   @override
   Future<void> close() async {
-    await _streamController.close();
+    // The pending appends reach sdb first, the children are closed (they wait
+    // for their own writes) before the stream.
+    await _pending.wait();
     await sdbStorage.close();
     await fsStorage.close();
+    await _streamController.close();
   }
 }

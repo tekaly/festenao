@@ -216,6 +216,9 @@ class SdbLogStorage implements LogStorage {
   /// Writes one at a time (the logger does not wait for its appends).
   final _lock = Lock();
 
+  /// The appends not awaited, waited for by [close].
+  final _pending = LogPendingOperations();
+
   static const String _masterDbName = 'festenao_log_master.db';
 
   /// Creates an [SdbLogStorage] instance.
@@ -324,7 +327,10 @@ class SdbLogStorage implements LogStorage {
   }
 
   @override
-  Future<void> appendRecord(LogRecord record) async {
+  Future<void> appendRecord(LogRecord record) =>
+      _pending.track(_appendRecord(record));
+
+  Future<void> _appendRecord(LogRecord record) async {
     await init();
     await _lock.synchronized(() async {
       final cvRec = SdbLogRecordCv.fromLogRecord(record);
@@ -332,7 +338,9 @@ class SdbLogStorage implements LogStorage {
 
       await sdbLogRecordStore.record(record.id).put(_activeSegmentDb!, cvRec);
 
-      _streamController.add(record);
+      if (!_streamController.isClosed) {
+        _streamController.add(record);
+      }
 
       _activeSegmentSummary = logSegmentSummaryAddRecord(
         _activeSegmentSummary!,
@@ -390,31 +398,30 @@ class SdbLogStorage implements LogStorage {
 
       for (var segIdx = 0; segIdx < _segmentSummaries.length; segIdx++) {
         final segSummary = _segmentSummaries[segIdx];
-        final (updatedCount, allSent, count) = await _withSegmentDb(
-          segSummary.segmentId,
-          (db) async {
-            final recs = await sdbLogRecordStore.findRecords(db);
-            var updatedCount = 0;
-            var allSent = true;
-            for (final r in recs) {
-              final rec = r.toLogRecord();
-              if (idSet.contains(rec.id)) {
-                final updated = rec.copyWith(sent: true, sentAt: now);
-                final updatedCv = SdbLogRecordCv.fromLogRecord(updated);
-                await sdbLogRecordStore.record(rec.id).put(db, updatedCv);
-                updatedCount++;
-              } else if (!rec.sent) {
-                allSent = false;
-              }
+        final (allSent, count) = await _withSegmentDb(segSummary.segmentId, (
+          db,
+        ) async {
+          final recs = await sdbLogRecordStore.findRecords(db);
+          var allSent = true;
+          for (final r in recs) {
+            final rec = r.toLogRecord();
+            if (idSet.contains(rec.id)) {
+              final updated = rec.copyWith(sent: true, sentAt: now);
+              final updatedCv = SdbLogRecordCv.fromLogRecord(updated);
+              await sdbLogRecordStore.record(rec.id).put(db, updatedCv);
+            } else if (!rec.sent) {
+              allSent = false;
             }
-            return (updatedCount, allSent, recs.length);
-          },
-        );
+          }
+          return (allSent, recs.length);
+        });
 
-        if (updatedCount > 0 &&
-            allSent &&
-            count > 0 &&
-            segSummary.status == logSegmentStatusSealed) {
+        // Also when its records were all sent before it was sealed.
+        if (logSegmentBecomesFullySent(
+          segSummary,
+          allSent: allSent,
+          recordCount: count,
+        )) {
           final newSummary = logSegmentSummaryWithStatus(
             segSummary,
             logSegmentStatusFullySent,
@@ -530,7 +537,12 @@ class SdbLogStorage implements LogStorage {
 
   @override
   Future<void> close() async {
-    // Wait for the pending writes.
+    // Wait for the pending writes, the ones still waiting for init included
+    // (and init itself: it opens the databases closed below).
+    await _pending.wait();
+    try {
+      await _initFuture;
+    } catch (_) {}
     await _lock.synchronized(() {});
     await _streamController.close();
     await _activeSegmentDb?.close();

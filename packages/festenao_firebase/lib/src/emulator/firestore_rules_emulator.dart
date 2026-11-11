@@ -3,7 +3,9 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
+import 'package:tekartik_firebase_auth_rest/auth_rest.dart';
 import 'package:tekartik_firebase_emulator/firebase_emulator.dart';
+import 'package:tekartik_firebase_firestore_rest/firestore_rest.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
 import '../rules/rules_builder.dart';
@@ -312,7 +314,16 @@ class FirestoreRulesEmulator {
     var context = await (await initFirebaseServicesRest(
       appOptions: FirebaseAppOptions(projectId: projectId, apiKey: 'dummy'),
     )).init(name: name ?? '${owner ? 'owner' : 'user'}_${++_appCount}');
+    // Every service on the emulators (storage too), then auth and firestore
+    // on the host and ports of this emulator (useEmulator uses the default
+    // ones).
     await context.useEmulator(firestoreOwner: owner);
+    await (context.auth as FirebaseAuthRest).useAuthEmulator(host, authPort);
+    await (context.firestore as FirestoreRest).useFirestoreEmulator(
+      host,
+      firestorePort,
+      owner: owner,
+    );
     _contexts.add(context);
     return context;
   }

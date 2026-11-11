@@ -71,6 +71,15 @@ ObjectStorageMeta gdriveObjectStorageMeta(gd.File file) {
   );
 }
 
+/// A drive query string literal: [value] quoted, `\` and `'` escaped (the
+/// escaping of tekartik_gdrive_api_utils `GDrive`, private there).
+///
+/// A folder id or a file name comes from the client: unescaped, a `'` ends
+/// the literal and the rest becomes query (a listing of the whole drive), or
+/// simply breaks it (`l'été.mp3`).
+String _gdriveQueryString(String value) =>
+    "'${value.replaceAll(r'\', r'\\').replaceAll("'", r"\'")}'";
+
 /// Google Drive implementation of [ObjectStorageListResponse].
 class _GdriveListResponse implements ObjectStorageListResponse {
   @override
@@ -153,7 +162,7 @@ class ObjectStorageGdrive extends ObjectStorage {
 
     var fileList = await gdrive.driveApi.files.list(
       pageSize: maxResults ?? 100,
-      q: "'$folderId' in parents and trashed = false",
+      q: '${_gdriveQueryString(folderId)} in parents and trashed = false',
       pageToken: pageToken,
       $fields: 'nextPageToken,files($_fileFields)',
     );
@@ -208,7 +217,9 @@ class ObjectStorageGdrive extends ObjectStorage {
 
     var existing = await gdrive.driveApi.files.list(
       pageSize: 10,
-      q: "'$parentId' in parents and name='$name' and trashed = false",
+      q:
+          '${_gdriveQueryString(parentId)} in parents and '
+          'name=${_gdriveQueryString(name)} and trashed = false',
       $fields: 'files(id)',
     );
     var existingId = existing.files?.firstOrNull?.id;

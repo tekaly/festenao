@@ -105,7 +105,11 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     required this.entityAccess,
     this.options = const FestenaoEntityHandlerOptions(),
     this.appId,
-  });
+  }) {
+    // The plans and the creators read with a create limit, whether a user
+    // plan handler is set or not.
+    initFestenaoUserPlanApiBuilders();
+  }
 
   /// Handles the command if it's an entity command, otherwise returns null.
   @override
@@ -422,9 +426,15 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var userId = _requireUserId(apiRequest);
     var entityId = _requireId(query.entityId);
     var inviteId = _requireId(query.inviteId);
-    // The email comes from the client (the api request only carries a
-    // verified userId), it is checked against the invite email, if any.
-    var email = tkCmsNormalizeInviteEmail(query.email.v);
+    // An invite reserved to an email is accepted by the user whose account
+    // has that email: the email the client sends is never trusted.
+    var invite = await entityAccess
+        .fsInviteEntityRef(inviteId, entityId)
+        .get(firestore);
+    String? email;
+    if (invite.exists && tkCmsNormalizeInviteEmail(invite.email.v) != null) {
+      email = tkCmsNormalizeInviteEmail((await _requireUser(userId)).email);
+    }
     await entityAccess.acceptInviteEntity(
       userId: userId,
       inviteId: inviteId,
@@ -446,6 +456,15 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     var entityId = _requireId(query.entityId);
     var inviteId = _requireId(query.inviteId);
     await _requireEntityOrAppAdmin(entityId, userId);
+    // The invite id is global: only the one of this entity is deleted.
+    var inviteIdDoc = await entityAccess.fsInviteIdRef(inviteId).get(firestore);
+    if (inviteIdDoc.exists && inviteIdDoc.entityId.v != entityId) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.notFound
+            ..message.v = 'Invite $inviteId not found'
+            ..noRetry.v = true)
+          .exception();
+    }
     await entityAccess.deleteInviteEntity(
       inviteId: inviteId,
       entityId: entityId,

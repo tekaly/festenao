@@ -687,12 +687,13 @@ class _EvalContext {
           return target.seconds;
         case 'nanos':
           return target.nanoseconds;
+        // The engine reads the date parts in UTC.
         case 'year':
-          return target.toDateTime().year;
+          return target.toDateTime(isUtc: true).year;
         case 'month':
-          return target.toDateTime().month;
+          return target.toDateTime(isUtc: true).month;
         case 'day':
-          return target.toDateTime().day;
+          return target.toDateTime(isUtc: true).day;
       }
       throw RulesEvalError('Unknown timestamp method $method');
     }

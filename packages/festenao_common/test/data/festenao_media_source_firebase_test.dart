@@ -43,12 +43,12 @@ void main() {
 
       await source.deleteMediaFile(ref);
 
-      try {
-        await source.readMediaFileBytes(ref);
-        fail('Should throw exception when file is deleted');
-      } catch (_) {
-        // Expected error
-      }
-    });
+      // A deleted file does not read (the error, whatever it is, is not the
+      // test failure of a read that went through).
+      await expectLater(
+        source.readMediaFileBytes(ref),
+        throwsA(isNot(isA<TestFailure>())),
+      );
+    }, timeout: const Timeout(Duration(seconds: 30)));
   });
 }

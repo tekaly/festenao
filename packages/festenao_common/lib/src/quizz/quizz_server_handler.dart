@@ -112,9 +112,12 @@ class QuizzServerHandler implements FestenaoApiHandler {
         apiQuizzSendResultQueryModel.localTimestamp,
       ],
     );
+    // A client id is never a path: `a/b` would name another document.
+    var quizId = _checkId(query.quizId)!;
+    _checkId(query.projectId);
+    _checkId(query.dataId);
+    _checkId(query.sessionId);
     var databaseService = await getDatabase(apiRequest, query);
-    var quizId = query.quizId.v!;
-    var quizType = query.quizType.v;
     var now = DateTime.timestamp();
     var score = 0;
     var elapsedMs = 0;
@@ -129,6 +132,11 @@ class QuizzServerHandler implements FestenaoApiHandler {
     var quiz = await databaseService.fsQuiz(quizId).get(firestore);
     if (!quiz.exists) {
       throw ArgumentError('Missing quiz $quizId');
+    }
+    // The type of the stored quiz, the client one must match.
+    var quizType = quiz.type.v;
+    if ((query.quizType.v == quizTypeGd) != quiz.isTypeGd) {
+      throw _invalidArgument('Invalid quizType for quiz $quizId');
     }
     // The question count of a player: a gd player gets this many questions
     // of the quiz, a tv one all of them.
@@ -170,7 +178,8 @@ class QuizzServerHandler implements FestenaoApiHandler {
       // Correct?
       if (correctAnswerId != null && correctAnswerId == answer.answerId.v) {
         score++;
-        elapsedMs += answer.elapsedMs.v ?? 0;
+        // A negative time counts as 0 (it would rank first on ties).
+        elapsedMs += max(answer.elapsedMs.v ?? 0, 0);
       }
     }
     if (quizType == quizTypeGd) {
@@ -188,7 +197,11 @@ class QuizzServerHandler implements FestenaoApiHandler {
     }
     String playerId;
     if (quizType == quizTypeGd) {
-      var sessionId = query.sessionId.v!;
+      // The session of the stored quiz, the client one must match.
+      var sessionId = quiz.sessionId.v ?? sessionIdMain;
+      if (query.sessionId.v != sessionId) {
+        throw _invalidArgument('Invalid sessionId for quiz $quizId');
+      }
       var quizPlayerCollection = databaseService.fsGdQuizPlayerCollection(
         sessionId,
       );
@@ -294,4 +307,23 @@ class QuizzServerHandler implements FestenaoApiHandler {
     }
     return ApiQuizzSendResultResult()..playerId.v = playerId;
   }
+
+  /// The id of [field] (null if not set), `invalid-argument` unless it is a
+  /// valid document id ([tkCmsIsValidDocumentId]).
+  String? _checkId(CvField<String> field) {
+    var value = field.v;
+    if (value != null && !tkCmsIsValidDocumentId(value)) {
+      throw _invalidArgument('Invalid ${field.name}');
+    }
+    return value;
+  }
+
+  /// An `invalid-argument` error, not to retry.
+  ApiException _invalidArgument(String message) =>
+      (ApiError()
+            // HttpsErrorCode.invalidArgument
+            ..code.v = 'invalid-argument'
+            ..message.v = message
+            ..noRetry.v = true)
+          .exception();
 }

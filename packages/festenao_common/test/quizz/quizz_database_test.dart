@@ -363,4 +363,55 @@ Future<void> main() async {
     expect(goodies.where((element) => element == 'g1').length, 2);
     expect(goodies.where((element) => element == 'g2').length, 3);
   });
+  test('playerWinRandomGoodie without goodie list', () async {
+    var sessionId = 'session_no_goodies';
+    await databaseService.firestore.cvSet(
+      databaseService.fsSessionGoodiesConfig(sessionId).cv()
+        ..winningChance.v = 1,
+    );
+    expect(
+      await databaseService.playerWinRandomGoodie(
+        sessionId: sessionId,
+        now: DateTime.utc(2024, 1, 4),
+      ),
+      isNull,
+    );
+  }, timeout: const Timeout(Duration(seconds: 30)));
+  test('an invalid player is never ranked', () async {
+    var firestore = databaseService.firestore;
+    var quizId = 'quiz_ranks_invalid';
+    Future<void> addPlayer(String playerId, int validity) =>
+        databaseService.quizSavePlayer(
+          quizId,
+          databaseService.fsQuizPlayer(quizId, playerId).cv()
+            ..username.v = playerId
+            ..validity.v = validity
+            ..score.v = 1
+            ..elapsedMs.v = 100,
+        );
+    await addPlayer('valid', quizPlayerValidityValid);
+    await addPlayer('unknown', quizPlayerValidityUnknown);
+    await addPlayer('invalid', quizPlayerValidityInvalid);
+    expect(await databaseService.computePlayersRanks(quizId: quizId), 3);
+    Future<int?> rank(String playerId) async =>
+        (await databaseService.fsQuizPlayer(quizId, playerId).get(firestore))
+            .rank
+            .v;
+    expect(await rank('valid'), 1);
+    expect(await rank('unknown'), 2);
+    expect(await rank('invalid'), isNull);
+    var podium = await databaseService.rankedPlayersStream(quizId).first;
+    expect(podium.map((player) => player.id), ['valid', 'unknown']);
+
+    // All ranked when not limited to the first 3
+    databaseService.computeOnlyFirst3 = false;
+    try {
+      await addPlayer('valid2', quizPlayerValidityValid);
+      await databaseService.computePlayersRanks(quizId: quizId);
+      expect(await rank('valid2'), 2);
+      expect(await rank('invalid'), isNull);
+    } finally {
+      databaseService.computeOnlyFirst3 = true;
+    }
+  }, timeout: const Timeout(Duration(seconds: 30)));
 }

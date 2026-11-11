@@ -2,6 +2,7 @@ import 'dart:async';
 import 'log_level.dart';
 import 'log_record.dart';
 import 'storage/log_storage.dart';
+import 'storage/log_storage_prv.dart';
 import 'transport/log_transport.dart';
 
 /// Main logging client interface for festenao_common.
@@ -31,8 +32,9 @@ class FestenaoLogger {
   final Duration flushInterval;
 
   Timer? _flushTimer;
-  bool _isFlushing = false;
   bool _closed = false;
+  Future<void>? _flushFuture;
+  final _pendingAppends = LogPendingOperations();
 
   /// Creates a new [FestenaoLogger] instance.
   FestenaoLogger({
@@ -72,7 +74,8 @@ class FestenaoLogger {
       sessionId: sessionId,
     );
 
-    unawaited(storage.appendRecord(record));
+    // Not awaited (an error stays uncaught as before), waited for by close.
+    unawaited(_pendingAppends.track(storage.appendRecord(record)));
   }
 
   /// Logs a message at [LogLevel.debug].
@@ -156,9 +159,26 @@ class FestenaoLogger {
   }
 
   /// Flushes unsent logs to transport and marks them as sent upon success.
+  ///
+  /// While a flush runs, a new call waits for it.
   Future<void> flush() async {
-    if (_closed || _isFlushing || transport == null) return;
-    _isFlushing = true;
+    if (_closed) return;
+    await _flush();
+  }
+
+  /// The running flush or a new one, even once closed (the last flush of
+  /// [close]).
+  Future<void> _flush() {
+    if (transport == null) {
+      return Future<void>.value();
+    }
+    // Kept only while pending.
+    return _flushFuture ??= _doFlush().whenComplete(() {
+      _flushFuture = null;
+    });
+  }
+
+  Future<void> _doFlush() async {
     try {
       final unsent = await storage.getUnsentRecords(limit: batchSize);
       if (unsent.isEmpty) return;
@@ -170,17 +190,20 @@ class FestenaoLogger {
       }
     } catch (_) {
       // Ignore background flush failures
-    } finally {
-      _isFlushing = false;
     }
   }
 
   /// Closes logger resources after flushing.
+  ///
+  /// Waits for the pending appends and the running flush, then flushes the
+  /// unsent records once more before closing the storage.
   Future<void> close() async {
     if (_closed) return;
     _closed = true;
     _flushTimer?.cancel();
-    await flush();
+    await _pendingAppends.wait();
+    await _flushFuture;
+    await _flush();
     await storage.close();
     await transport?.close();
   }

@@ -1023,21 +1023,35 @@ class ScoreComputerController {
 
   /// Waits for [noNewPlayerDuration] (5s) without a new player, or
   /// [noPlayerDuration] (30s) without any player.
+  ///
+  /// Returns once disposed. Fails with the last error after [maxErrorCount]
+  /// (30) errors in a row (offline).
   Future<void> waitForPlayerResults({
     required String quizId,
     Duration? noNewPlayerDuration,
     Duration? noPlayerDuration,
     int? sleepStepMs,
+    int? maxErrorCount,
   }) async {
     noNewPlayerDuration ??= const Duration(seconds: 5);
     noPlayerDuration ??= const Duration(seconds: 30);
     sleepStepMs ??= 1000;
+    maxErrorCount ??= 30;
     var sw = Stopwatch()..start();
     int? lastReadPlayerMs;
     int? lastReadPlayerCount;
+    var errorCount = 0;
+    Object? lastError;
+    StackTrace? lastStackTrace;
 
-    while (true) {
+    while (!disposed) {
+      if (errorCount >= maxErrorCount) {
+        Error.throwWithStackTrace(lastError!, lastStackTrace!);
+      }
       await sleep(min(sleepStepMs, noNewPlayerDuration.inMilliseconds));
+      if (disposed) {
+        break;
+      }
       try {
         var startNowMs = sw.elapsedMilliseconds;
         if (isDebug) {
@@ -1053,6 +1067,10 @@ class ScoreComputerController {
         );
         var playerCount = await databaseService.quizCountPlayers(quizId);
         var nowMs = sw.elapsedMilliseconds;
+        errorCount = 0;
+        if (disposed) {
+          break;
+        }
 
         if (lastReadPlayerMs == null || (lastReadPlayerCount != playerCount)) {
           lastReadPlayerCount = playerCount;
@@ -1076,7 +1094,10 @@ class ScoreComputerController {
             break;
           }
         }
-      } catch (e) {
+      } catch (e, st) {
+        errorCount++;
+        lastError = e;
+        lastStackTrace = st;
         // ignore: avoid_print
         print('error $e waiting for new players');
       }

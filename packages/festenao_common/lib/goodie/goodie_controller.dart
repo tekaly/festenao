@@ -113,10 +113,13 @@ class GoodieController {
                 )
                 .toList();
         }
-        var totalGoodieCount = state.goodies.v!.fold<int>(
-          0,
-          (previousValue, element) => previousValue + element.remainingCount,
-        );
+        // No goodie list in the config: nothing to win.
+        var totalGoodieCount = (state.goodies.v ?? const <CvGoodieState>[])
+            .fold<int>(
+              0,
+              (previousValue, element) =>
+                  previousValue + element.remainingCount,
+            );
 
         var index = (chance / winningChance) * totalGoodieCount;
 

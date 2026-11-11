@@ -44,7 +44,7 @@ FirebaseFunctionsAdminSdkRequestHandler festenaoCmsSiteDartHandler({
       ),
     );
   } catch (e) {
-    response = CmsResponse.text('Error: $e', statusCode: 500);
+    response = const CmsResponse.text('Internal error', statusCode: 500);
   }
   return Response(
     response.statusCode,

@@ -1,6 +1,7 @@
 **Location:** `festenao_common_flutter`
-(`lib/admin_explorer_flutter.dart`, implementation in `lib/src/admin/`), with
-the linux entry point in `festenaoprv_dashboard_app/lib/main_admin_sdk.dart`.
+(`lib/admin_explorer_flutter.dart`, implementation in `lib/src/admin/`),
+started from a linux entry point of the dashboard app
+(`lib/main_admin_sdk.dart`).
 
 **Goal**
 
@@ -89,7 +90,7 @@ it.
 flutter run -d linux -t lib/main_admin_sdk.dart
 ```
 
-`festenaoprv_dashboard_app/lib/main_admin_sdk.dart` opens the credentials
+The dashboard app's `lib/main_admin_sdk.dart` opens the credentials
 database, runs a small app of its own, and puts the `Admin` item on its start
 page. It initialises no firebase at startup — there is nothing to initialise
 until a service account is picked.
