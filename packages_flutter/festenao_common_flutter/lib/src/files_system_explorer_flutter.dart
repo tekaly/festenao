@@ -150,8 +150,53 @@ class FileSystemExplorerScreen extends StatefulWidget {
       _FileSystemExplorerScreenState();
 }
 
+/// Wraps a [FileSystemExplorerScreen] pushed by another one, saying how deep
+/// the first screen of that chain sits — the one the app pushed, maybe on a
+/// sub directory: the breadcrumb pops the screens of the chain only.
+class _FileSystemExplorerChain extends InheritedWidget {
+  /// The depth of the path of the first screen of the chain.
+  final int baseDepth;
+
+  const _FileSystemExplorerChain({
+    required this.baseDepth,
+    required super.child,
+  });
+
+  @override
+  bool updateShouldNotify(_FileSystemExplorerChain oldWidget) =>
+      baseDepth != oldWidget.baseDepth;
+}
+
 class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
   FileSystemExplorer get explorer => widget.explorer;
+
+  /// How deep the first screen of this chain sits: this one's depth when the
+  /// app pushed it.
+  int get _baseDepth =>
+      context
+          .getInheritedWidgetOfExactType<_FileSystemExplorerChain>()
+          ?.baseDepth ??
+      _depth;
+
+  /// The route of a screen of this chain listing [path], with the same
+  /// options, the chain starting at [baseDepth].
+  Route<String> _chainRoute(String path, {required int baseDepth}) =>
+      MaterialPageRoute<String>(
+        builder: (_) => _FileSystemExplorerChain(
+          baseDepth: baseDepth,
+          child: FileSystemExplorerScreen(
+            explorer: explorer,
+            path: path,
+            valueEditors: widget.valueEditors,
+            clipboard: widget.clipboard,
+            createActions: widget.createActions,
+            isPicker: widget.isPicker,
+            pickerTitle: widget.pickerTitle,
+            fileOpeners: widget.fileOpeners,
+            directoryActions: widget.directoryActions,
+          ),
+        ),
+      );
 
   String get path => widget.path;
 
@@ -193,16 +238,8 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
     if (entry.kind == FileSystemEntryKind.directory && widget.isPicker) {
       // Drilling further while picking: a pick made below is this screen's
       // own pick too, so it is popped straight back up.
-      var picked = await Navigator.of(context).push<String>(
-        MaterialPageRoute(
-          builder: (_) => FileSystemExplorerScreen(
-            explorer: explorer,
-            path: entry.path,
-            isPicker: true,
-            pickerTitle: widget.pickerTitle,
-          ),
-        ),
-      );
+      var picked = await Navigator.of(context)
+          .push<String>(_chainRoute(entry.path, baseDepth: _baseDepth));
       if (picked != null && mounted) {
         Navigator.of(context).pop(picked);
       }
@@ -217,16 +254,8 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
     }
     switch (entry.kind) {
       case FileSystemEntryKind.directory:
-        await goToFileSystemExplorerScreen(
-          context,
-          explorer: explorer,
-          path: entry.path,
-          valueEditors: widget.valueEditors,
-          clipboard: widget.clipboard,
-          createActions: widget.createActions,
-          fileOpeners: widget.fileOpeners,
-          directoryActions: widget.directoryActions,
-        );
+        await Navigator.of(context)
+            .push<String>(_chainRoute(entry.path, baseDepth: _baseDepth));
       case FileSystemEntryKind.json:
       case FileSystemEntryKind.yaml:
         await goToObjectEditorScreen(
@@ -628,12 +657,38 @@ class _FileSystemExplorerScreenState extends State<FileSystemExplorerScreen> {
 
   /// Goes back up to [target] segments deep.
   ///
-  /// Each directory was pushed on the one above it, so going up is popping
-  /// that many screens.
+  /// Each directory opened from the first screen of the chain was pushed on
+  /// the one above it, so going up is popping that many screens, never more:
+  /// the routes below the first screen are the app's. A [target] above the
+  /// first screen (opened on a sub directory) is pushed on it instead.
   void _goUp(int target) {
     var navigator = Navigator.of(context);
-    for (var pops = _depth - target; pops > 0 && navigator.canPop(); pops--) {
+    var base = _baseDepth;
+    Route<String>? above;
+    if (target < base) {
+      var parts = path.split('/').where((part) => part.isNotEmpty);
+      above = _chainRoute(parts.take(target).join('/'), baseDepth: target);
+    }
+    for (
+      var pops = _depth - (target > base ? target : base);
+      pops > 0 && navigator.canPop();
+      pops--
+    ) {
       navigator.pop();
+    }
+    if (above != null) {
+      _pushAbove(navigator, above);
+    }
+  }
+
+  /// Pushes [route] on the first screen of the chain; a directory picked
+  /// there is that screen's pick.
+  Future<void> _pushAbove(NavigatorState navigator, Route<String> route) async {
+    // This screen may be gone when the pick comes back.
+    var isPicker = widget.isPicker;
+    var picked = await navigator.push<String>(route);
+    if (picked != null && isPicker && navigator.mounted) {
+      navigator.pop(picked);
     }
   }
 

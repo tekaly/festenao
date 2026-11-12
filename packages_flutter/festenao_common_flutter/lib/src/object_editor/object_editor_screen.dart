@@ -106,6 +106,14 @@ class _ObjectEditorScreenState extends State<ObjectEditorScreen> {
   }
 
   Future<void> _save() async {
+    // A value still being typed is applied when its field loses the focus,
+    // which a tap on the save button does not do on a touch screen.
+    if (FocusManager.instance.primaryFocus case var focus?) {
+      focus.unfocus();
+      // The focus change, and the field applying its value, happen in a
+      // microtask.
+      await Future<void>.microtask(() {});
+    }
     try {
       await _sourceEditor.save();
       _snack('Saved ${source.title}');
@@ -181,6 +189,9 @@ class _ObjectEditorScreenState extends State<ObjectEditorScreen> {
   Widget build(BuildContext context) => FutureBuilder<ObjectEditor>(
     future: _loading,
     builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return _buildError(context, snapshot.error);
+      }
       var editor = snapshot.data;
       if (editor == null) {
         return _buildScaffold(context, null);
@@ -190,6 +201,44 @@ class _ObjectEditorScreenState extends State<ObjectEditorScreen> {
         builder: (context, _) => _buildScaffold(context, editor),
       );
     },
+  );
+
+  /// What a source that could not be read shows: why, a way to try again,
+  /// and back.
+  Widget _buildError(BuildContext context, Object? error) => ExplorerScaffold(
+    title: widget.title ?? source.title,
+    isReadOnly: source.isReadOnly,
+    statusBar: _statusBar(null),
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('$error', textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: [
+                FilledButton.tonalIcon(
+                  onPressed: _reload,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+                if (Navigator.of(context).canPop())
+                  TextButton.icon(
+                    onPressed: () => Navigator.of(context).maybePop(),
+                    icon: const Icon(Icons.arrow_back),
+                    label: const Text('Back'),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
   );
 
   Widget _buildScaffold(BuildContext context, ObjectEditor? editor) =>

@@ -52,8 +52,8 @@ explorer and a playground to generate traffic.
   explorer (`FestenaoLogViewer(storage: logger.storage)`) and the
   playground (`FestenaoLogPlayground(logger:)`); with `logger` null it uses
   `globalFestenaoLogger`, a lazily created memory logger named
-  `festenao.app` (fine for a demo, give your own logger in a real app so
-  the screen shows the app's records).
+  `festenao.app` keeping every level from debug (fine for a demo, give your
+  own logger in a real app so the screen shows the app's records).
 * `FestenaoLogViewer(storage:)` (or its `FestenaoLogViewerScreen(storage:,
   title:)` scaffold): search text, level chips, sent/unsent chips, compact or
   expanded rows, a detail dialog with copy, a segment sheet (rotate, purge,
@@ -79,7 +79,7 @@ explorer and a playground to generate traffic.
 
 ```dart
 import 'package:festenao_common_flutter/log/log.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// One logger for the app (swap the storage for SdbLogStorage/FsLogStorage
 /// in production).
@@ -134,7 +134,7 @@ void quickTrace(String message) => globalFestenaoLogger.debug(message);
 
 ```dart
 import 'package:festenao_common_flutter/log/log.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Widget errorsScreen(LogStorage storage) =>
     FestenaoLogViewerScreen(storage: storage, title: 'Errors');

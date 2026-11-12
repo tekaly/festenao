@@ -86,11 +86,17 @@ class _ObjectStoragePickerFlowScreenState
     });
     try {
       var list = await widget.sdb.getLatestFolderIds();
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _history = list;
         _isLoadingHistory = false;
       });
     } catch (_) {
+      if (!mounted) {
+        return;
+      }
       setState(() {
         _isLoadingHistory = false;
       });

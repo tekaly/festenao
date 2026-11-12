@@ -256,6 +256,8 @@ class _AppUsersScreenState extends State<AppUsersScreen> {
       var result = await appUsers.purge(
         ApiAppUserPurgeQuery()
           ..userIds.v = userIds
+          // All of them: without it the purge takes its default 200.
+          ..limit.v = userIds.length
           ..anonymousOnly.v = query.anonymousOnly.v
           ..dryRun.v = false,
       );

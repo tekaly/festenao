@@ -28,10 +28,14 @@ turned into in memory `App*` objects the screens read synchronously. No
 firebase auth, no api: the app only knows the project id, the bucket and the
 storage root path of the project.
 
+**Legacy**: this compat layer is the sembast `FestenaoDb` of the older user
+apps, kept for them. New code reads its data through sdb (festenao_common
+`festenao_sdb.dart`, `FestenaoSyncedSdb`), not through this layer.
+
 ```dart
 import 'package:festenao_base_app/db/festenao_db_compat.dart';
 import 'package:festenao_base_app/web_splash/web_splash.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<void> main() async {
   webSplashReady();
@@ -55,9 +59,9 @@ Future<void> main() async {
 
 ### Boot
 
-* Dependency (git, not on pub.dev). The compat data layer imports
-  `tekartik_app_flutter_sembast` (`getDatabaseFactory`) without depending on
-  it, so the app lists it too:
+* Dependency (git, not on pub.dev); the compat data layer opens its
+  database with `tekartik_app_flutter_sembast` (`getDatabaseFactory`), which
+  the app lists too when it opens a `FestenaoDb` itself:
   ```yaml
   dependencies:
     festenao_base_app:
@@ -156,7 +160,7 @@ Future<void> main() async {
 ```dart
 import 'package:festenao_base_app/db/festenao_db_compat.dart';
 import 'package:festenao_base_app/view/image_widget_compat.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class EventsScreen extends StatelessWidget {
   const EventsScreen({super.key});
@@ -234,7 +238,7 @@ AppArticle? articleFromLink(AppArticleKind kind, String id) =>
 import 'package:festenao_base_app/db/festenao_db_compat.dart';
 import 'package:festenao_base_app/view/parent_action_scaffold.dart';
 import 'package:festenao_common/data/festenao_db.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The admin app hands its own [FestenaoDb]; the asset sync is skipped.
 Future<void> runOnAdminDb(FestenaoDb db, VoidCallback backToAdmin) async {

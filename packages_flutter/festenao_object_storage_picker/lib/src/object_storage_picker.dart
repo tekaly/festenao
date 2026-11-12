@@ -49,7 +49,16 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
   bool _isLoading = false;
   String? _errorMessage;
   List<ObjectStorageMeta> _items = [];
-  final Set<ObjectStorageMeta> _selectedItems = {};
+
+  /// The selected files by path: a reload lists new instances of the same
+  /// files (no meta has an `==`).
+  final Map<String, ObjectStorageMeta> _selectedItems = {};
+
+  /// The listing on screen, an older one answering later is dropped.
+  var _loadGeneration = 0;
+
+  /// The most pages listed for a folder (Drive pages by 100).
+  static const _maxPages = 100;
 
   @override
   void initState() {
@@ -60,19 +69,37 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
   }
 
   Future<void> _loadItems() async {
+    var generation = ++_loadGeneration;
+    var path = _currentPath;
     setState(() {
       _isLoading = true;
       _errorMessage = null;
       _items = [];
     });
+    bool current() => mounted && generation == _loadGeneration;
 
     try {
-      var response = await widget.storage.list(_currentPath);
+      var items = <ObjectStorageMeta>[];
+      String? pageToken;
+      for (var page = 0; page < _maxPages; page++) {
+        var response = await widget.storage.list(path, pageToken: pageToken);
+        if (!current()) {
+          return;
+        }
+        items.addAll(response.items);
+        pageToken = response.nextPageToken;
+        if (pageToken == null || pageToken.isEmpty) {
+          break;
+        }
+      }
       setState(() {
-        _items = response.items;
+        _items = items;
         _isLoading = false;
       });
     } catch (e) {
+      if (!current()) {
+        return;
+      }
       setState(() {
         _errorMessage = 'Failed to load files: $e';
         _isLoading = false;
@@ -132,13 +159,11 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
 
   void _toggleSelection(ObjectStorageMeta item) {
     setState(() {
-      if (_selectedItems.contains(item)) {
-        _selectedItems.remove(item);
-      } else {
+      if (_selectedItems.remove(item.path) == null) {
         if (!widget.allowMultiSelect) {
           _selectedItems.clear();
         }
-        _selectedItems.add(item);
+        _selectedItems[item.path] = item;
       }
     });
   }
@@ -278,7 +303,7 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
                       const Divider(height: 1),
                   itemBuilder: (context, index) {
                     var item = displayItems[index];
-                    var isSelected = _selectedItems.contains(item);
+                    var isSelected = _selectedItems.containsKey(item.path);
 
                     if (item.isLocation) {
                       return ListTile(
@@ -381,7 +406,7 @@ class _ObjectStoragePickerState extends State<ObjectStoragePicker> {
                   ElevatedButton(
                     onPressed: _selectedItems.isEmpty
                         ? null
-                        : () => widget.onSelect(_selectedItems.toList()),
+                        : () => widget.onSelect(_selectedItems.values.toList()),
                     child: const Text('Select'),
                   ),
                 ],

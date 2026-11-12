@@ -70,7 +70,11 @@ player screens are assembled from.
   `rankedPlayersStream`) and shows `QuizzPodiumWidget(players:, nameColor:,
   colors:)`, the 2nd / 1st / 3rd columns (`QuizzPodiumColumnWidget`) sized
   from the available height; `quizzFillTo3Players(players, quizId,
-  avatars:)` pads to three with placeholder players.
+  avatars:)` pads to three with placeholder players. These widgets (and the
+  validation one) open their firestore streams once, then again only for
+  another database or quiz id: a periodic parent rebuilding them every
+  100 ms opens no new listener; the podium follows the ranks when they are
+  computed again.
 * Validation: `QuizzValidationWidget(database:, timeService:, quiz:, onEnd:,
   advancedMode:)` lists the players best first with a validate toggle each
   (`QuizzToValidatePlayerWidget`, writes `validatePlayer`) and a "validate
@@ -121,7 +125,7 @@ Future<QuizPlayerController> openPlayerController({
 
 ```dart
 import 'package:festenao_common_flutter/festenao_quizz_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class QuizzAdminScreen extends StatelessWidget {
   final QuizPlayerController controller;
@@ -162,7 +166,7 @@ class QuizzAdminScreen extends StatelessWidget {
 
 ```dart
 import 'package:festenao_common_flutter/festenao_quizz_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class QuizzPlayerQuestionView extends StatelessWidget {
   final QuizPlayerController controller;
@@ -216,7 +220,7 @@ class QuizzPlayerQuestionView extends StatelessWidget {
 
 ```dart
 import 'package:festenao_common_flutter/festenao_quizz_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class QuizzTvEndView extends StatefulWidget {
   final QuizzFirestoreDatabase database;
@@ -263,7 +267,7 @@ class _QuizzTvEndViewState extends State<QuizzTvEndView> {
 
 ```dart
 import 'package:festenao_common_flutter/festenao_quizz_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A 15 s countdown starting now, with its bar.
 Widget stepCountdown(QuizzTimeService timeService) {

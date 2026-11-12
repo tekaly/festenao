@@ -180,9 +180,31 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
   FlutterObjectClipboard get _clipboard =>
       widget.clipboard ?? globalFlutterObjectClipboard;
 
-  Future<ObjectCollectionIds> _list() async => _showHidden
-      ? await collection.listIdsWithHidden(limit: widget.limit)
-      : ObjectCollectionIds(await collection.listIds(limit: widget.limit));
+  /// True when the collection holds more than [ObjectCollectionScreen.limit]
+  /// records, only the first ones being listed.
+  var _isCut = false;
+
+  /// Lists one more than the limit, to tell a cut list from a complete one.
+  Future<ObjectCollectionIds> _list() async {
+    var limit = widget.limit;
+    var listed = _showHidden
+        ? await collection.listIdsWithHidden(limit: limit + 1)
+        : ObjectCollectionIds(await collection.listIds(limit: limit + 1));
+    if (listed.ids.length <= limit) {
+      _isCut = false;
+      return listed;
+    }
+    _isCut = true;
+    var ids = listed.ids.sublist(0, limit);
+    var kept = ids.toSet();
+    return ObjectCollectionIds(
+      ids,
+      hiddenIds: {
+        for (var id in listed.hiddenIds)
+          if (kept.contains(id)) id,
+      },
+    );
+  }
 
   void _reload() => setState(() {
     _loading = _list();
@@ -348,7 +370,9 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
         message: collection.name,
         trailing: [
           if (snapshot.data case var listed?) ...[
-            ExplorerChip(label: '${listed.ids.length} records'),
+            ExplorerChip(
+              label: '${listed.ids.length}${_isCut ? '+' : ''} records',
+            ),
             if (_showHidden)
               ExplorerChip(label: '${listed.hiddenIds.length} hidden'),
           ],
@@ -370,12 +394,21 @@ class _ObjectCollectionScreenState extends State<ObjectCollectionScreen> {
           return const Center(child: Text('No object'));
         }
         return ListView.builder(
-          itemCount: ids.length + 1,
+          // One more row saying the list was cut, when it was.
+          itemCount: ids.length + 1 + (_isCut ? 1 : 0),
           itemBuilder: (context, index) {
             if (index == 0) {
               return ExplorerSectionHeader(
                 label: 'Records',
-                trailing: ExplorerChip(label: '${ids.length}'),
+                trailing: ExplorerChip(
+                  label: '${ids.length}${_isCut ? '+' : ''}',
+                ),
+              );
+            }
+            if (index > ids.length) {
+              return ListTile(
+                leading: const Icon(Icons.more_horiz),
+                title: Text('Only the first ${ids.length} records are listed'),
               );
             }
             var id = ids[index - 1];

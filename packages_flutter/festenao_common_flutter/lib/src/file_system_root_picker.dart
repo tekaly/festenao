@@ -52,6 +52,11 @@ Future<Directory?> _tryDirectory(Future<Directory?> Function() resolve) async {
   }
 }
 
+/// The file system of the Memory root, one for the whole app (created on
+/// first use): what was put there is still there when the picker is
+/// reloaded or opened again.
+final _scratchFileSystem = newFileSystemMemory();
+
 Directory? _wrap(FileSystem fileSystem, String? path) =>
     path == null ? null : fileSystem.directory(path);
 
@@ -120,7 +125,7 @@ List<FileSystemRoot> festenaoFileSystemRoots({
     FileSystemRoot(
       name: 'Memory',
       description: 'A scratch file system, gone when the app stops',
-      resolve: () async => newFileSystemMemory().directory('/'),
+      resolve: () async => _scratchFileSystem.directory('/'),
     ),
   ];
 }

@@ -98,7 +98,7 @@ void main() {
 
 ```dart
 import 'package:festenao_common_flutter/share_link.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<void> sharePlaylist(BuildContext context, String playlistId) {
   var viewUrl = appShareLink(

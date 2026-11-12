@@ -153,7 +153,7 @@ preview, preview, and a site browser showing the html the function serves.
 
 ```dart
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 Future<CmsPageSdb> openCmsDb(SdbFactory factory) async {
@@ -191,7 +191,7 @@ class CmsApp extends StatelessWidget {
 
 ```dart
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class CmsHost extends StatelessWidget {
   final CmsPageSdb sdb;
@@ -243,7 +243,7 @@ class CmsHost extends StatelessWidget {
 
 ```dart
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 final siteRenderer = CmsRenderer(
   site: CmsSite(
@@ -293,7 +293,7 @@ Future<void> browseSite(
 
 ```dart
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The site as the browser draws it, in a session closed with the screen.
 Future<void> browseInBrowser(
@@ -321,7 +321,7 @@ Future<void> browseInBrowser(
 
 ```dart
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The events of the content database, offered in the "Presents" picker.
 List<CmsLinkableItem> eventItems(Map<String, String> eventNamesById) => [
@@ -376,7 +376,7 @@ Future<void> seedPages(CmsPageSdb sdb) async {
 
 ```dart
 import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Pump until [finder] matches: a real tick for the database, then a frame.

@@ -46,8 +46,13 @@ services instead of the `Xxx.instance` globals.
   `fileSystemDefault`: io or web), `festenaoSdbFactoryProvider`
   (`SdbFactory`, `sdbFactoryWeb` on the web, `sdbFactorySqflite` elsewhere,
   sandboxed under `appFlavorContext.appFlavorContext.uniqueAppName`, so it
-  needs the flavor override), `festenaoFirebaseAppProvider`
-  (`FirebaseApp.instance`, the last initialized app).
+  needs the flavor override; sqflite needs the Flutter plugin: a Dart VM
+  program or a desktop app without the ffi setup overrides it with
+  `sdbFactoryIo` or `sdbFactoryFromSqflite(databaseFactoryFfi)`),
+  `festenaoFirebaseAppProvider` (`FirebaseApp.instance`, the last
+  initialized app). The generated providers are auto dispose: the projects
+  manager closes when nothing listens to it, a new one opens on the next
+  read.
 * Providers the app must override, reading them otherwise throws a
   `ProviderException` wrapping `UnimplementedError`:
   `festenaoAppFlavorContextProvider` (`FestenaoAppFlavorContext(packageName:,

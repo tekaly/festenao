@@ -322,6 +322,23 @@ class _CmsPageEditScreenState extends ConsumerState<CmsPageEditScreen>
     );
   }
 
+  /// A new kind: an item id of the previous kind does not name an item of
+  /// this one (the picker would hide it, the save would keep it).
+  void _setItemKind(String? value) {
+    var kind = value ?? cmsItemKindPage;
+    setState(() {
+      var itemId = _itemIdCtrl.text;
+      if (kind != _itemKind &&
+          itemId.isNotEmpty &&
+          !widget.linkableItems.any(
+            (item) => item.kind == kind && item.id == itemId,
+          )) {
+        _itemIdCtrl.text = '';
+      }
+      _itemKind = kind;
+    });
+  }
+
   Widget _buildForm(BuildContext context, {required bool readOnly}) {
     var kinds = cmsItemKinds;
     var linkable = widget.linkableItems
@@ -439,10 +456,7 @@ class _CmsPageEditScreenState extends ConsumerState<CmsPageEditScreen>
               for (var kind in kinds)
                 DropdownMenuItem(value: kind, child: Text(kind)),
             ],
-            onChanged: readOnly
-                ? null
-                : (value) =>
-                      setState(() => _itemKind = value ?? cmsItemKindPage),
+            onChanged: readOnly ? null : _setItemKind,
           ),
           if (_itemKind != cmsItemKindPage) ...[
             const SizedBox(height: 12),

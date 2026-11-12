@@ -4,6 +4,54 @@ The editor side of the festenao mini CMS (`festenao_common/festenao_cms.dart`):
 WordPress like pages an admin writes in the app, rendered to static SEO
 friendly html by a cloud function (`CmsRenderer`).
 
+## Getting started
+
+Not on pub.dev, a git dependency; the host app needs `flutter_riverpod` (a
+`ProviderScope` at its root):
+
+```yaml
+dependencies:
+  festenao_cms_flutter:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_cms_flutter
+  flutter_riverpod: ">=3.0.0"
+```
+
+A page list on a database holding the page store (an in memory one here):
+
+```dart
+import 'package:festenao_cms_flutter/festenao_cms_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  var db = await newSdbFactoryMemory().openDatabase(
+    'content.db',
+    options: SdbOpenDatabaseOptions(
+      version: 1,
+      // The app's own stores go next to it.
+      schema: SdbDatabaseSchema(stores: [cmsPageStoreSchema]),
+    ),
+  );
+  var pages = CmsPageSdb(db: db);
+  runApp(
+    ProviderScope(
+      child: MaterialApp(
+        home: cmsPageSdbScope(sdb: pages, child: const CmsPagesScreen()),
+      ),
+    ),
+  );
+}
+```
+
+Platforms: every Flutter platform; the browser rendering of the site
+(`CmsSiteWebViewScreen`, `cmsSiteOpenInNewTab`) is web only, elsewhere it
+says so and the Flutter rendering stays available.
+
+## The screens
+
 - `CmsPagesScreen` — the page list (published toggle, create, open).
 - `CmsPageEditScreen` — the page form: title, slug, summary, markdown or html
   body with a live preview, order, item link (location, activity, event,
@@ -56,8 +104,13 @@ app, no popup, no form); a small script added to the page posts the taps on
 its links, which the app follows within the site (the others open in a new
 tab).
 
+Tests:
+
 ```sh
-flutter test                              # the screens (vm)
+flutter test                                  # the screens (vm)
 flutter test --platform chrome test/browser   # the browser rendering
-``` The
-`festenao_dashboard_base_app/example/demo` app has a seeded site to try it on.
+```
+
+The `festenao_dashboard_base_app/example/demo` app has a seeded site to try
+it on. The package skill `skills/festenao-cms-flutter-screens/SKILL.md` has
+the router setup, the editor options and the tests.

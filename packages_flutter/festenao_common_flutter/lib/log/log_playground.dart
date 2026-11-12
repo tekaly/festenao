@@ -119,6 +119,7 @@ class _FestenaoLogPlaygroundState extends State<FestenaoLogPlayground> {
       _stressProgress = 0.0;
     });
 
+    final startCount = _emittedCount;
     final random = Random();
     final levels = [
       LogLevel.debug,
@@ -148,19 +149,20 @@ class _FestenaoLogPlaygroundState extends State<FestenaoLogPlayground> {
       if (i % 25 == 0 || i == count - 1) {
         setState(() {
           _stressProgress = (i + 1) / count;
-          _emittedCount += 25;
+          _emittedCount = startCount + i + 1;
         });
         await Future<void>.delayed(const Duration(milliseconds: 10));
+        // Left (another tab, another screen): stop there.
+        if (!mounted) {
+          return;
+        }
       }
     }
 
     setState(() => _isStressTesting = false);
-
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Completed stress test: emitted $count logs!')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Completed stress test: emitted $count logs!')),
+    );
   }
 
   @override

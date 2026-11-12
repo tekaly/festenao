@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 ///
 /// Scoped: the host wraps the cms screens in [cmsPageSdbScope] with the
 /// `CmsPageSdb` of the content database at hand (a calendar, a project...).
+/// The scope can sit below the app `ProviderScope`: the page providers
+/// declare their dependency on it.
 /// Reading it outside such a scope throws, on purpose.
 final cmsPageSdbProvider = Provider<CmsPageSdb>(
   (ref) => throw StateError(
@@ -13,16 +15,20 @@ final cmsPageSdbProvider = Provider<CmsPageSdb>(
     'Wrap the cms screens in cmsPageSdbScope(sdb: ..., child: ...).',
   ),
   name: 'cmsPageSdb',
+  // Scoped: overridden below the app ProviderScope by cmsPageSdbScope.
+  dependencies: const [],
 );
 
 /// Every page of the database, by order then title.
 final cmsPagesProvider = StreamProvider.autoDispose<List<SdbCmsPage>>(
   (ref) => ref.watch(cmsPageSdbProvider).onPages(),
+  dependencies: [cmsPageSdbProvider],
 );
 
 /// One page, null when unknown.
 final cmsPageProvider = StreamProvider.autoDispose.family<SdbCmsPage?, String>(
   (ref, pageId) => ref.watch(cmsPageSdbProvider).onPage(pageId),
+  dependencies: [cmsPageSdbProvider],
 );
 
 /// Provide [sdb] to the cms screens below [child].

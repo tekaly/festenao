@@ -89,11 +89,11 @@ class FirestoreExplorerScreen extends StatefulWidget {
 class _FirestoreExplorerScreenState extends State<FirestoreExplorerScreen> {
   Firestore get firestore => widget.firestore;
 
-  /// The paths added by hand, for a backend that cannot list its collections.
+  /// The paths added by hand: the collections of a backend that cannot
+  /// list them, or ones a listing does not show (a sub collection).
   final _addedPaths = <String>[];
 
-  late Future<List<ObjectCollection>> _loading = _repository()
-      .listCollections();
+  late Future<List<ObjectCollection>> _loading = _list();
 
   /// True when the collections have to be named rather than listed.
   bool get _mustName =>
@@ -110,8 +110,33 @@ class _FirestoreExplorerScreenState extends State<FirestoreExplorerScreen> {
     isReadOnly: widget.isReadOnly,
   );
 
+  /// The collections listed (or named), then the paths added by hand that
+  /// the listing did not show.
+  Future<List<ObjectCollection>> _list() async {
+    var collections = await _repository().listCollections();
+    if (_mustName || _addedPaths.isEmpty) {
+      return collections;
+    }
+    var listed = {for (var collection in collections) collection.name};
+    var added = [
+      for (var path in _addedPaths)
+        if (!listed.contains(path)) path,
+    ];
+    if (added.isEmpty) {
+      return collections;
+    }
+    return [
+      ...collections,
+      ...await FirestoreObjectRepository(
+        firestore,
+        collectionPaths: added,
+        isReadOnly: widget.isReadOnly,
+      ).listCollections(),
+    ];
+  }
+
   void _reload() => setState(() {
-    _loading = _repository().listCollections();
+    _loading = _list();
   });
 
   void _snack(String message) {

@@ -12,6 +12,9 @@ FestenaoLogger get globalFestenaoLogger {
   _globalFestenaoLogger ??= FestenaoLogger(
     storage: MemoryLogStorage(),
     loggerName: 'festenao.app',
+    // Every level: the playground emits debug logs and the viewer filters
+    // on them.
+    minLevel: LogLevel.debug,
   );
   return _globalFestenaoLogger!;
 }

@@ -94,23 +94,27 @@ for a folder url/id and remembers the last 100 folders in an sdb database.
   closes the database. Create **one** instance for the app (keep it in a
   provider/singleton) — do not build a new one per screen push, and `close()`
   it only when you are done with it.
-* Known limits, do not work around them in the widget: the picker lists one
-  page (`ObjectStorageListResponse.nextPageToken` is ignored, pass a storage
-  that returns everything or a big `maxResults`), it is read-only (no upload,
-  delete, rename or folder creation), and it reloads the folder on every
-  navigation with no cache — wrap the storage in `ObjectStorageSdbCached` if
-  that hurts.
+* Listing: the picker reads every page of a folder
+  (`ObjectStorageListResponse.nextPageToken`, at most 100 pages: Drive pages
+  by 100 files), drops a listing that answers after the user moved to
+  another folder, and keeps the selection by `path` across reloads and
+  folders. Known limits, do not work around them in the widget: it is
+  read-only (no upload, delete, rename or folder creation), and it reloads
+  the folder on every navigation with no cache. `ObjectStorageSdbCached`
+  only caches a path based storage (fs, sdb, firebase): over Google Drive
+  (folder ids, not paths) its second listing of a folder is empty.
 * Anti-patterns: calling `Navigator.pop` yourself from the `onSelect` of
   `ObjectStoragePickerScreen` (it already pops); passing a Drive **url** as
   `parentPath` for `ObjectStorageGdrive` (pass the id, or let the flow screen
   parse it); assuming `onSelect` fires once in single-select mode (it fires on
-  every tap); comparing selections by `path` when the widget's own set uses
-  identity of `ObjectStorageMeta` instances.
+  every tap).
 * Testing: `ObjectStorageSdb.inMemory()` gives a real storage backed by a
   memory sdb and a memory file system — `upload(parentPath, name: ..., data:
   ..., mimeType: ...)` a few files, then `tester.pumpWidget` the picker inside
-  a `MaterialApp`/`Scaffold` and `await tester.pumpAndSettle()` before tapping
-  a tile.
+  a `MaterialApp`/`Scaffold`. The storage does real io: upload, close and
+  give it real ticks with `tester.runAsync` and pump frames of fake time
+  until the tile shows (a `pumpAndSettle` waits for ever on the loading
+  spinner).
 
 ## Examples
 
@@ -119,7 +123,7 @@ for a folder url/id and remembers the last 100 folders in an sdb database.
 ```dart
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_object_storage_picker/festenao_object_storage_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Browse [storage] from [parentPath] and return the single picked image,
 /// null when the user backed out.
@@ -169,7 +173,7 @@ Future<List<ObjectStorageMeta>> pickDocuments(
 ```dart
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_object_storage_picker/festenao_object_storage_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// The picker is a Column: it must be given a bounded height, here by the
 /// Scaffold body and the Expanded.
@@ -233,7 +237,7 @@ class _AttachmentsScreenState extends State<AttachmentsScreen> {
 ```dart
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_object_storage_picker/festenao_object_storage_picker.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// One instance for the app: the sdb is opened lazily on first use.
 /// In a real app keep it in a provider/singleton instead of a global.
@@ -272,18 +276,36 @@ import 'dart:convert';
 
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_object_storage_picker/festenao_object_storage_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+
+/// Gives the storage a real tick (`runAsync`: its io runs on the real event
+/// loop) and a frame of fake time (its own timers, started from the widget,
+/// run on the fake clock), until [finder] shows.
+Future<void> pumpUntilFound(WidgetTester tester, Finder finder) async {
+  for (var i = 0; i < 100; i++) {
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 10)),
+    );
+    await tester.pump(const Duration(milliseconds: 20));
+    if (finder.evaluate().isNotEmpty) {
+      return;
+    }
+  }
+  fail('$finder not found');
+}
 
 void main() {
   testWidgets('picks a file', (tester) async {
     // Real storage, memory sdb + memory file system.
     var storage = ObjectStorageSdb.inMemory();
-    await storage.upload(
-      '/docs',
-      name: 'note.txt',
-      data: Uint8List.fromList(utf8.encode('hello')),
-      mimeType: 'text/plain',
+    await tester.runAsync(
+      () => storage.upload(
+        '/docs',
+        name: 'note.txt',
+        data: Uint8List.fromList(utf8.encode('hello')),
+        mimeType: 'text/plain',
+      ),
     );
 
     ObjectStorageMeta? picked;
@@ -300,14 +322,15 @@ void main() {
         ),
       ),
     );
-    // The first frame is the loading spinner.
-    await tester.pumpAndSettle();
+    // The first frames show the loading spinner (never use pumpAndSettle
+    // here: the spinner animates while the listing runs on the real loop).
+    await pumpUntilFound(tester, find.text('note.txt'));
 
     await tester.tap(find.text('note.txt'));
     await tester.pump();
-    expect(picked!.path, '/docs/note.txt');
+    expect(picked!.name, 'note.txt');
 
-    await storage.close();
-  });
+    await tester.runAsync(() => storage.close());
+  }, timeout: const Timeout(Duration(seconds: 60)));
 }
 ```

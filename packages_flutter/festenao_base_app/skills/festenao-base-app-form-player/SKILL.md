@@ -28,7 +28,7 @@ reached from a `FormScreenController` holding the player.
 import 'package:festenao_base_app/form/src/screen/form_screen_controller.dart';
 import 'package:festenao_common/form/tk_form.dart';
 import 'package:festenao_common/form/tk_form_test_helper.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Future<void> playOneQuestion(BuildContext context) async {
   var player = TestFormPlayer(
@@ -129,7 +129,7 @@ Future<void> playOneQuestion(BuildContext context) async {
 ```dart
 import 'package:festenao_base_app/form/src/screen/form_screen_controller.dart';
 import 'package:festenao_common/form/tk_form.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Keeps the answers by question id (the base keeps them by index in
 /// `answers`), and asks q2 only when q1 was answered 'yes'.
@@ -186,7 +186,7 @@ Future<void> startFeedback(BuildContext context) => FormScreenControllerBase(
 import 'package:festenao_base_app/form/src/screen/form_bloc.dart';
 import 'package:festenao_base_app/form/src/screen/form_screen_controller.dart';
 import 'package:festenao_base_app/form/src/view/app_scaffold.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tkcms_user_app/tkcms_audi.dart';
 
 class MyFormController extends FormScreenControllerBase {
@@ -247,3 +247,8 @@ void installDebugJump(TkFormPlayer player) {
   pop until the route below the start screen instead.
 * Reading `choiceId` on the answer of a `multi: true` choice question: the
   selection is in `choiceIds`.
+* Expecting the shipped `FormEndScreen` to store or send the answers: its
+  validate button only shows the thank you screen. Read them from the
+  player (`player.getAnswer(index)`), or from `gAppBloc.surveyAnswers` in
+  survey mode (one `CvSurveyAnswer` per question id), in your own end
+  screen.

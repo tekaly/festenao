@@ -13,6 +13,31 @@ void main() {
     expect(formatter.format('a' * 50), 'a' * festenaoSlugMaxLength);
   });
 
+  test('FestenaoSlugInputFormatter typed key by key', () {
+    const formatter = FestenaoSlugInputFormatter();
+    String type(String text) {
+      var value = TextEditingValue.empty;
+      for (var char in text.split('')) {
+        var typed = value.text + char;
+        value = formatter.formatEditUpdate(
+          value,
+          TextEditingValue(
+            text: typed,
+            selection: TextSelection.collapsed(offset: typed.length),
+          ),
+        );
+      }
+      return value.text;
+    }
+
+    expect(type('Été 2025'), 'ete-2025');
+    // Letters mapped outside Latin-1 are no separator.
+    expect(type('Cœur'), 'coeur');
+    expect(type('SŒUR'), 'soeur');
+    expect(type('Ÿes'), 'yes');
+    expect(type('a b'), 'a-b');
+  }, timeout: const Timeout(Duration(seconds: 30)));
+
   testWidgets('FestenaoSlugField', (tester) async {
     var controller = TextEditingController();
     var statuses = <FestenaoSlugStatus>[];

@@ -3,7 +3,8 @@ name: festenao-dartff-functions
 description: >-
   Use when working on the festenao Dart cloud functions project
   festenao_dartff (admin sdk runtime, dart3 firebase functions): FfApp (the
-  FestenaoServerApp of the functions), festenaoAmpCommand,
+  FestenaoServerApp of the functions, its firestoreDocApi and who may
+  create an app entity, that is an app admin), festenaoAmpCommand,
   festenaoAmpDartV2Handler, declareRunner, the cms site functions
   (functionsCmsDartHandler for cms / cmsdev, festenaoCmsDemoDartHandler and
   declareCmsDemoRunner for cmsdemo, declareCmsSiteRunner, the /cms/ hosting
@@ -34,7 +35,8 @@ four sibling rules projects.
   auth on 9099), `firestore.rules`, `firestore.indexes.json`, `tool/`
   (`start_festenao_emulator.dart`, `compile_dart_function.dart`),
   `test/emulator_test.dart`, `test/cms_emulator_test.dart`,
-  `test/cms_function_test.dart`, and the rules contexts
+  `test/cms_function_test.dart`, `test/ff_app_test.dart`,
+  `example/main.dart` (the functions in memory), and the rules contexts
   `festenao_firebase_api_context.dart/` (api + rules, no client side project
   creation), `festenao_firebase_standalone_context.dart/` (api + rules with
   standalone creation, public access and invites by code),
@@ -56,14 +58,24 @@ four sibling rules projects.
   `package:tkcms_common/server/server_admin_sdk.dart`
   (`functionsHttpDartV2Handler`, `functionsCallDartV2Handler` on the app),
   `package:tkcms_common/server/server_common.dart` (the function names).
-* `FfApp({required context, app})`: `context` is a
-  `TkCmsServerAppContext(firebaseContext:, flavorContext:)`, `app` defaults
-  to `'festenao'` (the firestore root `app/<app>`; the tests use
+* `FfApp({required context, app, firestoreDocApi = false})`: `context` is
+  a `TkCmsServerAppContext(firebaseContext:, flavorContext:)`, `app`
+  defaults to `'festenao'` (the firestore root `app/<app>`; the tests use
   `testAppId = 'festenao'`). The constructor registers the entity api
-  builders of `FsProject` and `TkCmsFsApp`; `onCommand` first asks
-  `appHandler` (a `FestenaoEntityHandler` on `fsDatabase.appDb`, the app
-  top entity) then falls back to `FestenaoServerAppTest.onCommand`. Add a
-  command by subclassing, see the `festenao-common-server-app` skill.
+  builders of `TkCmsFsApp`. Its `apiHandlers`: `appHandler` (a
+  `FestenaoEntityHandler<TkCmsFsApp>` on `fsDatabase.appDb`, the app top
+  entities), `firestoreHandler` (the raw doc api, only with
+  `firestoreDocApi`), then the handlers of `FestenaoProjectsServerApp`
+  (projects, user plans, app status...). Add a command by subclassing, see
+  the `festenao-common-server-app` skill.
+* The creator of an app entity becomes its admin, that is an app admin of
+  every server serving that app (`access/app/entity_id/<app>/user_access/
+  <userId>`): `appHandler` lets only an admin of the server's app
+  (`isAppAdmin`) create one, `permission-denied` otherwise; the first app
+  admin is written with the admin rights. `firestoreDocApi: true` (the
+  emulator only, `isFunctionsEmulator` in `functions/bin/server.dart`) also
+  lets any signed in user create one, the way the emulator tests make
+  their first admin.
 * Two apps per process, one per flavor: dev (`FlavorContext.dev`) behind
   `commanddartv2dev` (`functionCommandDartV2Dev`), `callcommanddartv2dev`
   (`callableFunctionCommandDartV2Dev`), `ampdev` and `cmsdev`
@@ -139,9 +151,13 @@ four sibling rules projects.
   edit it; `functions/` depends on the library with `path: ../`.
 * Emulator: `dart run tool/start_festenao_emulator.dart` starts functions,
   firestore and auth, persisted in `.data`. `dart test` runs the emulator
-  test only when `FirebaseEmulatorService(path: '.').isSupported()` (the
-  firebase cli is installed), on the vm, one file at a time
-  (`dart_test.yaml`: `concurrency: 1`). A test gets a
+  tests only when `FirebaseEmulatorService(path:).isSupported()` (the
+  firebase cli is installed; `path` from
+  `festenaoTestPackagePath('festenao_dartff')`, whatever the current
+  directory), on the vm, one file at a time (`dart_test.yaml`:
+  `concurrency: 1`). The emulator runs on the project of `.firebaserc` (a
+  local, git ignored file), not a `demo-` one: nothing must reach a non
+  emulated service (storage). A test gets a
   `FestenaoTestServerEmulatorContext` from
   `initEmulatorServerContext(appId:, path: '.', region: regionBelgium)`
   (`festenao_common/test/festenao_test_server_emulator_helper.dart`) and
@@ -204,6 +220,8 @@ void main(List<String> args) {
         firebaseContext: fbContext,
         flavorContext: FlavorContext.dev,
       ),
+      // The raw firestore doc api, for the emulator tests only.
+      firestoreDocApi: isFunctionsEmulator,
     );
     firebase.https.onRequest(
       name: functionCommandDartV2Dev, // commanddartv2dev
@@ -231,6 +249,7 @@ void main(List<String> args) {
         firebaseContext: fbContext,
         flavorContext: FlavorContext.prod,
       ),
+      firestoreDocApi: isFunctionsEmulator,
     );
     firebase.https.onRequest(
       name: functionCommandDartV2Prod, // commanddartv2prod
@@ -372,7 +391,8 @@ Future<void> main() async {
 ```bash
 cd packages/festenao_dartff
 dart run tool/start_festenao_emulator.dart   # emulator, data kept in .data
-dart test                                    # test/emulator_test.dart (needs the firebase cli)
+dart test                                    # every test; the emulator ones need the firebase cli
+dart run example/main.dart                   # FfApp + cms sites in memory
 (cd festenao_firebase_no_api_context.dart && dart test)   # rules only context
 (cd festenao_firebase_full_api_context.dart && dart test) # deny all, api only
 dart run tool/compile_dart_function.dart     # functions/bin/server (linux x64)
@@ -385,5 +405,7 @@ firebase deploy --only functions
   `onCall` carries the verified user.
 * Editing `functions/functions.yaml` by hand (generated).
 * Forgetting `firebaseContextOrNull = fbContext` before building the apps.
+* Expecting a signed in user to create the app entity (and so become an
+  app admin) on a deployed server: only an app admin can.
 * Running two emulator test files concurrently (ports 5001/8080/9099 are
   shared; keep `concurrency: 1`).

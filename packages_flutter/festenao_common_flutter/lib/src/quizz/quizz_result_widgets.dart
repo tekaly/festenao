@@ -65,8 +65,10 @@ class QuizzTopPlayersWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<List<FsQuizPlayer>>(
-      stream: database.orderedPlayersNoValidityStream(quizId, limit: limit),
+    return _OrderedPlayersStreamBuilder(
+      database: database,
+      quizId: quizId,
+      limit: limit,
       builder: (context, snapshot) {
         var players = snapshot.data;
         if (players == null) {
@@ -98,6 +100,58 @@ class QuizzTopPlayersWidget extends StatelessWidget {
       },
     );
   }
+}
+
+/// A [StreamBuilder] on [QuizzFirestoreDatabase.orderedPlayersNoValidityStream]
+/// whose stream is created once (and again for another quiz, database or
+/// limit), not on every build: a new stream is a new Firestore listener and
+/// the parents typically rebuild every 100 ms (QuizzStateNowBuilder).
+class _OrderedPlayersStreamBuilder extends StatefulWidget {
+  final QuizzFirestoreDatabase database;
+  final String quizId;
+  final int limit;
+  final AsyncWidgetBuilder<List<FsQuizPlayer>> builder;
+
+  const _OrderedPlayersStreamBuilder({
+    required this.database,
+    required this.quizId,
+    required this.limit,
+    required this.builder,
+  });
+
+  @override
+  State<_OrderedPlayersStreamBuilder> createState() =>
+      _OrderedPlayersStreamBuilderState();
+}
+
+class _OrderedPlayersStreamBuilderState
+    extends State<_OrderedPlayersStreamBuilder> {
+  late Stream<List<FsQuizPlayer>> _players;
+
+  Stream<List<FsQuizPlayer>> _playersStream() => widget.database
+      .orderedPlayersNoValidityStream(widget.quizId, limit: widget.limit);
+
+  @override
+  void initState() {
+    super.initState();
+    _players = _playersStream();
+  }
+
+  @override
+  void didUpdateWidget(covariant _OrderedPlayersStreamBuilder oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.database != widget.database ||
+        oldWidget.quizId != widget.quizId ||
+        oldWidget.limit != widget.limit) {
+      _players = _playersStream();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => StreamBuilder<List<FsQuizPlayer>>(
+    stream: _players,
+    builder: widget.builder,
+  );
 }
 
 /// A podium column.
@@ -277,26 +331,54 @@ class QuizzResultPodiumWidget extends StatefulWidget {
 }
 
 class _QuizzResultPodiumWidgetState extends State<QuizzResultPodiumWidget> {
-  List<FsQuizPlayer>? _players;
+  /// Created once (and again for another quiz or database), not in build:
+  /// the tv screen rebuilds every 100 ms and a new stream is a new Firestore
+  /// listener.
+  late Stream<FsQuizStatus> _status;
+
+  /// Created when the ranks are first known, then kept.
+  Stream<List<FsQuizPlayer>>? _rankedPlayers;
+
+  @override
+  void initState() {
+    super.initState();
+    _status = widget.database.quizStatusStream(widget.quizId);
+  }
+
+  @override
+  void didUpdateWidget(covariant QuizzResultPodiumWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.database != widget.database ||
+        oldWidget.quizId != widget.quizId) {
+      _status = widget.database.quizStatusStream(widget.quizId);
+      _rankedPlayers = null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<FsQuizStatus>(
-      stream: widget.database.quizStatusStream(widget.quizId),
+      stream: _status,
       builder: (context, snapshot) {
         var playerCount = snapshot.data?.playersCount.v;
         if (playerCount != null) {
           return StreamBuilder<List<FsQuizPlayer>>(
-            stream: widget.database.rankedPlayersStream(widget.quizId),
+            stream: _rankedPlayers ??= widget.database.rankedPlayersStream(
+              widget.quizId,
+            ),
             builder: (context, snapshot) {
               var players = snapshot.data;
               if (players != null) {
-                _players ??= quizzFillTo3Players(
-                  players,
-                  widget.quizId,
-                  avatars: widget.avatars,
+                // Every snapshot: the ranks and validities may change after
+                // (a forced compute); the placeholders are the same each
+                // time (seeded by the quiz id).
+                return QuizzPodiumWidget(
+                  players: quizzFillTo3Players(
+                    players,
+                    widget.quizId,
+                    avatars: widget.avatars,
+                  ),
                 );
-                return QuizzPodiumWidget(players: _players!);
               }
               return const Text('No Players');
             },

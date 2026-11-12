@@ -42,17 +42,37 @@ class _QuizzValidationWidgetState extends State<QuizzValidationWidget> {
 
   String get quizId => widget.quiz.id;
 
+  static const _limit = 100;
+
+  /// Created once (and again for another quiz or database), not in build:
+  /// the parent typically rebuilds every 100 ms (QuizzStateNowBuilder) and
+  /// a new stream is a new Firestore listener.
+  late Stream<List<FsQuizPlayer>> _players;
+
+  Stream<List<FsQuizPlayer>> _playersStream() =>
+      widget.database.orderedPlayersNoValidityStream(quizId, limit: _limit);
+
   @override
   void initState() {
     var now = widget.timeService.timestampMs;
     var duration = widget.quiz.validationDelayMsOrDefault;
     controller = QuizProgressController(startMs: now, endMs: now + duration);
+    _players = _playersStream();
     super.initState();
   }
 
   @override
+  void didUpdateWidget(covariant QuizzValidationWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.database != widget.database ||
+        oldWidget.quiz.id != widget.quiz.id) {
+      _players = _playersStream();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    var limit = 100;
+    var limit = _limit;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -65,10 +85,7 @@ class _QuizzValidationWidgetState extends State<QuizzValidationWidget> {
               timeService: widget.timeService,
             ),
             StreamBuilder<List<FsQuizPlayer>>(
-              stream: widget.database.orderedPlayersNoValidityStream(
-                quizId,
-                limit: limit,
-              ),
+              stream: _players,
               builder: (context, snapshot) {
                 var players = snapshot.data ?? <FsQuizPlayer>[];
                 return Column(

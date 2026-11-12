@@ -387,6 +387,7 @@ Future<void> initData(FestenaoDb festenaoDb) async {
   }
 
   appLocations.clear();
+  appInfos.clear();
   for (var dbInfo in allInfos) {
     var type = dbInfo.type.v;
     if (type == infoTypeLocation) {

@@ -85,8 +85,8 @@ class SurveyFormPlayer extends TkFormPlayerBase implements TkFormPlayer {
   @override
   void setAnswer(int index, TkFormPlayerQuestionAnswer? answer) {
     super.setAnswer(index, answer);
-    var cvAnswer =
-        answer?.cvSurveyAnswer; // (answer as DbSurveyAnswer?)?.cvSurveyAnswer;
+    // The question id is what the answers are looked up with (conditions).
+    var cvAnswer = answer?.toCvSurveyAnswer(questionId: questions[index].id);
     gAppBloc.addAnswer(cvAnswer);
   }
 

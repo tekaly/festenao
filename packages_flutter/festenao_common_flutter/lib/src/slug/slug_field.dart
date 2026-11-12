@@ -95,7 +95,11 @@ class FestenaoSlugInputFormatter extends TextInputFormatter {
 
   /// The formatted [text].
   String format(String text) {
-    var trailingDash = RegExp(r'[^a-zA-Z0-9À-ÿ]$').hasMatch(text);
+    // A separator is what the slug rules turn into nothing (a space, a
+    // dash...), not a letter they map (é, œ, Ÿ...).
+    var trailingDash =
+        text.isNotEmpty &&
+        festenaoSlugify(String.fromCharCode(text.runes.last)).isEmpty;
     var slug = festenaoSlugify(text, maxLength: options.maxLength);
     if (trailingDash && slug.isNotEmpty && slug.length < options.maxLength) {
       slug = '$slug-';

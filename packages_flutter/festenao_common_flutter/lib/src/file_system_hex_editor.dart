@@ -532,6 +532,11 @@ class _FileSystemHexFileScreenState extends State<FileSystemHexFileScreen> {
       _save();
       return KeyEventResult.handled;
     }
+    // A key typed in a field inside the dump (the find bar) is the field's,
+    // never an edit of the bytes.
+    if (!node.hasPrimaryFocus) {
+      return KeyEventResult.ignored;
+    }
     var index = _selection;
     if (index == null) {
       return KeyEventResult.ignored;

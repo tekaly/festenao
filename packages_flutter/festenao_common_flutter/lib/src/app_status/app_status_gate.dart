@@ -50,7 +50,11 @@ String _formatUntil(DateTime until) {
 /// read only a banner above it.
 ///
 /// Placed in `MaterialApp.builder` (around the navigator): every screen is
-/// covered, the app keeps its state below. [canBypass] (an app admin) adds
+/// covered. In read only the app keeps its state below (the navigator of
+/// `MaterialApp` has a global key); the maintenance screen replaces it, so
+/// the app below is disposed and starts again from its initial route (its
+/// navigation stack and screen states lost) once the maintenance is over or
+/// bypassed. [canBypass] (an app admin) adds
 /// a button going on to the app in maintenance; the server serves the app
 /// admins anyway.
 class FestenaoAppStatusGate extends StatefulWidget {
