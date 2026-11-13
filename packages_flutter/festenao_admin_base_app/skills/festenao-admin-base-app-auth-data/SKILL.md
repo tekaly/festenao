@@ -25,6 +25,9 @@ bloc of tkcms, the firebase context and root paths, a local sembast
 `ProjectsDb` mirroring the projects the identity can reach, and one
 synced content database per project (`ContentDb` + `FestenaoSyncedDb`),
 grabbed and released by the screens through a `FestenaoAdminAppProjectContext`.
+This sembast layer is legacy, kept for the existing admin apps: new local
+database code uses sdb (`festenao_dashboard_base_app`, festenao_common
+`UserProjectsSdb`, `FestenaoSyncedSdb`).
 
 ```dart
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';

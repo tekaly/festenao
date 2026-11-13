@@ -53,6 +53,10 @@ class ProjectViewScreenBloc
             event,
           ) {
             var dbProject = event;
+            // One firestore subscription at most, and none once the project
+            // is local (it would show the project as not local again).
+            audiDispose(fsSubscription);
+            fsSubscription = null;
             if (dbProject == null) {
               if (user != null) {
                 fsSubscription = audiAddStreamSubscription(

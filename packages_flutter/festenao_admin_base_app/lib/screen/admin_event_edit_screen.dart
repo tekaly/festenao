@@ -54,22 +54,14 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
 
         var event = state?.event;
         var eventId = bloc.eventId;
-        var canSave = eventId == null || event != null;
+        // Loaded, and found when editing.
+        var notFound = state != null && eventId != null && event == null;
+        var canSave = state != null && !notFound;
         var article = event;
 
         // For our mixin
         mainArticle = article;
 
-        if (eventId == null) {
-          event?.attributes.v?.forEach((attribute) {
-            var info = attribute.getAttributeInfo();
-
-            // find artist
-            if (info.artistId != null) {
-              eventId = info.artistId!;
-            }
-          });
-        }
         return AdminScreenLayout(
           appBar: AppBar(
             actions: [
@@ -86,6 +78,9 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
           ),
           body: Builder(
             builder: (context) {
+              if (notFound) {
+                return const ListTile(title: Text('Non trouvé'));
+              }
               if (!canSave) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -100,16 +95,13 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
                         child: BodyContainer(
                           child: Column(
                             children: [
-                              if (event == null && eventId != null)
-                                const ListTile(title: Text('Non trouvé'))
-                              else ...[
-                                ListTile(title: Text(eventId ?? 'new')),
-                              ],
+                              ListTile(title: Text(eventId ?? 'new')),
+                              // No id prefilled on creation (a template is
+                              // the source of a duplicate).
                               AppTextFieldTile(
                                 controller: idController ??=
-                                    TextEditingController(
-                                      text: eventId ?? event?.idOrNull,
-                                    ),
+                                    TextEditingController(text: eventId),
+                                readOnly: eventId != null,
                                 labelText: textIdLabel,
                               ),
                               getCommonWidgets(event),
@@ -297,7 +289,7 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
           formKey.currentState!.save();
           var dbEvent = DbEvent()
             ..rawRef = dbEventStoreRef.record(idController!.text).rawRef
-            ..day.v = day!.value!.toString()
+            ..day.v = day!.value!.text
             ..beginTime.v = beginTimeController!.text
             ..endTime.v = endTimeController!.text;
           articleFromForm(dbEvent);
@@ -306,10 +298,16 @@ class _AdminEventEditScreenState extends State<AdminEventEditScreen>
               article: dbEvent,
               imageData: newImageData,
               thumbailData: newThumbnailImageData,
+              create: bloc.eventId == null,
             ),
           );
           if (context.mounted) {
             Navigator.of(context).pop();
+          }
+        } on AdminArticleIdExistsException catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text('$e')));
           }
         } catch (e, st) {
           if (kDebugMode) {

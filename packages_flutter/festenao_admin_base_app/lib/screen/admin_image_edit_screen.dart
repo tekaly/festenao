@@ -124,6 +124,7 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
                                     TextEditingController(
                                       text: imageId ?? param?.newImageId,
                                     ),
+                                readOnly: imageId != null,
                                 labelText: textIdLabel,
                               ),
                               AppTextFieldTile(
@@ -217,17 +218,26 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
                                 },
                               ),
                               getAdminImageSelectorTile(),
-                              getPreviewImage(),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  await appDownloadImage(
-                                    DownloadImageInfo(
-                                      filename: nameController!.text,
-                                      data: imageBytes!.value!,
-                                    ),
+                              getPreviewImage(imageId),
+                              // Enabled once the image (existing or selected)
+                              // is loaded.
+                              ValueListenableBuilder<Uint8List?>(
+                                valueListenable: imageBytes!,
+                                builder: (context, bytes, _) {
+                                  return ElevatedButton(
+                                    onPressed: bytes == null
+                                        ? null
+                                        : () async {
+                                            await appDownloadImage(
+                                              DownloadImageInfo(
+                                                filename: nameController!.text,
+                                                data: bytes,
+                                              ),
+                                            );
+                                          },
+                                    child: const Text('Download image'),
                                   );
                                 },
-                                child: const Text('Download image'),
                               ),
                               const SizedBox(height: 64),
                             ],
@@ -302,20 +312,34 @@ class _AdminImageEditScreenState extends State<AdminImageEditScreen>
 
           if (imageId != null) {
             () async {
-              var db = await dbBloc.grabDatabase();
-              var image = await dbImageStoreRef.record(imageId).get(db);
-              if (image != null) {
-                var imageUrl = Uri.parse(
-                  getImageUrl(
-                    image.name.v!,
-                    storageBucket: projectContext.storageBucket,
-                  ),
-                );
-                // print('imageUrl: $imageUrl');
-                var bytes = await httpClientFactory.newClient().readBytes(
-                  imageUrl,
-                );
-                valueNotifier.value = bytes;
+              try {
+                var db = await dbBloc.grabDatabase();
+                var image = await dbImageStoreRef.record(imageId).get(db);
+                var imageName = image?.name.v;
+                if (imageName != null && mounted) {
+                  var imageUrl = Uri.parse(
+                    getImageUrl(
+                      imageName,
+                      storageBucket: projectContext.storageBucket,
+                    ),
+                  );
+                  // print('imageUrl: $imageUrl');
+                  var client = httpClientFactory.newClient();
+                  try {
+                    var bytes = await client.readBytes(imageUrl);
+                    // A selected image wins.
+                    if (mounted && valueNotifier.value == null) {
+                      valueNotifier.value = bytes;
+                    }
+                  } finally {
+                    client.close();
+                  }
+                }
+              } catch (e) {
+                // No preview (missing file, offline).
+                if (kDebugMode) {
+                  print('error $e loading image $imageId');
+                }
               }
             }();
           }

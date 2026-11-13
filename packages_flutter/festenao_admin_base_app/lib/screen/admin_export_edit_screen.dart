@@ -181,6 +181,12 @@ class _AdminExportEditScreenState extends State<AdminExportEditScreen> {
               Navigator.of(context).pop();
             }
           }
+        } on StateError catch (e) {
+          // Refused (an export that is not the current one).
+          if (context.mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text(e.message)));
+          }
         } catch (e, st) {
           if (kDebugMode) {
             print(e);

@@ -4,18 +4,35 @@ import 'package:festenao_admin_base_app/firebase/firebase.dart';
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
 import 'package:festenao_blur_hash/blur_hash.dart';
 import 'package:image/image.dart' as img;
-import 'package:tekartik_common_utils/string_utils.dart';
 
 class AdminArticleEditData {
   final DbArticle article;
   Uint8List? imageData;
   Uint8List? thumbailData;
 
+  /// True for a new article: the save is refused when its id already exists.
+  final bool create;
+
   AdminArticleEditData({
     required this.article,
     this.imageData,
     this.thumbailData,
+    this.create = false,
   });
+}
+
+/// Thrown by a save creating an article whose id already exists.
+class AdminArticleIdExistsException implements Exception {
+  /// Store name.
+  final String store;
+
+  /// Article id.
+  final String id;
+
+  AdminArticleIdExistsException({required this.store, required this.id});
+
+  @override
+  String toString() => '$store $id already exists';
 }
 
 abstract class AdminArticleEditScreenBloc {
@@ -33,11 +50,19 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
     var thumbnailImageData = data.thumbailData;
     var article = data.article;
     var db = await dbBloc.grabDatabase();
+    if (data.create && await articleStore.record(article.id).exists(db)) {
+      throw AdminArticleIdExistsException(
+        store: articleStore.name,
+        id: article.id,
+      );
+    }
     var bucket = dbBloc.projectContext.storageBucket;
+    // A new image or thumbnail is the article's own (an id derived from the
+    // article id), never the image the article points to: a duplicated
+    // article points to the image of its source.
     if (imageData != null) {
       var articleId = article.id;
-      var imageId =
-          stringNonEmpty(article.image.v) ?? '${articleStore.name}_$articleId';
+      var imageId = '${articleStore.name}_$articleId';
       var image = img.decodeImage(imageData)!;
       var imageName = '$imageId.jpg';
       var blurHash = await image.blurHashEncode();
@@ -61,9 +86,7 @@ mixin AdminArticleEditScreenBlocMixin<T extends DbArticle>
     }
     if (thumbnailImageData != null) {
       var articleId = article.id;
-      var imageId =
-          stringNonEmpty(article.thumbnail.v) ??
-          '${articleStore.name}_thumb_$articleId';
+      var imageId = '${articleStore.name}_thumb_$articleId';
       var image = img.decodeImage(thumbnailImageData)!;
       var imageName = '$imageId.jpg';
       var blurHash = await image.blurHashEncode();

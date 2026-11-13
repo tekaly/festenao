@@ -88,12 +88,14 @@ class AdminAppProjectContextDbBloc with AutoDisposableMixin {
   void selfDispose() {
     var projectsDbBloc = globalProjectsDbBloc;
     if (projectsDbBloc is MultiProjectsDbBloc) {
-      var grabbedContextDb = _grabbedContentDb;
-      if (grabbedContextDb != null) {
-        _lock.synchronized(() async {
+      // Always queued: a grab still in progress (inside the lock) sets
+      // _grabbedContentDb before this runs, so it is released too.
+      _lock.synchronized(() async {
+        var grabbedContextDb = _grabbedContentDb;
+        if (grabbedContextDb != null) {
           await projectsDbBloc.releaseContentDb(grabbedContextDb);
-        });
-      }
+        }
+      }).unawait();
     }
   }
 }

@@ -149,6 +149,21 @@ class AdminExportEditScreenBloc
     var changeId = fsExport.changeId.v!;
 
     var export = data.export;
+    if (export || data.publish || data.publishDev) {
+      // The storage export and meta are written from the database as it is
+      // now: only the export of the current change can be exported or
+      // published (the storage meta would name a change never exported).
+      var metaInfo = await (await _dbBloc.grabSyncedDb()).getSyncMetaInfo();
+      if (metaInfo?.lastChangeId.v != changeId ||
+          metaInfo?.sourceVersion.v != fsExport.version.v) {
+        throw StateError(
+          'Export $changeId (version ${fsExport.version.v}) is not the current '
+          'change ${metaInfo?.lastChangeId.v} '
+          '(version ${metaInfo?.sourceVersion.v}): export it again to '
+          'publish it',
+        );
+      }
+    }
     exportId ??= (await firestore.cvAdd(
       firestoreExportCollectionPath,
       fsExport,

@@ -39,6 +39,13 @@ class _PlayScreenState extends State<PlayScreen> {
   }
 
   @override
+  void dispose() {
+    // The clock of play() runs until paused.
+    controllerOrNull?.pause();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Festenao Lyrics Player')),

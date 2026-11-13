@@ -12,9 +12,12 @@ class FestenaoBackendYoutubeController extends FestenaoYoutubeControllerBase {
   final FesteneaoYoutubeOptions options;
 
   /// The platform player underneath.
-  late final YtPlayerBackend backend = createYtPlayerBackend(
-    options: YtPlayerBackendOptions(showControls: options.showControls),
-  );
+  late final YtPlayerBackend backend =
+      _backend ??
+      createYtPlayerBackend(
+        options: YtPlayerBackendOptions(showControls: options.showControls),
+      );
+  final YtPlayerBackend? _backend;
 
   final _readyCompleter = Completer<void>();
   var _disposed = false;
@@ -27,7 +30,12 @@ class FestenaoBackendYoutubeController extends FestenaoYoutubeControllerBase {
   Future<void> get ready => _readyCompleter.future;
 
   /// Constructor for [FestenaoBackendYoutubeController].
-  FestenaoBackendYoutubeController({required this.options}) {
+  ///
+  /// [backend] replaces the platform one, in tests.
+  FestenaoBackendYoutubeController({
+    required this.options,
+    @visibleForTesting this._backend,
+  }) {
     // One disposer for the whole backend: the listener has to come off before
     // the backend tears its notifier down, and audiDisposeAll runs the
     // functions in the order they were added.
@@ -77,14 +85,17 @@ class FestenaoBackendYoutubeController extends FestenaoYoutubeControllerBase {
 
   /// Republishes the backend state, keeping the
   /// [FestenaoYoutubePlayerStatus.ended] and [FestenaoYoutubePlayerStatus.error]
-  /// the transport itself knows nothing about.
+  /// the transport itself knows nothing about, until the video plays again
+  /// (a replay from the player's own controls, a recovered error).
   void _onPlayback() {
     final playback = backend.playback.value;
     final status = switch (state.status) {
+      _ when playback.playing && playback.buffering =>
+        FestenaoYoutubePlayerStatus.buffering,
+      _ when playback.playing => FestenaoYoutubePlayerStatus.playing,
       FestenaoYoutubePlayerStatus.error ||
       FestenaoYoutubePlayerStatus.ended => state.status,
       _ when playback.buffering => FestenaoYoutubePlayerStatus.buffering,
-      _ when playback.playing => FestenaoYoutubePlayerStatus.playing,
       // Nothing has been loaded yet, so this is not a pause.
       FestenaoYoutubePlayerStatus.unknown ||
       FestenaoYoutubePlayerStatus.loading => state.status,

@@ -86,6 +86,7 @@ class _AdminMetaGeneralEditScreenState
                 descriptionController = audiAddTextEditingController(
                   TextEditingController(text: meta.description.v),
                 );
+                controllerInitialized = true;
               }
 
               var children = <Widget>[

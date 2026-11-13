@@ -26,12 +26,14 @@ An app gives it a firebase context and a flavor and calls
 `festenaoRunAdminApp`; everything else (local databases, prefs, file
 system, project blocs) is set up by `festenaoAdminAppInit` into globals.
 Its `lib/main*.dart` are the package's own development entry points.
+Legacy (blocs, `ContentNavigator`, sembast): a new admin app starts on
+`festenao_dashboard_base_app` (riverpod, go_router, sdb).
 
 ```dart
 import 'package:festenao_admin_base_app/firebase/firebase_local.dart';
 import 'package:festenao_admin_base_app/run.dart';
 import 'package:festenao_common/festenao_flavor.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart';
 import 'package:tekartik_app_flutter_sembast/sembast.dart';
 
@@ -165,7 +167,7 @@ import 'package:festenao_admin_base_app/firebase/firebase_flutter.dart';
 import 'package:festenao_admin_base_app/route/navigator_def.dart';
 import 'package:festenao_admin_base_app/run.dart';
 import 'package:festenao_common/festenao_flavor.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
@@ -223,7 +225,7 @@ Future<void> main() async {
 ```dart
 import 'package:festenao_admin_base_app/run.dart';
 import 'package:festenao_common/festenao_flavor.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
 Future<void> runEmbedded({
@@ -276,7 +278,7 @@ Future<void> runTopProjects(FirebaseContext firebaseContext) =>
 import 'package:festenao_admin_base_app/firebase/firebase_local_sdb.dart';
 import 'package:festenao_admin_base_app/run.dart';
 import 'package:festenao_common/festenao_flavor.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:idb_shim/sdb.dart';
 
 /// In memory: a fresh app every start, the basic auth ui installed.

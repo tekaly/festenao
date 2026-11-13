@@ -45,11 +45,11 @@ class FsAppEditScreenState extends AutoDisposeBaseState<FsAppEditScreen>
     if (!_gotInitialApp) {
       return false;
     }
+    // The name only, as the project edit screens: an app without a name is
+    // not saved (an id typed alone has nothing to save).
     var app = _appFromInput.app;
-    var appId = _appFromInput.appId;
-    return (app.name.v?.trimmedNonEmpty() !=
-            initialApp.name.v?.trimmedNonEmpty()) &&
-        appId != initialApp.idOrNull;
+    return app.name.v?.trimmedNonEmpty() !=
+        initialApp.name.v?.trimmedNonEmpty();
   }
 
   FsAppEditData get _appFromInput {

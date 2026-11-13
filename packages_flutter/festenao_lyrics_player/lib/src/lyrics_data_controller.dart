@@ -73,12 +73,23 @@ abstract class LyricsDataController {
     return _LyricsDataController(lyricsData: lyricsData);
   }
 
-  /// 1 is normal
-
+  /// Runs a clock of its own that drives [update], [speed] times faster
+  /// than real time (1 is normal), until `pause()` (see
+  /// [LyricsDataControllerExt.pause]). An app playing the song itself calls
+  /// [update] with the player position instead.
   void play({double speed = 1});
 
   /// Update the controller at a given time
   void update(Duration time);
+}
+
+/// Lyrics data controller extension.
+extension LyricsDataControllerExt on LyricsDataController {
+  /// Stops the clock started by [LyricsDataController.play] (the lyrics stay
+  /// where they are); a later [LyricsDataController.play] resumes from there.
+  ///
+  /// Call it when the screen goes away: the clock runs until then.
+  void pause() => (this as _LyricsDataController).pause();
 }
 
 /// Lyrics data controller extension (private)
@@ -181,12 +192,23 @@ class _LyricsDataController implements LyricsDataController {
   }
 
   var _playing = false;
+
+  /// The lyrics time when the clock was last paused.
+  var _position = Duration.zero;
+  var _speed = 1.0;
+
+  /// The lyrics time: where it was paused plus the time played since.
+  Duration get _time => _position + _sw.elapsed * _speed;
+
   void pause() {
     if (!_playing) {
       return;
     }
     _playing = false;
-    _sw.stop();
+    _position = _time;
+    _sw
+      ..stop()
+      ..reset();
   }
 
   final _lock = Lock();
@@ -195,12 +217,18 @@ class _LyricsDataController implements LyricsDataController {
     if (_playing) {
       return;
     }
-    _sw.start();
+    _speed = speed;
+    _sw
+      ..reset()
+      ..start();
     _playing = true;
+    // One loop at a time: a play right after a pause keeps the running one.
     _lock.synchronized(() async {
       while (_playing) {
         await sleep(10);
-        update(_sw.elapsed * speed);
+        if (_playing) {
+          update(_time);
+        }
       }
     });
   }

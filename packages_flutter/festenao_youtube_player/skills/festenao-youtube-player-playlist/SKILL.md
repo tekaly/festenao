@@ -66,8 +66,14 @@ every platform.
   `entries` (`List<YtPlaylistEntry>`), a `title` and a `startIndex` — it does
   not start playing. It throws `YtResolveException` (with a `message` meant for
   the user) when the playlist is private, empty or not embeddable; catch it.
-* `Future<void> open(YtPlaylistEntry entry, {bool autoPlay = true})` loads one
-  entry. Advancing is yours: listen to `completions` (a `Stream<void>`, one
+  Network failures on desktop/mobile (`http.ClientException`,
+  `SocketException`) are not wrapped: catch them too.
+* `Future<void> open(YtPlaylistEntry entry, {bool autoPlay = true,
+  Duration? start})` loads one (`start`: the `t=` of the link, a seek right
+  after `open` may be lost while loading). On desktop/mobile it resolves the
+  media urls first (network):
+  await each `open` before the next one, an earlier one answering last
+  would win. Advancing is yours: listen to `completions` (a `Stream<void>`, one
   event each time the current video runs out) and `open` the next entry —
   that is where repeat/shuffle logic goes.
 * `playback` is a `ValueListenable<YtPlaybackState>`: `position`, `duration`,
@@ -123,7 +129,7 @@ every platform.
 import 'dart:async';
 
 import 'package:festenao_youtube_player/yt_player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Plays whatever [link] expands to, one video at a time, and advances by
 /// itself when a video ends.
@@ -299,7 +305,7 @@ String? playlistIdOf(String pasted) => switch (parseYtSource(pasted)) {
 
 ```dart
 import 'package:festenao_youtube_player/yt_player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Reads the playlist page (up to 200 entries) and shows it.
 /// Hits youtube for real, so keep it out of the default test run.

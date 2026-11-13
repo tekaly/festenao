@@ -90,7 +90,12 @@ class HelloScreen extends StatelessWidget {
   `goToAdminArtistEditScreen(context, projectContext:, artistId:)` (null
   creates) gives `AdminArtistEditScreenResult?` (`deleted`), the same for
   `goToAdminEventEditScreen`, `goToAdminInfoEditScreen`,
-  `goToAdminImageEditScreen`, `goToAdminMediaEditScreen`.
+  `goToAdminImageEditScreen`, `goToAdminMediaEditScreen`. The id is typed
+  on creation only (read only when editing); a create whose id already
+  exists is refused (`AdminArticleIdExistsException`), never saved over the
+  record. An export can be exported or published only while it is the
+  current change of the project database (the storage meta is written from
+  the database as it is now).
 * Pickers: `selectArtist(context, projectContext:)` returns
   `AdminArtistScreenResult?` (`artist`), `selectInfo(context,
   projectContext:, infoType:)`, `selectProject(context)`
@@ -392,7 +397,7 @@ class ToolsScreen extends StatelessWidget {
 
 ```dart
 import 'package:festenao_admin_base_app/view/menu.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 Widget imageMenu(BuildContext context, {required VoidCallback onDelete}) =>
     <MenuItemBase>[

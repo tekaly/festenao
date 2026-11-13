@@ -39,7 +39,9 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
 
         var artist = state?.artist;
         var artistId = bloc.artistId;
-        var canSave = state != null && (artistId == null || artist != null);
+        // Loaded, and found when editing.
+        var notFound = state != null && artistId != null && artist == null;
+        var canSave = state != null && !notFound;
         var article = artist;
         return AdminScreenLayout(
           appBar: AppBar(
@@ -57,6 +59,9 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
           ),
           body: Builder(
             builder: (context) {
+              if (notFound) {
+                return const ListTile(title: Text('Non trouvé'));
+              }
               if (!canSave) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -72,14 +77,11 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              if (artist == null && artistId != null)
-                                const ListTile(title: Text('Non trouvé'))
-                              else ...[
-                                ListTile(title: Text(artist?.id ?? 'new')),
-                              ],
+                              ListTile(title: Text(artistId ?? 'new')),
                               AppTextFieldTile(
                                 controller: idController ??=
                                     TextEditingController(text: artistId),
+                                readOnly: artistId != null,
                                 labelText: textIdLabel,
                               ),
                               getCommonWidgets(artist),
@@ -153,10 +155,16 @@ class _AdminArtistEditScreenState extends State<AdminArtistEditScreen>
               article: dbArtist,
               imageData: newImageData,
               thumbailData: newThumbnailImageData,
+              create: bloc.artistId == null,
             ),
           );
           if (context.mounted) {
             Navigator.of(context).pop();
+          }
+        } on AdminArticleIdExistsException catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text('$e')));
           }
         } catch (e, st) {
           // ignore: avoid_print

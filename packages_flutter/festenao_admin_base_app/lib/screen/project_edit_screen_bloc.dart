@@ -36,6 +36,9 @@ class ProjectEditScreenBloc
     () async {
       var identity = firebaseIdentity =
           ((await globalTkCmsFbIdentityBloc.state.first).identity);
+      // The creator of a project becomes its admin (null for a service
+      // account).
+      firebaseUser = identity?.user;
       if (identity == null) {
         add(ProjectEditScreenBlocState());
       } else {

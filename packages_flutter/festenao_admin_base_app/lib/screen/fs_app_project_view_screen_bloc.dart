@@ -1,4 +1,3 @@
-import 'package:festenao_admin_base_app/auth/app_auth_bloc.dart';
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_view_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/fs_apps_screen_bloc.dart';
@@ -75,20 +74,24 @@ class FsAppProjectViewScreenBloc
                   .fsUserEntityAccessRef(userId!, projectId)
                   .onSnapshotSupport(firestore, options: fsController2)
             : Stream.value(TkCmsFsUserAccess()),
-        (userId != null && globalFestenaoAppAuthBlocOrNull != null)
-            ? globalFestenaoAppAuthBloc.state
-            : Stream.value(AppAuthBlocState(identity: null)),
+        // The access of the user to the app viewed (not the global app of
+        // globalFestenaoAppAuthBloc).
+        (userId != null)
+            ? ffdb.appDb
+                  .fsUserEntityAccessRef(userId!, appIdOrDefault)
+                  .onSnapshotSupport(firestore)
+            : Stream.value(TkCmsFsUserAccess()),
       ).listen((event) {
         var values = event.values;
         var fsProject = values.$1;
         var fsUserAccess = values.$2;
-        var appAuthState = values.$3;
+        var fsAppUserAccess = values.$3;
         add(
           FsAppProjectViewScreenBlocState(
             identity: fbIdentity,
             fsProject: fsProject,
             fsUserAccess: fsUserAccess,
-            fsAppUserAccess: appAuthState?.userAccess,
+            fsAppUserAccess: fsAppUserAccess,
           ),
         );
       }),

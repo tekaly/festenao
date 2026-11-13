@@ -120,7 +120,8 @@ class FsAppViewScreenState extends AutoDisposeBaseState<FsAppViewScreen>
               return;
             }
             if (_modified) {
-              if (result is FsAppViewResult && !result.modified) {
+              // A plain back (no result) reports the modification too.
+              if (result is! FsAppViewResult || !result.modified) {
                 Navigator.pop(
                   context,
                   FsAppViewResult(deleted: false, modified: true),
@@ -231,7 +232,10 @@ class FsAppViewScreenState extends AutoDisposeBaseState<FsAppViewScreen>
                         appId: app.id,
                       );
                       if (mounted && (result?.modified ?? false)) {
-                        _modified = true;
+                        // Rebuilt for canPop.
+                        setState(() {
+                          _modified = true;
+                        });
                         bloc.refresh();
                       }
                     },

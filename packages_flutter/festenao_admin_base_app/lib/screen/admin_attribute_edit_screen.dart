@@ -93,7 +93,8 @@ class _AdminAttributeEditScreenState extends State<AdminAttributeEditScreen>
         return AdminScreenLayout(
           appBar: AppBar(
             actions: [
-              if (canSave)
+              // Delete an existing attribute only.
+              if (canSave && bloc.param?.attribute != null)
                 IconButton(
                   icon: const Icon(Icons.delete),
                   tooltip: 'Supprimer',

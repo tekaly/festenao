@@ -50,7 +50,9 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
 
         var info = state?.info;
         var infoId = bloc.infoId;
-        var canSave = infoId == null || info != null;
+        // Loaded, and found when editing.
+        var notFound = state != null && infoId != null && info == null;
+        var canSave = state != null && !notFound;
 
         return AdminScreenLayout(
           appBar: AppBar(
@@ -68,6 +70,9 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
           ),
           body: Builder(
             builder: (context) {
+              if (notFound) {
+                return const ListTile(title: Text('Non trouvé'));
+              }
               if (!canSave) {
                 return const Center(child: CircularProgressIndicator());
               }
@@ -82,14 +87,12 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
                         child: BodyContainer(
                           child: Column(
                             children: [
-                              if (info == null && infoId != null)
-                                const ListTile(title: Text('Non trouvé'))
-                              else ...[
-                                ListTile(title: Text(info?.id ?? 'new')),
-                              ],
+                              ListTile(title: Text(infoId ?? 'new')),
+                              // No id prefilled on creation (the info given
+                              // is the source of a duplicate).
                               AppTextFieldTile(
                                 controller: idController ??=
-                                    TextEditingController(text: info?.id),
+                                    TextEditingController(text: infoId),
                                 readOnly: infoId != null,
                                 labelText: textIdLabel,
                               ),
@@ -166,10 +169,16 @@ class _AdminInfoEditScreenState extends State<AdminInfoEditScreen>
               article: dbInfo,
               imageData: newImageData,
               thumbailData: newThumbnailImageData,
+              create: bloc.infoId == null,
             ),
           );
           if (context.mounted) {
             Navigator.of(context).pop();
+          }
+        } on AdminArticleIdExistsException catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context)
+                .showSnackBar(SnackBar(content: Text('$e')));
           }
         } catch (e, st) {
           if (kDebugMode) {

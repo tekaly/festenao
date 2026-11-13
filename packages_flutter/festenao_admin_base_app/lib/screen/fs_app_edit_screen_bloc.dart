@@ -70,6 +70,18 @@ class FsAppEditScreenBloc
     var fsDb = globalFestenaoFirestoreDatabase.appDb;
     var firestore = globalFestenaoFirestoreDatabase.firestore;
 
-    await fsDb.fsEntityRef(appId).set(firestore, data.app);
+    var appRef = fsDb.fsEntityRef(appId);
+    if (isCreate) {
+      // Never over an existing app (as tkcms createEntity).
+      await firestore.cvRunTransaction((txn) async {
+        var existing = await txn.refGet(appRef);
+        if (existing.exists) {
+          throw StateError('App $appId already exists');
+        }
+        txn.refSet(appRef, data.app);
+      });
+    } else {
+      await appRef.set(firestore, data.app);
+    }
   }
 }

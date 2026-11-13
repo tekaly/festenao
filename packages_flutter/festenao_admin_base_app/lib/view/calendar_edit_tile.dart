@@ -86,20 +86,31 @@ class CalendarFormFieldTile extends FormField<DateTime?> {
                      labelText: labelText,
                      valueText: valueNotifier.value == null
                          ? ''
-                         : valueNotifier.value!.toString(),
+                         : valueNotifier.value!.text,
                      onLongPress: () {
                        valueNotifier.value = null;
                        state.didChange(null);
                      },
                      onTap: () async {
                        var now = DateTime.now();
+                       // The local date of the value (read in UTC).
+                       var value = valueNotifier.value?.localDateTime;
+                       var initialDate = value ?? DateUtils.dateOnly(now);
+                       var firstDate = DateTime(now.year - 1);
+                       var lastDate = DateTime(now.year + 10);
+                       // An older (or later) day stays editable.
+                       if (initialDate.isBefore(firstDate)) {
+                         firstDate = initialDate;
+                       }
+                       if (initialDate.isAfter(lastDate)) {
+                         lastDate = initialDate;
+                       }
                        final picked = await showDatePicker(
                          context: context,
-                         initialDate:
-                             valueNotifier.value?.dateTime ?? DateTime.now(),
+                         initialDate: initialDate,
                          initialDatePickerMode: DatePickerMode.day,
-                         firstDate: DateTime(now.year - 1),
-                         lastDate: DateTime(now.year + 10),
+                         firstDate: firstDate,
+                         lastDate: lastDate,
                        );
                        if (picked != null) {
                          valueNotifier.value = CalendarDay(dateTime: picked);

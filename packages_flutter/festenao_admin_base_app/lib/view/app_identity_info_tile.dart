@@ -6,6 +6,7 @@ import 'package:festenao_common/festenao_firestore.dart';
 import 'package:tekartik_common_utils/string_utils.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
 
+import 'identity_info_tile.dart';
 import 'not_signed_in_tile.dart';
 
 class AppIdentityWarningTile extends StatelessWidget {
@@ -29,9 +30,15 @@ class AppIdentityInfoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var intl = festenaoAdminAppIntl(context);
+    // No app auth bloc with app options (single project, top projects):
+    // the identity alone.
+    var appAuthBloc = globalFestenaoAppAuthBlocOrNull;
+    if (appAuthBloc == null) {
+      return IdentityInfoTile(onTap: onTap);
+    }
 
     return ValueStreamBuilder(
-      stream: globalFestenaoAppAuthBloc.state,
+      stream: appAuthBloc.state,
       builder: (context, snapshot) {
         var state = snapshot.data;
         if (state == null) {

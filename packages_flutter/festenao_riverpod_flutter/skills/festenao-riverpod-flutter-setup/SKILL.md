@@ -56,12 +56,13 @@ sandboxed per app flavor, plus the one call that turns them into riverpod
   identityBloc})` returns overrides for `festenaoAppFlavorContextProvider`,
   `festenaoFileSystemProvider`, `festenaoSdbFactoryProvider` and
   `festenaoUserProjectsSdbManagerProvider` (through
-  `festenaoUserProjectsSdbManagerOverride(factory:, app: appFlavorContext.appId)`).
-  `identityBloc` is accepted but **not forwarded** by the current
-  implementation, so passing it changes nothing today.
+  `festenaoUserProjectsSdbManagerOverride(factory:, app: appFlavorContext.appId,
+  identityBloc:)`). The projects manager opens the database of the user of
+  `identityBloc`; without one it follows a bloc of its own on the auth of
+  `festenaoFirebaseAppProvider` (the usual case).
 * `List<Override> festenaoProviderOverrides({required FestenaoAppFlavorContext
   appFlavorContext, required FileSystem fileSystem, required SdbFactory
-  sdbFactory})` builds the same overrides from an already resolved
+  sdbFactory, TkCmsFbIdentityBloc? identityBloc})` builds the same overrides from an already resolved
   `festenaoFlutterFileSystem(...)` and `festenaoFlutterSdbFactory(...)`: use
   it when the app needs the factory before building the overrides (its own
   databases, a local firebase). Never pass resolved ones to
@@ -121,7 +122,7 @@ what the overridden providers give access to.
 ```dart
 import 'package:festenao_riverpod/festenao_riverpod.dart';
 import 'package:festenao_riverpod_flutter/festenao_riverpod_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fs_shim/fs_shim.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';

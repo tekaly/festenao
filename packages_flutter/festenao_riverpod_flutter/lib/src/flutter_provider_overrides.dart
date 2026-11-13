@@ -8,8 +8,7 @@ import 'flutter_file_system.dart';
 import 'flutter_sdb_factory.dart';
 
 /// Builds the Flutter riverpod [Override]s for [FestenaoAppFlavorContext],
-/// [FileSystem], [SdbFactory] and, when [projectsApp] is provided,
-/// [UserProjectsSdbManager].
+/// [FileSystem], [SdbFactory] and [UserProjectsSdbManager].
 ///
 /// Resolves the application-support-directory [FileSystem] and a real-disk
 /// sandboxed [SdbFactory] for [appFlavorContext]. Call this once during app
@@ -20,10 +19,10 @@ import 'flutter_sdb_factory.dart';
 /// (e.g. with `fsMemory` and `sdbFactoryMemory`). They are the raw ones, not
 /// sandboxed yet: see [festenaoProviderOverrides] for already resolved ones.
 ///
-/// [projectsApp] is only needed when the app uses the per user projects
-/// database; see [festenaoUserProjectsSdbManagerOverride] for details on
-/// [identityBloc] and how its Firestore instance is resolved from
-/// [festenaoFirebaseAppProvider].
+/// The per user projects database manager opens the database of the user of
+/// [identityBloc], or, when null, of a bloc of its own on the auth of
+/// [festenaoFirebaseAppProvider] (which the app overrides, see
+/// [festenaoUserProjectsSdbManagerOverride]).
 Future<List<Override>> festenaoFlutterProviderOverrides({
   required FestenaoAppFlavorContext appFlavorContext,
   FileSystem? applicationFileSystem,
@@ -42,6 +41,7 @@ Future<List<Override>> festenaoFlutterProviderOverrides({
     appFlavorContext: appFlavorContext,
     fileSystem: fileSystem,
     sdbFactory: sdbFactory,
+    identityBloc: identityBloc,
   );
 }
 
@@ -53,16 +53,23 @@ Future<List<Override>> festenaoFlutterProviderOverrides({
 /// databases, a local firebase): passing them to
 /// [festenaoFlutterProviderOverrides] instead would sandbox them a second
 /// time, and the databases would end up in a doubled path.
+///
+/// [identityBloc] as in [festenaoFlutterProviderOverrides].
 List<Override> festenaoProviderOverrides({
   required FestenaoAppFlavorContext appFlavorContext,
   required FileSystem fileSystem,
   required SdbFactory sdbFactory,
+  TkCmsFbIdentityBloc? identityBloc,
 }) {
   var appId = appFlavorContext.appId;
   return [
     festenaoAppFlavorContextProvider.overrideWithValue(appFlavorContext),
     festenaoFileSystemProvider.overrideWithValue(fileSystem),
     festenaoSdbFactoryProvider.overrideWithValue(sdbFactory),
-    festenaoUserProjectsSdbManagerOverride(factory: sdbFactory, app: appId),
+    festenaoUserProjectsSdbManagerOverride(
+      factory: sdbFactory,
+      app: appId,
+      identityBloc: identityBloc,
+    ),
   ];
 }

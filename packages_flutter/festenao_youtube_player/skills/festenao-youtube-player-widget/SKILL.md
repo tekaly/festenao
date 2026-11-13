@@ -56,16 +56,16 @@ skill).
   it is given, so wrap it in an `AspectRatio(aspectRatio: 16 / 9, ...)`, a
   `SizedBox` or an `Expanded` — it has no intrinsic size.
 * Driving it: `play()`, `pause()`, `stop()` and `seekTo(Duration duration,
-  {bool allowSeekAhead = false})`. `allowSeekAhead: false` is the "scrubbing"
-  mode (do not jump past what is buffered) — pass `true` when the user lets go
-  of the slider, as in the package example.
+  {bool allowSeekAhead = false})`. `allowSeekAhead` is an iframe api notion
+  that both backends ignore (they always seek, buffered or not).
 * `controller.stateStream` is a `Stream<FestenaoYoutubePlayerState>` with
   `status`, `position`, `duration` and `playbackRate`. It is a seeded value
   stream, so a `StreamBuilder` gets a value on the first frame; that value is
   `FestenaoYoutubePlayerStatus.unknown` with zero durations until the player is
   ready, so guard on `duration == Duration.zero` before computing a progress
   ratio. Statuses: `error`, `unknown`, `loading`, `ready`, `playing`, `paused`,
-  `buffering`, `ended`.
+  `buffering`, `ended`. `ended` and `error` stay until the video plays again
+  (`play()`, or a replay from the player's own controls).
 * Disposal: the controller is an `AutoDisposable`, so it is released with
   `selfDispose()`. In a widget prefer `AutoDisposeBaseState` +
   `audiAddDisposable(...)` (from
@@ -73,8 +73,9 @@ skill).
   in `dispose()`.
 * Web caveats: the browser blocks autoplay with sound, so a video started with
   `autoPlay: true` usually starts muted, and the iframe player draws youtube's
-  own controls (`showControls`). A transparent `pointer_interceptor` layer
-  keeps taps and focus with Flutter.
+  own controls (`showControls`, true by default). With `showControls: false`
+  a transparent `pointer_interceptor` layer over the iframe keeps taps and
+  focus with Flutter.
 * `festenaoYoutubePlayerService` is a mutable global of type
   `FestenaoYoutubePlayerService` (`newController`, `newPlayer`). Replace it to
   plug another implementation in — a fake in a widget test — and restore
@@ -101,7 +102,7 @@ skill).
 ```dart
 import 'package:festenao_common_flutter/common_utils_flutter.dart';
 import 'package:festenao_youtube_player/player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Plays one video, with the platform controls plus a progress slider of ours.
 class VideoScreen extends StatefulWidget {
@@ -226,7 +227,7 @@ FestenaoYoutubeController? controllerFromLink(String pasted) {
 
 ```dart
 import 'package:festenao_youtube_player/player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// A controller with no platform behind it. FestenaoYoutubeControllerBase

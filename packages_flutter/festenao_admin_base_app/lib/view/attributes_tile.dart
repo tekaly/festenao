@@ -95,6 +95,13 @@ class AdminAttributeTile extends StatelessWidget {
                 param: AdminAttributeEditScreenParam(attribute: attribute),
                 projectContext: projectContext,
               );
+              if (result?.deleted ?? false) {
+                attributes.value = [
+                  ...attributeList.sublist(0, index),
+                  ...attributeList.sublist(index + 1),
+                ];
+                return;
+              }
               var newAttribute = result?.attribute;
               if (newAttribute != null) {
                 attributes.value = [

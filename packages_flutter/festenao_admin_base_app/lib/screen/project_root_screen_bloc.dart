@@ -50,6 +50,11 @@ class ProjectRootScreenBloc
             var identity = state.identity;
 
             if (identity == null) {
+              // Signed out: forget the previous identity (signing in again,
+              // even as the same user, subscribes again).
+              _projectSubscription?.cancel().unawait();
+              _projectSubscription = null;
+              _dbIdentityId = null;
               add(ProjectRootScreenBlocState());
             } else {
               var newDbIdentityId = identity.userLocalId;
@@ -130,7 +135,11 @@ class ProjectRootScreenBloc
       if (contentDb == null) {
         throw StateError('No content db for $projectId');
       }
-      return await contentDb.contentDb.synchronize();
+      try {
+        return await contentDb.contentDb.synchronize();
+      } finally {
+        await projectDbBloc.releaseContentDb(contentDb);
+      }
     }
     throw StateError('Cannot sync for $projectDbBloc');
   }

@@ -3,7 +3,7 @@ name: festenao-lyrics-player-widget
 description: >-
   Use when a Flutter screen must display scrolling, karaoke style synced lyrics
   from an LRC string: parseLyricLrc / parseLyricDurationLrc, LyricsData,
-  LyricsLineData, LyricsPartData, LyricsDataController (play(speed:),
+  LyricsLineData, LyricsPartData, LyricsDataController (play(speed:), pause(),
   update(Duration), lyricsData), the LyricsDataPlayer widget and
   LyricsDataPlayerStyle (defaultDark, defaultLight, copyWith, onTextStyle,
   offTextStyle, textScaler, lineCount, scrollDuration) from
@@ -50,10 +50,13 @@ auto-scrolling list, highlighting what has already been sung.
   * `play({double speed = 1})` — self-driven playback from an internal
     stopwatch, ticking `update` every 10 ms. Use it only for demos/previews
     with no real audio; `speed` above 1 fast-forwards.
-* There is **no public `pause()`, `stop()` or `dispose()`**: once `play()` has
-  started, its loop runs until the widget tree is gone. For anything that must
-  pause, seek or stop, drive the controller with `update(position)` from your
-  audio player's position stream and never call `play()`.
+  * `pause()` (the `LyricsDataControllerExt` extension, same import) stops
+    that clock; a later `play()` resumes where it stopped. The clock runs
+    until `pause()`, whether a widget shows the controller or not: call it in
+    `State.dispose`.
+* There is no `stop()`, `seek()` nor `dispose()`. For anything that must
+  seek or follow real audio, drive the controller with `update(position)`
+  from your audio player's position stream and never call `play()`.
 * `LyricsDataPlayer({required LyricsDataController controller, required
   LyricsDataPlayerStyle style})` **must be given bounded constraints** — it uses
   `LayoutBuilder` + `ScrollablePositionedList` and computes its font size as
@@ -73,7 +76,8 @@ auto-scrolling list, highlighting what has already been sung.
   position and the per-part streams are lost); calling `play()` *and*
   `update()` on the same controller; putting `LyricsDataPlayer` directly in a
   scrollable without a height.
-* The package has no tests of its own; `example/flp_example` is the reference
+* `test/lyrics_data_controller_test.dart` covers `play()`/`pause()`;
+  `example/flp_example` is the reference
   app (`lib/play_screen.dart` shows the minimal screen). For a widget test,
   pump the player inside a `SizedBox` and call `controller.update(...)` with
   explicit durations rather than relying on `play()`.
@@ -84,7 +88,7 @@ auto-scrolling list, highlighting what has already been sung.
 
 ```dart
 import 'package:festenao_lyrics_player/lyrics_player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Enhanced LRC: per word timestamps inside each line.
 const lrcDemo = '''
@@ -94,7 +98,7 @@ const lrcDemo = '''
 [00:19.48] The end
 ''';
 
-/// Plays [lrc] on its own stopwatch (demo/preview only, no pause).
+/// Plays [lrc] on its own stopwatch (demo/preview only).
 class PlayScreen extends StatefulWidget {
   /// Lyrics, LRC format.
   final String lrc;
@@ -115,6 +119,13 @@ class _PlayScreenState extends State<PlayScreen> {
   void initState() {
     super.initState();
     controller.play(speed: 1);
+  }
+
+  @override
+  void dispose() {
+    // The clock of play() runs until paused.
+    controller.pause();
+    super.dispose();
   }
 
   @override
@@ -145,7 +156,7 @@ class _PlayScreenState extends State<PlayScreen> {
 import 'dart:async';
 
 import 'package:festenao_lyrics_player/lyrics_player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Full screen lyrics following [positionStream] of an audio player.
 class SyncedLyricsView extends StatefulWidget {
@@ -203,7 +214,7 @@ class _SyncedLyricsViewState extends State<SyncedLyricsView> {
 
 ```dart
 import 'package:festenao_lyrics_player/lyrics_player.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Parsed lyrics: title, duration and the plain text of each line.
 List<String> lyricsSummary(String lrc) {

@@ -148,6 +148,14 @@ class ProjectsScreenBloc
                                             .map((e) => e.id)
                                             .toSet();
                                         var toSet = <DbProject>[];
+                                        // Existing records replaced as a
+                                        // whole, by id: a right removed from
+                                        // the access (admin revoked) is
+                                        // removed locally too, which a
+                                        // copyFrom (a merge of the fields
+                                        // set) would not do (as festenao_common
+                                        // applyUserProjects).
+                                        var toReplace = <String, DbProject>{};
                                         for (var item in items) {
                                           if (item.error == null) {
                                             var fsProject = item.value!;
@@ -159,33 +167,28 @@ class ProjectsScreenBloc
                                               // ? this might delete id
                                               continue;
                                             }
+                                            // A deleted (or missing) project
+                                            // goes, even with an access left.
+                                            if (!fsProject.exists ||
+                                                fsProject.deleted.v == true) {
+                                              continue;
+                                            }
+                                            var newDbProject = DbProject()
+                                              ..fromFirestore(
+                                                fsProject: fsProject,
+                                                projectAccess:
+                                                    userProjectAccess,
+                                                userId: identityId,
+                                              );
                                             if (existing != null) {
-                                              if (fsProject.deleted.v != true) {
-                                                toDelete.remove(existing.id);
-                                                var newDbProject = DbProject()
-                                                  ..fromFirestore(
-                                                    fsProject: fsProject,
-                                                    projectAccess:
-                                                        userProjectAccess,
-                                                    userId: identityId,
-                                                  );
-                                                if (existing.needUpdate(
-                                                  newDbProject,
-                                                )) {
-                                                  existing.copyFrom(
-                                                    newDbProject,
-                                                  );
-                                                  toSet.add(existing);
-                                                }
+                                              toDelete.remove(existing.id);
+                                              if (existing.needUpdate(
+                                                newDbProject,
+                                              )) {
+                                                toReplace[existing.id] =
+                                                    newDbProject;
                                               }
                                             } else {
-                                              var newDbProject = DbProject()
-                                                ..fromFirestore(
-                                                  fsProject: fsProject,
-                                                  projectAccess:
-                                                      userProjectAccess,
-                                                  userId: identityId,
-                                                );
                                               toSet.add(newDbProject);
                                             }
                                           }
@@ -200,19 +203,15 @@ class ProjectsScreenBloc
                                                 .delete(txn);
                                           }
                                           for (var project in toSet) {
-                                            if (project.idOrNull == null) {
-                                              await dbProjectStore.add(
-                                                txn,
-                                                project,
-                                              );
-                                            } else {
-                                              await dbProjectStore
-                                                  .record(project.id)
-                                                  .put(txn, project);
-                                            }
+                                            await dbProjectStore.add(
+                                              txn,
+                                              project,
+                                            );
+                                          }
+                                          for (var entry in toReplace.entries) {
                                             await dbProjectStore
-                                                .record(project.id)
-                                                .put(txn, project);
+                                                .record(entry.key)
+                                                .put(txn, entry.value);
                                           }
                                           await projectsDb
                                               .clientSetCurrentIdentityId(
