@@ -121,7 +121,12 @@ class ArtistCount extends ConsumerWidget {
   `FestenaoSyncedSdb` `<dataId>_<app>_<uid>_synced.db` in the fs sandbox
   `<projectId>/<dataId>`, firestore root `app/<app>/project/<uid>/data/<dataId>`.
   It waits for the project to appear in the local projects db: a project
-  the user has no access to never resolves. The content synchronizes with
+  the user has no access to never resolves. A content is the one of the
+  signed in user (their access, their partition): once another user signs
+  in (or the user signs out), the cache closes the contents of the
+  previous one and `projectContentProvider` opens them again. A provider
+  of your own holding a content watches the user id the same way. The
+  content synchronizes with
   the Firestore of the cache (`rpdFirestoreProvider`) and the storage given
   as `SdbProjectsContentCache(firebaseStorage:)` (`FirebaseStorage.instance`
   when null); a content that cannot open fails its `ready` (the provider is

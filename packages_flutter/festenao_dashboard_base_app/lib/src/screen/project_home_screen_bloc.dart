@@ -18,6 +18,14 @@ class ProjectHomeScreenBloc extends AutoDisposeStateBaseBloc<SdbUserProject?> {
   // ignore: cancel_subscriptions
   StreamSubscription? _projectSubscription;
 
+  var _disposed = false;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
+
   Future<void> _syncProjectMeta(String userId) async {
     var synchronizer = UserProjectsSdbSynchronizer(
       projectsSdb: projectsSdb,
@@ -44,6 +52,11 @@ class ProjectHomeScreenBloc extends AutoDisposeStateBaseBloc<SdbUserProject?> {
                   projectId,
                   userId: user.uid,
                 );
+                // Disposed meanwhile (the project came first from another
+                // sync).
+                if (_disposed) {
+                  return;
+                }
               }
               add(project);
             }),

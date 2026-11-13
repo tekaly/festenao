@@ -1,4 +1,5 @@
 import 'package:festenao_admin_base_app/screen/screen_bloc_import.dart';
+import 'package:festenao_common/auth/festenao_auth.dart';
 import 'package:festenao_common/data/festenao_media_sdb.dart';
 import 'package:festenao_common/data/festenao_media_sdb_synchronizer.dart'
     show SyncedMediaCacheOptions;
@@ -7,11 +8,13 @@ import 'package:festenao_common/data/festenao_projects_fs.dart';
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_common/data/src/festenao_synced_sdb.dart';
 import 'package:festenao_common/festenao_firebase_rest.dart';
+import 'package:festenao_dashboard_base_app/src/provider/auth_rpd.dart';
 import 'package:festenao_dashboard_base_app/src/provider/festenao_user_projects.dart';
 import 'package:festenao_dashboard_base_app/src/provider/firebase_app_rpd.dart';
 import 'package:festenao_dashboard_base_app/src/provider/sdb_db_blog_demo_providers.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_home_screen_bloc.dart';
 import 'package:festenao_riverpod/festenao_riverpod.dart';
+import 'package:riverpod/riverpod.dart' show ProviderListenableSelect;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:tekaly_sdb_synced/synced_sdb_firestore.dart';
 import 'package:tekartik_common_utils/map/lru_map.dart';
@@ -59,8 +62,18 @@ class SdbProjectsContentCache {
     dispose: (entry) => entry.value.dispose(),
   );
 
+  /// The content of `(projectId, dataId)` for the signed in user, once one
+  /// is (it waits for a user who has the project).
+  ///
+  /// A content is the one of a user (their access, their partition): the
+  /// contents of another user, signed in before on this device, are closed
+  /// first, never returned.
   Future<SdbProjectContent> content(String projectId, String dataId) async {
     var key = (projectId, dataId);
+    // Signed out, every content is closed.
+    if (globalTkCmsFbIdentityBloc.state.valueOrNull case var state?) {
+      _closeContentsOfOthers(state.identity?.userId);
+    }
     var cached = _lru[key];
     if (cached != null) return cached;
     var projectSdbBloc = ProjectHomeScreenBloc(
@@ -69,6 +82,10 @@ class SdbProjectsContentCache {
     );
     var sdbProject = await projectSdbBloc.state.whereNotNull().first;
     projectSdbBloc.dispose();
+    // The user signed in meanwhile.
+    _closeContentsOfOthers(sdbProject.userId.v);
+    cached = _lru[key];
+    if (cached != null) return cached;
     var fs = projectsFsBloc.fs;
     fs = fs.sandbox(path: fs.path.join(projectId, dataId));
     var content = SdbProjectContent(
@@ -80,6 +97,11 @@ class SdbProjectsContentCache {
     await content.ready;
     _lru[key] = content;
     return content;
+  }
+
+  /// Closes the contents opened for another user than [userId].
+  void _closeContentsOfOthers(String? userId) {
+    _lru.removeWhere((_, content) => content.project.userId.v != userId);
   }
 
   Future<void> deleteData() async {
@@ -219,6 +241,12 @@ Future<SdbProjectContent> projectContent(
   String projectId,
   String dataId,
 ) {
+  // Opened again for another user (their access, their partition).
+  ref.watch(
+    rpdTkCmsFbIdentityBlocStateProvider.select(
+      (state) => state.value?.identity?.userId,
+    ),
+  );
   return ref.watch(contentCacheProvider).content(projectId, dataId);
 }
 
