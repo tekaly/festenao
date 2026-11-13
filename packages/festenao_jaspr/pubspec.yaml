@@ -16,8 +16,8 @@ environment:
 # tkcms_common or anything pulling the Firebase admin sdk. No @client
 # component here: islands need jaspr_builder in the declaring package.
 dependencies:
-  # A floor only: the jaspr_builder of each site pins the version (0.24
-  # beta, the first on analyzer 13+, Dart 3.14).
+  # A floor only: each site resolves it (0.24 beta, the first on analyzer
+  # 13+, Dart 3.14).
   jaspr: ">=0.24.0-beta.0"
   markdown: ">=7.3.0"
   path: ">=1.9.1"
