@@ -2,11 +2,11 @@
 name: festenao-support-synced-data
 description: >-
   Use when exporting festenao synced data to an app's assets, or reading it
-  back, with festenao_support: buildData (the incremental assets build),
-  buildDatabaseFromFirestore / databaseFromFirestore (FestenaoSourceFirestore
-  and FestenaoDbSourceSync down to a SyncedDb), festenaoExportDatabase /
-  festenaoImportDatabase (the festenao_export.jsonl and
-  festenao_export_meta.json pair) and FestenaoExportLocalBuilder.
+  back, with festenao_support: buildData (the incremental assets build:
+  FestenaoSourceFirestore and FestenaoDbSourceSync down to a SyncedDb, the
+  festenao_export.jsonl and festenao_export_meta.json pair, the img/ files)
+  and FestenaoExportLocalBuilder (exportLocal / importLocal of a folder,
+  storageBuildData, firestoreBuildData).
 ---
 
 # festenao_support synced data
@@ -19,10 +19,13 @@ previous export, syncs what changed since, and writes it back.
 
 ## Guidelines
 
-* Import `package:festenao_support/festenao_synced_data.dart` (`buildData`,
-  `FestenaoExportLocalBuilder`). The lower level functions
-  (`buildDatabaseFromFirestore`, `databaseFromFirestore`,
-  `festenaoExportDatabase`, `festenaoImportDatabase`) come with it.
+* Import `package:festenao_support/festenao_synced_data.dart`: it exports
+  `buildData` and `FestenaoExportLocalBuilder` only. The lower level
+  functions of `lib/src/build_data.dart` (`buildDatabaseFromFirestore`,
+  `databaseFromFirestore`, `festenaoExportDatabase`,
+  `festenaoImportDatabase`) are not exported: the export and import of a
+  folder are `FestenaoExportLocalBuilder().exportLocal(db:, directory:)` and
+  `importLocal(directory:)`.
 * `buildData(assetsFolder:, serviceAccount:, rootPath:, clean:)` is what a
   `tool/build_data.dart` calls: it imports the existing export from
   `assetsFolder`, syncs it down from the firestore subtree at `rootPath` with
@@ -33,18 +36,26 @@ previous export, syncs what changed since, and writes it back.
   `festenao_export_meta.json` (`sourceVersion`, `lastTimestamp`,
   `lastChangeId` — what makes the next run incremental), plus an `img/`
   sub directory for the attachments.
-* `databaseFromFirestore(db:, rootPath:, firestore:/serviceAccount:)` syncs a
-  `SyncedDb` down through `FestenaoSourceFirestore` and
-  `FestenaoDbSourceSync` and prints the sync stat; pass a `firestore` when
-  the context already exists, a `serviceAccount` map otherwise (exactly one
-  of them). `buildDatabaseFromFirestore` does the same on a fresh in-memory
-  database.
-* `festenaoImportDatabase(directory:/assetsFolder:)` returns the `SyncedDb`
-  of an export, `festenaoExportDatabase(db:, directory:/assetsFolder:)`
-  writes one. Nothing is exported when the database has no sync meta: the
-  meta is what an import needs to continue.
-* `FestenaoExportLocalBuilder` is the same export/import pair as a class, for
-  a builder that also handles the local attachments.
+* Internally (not exported), `buildData` syncs a `SyncedDb` down through
+  `FestenaoSourceFirestore` and `FestenaoDbSourceSync` with the service
+  account, then writes the export. Nothing is exported when the database
+  has no sync meta: the meta is what an import needs to continue.
+* `FestenaoExportLocalBuilder` does the same steps as a class:
+  `exportLocal(db:, directory:)`, `importLocal(directory:)` (a `SyncedDb`
+  in memory), and the whole builds `storageBuildData` (from an export in
+  Storage) and `firestoreBuildData` (from Firestore), both downloading the
+  images too.
+* Images: `buildData` downloads them from the `<projectId>.appspot.com`
+  bucket (the default bucket of the projects created before October 2024);
+  a newer project (`<projectId>.firebasestorage.app`) gets a `fail for
+  <image>` line per image and no `img/` file: use
+  `FestenaoExportLocalBuilder`, which reads the bucket of its
+  `FirebaseStorageContext`. An image already in `img/` is never downloaded
+  again (delete it to refresh a changed image).
+* Legacy layer: the export works on the sembast `SyncedDb`
+  (tekaly_sembast_synced), the format the festenao apps read from their
+  assets. New local database code goes on sdb (festenao_common
+  `FestenaoSdb`, tekaly_sdb_synced), not on this layer.
 * This runs with a service account, so it belongs in a support package's
   `tool/`, never in an app: the app only reads the produced assets.
 * Commit the export with the app when the content ships with it; the
@@ -80,33 +91,18 @@ Future<void> appBuildData({bool clean = false}) async {
 }
 ```
 
-### A one-off export of a firestore subtree
-
-```dart
-import 'package:festenao_support/festenao_synced_data.dart';
-
-Future<void> exportProject({
-  required Map serviceAccount,
-  required String rootPath,
-  required String outDirectory,
-}) async {
-  var db = await buildDatabaseFromFirestore(
-    rootPath: rootPath,
-    serviceAccount: serviceAccount,
-  );
-  await festenaoExportDatabase(db: db, assetsFolder: outDirectory);
-  await db.close();
-}
-```
-
 ### Reading an export back
 
 ```dart
+import 'dart:io';
+
 import 'package:festenao_support/festenao_synced_data.dart';
 
 /// The exported database, as the app sees it.
 Future<void> printExport(String assetsFolder) async {
-  var db = await festenaoImportDatabase(assetsFolder: assetsFolder);
+  var db = await FestenaoExportLocalBuilder().importLocal(
+    directory: Directory(assetsFolder),
+  );
   var sdb = await db.database;
   print('version ${sdb.version}');
   await db.close();
@@ -118,9 +114,6 @@ Future<void> printExport(String assetsFolder) async {
 * Deleting `festenao_export_meta.json` alone: the next sync then starts from
   scratch silently, or worse, exports a database whose meta no longer matches
   its content. `clean: true` removes both.
-* Passing neither `firestore` nor `serviceAccount` to
-  `databaseFromFirestore`: it throws an `ArgumentError`, one of them is
-  required.
 * Exporting a database that was never synced: without sync meta nothing is
   written, and the empty assets folder looks like a successful build.
 * Running it from an app package: the service account belongs to the support

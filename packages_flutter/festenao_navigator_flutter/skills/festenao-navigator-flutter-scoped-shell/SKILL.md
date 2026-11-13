@@ -99,7 +99,7 @@ them.
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Overridden by the shell; reading it outside the branch is a bug.
@@ -179,7 +179,7 @@ class SchoolHome extends ConsumerWidget {
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final currentSchoolIdProvider = Provider<String>(
@@ -217,7 +217,7 @@ RouteBase fullScreenEditRoute(GlobalKey<NavigatorState> rootNavigatorKey) =>
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final currentProjectIdProvider = Provider<String>(

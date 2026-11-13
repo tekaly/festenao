@@ -91,6 +91,10 @@ of hand-built strings.
   `routeLocationParent(location, [count])`,
   `routeLocationSibling(location, path, count:)`. `append` keeps the query
   string, `parent`/`sibling` drop it (it belonged to the location being left).
+  Every helper keeps the percent encoded segments encoded (`/project/a%2Fb`
+  stays one segment, so an id holding `/`, `#`, `?`, `%` or a space survives
+  `goDeeper`/`goSibling`/`goUp`); `routeLocationSegments` returns them
+  decoded.
 * Anti-patterns: building locations with `'$base/$id'`, calling `context.go`
   with a literal path, hardcoding another feature's location (import its
   `RoutePathDef` instead), and relying on `pop()` for a screen a deep link can
@@ -105,7 +109,7 @@ of hand-built strings.
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Public definitions: another package navigates through these.
 final schoolListPath = RoutePathDef.parse('/school', name: 'school_list');
@@ -154,7 +158,7 @@ String aStudentLocation() =>
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 final schoolListPath = RoutePathDef.parse('/school', name: 'school_list');
 final schoolPath = schoolListPath.child(':school_id', name: 'school');
@@ -201,7 +205,7 @@ class StudentScreen extends StatelessWidget {
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 final projectPath = RoutePathDef.parse('/project/:project_id', name: 'project');
 

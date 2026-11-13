@@ -262,6 +262,52 @@ void main() {
       );
     });
 
+    test('a route a module is mounted under keeps its metadata', () {
+      var routes = ModularRouteResolver.assembleRoutes(
+        baseModules: [
+          _module('top', [
+            GoRoute(
+              path: '/',
+              name: 'home',
+              builder: _never,
+              metadata: const {'title': 'Home'},
+              caseSensitive: false,
+            ),
+          ]),
+          _NestedModule('demo', 'home', [_route('blog_demo')]),
+        ],
+      );
+      var home = routes.single as GoRoute;
+      expect(home.routes.single, isA<GoRoute>());
+      expect(home.metadata, const {'title': 'Home'});
+      expect(home.caseSensitive, isFalse);
+    });
+
+    test('a shell around an overridden route keeps its settings', () {
+      var shellKey = GlobalKey<NavigatorState>();
+      var routes = ModularRouteResolver.assembleRoutes(
+        baseModules: [
+          _module('top', [
+            ShellRoute(
+              navigatorKey: shellKey,
+              builder: (context, state, child) => child,
+              metadata: const {'section': 'school'},
+              notifyRootObserver: false,
+              restorationScopeId: 'school',
+              routes: [_route('/school', name: 'school_list')],
+            ),
+          ]),
+        ],
+        customOverrides: [_route('/my-schools', name: 'school_list')],
+      );
+      var shell = routes.single as ShellRoute;
+      expect((shell.routes.single as GoRoute).path, '/my-schools');
+      expect(shell.metadata, const {'section': 'school'});
+      expect(shell.notifyRootObserver, isFalse);
+      expect(shell.navigatorKey, same(shellKey));
+      expect(shell.restorationScopeId, 'school');
+    });
+
     test('throws on a duplicated module id', () {
       expect(
         () => ModularRouteResolver.assembleRoutes(

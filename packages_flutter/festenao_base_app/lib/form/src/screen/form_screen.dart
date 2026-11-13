@@ -90,8 +90,20 @@ class SurveyFormPlayer extends TkFormPlayerBase implements TkFormPlayer {
     gAppBloc.addAnswer(cvAnswer);
   }
 
+  /// True when the conditions of the question at [index] are not met. A
+  /// skipped question drops the answer it got before an earlier answer
+  /// changed (the user went back): it is not sent.
   @override
   bool shouldSkip(int index) {
+    var skip = _conditionsNotMet(index);
+    if (skip) {
+      super.setAnswer(index, null);
+      gAppBloc.removeAnswer(questions[index].id);
+    }
+    return skip;
+  }
+
+  bool _conditionsNotMet(int index) {
     var kDebugMode = isDebug;
     var question = dbSurvey.details.v!.questions.v!.list.v![index];
     // Check conditions

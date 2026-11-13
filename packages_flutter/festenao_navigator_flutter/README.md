@@ -4,14 +4,30 @@ Modular, type safe and scoped navigation for Festenao apps, on top of
 [go_router](https://pub.dev/packages/go_router) and
 [riverpod](https://pub.dev/packages/flutter_riverpod).
 
-Implements `packages_flutter/specs_festenao_navigator.md`.
+Spec: `packages_flutter/specs_festenao_navigator.md` of the festenao repo.
+
+## Getting started
+
+Not on pub.dev, a git dependency:
+
+```yaml
+dependencies:
+  festenao_navigator_flutter:
+    git:
+      url: https://github.com/tekaly/festenao
+      path: packages_flutter/festenao_navigator_flutter
+```
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
 ```
 
-The facade re-exports go_router, so an app importing it does not need to
-import go_router itself.
+The facade re-exports go_router (18), so an app importing it does not need
+to import go_router itself. Pure Flutter code: every platform (web, mobile,
+desktop), nothing native. The route assembly and the path definitions are
+plain Dart, unit testable without a widget tree.
+
+Package skills (`skills/`): route modules, route paths, scoped shell.
 
 ## Feature packages contribute routes (`FeatureRouteModule`)
 
@@ -49,10 +65,15 @@ Override matching is deterministic:
 2. otherwise the paths must be exactly equal.
 
 Prefer naming every route: it makes overrides unambiguous. An override
-matching nothing is appended, which is how an app adds its own routes.
-Overrides apply to the top level of the assembled list; to change something
-nested, override the route that wraps it (the override carries its own
-`routes:` subtree).
+matching nothing is appended at the top level, which is how an app adds its
+own routes. An override replaces the matched route in place, anywhere in the
+tree (a screen a module nested deep in a branch included), and keeps the
+settings of the routes around it (name, redirect, metadata, shell keys).
+The override carries its own `routes:` subtree: the children of the route it
+replaces, nested modules mounted there included, are gone unless it
+re-declares them. A nested module or an override falling inside a
+`StatefulShellRoute` throws an `ArgumentError` (its branches cannot be
+rebuilt safely).
 
 ## Type safe paths and relative jumps (`RoutePathDef`)
 
@@ -84,6 +105,10 @@ context.goDeeper('clas/789');       // append to the current location
 context.goSibling('clas', count: 2); // jump sideways
 context.goUp();                      // works on a deep link, unlike pop
 ```
+
+The relative helpers (`goDeeper`, `goSibling`, `goUp`, `popOrGoUp`) keep
+the percent encoded segments of the location: a project id `a/b` is
+`/project/a%2Fb` and goes up to `/project/a%2Fb`, not `/project/a/b`.
 
 ## Scoped state per branch (`providerScopeShellRoute`)
 

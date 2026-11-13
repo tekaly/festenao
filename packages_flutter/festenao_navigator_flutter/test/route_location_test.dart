@@ -67,4 +67,56 @@ void main() {
       );
     });
   });
+
+  group('encoded segments', () {
+    // An id holding `/`, `#`, `?`, `%` or a space is percent encoded in the
+    // location (RoutePathDef.location does it): the helpers must keep it so,
+    // or the segment splits, turns into a query or a fragment.
+    test('append keeps an encoded segment encoded', () {
+      expect(
+        routeLocationAppend('/project/a%2Fb', 'blog'),
+        '/project/a%2Fb/blog',
+      );
+      expect(
+        routeLocationAppend('/project/a%23b', 'blog'),
+        '/project/a%23b/blog',
+      );
+      expect(
+        routeLocationAppend('/project/a%3Fb?tab=1', 'blog'),
+        '/project/a%3Fb/blog?tab=1',
+      );
+      expect(
+        routeLocationAppend('/project/100%25', 'blog'),
+        '/project/100%25/blog',
+      );
+      expect(
+        routeLocationAppend('/project/a%20b', 'blog'),
+        '/project/a%20b/blog',
+      );
+    });
+
+    test('parent and sibling keep an encoded segment encoded', () {
+      expect(routeLocationParent('/project/a%2Fb/blog'), '/project/a%2Fb');
+      expect(
+        routeLocationSibling('/project/a%23b/blog', 'data'),
+        '/project/a%23b/data',
+      );
+    });
+
+    test('a location built by RoutePathDef goes up to the same id', () {
+      var projectPath = RoutePathDef.parse('/project/:project_id');
+      var blogPath = projectPath.child('blog');
+      for (var id in ['a/b', 'a#b', 'a?b', '100%', 'a b', 'é']) {
+        var blog = blogPath.location({'project_id': id});
+        expect(
+          routeLocationParent(blog),
+          projectPath.location({'project_id': id}),
+        );
+        expect(Uri.parse(routeLocationParent(blog)).pathSegments, [
+          'project',
+          id,
+        ]);
+      }
+    });
+  });
 }

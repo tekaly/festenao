@@ -20,10 +20,12 @@ a `FestenaoFbAppProject` (`festenao-support-firebase-admin`), so a tool is a
 ## Guidelines
 
 * Imports: `package:festenao_support/festenao_firebase_menu.dart` — it
-  re-exports `package:tekartik_app_dev_menu/dev_menu.dart`, so
-  `mainMenuConsole`, `menu`, `item`, `enter`, `write`, `writeln`, `showMenu`,
-  `popMenu`, `keyValuesMenu` and `kvFromVar` come with it. Never import
-  `src/`.
+  re-exports `package:tekartik_app_dev_menu/dev_menu.dart`, so `menu`,
+  `item`, `enter`, `write`, `writeln`, `showMenu`, `popMenu`,
+  `keyValuesMenu` and `kvFromVar` come with it. The console entry point
+  `mainMenuConsole` does not: import `package:dev_build/menu/menu_io.dart`
+  (dev_build is a dependency of festenao_support; list it in your pubspec
+  too). Never import `src/`.
 * `mainMenuConsole(args, () { ... })` is the entry point; inside, `menu(name,
   body)` opens a sub menu and `item(name, action)` runs one action. `enter(()
   async { ... })` runs when a menu is entered — print what is selected there.
@@ -38,14 +40,13 @@ a `FestenaoFbAppProject` (`festenao-support-firebase-admin`), so a tool is a
   the auth users of the firebase project (find by email, create, select), the
   app (`app/<appId>`: its user access rows, granting an app admin) and an app
   project (its entity, its per user access, granting and revoking). Pass the
-  two callbacks to persist what was picked, as the festenaoprv admin menu
-  does.
+  two callbacks to persist what was picked (the example below).
 * `firebaseFestenaoMenu(appFlavorContext, firebaseContext, fsDatabase:)`
   lists what an already initialised context reaches: the app users, the auth
   users and the projects of the app.
 * `firebaseEntityMenu<T>(firebaseContext:, entityDb:, entityName:, appDb:,
   appId:, kvEntityId:, limit:, entityMenu:)` is its generic form for any
-  tkcms entity type — calendelio plugs its calendars in with `entityName:
+  tkcms entity type — an app plugs its calendars in with `entityName:
   'calendar'`. It adds `list users`, `list auth users`, `list <entity>s`,
   `current <entity>` (its users, its sub collections, plus what `entityMenu`
   adds), `select <entity>` and `vars`.
@@ -64,15 +65,16 @@ a `FestenaoFbAppProject` (`festenao-support-firebase-admin`), so a tool is a
 /// The festenao admin menu, the entry point of this package.
 ///
 /// ```sh
-/// dart run festenaoprv_support
+/// dart run my_app_support
 /// ```
 library;
 
 import 'dart:async';
 
+import 'package:dev_build/menu/menu_io.dart';
 import 'package:festenao_support/festenao_firebase_menu.dart';
-import 'package:festenaoprv_common/festenaoprv_constant.dart';
-import 'package:festenaoprv_common/firebase_io.dart';
+import 'package:my_app_common/constant.dart';
+import 'package:my_app_common/service_account.dart';
 
 /// The app id the menu acts on, remembered between runs.
 var kvAppId = 'fao_app_id'.kvFromVar();
@@ -82,8 +84,8 @@ var kvProjectId = kvFestenaoProject;
 
 Future<void> main(List<String> args) async {
   var appProject = FestenaoFbAppProject.serviceAccountMap(
-    appId: kvAppId.value ?? festenaoPrvAppDev,
-    serviceAccountMap: festenaoFreeDevServiceAccountMap,
+    appId: kvAppId.value ?? myAppIdDev,
+    serviceAccountMap: myAppDevServiceAccountMap,
   );
 
   mainMenuConsole(args, () {
@@ -103,6 +105,8 @@ Future<void> main(List<String> args) async {
 
 ```dart
 import 'package:festenao_support/festenao_firebase_menu.dart';
+import 'package:my_app_common/fs_calendar.dart'; // FsCalendar, a TkCmsFsEntity
+import 'package:tkcms_common/tkcms_firestore.dart';
 
 /// The calendars of the app, with one extra action on the selected one.
 void calendarMenu({
@@ -159,6 +163,10 @@ void usersMenu(FestenaoFbAppProject appProject) {
   network round trip to show up, and fails to start when the credentials are
   wrong instead of saying so on the first item. Build the
   `FestenaoFbAppProject` (lazy) and let the item do the work.
+* Picking another app in the `app` menu keeps the selected project: the
+  `app project` items then act on `app/<new app>/project/<old project>`
+  (a grant writes the access of a project that may not exist there).
+  Select the project again after changing the app.
 * Forgetting `onAppIdSelected` / `onProjectIdSelected`: the selection is lost
   on the next run, and every session starts with `select app`.
 * Acting on a level before selecting it: the calls throw a `StateError`

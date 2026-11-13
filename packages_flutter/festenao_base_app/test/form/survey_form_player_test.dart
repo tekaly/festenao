@@ -68,6 +68,19 @@ void main() {
     expect(player.shouldSkip(1), isTrue);
   }, timeout: const Timeout(Duration(seconds: 30)));
 
+  test('a skipped question drops the answer given before going back', () {
+    var player = _player(_conditionalSurvey());
+    player.setAnswer(0, TkFormPlayerQuestionAnswer(choiceId: 'yes'));
+    player.setAnswer(1, TkFormPlayerQuestionAnswer(intValue: 3));
+    expect(gAppBloc.getAnswer('q2')?.answerInt.v, 3);
+    // Back to q1, now no: q2 is skipped and its answer is not sent.
+    player.setAnswer(0, TkFormPlayerQuestionAnswer(choiceId: 'no'));
+    expect(player.shouldSkip(1), isTrue);
+    expect(gAppBloc.getAnswer('q2'), isNull);
+    expect(player.getAnswer(1), isNull);
+    expect(gAppBloc.surveyAnswers.list.v!.map((answer) => answer.id.v), ['q1']);
+  }, timeout: const Timeout(Duration(seconds: 30)));
+
   test('each question keeps its own answer', () {
     var player = _player(_conditionalSurvey());
     player.setAnswer(0, TkFormPlayerQuestionAnswer(choiceId: 'yes'));

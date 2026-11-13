@@ -4,17 +4,22 @@
 /// A location is the absolute path part of the current route
 /// (`/school/124/student/456`), optionally followed by a query string. All
 /// helpers here keep the query string of [location] untouched unless the
-/// appended path carries its own.
+/// appended path carries its own, and keep the percent encoded segments of
+/// [location] encoded (`/project/a%2Fb` stays one segment).
 library;
 
 /// Splits a location in its path segments, ignoring any query/fragment.
+///
+/// The segments are decoded (`/project/a%2Fb` gives `project`, `a/b`).
 List<String> routeLocationSegments(String location) {
   var uri = Uri.parse(location);
   return uri.pathSegments.where((segment) => segment.isNotEmpty).toList();
 }
 
+/// [segments] (decoded) as an absolute path, each one encoded again: an id
+/// holding a `/`, `#`, `?` or `%` stays one segment.
 String _joinSegments(List<String> segments, {String? query}) {
-  var path = '/${segments.join('/')}';
+  var path = '/${Uri(pathSegments: segments).path}';
   if (query?.isNotEmpty ?? false) {
     return '$path?$query';
   }

@@ -52,8 +52,8 @@ app: nothing here is subject to the rules.
     an embedded service account writes `.local/service_account_enc.json` of
     its support folder with `festenaoWriteServiceAccountEncFile(itsMap)`
     (festenao_common `firebase/festenao_service_account_io.dart`, obfuscated:
-    the password is in the file), the account the festenaoprv `festenaodash`
-    admin build selects when started in that folder.
+    the password is in the file), the account an admin build selects when
+    started in that folder.
   * `FestenaoFbAppProject.context(context:)` — on top of a context already
     built, which must be admin sdk backed to manage users.
   * `festenaoInitFirebaseAdminSdk(projectId:, storageBucket:)` and

@@ -2,6 +2,9 @@
 /// (service account or admin sdk): auth users, app users, the entities of a
 /// tkcms entity database.
 ///
+/// The console entry point `mainMenuConsole` comes from
+/// `package:dev_build/menu/menu_io.dart` (not re-exported here).
+///
 /// Two flavours:
 ///
 /// - [firebaseFestenaoMenu] (and the generic [firebaseEntityMenu]) list what

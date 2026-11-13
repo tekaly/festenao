@@ -97,5 +97,19 @@ void main() {
         '/project/p1',
       );
     });
+
+    testWidgets('goes up to the same project when its id holds a /', (
+      tester,
+    ) async {
+      var blog = _blogPath.location({'project_id': 'a/b'});
+      expect(blog, '/project/a%2Fb/blog_demo');
+      var router = await _pump(tester, blog);
+      tester.element(find.text('blog')).popOrGoUp();
+      await tester.pumpAndSettle();
+      expect(find.text('project'), findsOneWidget);
+      var state = router.routerDelegate.currentConfiguration;
+      expect(state.uri.toString(), '/project/a%2Fb');
+      expect(state.pathParameters['project_id'], 'a/b');
+    });
   });
 }

@@ -92,6 +92,11 @@ class AppBloc {
     }
   }
 
+  /// Removes the answer of the question [id], if any.
+  void removeAnswer(String id) {
+    surveyAnswers.list.v!.removeWhere((element) => element.id.v == id);
+  }
+
   CvSurveyAnswer? getAnswer(String id) {
     return surveyAnswers.list.v!.firstWhereOrNull(
       (element) => element.id.v == id,

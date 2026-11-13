@@ -26,7 +26,8 @@ bool routeMatchesOverride(RouteBase route, RouteBase override) {
 /// A copy of [route] whose sub-routes are [routes].
 ///
 /// [GoRoute] is immutable, so mounting a module under an existing route means
-/// rebuilding that route with the extra children.
+/// rebuilding that route with the extra children. Every other setting of
+/// [route] is kept (a new go_router setting must be added here too).
 GoRoute _routeWithSubRoutes(GoRoute route, List<RouteBase> routes) {
   return GoRoute(
     path: route.path,
@@ -35,6 +36,7 @@ GoRoute _routeWithSubRoutes(GoRoute route, List<RouteBase> routes) {
     pageBuilder: route.pageBuilder,
     parentNavigatorKey: route.parentNavigatorKey,
     redirect: route.redirect,
+    metadata: route.metadata,
     onExit: route.onExit,
     caseSensitive: route.caseSensitive,
     routes: routes,
@@ -55,6 +57,8 @@ RouteBase _shellWithRoutes(RouteBase route, List<RouteBase> routes) {
       navigatorKey: route.navigatorKey,
       parentNavigatorKey: route.parentNavigatorKey,
       redirect: route.redirect,
+      metadata: route.metadata,
+      notifyRootObserver: route.notifyRootObserver,
       restorationScopeId: route.restorationScopeId,
       routes: routes,
     );

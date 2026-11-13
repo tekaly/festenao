@@ -23,7 +23,7 @@ Its `lib/main.dart` is the stock Flutter counter, not an API.
 
 ```dart
 import 'package:festenao_media_base_app/festenao_widget.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   webSplashReady();
@@ -97,7 +97,7 @@ void main() {
 ```dart
 import 'package:festenao_media_base_app/festenao_widget.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 void main() {
   webSplashReady();
@@ -155,7 +155,7 @@ class PlayerScreen extends StatelessWidget {
 
 ```dart
 import 'package:festenao_media_base_app/festenao_widget.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A counter bloc: `add` publishes a new state, disposed with the widget.
 class CounterBloc extends AutoDisposeStateBaseBloc<int> {

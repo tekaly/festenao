@@ -72,6 +72,17 @@ screens it wants to change, then hands the result to `GoRouter`.
   nothing is appended at the top level — that is how the app adds its own
   routes (an accidental non-match therefore shows up as a duplicated screen,
   not an error: check the name).
+* The routes rebuilt on the way (the parent a nested module hangs from, the
+  ancestors of an overridden route) keep their other settings: name,
+  builders, redirect, onExit, `metadata`, `caseSensitive`, and for a
+  `ShellRoute` its navigator keys, observers, `notifyRootObserver` and
+  restoration id. A nested module or an override falling inside a
+  `StatefulShellRoute` throws an `ArgumentError` (its branch state cannot be
+  copied): keep stateful shells out of the assembled modules, or put them
+  in the override itself.
+* Overriding a route a nested module was mounted under drops that module's
+  routes too (the override brings its own `routes:`): override the leaf
+  screen rather than its parent, or re-declare the children.
 * `findModuleOrNull(moduleId)` (`FeatureRouteModuleListExt` on
   `List<FeatureRouteModule>`) looks a module up in the app's list, e.g. to
   decide whether a feature is enabled for a flavor.
@@ -88,7 +99,7 @@ screens it wants to change, then hands the result to `GoRouter`.
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Public definitions of the school feature.
 final schoolListPath = RoutePathDef.parse('/school', name: 'school_list');
@@ -130,7 +141,7 @@ FeatureRouteModule authRouteModule() => FeatureRouteModuleBase(
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 final projectPath = RoutePathDef.parse('/project/:project_id', name: 'project');
 
@@ -159,7 +170,7 @@ class BlogRouteModule implements NestedFeatureRouteModule {
 
 ```dart
 import 'package:festenao_navigator_flutter/festenao_navigator_flutter.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Router of a white-labeled app: the modules' routes, with the school list
 /// screen replaced by our own.
