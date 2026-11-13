@@ -41,10 +41,10 @@ mixin AdminExportBlocMixin implements AdminExportBlocMixinInterface {
   @override
   FestenaoAdminAppProjectContext get projectContext;
   String get firestoreExportCollectionPath =>
-      join(_firestoreRootPath, firestoreExportPathPart);
+      url.join(_firestoreRootPath, firestoreExportPathPart);
 
   String get firestoreMetaCollectionPath =>
-      join(_firestoreRootPath, firestoreExportMetaPathPart);
+      url.join(_firestoreRootPath, firestoreExportMetaPathPart);
 }
 
 class AdminExportEditScreenBloc
@@ -68,11 +68,11 @@ class AdminExportEditScreenBloc
 
   @override
   String get firestoreExportCollectionPath =>
-      join(_firestoreRootPath, firestoreExportPathPart);
+      url.join(_firestoreRootPath, firestoreExportPathPart);
 
   @override
   String get firestoreMetaCollectionPath =>
-      join(_firestoreRootPath, firestoreExportMetaPathPart);
+      url.join(_firestoreRootPath, firestoreExportMetaPathPart);
 
   @override
   String get _firestoreRootPath => projectContext.firestorePath;
@@ -80,7 +80,7 @@ class AdminExportEditScreenBloc
   //late var exportFirestoreRootPath = projectContext.firestorePath;
 
   String get exportStorageDirPath =>
-      join(projectContext.storagePath, storageDataPathPart);
+      url.join(projectContext.storagePath, storageDataPathPart);
   late GrabbedContentDb _grabbedContentDb;
   ContentDb get festenaoDb => _grabbedContentDb.contentDb;
 
