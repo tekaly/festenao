@@ -139,7 +139,7 @@ final dashboardRouter = GoRouter(
 ```dart
 import 'package:festenao_dashboard_base_app/router.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// `/about`, an app only route: matches no base route, appended.
 final aboutPath = RoutePathDef.parse('/about', name: 'about');
@@ -213,8 +213,8 @@ class ProjectNotesScreen extends StatelessWidget {
 ```dart
 import 'package:festenao_dashboard_base_app/provider.dart';
 import 'package:festenao_dashboard_base_app/router.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Mounted below `/project/:project_id` with dashboardProjectScope.
 class ProjectToolsScreen extends ConsumerWidget {

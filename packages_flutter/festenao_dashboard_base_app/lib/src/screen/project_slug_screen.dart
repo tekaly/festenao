@@ -21,7 +21,7 @@ String dashboardProjectSlugLocation(String slug) =>
 /// by [projectLocation] of its id.
 ///
 /// The dashboard opens the access screen of the project; a public app opens
-/// the project content (festenaoprv user plus app: its blog).
+/// the project content (a user facing app: its blog).
 class DashboardProjectSlugScreen extends StatefulWidget {
   /// The slug of the url.
   final String slug;

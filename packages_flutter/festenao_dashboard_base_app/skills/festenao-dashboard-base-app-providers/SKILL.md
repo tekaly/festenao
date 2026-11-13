@@ -30,8 +30,8 @@ data id, a synced sdb (`app/<app>/project/<uid>/data/<dataId>`) whose stores
 
 ```dart
 import 'package:festenao_dashboard_base_app/provider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ArtistCount extends ConsumerWidget {
   final String projectId;
@@ -116,12 +116,16 @@ class ArtistCount extends ConsumerWidget {
 ### Project content sdb
 
 * `contentCacheProvider` (keepAlive, needs the flavor, firestore and
-  projects db) keeps an LRU of 4 `SdbProjectContent`;
+  projects db) keeps an LRU of 8 `SdbProjectContent`;
   `projectContentProvider(projectId, dataId)` (Future) opens one: the
   `FestenaoSyncedSdb` `<dataId>_<app>_<uid>_synced.db` in the fs sandbox
   `<projectId>/<dataId>`, firestore root `app/<app>/project/<uid>/data/<dataId>`.
   It waits for the project to appear in the local projects db: a project
-  the user has no access to never resolves.
+  the user has no access to never resolves. The content synchronizes with
+  the Firestore of the cache (`rpdFirestoreProvider`) and the storage given
+  as `SdbProjectsContentCache(firebaseStorage:)` (`FirebaseStorage.instance`
+  when null); a content that cannot open fails its `ready` (the provider is
+  then in error, never loading forever).
 * `contentSdbProvider(projectId, dataId)` streams the `SdfContentSdb?`, the
   entries providers stream its stores and yield `[]` (or null) while
   loading or on error, never an error state: `artistEntriesProvider`,
@@ -186,8 +190,8 @@ import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_dashboard_base_app/provider.dart';
 import 'package:festenao_riverpod_flutter/festenao_riverpod_flutter.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 
 /// [firebaseContext] comes from the app's firebase init (flutter, rest, local).
@@ -226,8 +230,8 @@ Future<void> runDashboard({
 // The sdb record base and its `id` extension.
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/provider.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ArtistsScreen extends ConsumerWidget {
   const ArtistsScreen({super.key});

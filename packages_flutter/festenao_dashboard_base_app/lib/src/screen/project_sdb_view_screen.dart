@@ -365,7 +365,7 @@ class ProjectViewScreenState extends ConsumerState<ProjectViewScreen>
 /// Opens the access screen of [projectId] through the content navigator.
 ///
 /// The entry point of the apps still navigating with `ContentNavigator` rather
-/// than go_router (`festenaoprv_admin_app`); a go_router app pushes
+/// than go_router (an older admin app); a go_router app pushes
 /// `projectAccessPath` instead.
 Future<void> goToProjectViewScreen(
   BuildContext context, {

@@ -37,12 +37,19 @@ class SdbProjectsContentCache {
   final String app;
 
   final projectsFsBloc = globalFestenaoUserProjectsFsBloc;
+
+  /// The Firestore the contents synchronize with.
   final Firestore firestore;
+
+  /// The storage of the media files of the contents, the one of the default
+  /// app ([FirebaseStorage.instance]) when null.
+  final FirebaseStorage? firebaseStorage;
 
   SdbProjectsContentCache({
     required this.projectsSdb,
     required this.app,
     Firestore? firestore,
+    this.firebaseStorage,
   }) : firestore = firestore ?? Firestore.instance;
 
   /// A project may hold several data ids open (an app with its content and
@@ -149,8 +156,9 @@ class SdbProjectContent {
 
           project: project,
           dataId: dataId,
-          firestore: Firestore.instance,
-          firebaseStorage: FirebaseStorage.instance,
+          // The ones of the cache (its provider's), never the default app's.
+          firestore: cache.firestore,
+          firebaseStorage: cache.firebaseStorage ?? FirebaseStorage.instance,
           openOptions: openOptions,
           partition: options?.partitionOf?.call(project),
           mediaCacheOptions:
@@ -162,10 +170,11 @@ class SdbProjectContent {
           db: await _festenaoSyncedSdb.db.syncedSdb.database,
         );
         _readyCompleter.complete();
-      } catch (e) {
+      } catch (e, st) {
         // ignore: avoid_print
         print('error init: $e');
-        rethrow;
+        // [ready] fails (it would never complete otherwise).
+        _readyCompleter.completeError(e, st);
       }
     }();
   }

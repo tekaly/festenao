@@ -29,7 +29,7 @@ some into its own routes, or replaces one through a route override.
 
 ```dart
 import 'package:festenao_dashboard_base_app/screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// A debug screen of the app: the shared items plus its own.
 class MyDebugScreen extends StatelessWidget {
@@ -161,11 +161,10 @@ class MyDebugScreen extends StatelessWidget {
 ### The url of a project in its form
 
 ```dart
-import 'package:festenao_common/festenao_slug.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common_flutter/festenao_slug_flutter.dart';
 import 'package:festenao_dashboard_base_app/screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ProjectUrlForm extends StatefulWidget {
   final String projectId;
@@ -217,7 +216,7 @@ class _ProjectUrlFormState extends State<ProjectUrlForm> {
 ```dart
 import 'package:festenao_dashboard_base_app/provider.dart';
 import 'package:festenao_dashboard_base_app/screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class ProjectMenu extends StatelessWidget {
   final String projectId;
@@ -267,7 +266,7 @@ class ProjectMenu extends StatelessWidget {
 
 ```dart
 import 'package:festenao_dashboard_base_app/screen.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tekartik_app_flutter_widget/mini_ui.dart';
 
 class AppDebugScreen extends StatelessWidget {
@@ -294,8 +293,8 @@ import 'package:festenao_common/festenao_slug.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_dashboard_base_app/router.dart';
 import 'package:festenao_dashboard_base_app/screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:tkcms_common/tkcms_firebase.dart';
 import 'package:tkcms_common/tkcms_flavor.dart';
 

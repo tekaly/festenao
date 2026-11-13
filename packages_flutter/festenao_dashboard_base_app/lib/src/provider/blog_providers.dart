@@ -32,17 +32,22 @@ class SdbProjectContentBlog {
     required this.appFlavorContext,
   }) {
     () async {
-      cvAddConstructor(DbBlog.new);
-      _autoSyncedSdb = await openProjectSyncedSdb(
-        userProjectsSdb: cache.userProjectsSdb,
-        appFlavorContext: appFlavorContext,
-        firestore: cache.firestore,
-        project: project,
-        dataId: dataId,
-        openOptions: _sdbBlogOpenOptions,
-      );
-      blogSdb = BlogSdb._(db: _autoSyncedSdb.database);
-      _readyCompleter.complete();
+      try {
+        cvAddConstructor(DbBlog.new);
+        _autoSyncedSdb = await openProjectSyncedSdb(
+          userProjectsSdb: cache.userProjectsSdb,
+          appFlavorContext: appFlavorContext,
+          firestore: cache.firestore,
+          project: project,
+          dataId: dataId,
+          openOptions: _sdbBlogOpenOptions,
+        );
+        blogSdb = BlogSdb._(db: _autoSyncedSdb.database);
+        _readyCompleter.complete();
+      } catch (e, st) {
+        // [ready] fails (it would never complete otherwise).
+        _readyCompleter.completeError(e, st);
+      }
     }();
   }
 

@@ -23,7 +23,7 @@ class ProjectsScreenBlocState {
 ///
 /// Superseded in this package by [RpdProjectsAccess], which the dashboard
 /// projects access screen watches instead. It stays for
-/// `festenaoprv_admin_app`, whose own projects screen still builds it.
+/// the admin apps whose own projects screen still builds it.
 class ProjectsSdbScreenBloc
     extends AutoDisposeStateBaseBloc<ProjectsScreenBlocState> {
   final UserProjectsSdb projectsDb;
