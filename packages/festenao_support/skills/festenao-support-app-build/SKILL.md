@@ -45,6 +45,18 @@ turns into build and deploy items.
   happens, never the app package.
 * A deploy is the deploy of a build: build the flavor first, then deploy it.
   The menu items are in that order for that reason.
+* The dart functions and the rules of an app
+  (`package:festenao_support/festenao_functions_menu.dart`, also in
+  `festenao_build_menu_flutter.dart`): `FestenaoFunctionsBuild(dev:, prod:,
+  restTests:, bumpVersion:, serverInfo:)` (the two `FirebaseProjectBuilder`s
+  hold the function list of each flavor) gives `deployDevTestThenProd()`
+  (deploy dev, its rest tests, then only when they pass prod and its
+  tests); `menu('dart functions', () =>
+  menuFestenaoFunctionsContent(functions))` declares the bump, the chain,
+  the server info, compile, deploy and rest test per flavor and the
+  firebase project menu; `menuFestenaoRulesContent(project:,
+  firestoreRulesFile:, generateFirestoreRules:, generateStorageRules:,
+  applyStorageCors:)` the generate and deploy items of the rules.
 
 ## Examples
 
