@@ -252,6 +252,43 @@ class ScreenshotSession {
     return file;
   }
 
+  /// Shoots [name] ([shot]) once [prepare] brought its screen (a navigation,
+  /// a wait, a tap), then runs [after] (closes what [prepare] opened).
+  ///
+  /// When [only] leaves the shot out, nothing runs and its number is still
+  /// counted ([skip]): the numbers of the next shots stay the same. Returns
+  /// the file written, null when left out.
+  Future<File?> shotIfWanted(
+    String name, {
+    String? prefix,
+    Directory? directory,
+    required Future<void> Function() prepare,
+    Future<void> Function()? after,
+  }) async {
+    if (!wantsNext(name, prefix: prefix, directory: directory)) {
+      skip(prefix: prefix, directory: directory);
+      return null;
+    }
+    await prepare();
+    var file = await shot(name, prefix: prefix, directory: directory);
+    await after?.call();
+    return file;
+  }
+
+  /// Runs [body] with the platform brightness dark (an app following the
+  /// system theme turns dark), settled first; the brightness of the test is
+  /// restored after.
+  Future<T> inDarkMode<T>(Future<T> Function() body) async {
+    var dispatcher = tester.platformDispatcher;
+    dispatcher.platformBrightnessTestValue = ui.Brightness.dark;
+    try {
+      await settle();
+      return await body();
+    } finally {
+      dispatcher.clearPlatformBrightnessTestValue();
+    }
+  }
+
   /// Unmounts the screen and lets it end.
   Future<void> close() async {
     await tester.pumpWidget(const SizedBox());

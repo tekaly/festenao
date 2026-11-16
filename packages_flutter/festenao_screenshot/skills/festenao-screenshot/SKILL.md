@@ -5,9 +5,11 @@ description: >-
   festenao_screenshot (flutter test, no display): runScreenshots,
   ScreenshotSession (open, setSize, settle, waitFor, tap, tapText,
   tapTooltip, back, shot with prefix and numbering, shotNamed, only,
-  wantsNext, skip, resetIndex, wrap, errors), loadScreenshotFonts,
-  patchFontFallbacks, screenshotNames, screenshotPackageRoot, and why text
-  draws as boxes or shadows as black outlines in a widget test.
+  wantsNext, skip, shotIfWanted, inDarkMode, resetIndex, wrap, errors),
+  loadScreenshotFonts, patchFontFallbacks, screenshotNames,
+  screenshotPackageRoot, screenshotDatedDirectory, screenshotPhoneSize,
+  screenshotDesktopSize, runAsScreenshotDesktop, and why text draws as boxes
+  or shadows as black outlines in a widget test.
 ---
 
 # Screenshots in flutter test (festenao_screenshot)
@@ -53,7 +55,17 @@ display. A harness is a `tool/screenshot_test.dart` run with `flutter test`.
 * Filter: `only: screenshotNames(const String.fromEnvironment('X_ONLY'))`
   keeps the shots whose name, file name or `<prefix>_<name>` is listed; test
   `session.wantsNext(name, prefix:)` before navigating, `skip` otherwise to
-  keep the numbering.
+  keep the numbering. `session.shotIfWanted(name, prefix:, prepare:,
+  after:)` does both: `prepare` (navigate, wait, tap) and `after` (close
+  what it opened) run only when the shot is wanted, the number is counted
+  either way.
+* An app harness: `screenshotDatedDirectory(path: _dir)` (the
+  `--dart-define` folder, `.local/<yyyy-MM-dd>-screenshots` otherwise),
+  `screenshotPhoneSize` (400 x 860) and `screenshotDesktopSize`
+  (1200 x 800); the desktop shots run in `runAsScreenshotDesktop(() async
+  {...})` (macOS for the theme platform, the compact density: open the app
+  inside it) and their dark variant in `session.inDarkMode(() => ...)`
+  (both restored after).
 * Fonts: `loadScreenshotFonts` loads the app `FontManifest.json`, Roboto
   and the material icons from the flutter sdk, the cupertino icons and the
   festenao_theme families when the app depends on them (bare and package

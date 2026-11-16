@@ -7,10 +7,19 @@
 /// - [ScreenshotSession]: opens screens at a window size, waits for the
 ///   asynchronous backends, writes numbered pngs;
 /// - [runScreenshots]: declares the test around a session;
-/// - [screenshotNames]: the names of a `--dart-define` filter.
+/// - [screenshotNames]: the names of a `--dart-define` filter;
+/// - [screenshotDatedDirectory], [screenshotPhoneSize],
+///   [screenshotDesktopSize] and [runAsScreenshotDesktop]: the folder, the
+///   sizes and the desktop density of an app harness.
 library;
 
 export 'src/screenshot_fonts.dart'
     show loadScreenshotFonts, patchFontFallbacks, screenshotPackageRoot;
+export 'src/screenshot_layout.dart'
+    show
+        screenshotPhoneSize,
+        screenshotDesktopSize,
+        screenshotDatedDirectory,
+        runAsScreenshotDesktop;
 export 'src/screenshot_session.dart'
     show ScreenshotSession, runScreenshots, screenshotNames;

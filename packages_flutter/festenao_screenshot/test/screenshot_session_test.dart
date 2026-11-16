@@ -2,7 +2,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:festenao_screenshot/festenao_screenshot.dart';
-import 'package:flutter/foundation.dart' show SynchronousFuture;
+import 'package:flutter/foundation.dart'
+    show SynchronousFuture, debugDefaultTargetPlatformOverride;
 import 'package:flutter/rendering.dart' show RenderParagraph;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -159,4 +160,65 @@ void main() {
     directory: Directory('${_directory.path}/only'),
     only: {'two', 'phone_03b_variant'},
   );
+
+  test('dated directory', () {
+    expect(
+      screenshotDatedDirectory(now: DateTime(2026, 1, 9)).path,
+      '.local/2026-01-09-screenshots',
+    );
+    expect(screenshotDatedDirectory(path: '.local/x').path, '.local/x');
+  });
+
+  runScreenshots(
+    'shotIfWanted',
+    (session) async {
+      await session.open(_screen('Wanted'), size: const Size(100, 100));
+      var steps = <String>[];
+      expect(
+        await session.shotIfWanted(
+          'one',
+          prefix: 'phone',
+          prepare: () async => steps.add('prepare one'),
+        ),
+        isNull,
+      );
+      var file = await session.shotIfWanted(
+        'two',
+        prefix: 'phone',
+        prepare: () async => steps.add('prepare two'),
+        after: () async => steps.add('after two'),
+      );
+      // The left out shot is counted: the next one is 02.
+      expect(file!.path, endsWith('/phone_02_two.png'));
+      expect(steps, ['prepare two', 'after two']);
+    },
+    directory: Directory('${_directory.path}/wanted'),
+    only: {'two'},
+  );
+
+  runScreenshots('desktop and dark mode, restored after', (session) async {
+    var platforms = <TargetPlatform>[];
+    var brightnesses = <Brightness>[];
+    Widget app() => MaterialApp(
+      home: Builder(
+        builder: (context) {
+          platforms.add(Theme.of(context).platform);
+          brightnesses.add(MediaQuery.platformBrightnessOf(context));
+          return const SizedBox();
+        },
+      ),
+    );
+    await runAsScreenshotDesktop(() async {
+      await session.open(app(), size: screenshotDesktopSize);
+      await session.inDarkMode(() async {
+        expect(brightnesses.last, Brightness.dark);
+      });
+    });
+    expect(platforms.first, TargetPlatform.macOS);
+    expect(debugDefaultTargetPlatformOverride, isNull);
+    expect(
+      session.tester.platformDispatcher.platformBrightness,
+      Brightness.light,
+    );
+  }, directory: Directory('${_directory.path}/desktop'));
 }
