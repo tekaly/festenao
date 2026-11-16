@@ -10,7 +10,10 @@
 /// - [screenshotNames]: the names of a `--dart-define` filter;
 /// - [screenshotDatedDirectory], [screenshotPhoneSize],
 ///   [screenshotDesktopSize] and [runAsScreenshotDesktop]: the folder, the
-///   sizes and the desktop density of an app harness.
+///   sizes and the desktop density of an app harness;
+/// - [runWidgetPngs], [writeWidgetPng], [writeWebIcons] and [MaskableIcon]:
+///   the icons of an app drawn from its logo widget (a
+///   `tool/generate_icons_test.dart`).
 library;
 
 export 'src/screenshot_fonts.dart'
@@ -23,3 +26,5 @@ export 'src/screenshot_layout.dart'
         runAsScreenshotDesktop;
 export 'src/screenshot_session.dart'
     show ScreenshotSession, runScreenshots, screenshotNames;
+export 'src/widget_png.dart'
+    show runWidgetPngs, writeWidgetPng, writeWebIcons, MaskableIcon;

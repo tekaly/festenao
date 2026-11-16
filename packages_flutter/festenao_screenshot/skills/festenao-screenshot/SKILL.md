@@ -8,8 +8,10 @@ description: >-
   wantsNext, skip, shotIfWanted, inDarkMode, resetIndex, wrap, errors),
   loadScreenshotFonts, patchFontFallbacks, screenshotNames,
   screenshotPackageRoot, screenshotDatedDirectory, screenshotPhoneSize,
-  screenshotDesktopSize, runAsScreenshotDesktop, and why text draws as boxes
-  or shadows as black outlines in a widget test.
+  screenshotDesktopSize, runAsScreenshotDesktop, the web icons of an app
+  drawn from its logo (runWidgetPngs, writeWebIcons, writeWidgetPng,
+  MaskableIcon), and why text draws as boxes or shadows as black outlines in
+  a widget test.
 ---
 
 # Screenshots in flutter test (festenao_screenshot)
@@ -66,6 +68,18 @@ display. A harness is a `tool/screenshot_test.dart` run with `flutter test`.
   {...})` (macOS for the theme platform, the compact density: open the app
   inside it) and their dark variant in `session.inDarkMode(() => ...)`
   (both restored after).
+* Icons from the logo widget (a `tool/generate_icons_test.dart`, so the
+  icons and the app never differ): `runWidgetPngs('icons', (tester) =>
+  writeWebIcons(tester, logo:, maskable:, theme:))` writes
+  `web/icons/Icon-{192,512}.png`, `Icon-maskable-{192,512}.png` and
+  `web/favicon.png` (64, also to `faviconCopies:`), the widgets laid out at
+  128 x 128. `MaskableIcon.icon(symbol, color:)` (or `MaskableIcon(color:,
+  symbol: (width) => ...)`) is the logo color to the edges, the symbol in the
+  safe zone. `writeWidgetPng(tester, paths, child:, logicalSize:, width:,
+  theme: | app:)` draws any other picture (a share image: `app:` builds the
+  app with its locale and localizations). The output depends on the fonts
+  of the machine: a regenerated icon may differ from the committed one
+  without any change to the code.
 * Fonts: `loadScreenshotFonts` loads the app `FontManifest.json`, Roboto
   and the material icons from the flutter sdk, the cupertino icons and the
   festenao_theme families when the app depends on them (bare and package
