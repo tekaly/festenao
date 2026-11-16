@@ -13,7 +13,10 @@ dependency. It has no library of its own: it brings
 | `tekaly_assets` | - | the common assets (logo, fonts) |
 
 No REST nor functions package: add `tekartik_firebase_rest` or
-`tekartik_firebase_functions_call_flutter` yourself when needed.
+`tekartik_firebase_functions_call_flutter` yourself when needed. An app on
+auth, firestore and the functions call without storage uses
+`festenao_firebase_auth_firestore_functions_flutter` instead (its init, no
+storage plugin).
 
 ## Getting started
 

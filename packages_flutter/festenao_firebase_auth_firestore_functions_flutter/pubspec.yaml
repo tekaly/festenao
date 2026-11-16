@@ -1,0 +1,54 @@
+name: festenao_firebase_auth_firestore_functions_flutter
+description: "The firebase of an app on auth, firestore and the functions call (no storage): flutterfire on the web, the rest apis elsewhere."
+version: 1.0.0
+publish_to: none
+
+environment:
+  sdk: ^3.12.0
+  flutter: ">=1.17.0"
+
+# Only the plugins of this combination: an app depending on it gets no
+# storage plugin.
+dependencies:
+  flutter:
+    sdk: flutter
+  firebase_core: ">=4.10.0"
+  idb_shim: ">=2.9.6"
+  tekartik_firebase_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: firebase_flutter
+  tekartik_firebase_auth_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: auth_flutter
+  tekartik_firebase_firestore_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: firestore_flutter
+  tekartik_firebase_functions_call_flutter:
+    git:
+      url: https://github.com/tekartik/firebase_flutter
+      path: functions_call_flutter
+  tekartik_firebase_auth_rest:
+    git:
+      url: https://github.com/tekartik/firebase_rest.dart
+      path: auth_rest
+  tekartik_firebase_flutter_ui_auth:
+    git:
+      url: https://github.com/tekartik/firebase_ui.dart
+      path: packages/firebase_flutter_ui_auth
+  tkcms_common:
+    git:
+      url: https://github.com/tekartikprj/tkcms.git
+      path: packages/tkcms_common
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  tekartik_lints_flutter:
+    git:
+      url: https://github.com/tekartik/common_flutter.dart
+      path: packages/lints_flutter
+
+resolution: workspace
