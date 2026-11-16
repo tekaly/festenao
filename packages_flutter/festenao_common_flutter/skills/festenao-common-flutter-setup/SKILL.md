@@ -10,7 +10,9 @@ description: >-
   (dev_menu_flutter.dart, dev_test_ui_flutter.dart: mainMenuFlutter, menu,
   item, write), festenaoFlavorContextDefault from festenao_flavor.dart, and
   the share link helpers of share_link.dart (appShareBaseUrl, appShareLink,
-  ShareLinkItem, showShareLinksDialog, ShareLinkTile).
+  ShareLinkItem, showShareLinksDialog, ShareLinkTile), and the app dialogs
+  of app_dialogs.dart (FestenaoMessageView, festenaoConfirmDialog,
+  festenaoTextDialog, festenaoRunWithSnack, festenaoShowSnack).
 ---
 
 # Festenao common flutter setup (festenao_common_flutter)
@@ -73,6 +75,15 @@ plus the quizz widgets and the log screens documented in their own skills
   `ShareLinkItem(label:, url:)` rows, each a `ShareLinkTile` with a copy
   button (snack bar through `ScaffoldMessenger.maybeOf`) and an open button
   when `onOpen` is given.
+* App dialogs and feedback: `app_dialogs.dart`. `FestenaoMessageView(icon:,
+  message:, action:)`, `festenaoShowSnack`, `festenaoConfirmDialog(context,
+  title:, message:, confirm:, cancel:, destructive:)` (true when confirmed),
+  `festenaoTextDialog(...)` (the text, null when cancelled; it owns its
+  controller) and `festenaoRunWithSnack(context, action, success:,
+  errorText:)` (true when it succeeded, the error in a snack bar). The
+  labels default to the material *OK* and *Cancel*, the error to its text:
+  an app binds its translations once in its `widget/async_view.dart`
+  (`confirmDialog`, `textDialog`, `runWithSnack`, `MessageView`).
 * Never import `src/`; the public surface is the `lib/*.dart` files and
   `lib/log/log.dart`.
 
