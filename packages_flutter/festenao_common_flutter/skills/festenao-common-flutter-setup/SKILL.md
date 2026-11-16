@@ -12,7 +12,9 @@ description: >-
   the share link helpers of share_link.dart (appShareBaseUrl, appShareLink,
   ShareLinkItem, showShareLinksDialog, ShareLinkTile), and the app dialogs
   of app_dialogs.dart (FestenaoMessageView, festenaoConfirmDialog,
-  festenaoTextDialog, festenaoRunWithSnack, festenaoShowSnack).
+  festenaoTextDialog, festenaoRunWithSnack, festenaoShowSnack), and the
+  standard screens of app_screens.dart (FestenaoSplashScreen,
+  FestenaoAboutScreen, FestenaoLicensesButton, FestenaoLanguageSetting).
 ---
 
 # Festenao common flutter setup (festenao_common_flutter)
@@ -75,6 +77,15 @@ plus the quizz widgets and the log screens documented in their own skills
   `ShareLinkItem(label:, url:)` rows, each a `ShareLinkTile` with a copy
   button (snack bar through `ScaffoldMessenger.maybeOf`) and an open button
   when `onOpen` is given.
+* Standard screens: `app_screens.dart`. `FestenaoSplashScreen(logo:, title:,
+  titleColor:, error:, errorTitle:)` (a spinner while starting, the error
+  otherwise), `FestenaoAboutScreen(title:, header:, text:, setting:,
+  versionText:, actions:)` with `FestenaoLicensesButton(label:,
+  applicationName:, applicationVersion:)` among its actions, and
+  `FestenaoLanguageSetting<L>(title:, automaticLabel:, value:, values:,
+  name:, onChanged:)` on the language enum of the app. The texts are
+  parameters: the app's `splash_screen.dart` and `about_screen.dart` bind
+  its translations.
 * App dialogs and feedback: `app_dialogs.dart`. `FestenaoMessageView(icon:,
   message:, action:)`, `festenaoShowSnack`, `festenaoConfirmDialog(context,
   title:, message:, confirm:, cancel:, destructive:)` (true when confirmed),
