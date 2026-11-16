@@ -14,4 +14,7 @@ Another combination of services gets a package of its own;
 | `initFirebaseAuthFirestoreFunctionsRest(options:, functionsCallRegion:, sdbFactory:)` | the same project through the rest apis, the auth session kept in `sdbFactory` |
 
 Both return the `FirebaseContext` (tkcms_common) the app wraps with its api
-service and its sign in ui.
+service and its sign in ui: `FestenaoAppFirebase<A, B>` (the context, the
+`FestenaoFirebaseMode` it was reached by, the sign in ui, the api service
+`A`, the in memory backend `B` of the demo, `isDemo`), an app naming its
+own (`typedef MyAppFirebase = FestenaoAppFirebase<MyApi, MyBackend>`).

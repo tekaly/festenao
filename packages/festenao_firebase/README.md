@@ -63,6 +63,7 @@ emulator through the `firebase` cli, java needed). The emulator always runs a
 | `firestore_rules_emulator.dart` | `FirestoreRulesEmulator`: auth + firestore emulators on a generated folder, hot rules loading, owner and user rest contexts, custom claims |
 | `festenao_firestore_rules.dart` | `TkCmsFirestoreRules` (entity rules at any depth) and the `festenao*Rules()` presets |
 | `firestore_rules_test_runner.dart` | `FirestoreRulesTestContext` (sim and emulator) and `runFestenaoFirestoreRulesTests`, the same suite on both |
+| `festenao_firebase_tools.dart` (io) | the tools of an app firebase folder: `festenaoWriteGeneratedFile` (a generated rules or cors file, written when it changed, or `check`), `festenaoApplyStorageCors` (gcloud) and `festenaoRunRestTests` (`dart test -P rest test/rest_<flavor>_test.dart`) |
 
 ## Writing rules
 
