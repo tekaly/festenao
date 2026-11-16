@@ -7,3 +7,4 @@ export 'src/flutter_file_system.dart';
 export 'src/flutter_provider_overrides.dart';
 export 'src/flutter_sdb_factory.dart';
 export 'src/user_projects_sdb_manager_override.dart';
+export 'src/widget_ref_wait.dart' show FestenaoWidgetRefWaitExtension;

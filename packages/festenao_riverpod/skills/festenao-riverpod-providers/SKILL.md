@@ -286,6 +286,13 @@ void main() {
 * Treating `festenaoFirebaseUserProvider` in `loading` as signed out.
 * Polling `festenaoFirebaseUserIdProvider` until a user shows up: await
   `festenaoFirebaseSignedInUserProvider.future` (it signs in when needed).
+* Polling a provider until it follows a user switch (a `for` loop of
+  `Future.delayed`): `await container.waitUntil(provider, (value) =>
+  ...)` (`FestenaoProviderContainerWaitExtension`; a flutter `WidgetRef`
+  has the same `waitUntil`, festenao_riverpod_flutter). It listens to the
+  provider, returns true once the value passes, false at the timeout (5 s).
+  Wait on the app container in a flow that signs out: the widget of its ref
+  goes with the user.
 * A copy of an anonymous auth keeper in the app: use
   `FestenaoFbIdentityAuthKeeper` (a stop during a sign in, a retry after
   stop).

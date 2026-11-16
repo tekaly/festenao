@@ -1,6 +1,7 @@
 import 'package:festenao_common/festenao_flavor.dart';
 import 'package:festenao_riverpod/festenao_riverpod.dart';
 import 'package:festenao_riverpod_flutter/festenao_riverpod_flutter.dart';
+import 'package:flutter/widgets.dart' show SizedBox;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:idb_shim/sdb.dart';
@@ -132,4 +133,59 @@ void main() {
       expect(currentUserId, userId);
     }, timeout: const Timeout(Duration(minutes: 1)));
   });
+
+  group('waitUntil', () {
+    /// A [WidgetRef] on [_userIdProvider], once pumped.
+    Future<WidgetRef> pumpRef(WidgetTester tester) async {
+      late WidgetRef widgetRef;
+      await tester.pumpWidget(
+        ProviderScope(
+          child: Consumer(
+            builder: (context, ref, child) {
+              widgetRef = ref;
+              return const SizedBox();
+            },
+          ),
+        ),
+      );
+      return widgetRef;
+    }
+
+    testWidgets('at once when it already passes', (tester) async {
+      var ref = await pumpRef(tester);
+      expect(await ref.waitUntil(_userIdProvider, (id) => id == null), isTrue);
+    });
+
+    testWidgets('when the value changes', (tester) async {
+      var ref = await pumpRef(tester);
+      var done = ref.waitUntil(_userIdProvider, (id) => id == 'u2');
+      ref.read(_userIdProvider.notifier).set('u1');
+      await tester.pump();
+      ref.read(_userIdProvider.notifier).set('u2');
+      await tester.pump();
+      expect(await done, isTrue);
+    });
+
+    testWidgets('false at the timeout', (tester) async {
+      var ref = await pumpRef(tester);
+      var done = ref.waitUntil(
+        _userIdProvider,
+        (id) => id == 'u2',
+        timeout: const Duration(seconds: 1),
+      );
+      await tester.pump(const Duration(seconds: 2));
+      expect(await done, isFalse);
+    });
+  });
 }
+
+/// A user id a test sets.
+class _UserId extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  /// Sets [userId].
+  void set(String? userId) => state = userId;
+}
+
+final _userIdProvider = NotifierProvider<_UserId, String?>(_UserId.new);

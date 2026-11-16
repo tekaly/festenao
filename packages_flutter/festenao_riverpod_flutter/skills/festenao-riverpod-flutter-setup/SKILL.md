@@ -95,6 +95,12 @@ sandboxed per app flavor, plus the one call that turns them into riverpod
   self-registering plugin that installs the FFI `databaseFactory` on
   Linux/macOS/Windows. Do not call `sqfliteFfiInit()` yourself, and do not
   replace `festenaoSdbFactoryProvider` with a hand built sqflite factory.
+* Waiting on a provider from a widget (the providers following a new user
+  after a sign in): `await ref.waitUntil(userIdProvider, (id) => id ==
+  newUserId)` (`FestenaoWidgetRefWaitExtension`, on `listenManual`): true
+  once the value passes, false at the timeout (5 s), no polling. A flow that
+  outlives its widget (a sign out) waits on the app `ProviderContainer`
+  instead (the same `waitUntil`, festenao_riverpod).
 * Anti-patterns: using `tekartik_app_flutter_fs`'s `fs` or
   `sdbFactorySqflite` directly instead of reading
   `festenaoFileSystemProvider` / `festenaoSdbFactoryProvider`; overriding

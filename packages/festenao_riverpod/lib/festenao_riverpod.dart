@@ -24,6 +24,8 @@ export 'src/file_system_provider.dart';
 export 'src/firebase_app_provider.dart';
 export 'src/firebase_context_provider.dart';
 export 'src/no_api_projects_provider.dart';
+export 'src/provider_wait.dart'
+    show festenaoWaitUntil, FestenaoProviderContainerWaitExtension;
 export 'src/sdb_factory_provider.dart';
 export 'src/user_projects_sdb_manager_override.dart';
 export 'src/user_projects_sdb_manager_provider.dart';
