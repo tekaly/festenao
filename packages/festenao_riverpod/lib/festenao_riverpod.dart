@@ -1,6 +1,8 @@
 /// Generic Festenao riverpod providers: [FileSystem], [SdbFactory],
 /// [FestenaoAppFlavorContext], [FirebaseApp], [FirebaseContext], the
-/// [TkCmsFbIdentity] (service account or user), [UserProjectsSdbManager] and
+/// [TkCmsFbIdentity] (service account or user), the
+/// [FestenaoFbIdentityAuthKeeper] (a user signed in, anonymous when nobody is),
+/// [UserProjectsSdbManager] and
 /// [UserProjectsSdb], plus the project providers and commands of an app with
 /// no backend.
 library;
@@ -17,6 +19,7 @@ export 'package:tkcms_common/tkcms_auth.dart'
         TkCmsFbIdentityUser;
 
 export 'src/app_flavor_context_provider.dart';
+export 'src/fb_identity_auth_keeper.dart';
 export 'src/file_system_provider.dart';
 export 'src/firebase_app_provider.dart';
 export 'src/firebase_context_provider.dart';

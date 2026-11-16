@@ -60,6 +60,8 @@ void main() {
 | `festenaoFirebaseAppProvider` | `FirebaseApp.instance` |
 | `festenaoFirebaseContextProvider` (auth, firestore) | none: override it with `festenaoFirebaseContextOverrides(context)`, which binds the app provider too |
 | `festenaoFirebaseAuthProvider`, `festenaoFirestoreProvider`, `festenaoFirebaseUserProvider`, `festenaoFirebaseUserIdProvider`, `festenaoFbIdentityProvider` | derived from the context |
+| `festenaoFbIdentityAuthKeeperProvider` | a `FestenaoFbIdentityAuthKeeper` on the auth, a user only, not started; override it with the keeper the bootstrap started, or one with `allowServiceAccount: true` |
+| `festenaoFbSignedInIdentityProvider`, `festenaoFirebaseSignedInUserProvider` | `festenaoFbIdentityProvider` and the user, never null: signing in anonymously first when nobody is |
 | `festenaoUserProjectsSdbManagerProvider` | none: override it with `festenaoUserProjectsSdbManagerOverride(factory:, app:)` |
 | `festenaoUserProjectsSdbProvider` | the manager's current per user database |
 
@@ -86,6 +88,15 @@ The projects of an app with **no backend** (firestore rules only, see
 - With admin credentials (the admin sdk) the auth never has a current user:
   `festenaoFirebaseUserProvider` stays loading, use
   `festenaoFbIdentityProvider` (the service account identity).
+- `FestenaoFbIdentityAuthKeeper` keeps someone signed in: the user the auth
+  restored (an account or an anonymous user), an anonymous user when nobody
+  is. On demand (`ensureSignedIn()`, `ensureIdentity()`, the two signed in
+  providers) or always (`start()` at launch, again after each sign out,
+  retrying a failure every `retryDelay`, until `stop()`). A failed sign in
+  is a `FestenaoFbIdentitySignInException` (riverpod retries the providers).
+  With admin credentials it acts as the service account only when created
+  with `allowServiceAccount: true`, and throws an `UnsupportedError`
+  otherwise, instead of waiting forever for a user.
 - The `.g.dart` files are committed: after editing an `@riverpod` function
   run `dart run build_runner build` in the package.
 

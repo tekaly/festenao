@@ -7,7 +7,11 @@ description: >-
   festenaoFirebaseAppProvider, festenaoFirebaseContextProvider with
   festenaoFirebaseContextOverrides, the derived festenaoFirebaseAuthProvider,
   festenaoFirestoreProvider, festenaoFirebaseUserProvider and
-  festenaoFirebaseUserIdProvider, the per user projects database
+  festenaoFirebaseUserIdProvider, keeping a user signed in (anonymously when
+  nobody is, or the service account) with FestenaoFbIdentityAuthKeeper,
+  festenaoFbIdentityAuthKeeperProvider,
+  festenaoFbSignedInIdentityProvider and
+  festenaoFirebaseSignedInUserProvider, the per user projects database
   (festenaoUserProjectsSdbManagerProvider, festenaoUserProjectsSdbManagerOverride,
   festenaoUserProjectsSdbProvider, UserProjectsSdbManager, UserProjectsSdb),
   and overriding them in a ProviderContainer for tests (memory file system,
@@ -69,6 +73,29 @@ services instead of the `Xxx.instance` globals.
   redirect waits for it before sending anyone to sign in) and
   `festenaoFirebaseUserIdProvider` (`String?`, null while unknown or signed
   out).
+* A signed in user, anonymous when nobody is:
+  `FestenaoFbIdentityAuthKeeper(auth, allowServiceAccount: false, retryDelay:,
+  onSignInError:)`. `currentUser()` / `currentIdentity()` never sign in;
+  `ensureSignedIn()` (`User`) / `ensureIdentity()` (`TkCmsFbIdentity`) sign
+  in anonymously when nobody is (concurrent calls share one attempt, a
+  failure throws `FestenaoFbIdentitySignInException`); `start()` keeps a user
+  from launch (again after a sign out, a failure retried every
+  `retryDelay`; completes after the first attempt, signed in or not) until
+  `stop()`. `festenaoFbIdentityAuthKeeperProvider` holds one (not
+  started, user only): override it with the keeper the bootstrap started
+  (`overrideWithValue`, the app stops it). `festenaoFbSignedInIdentityProvider`
+  is `festenaoFbIdentityProvider` never null and
+  `festenaoFirebaseSignedInUserProvider` its user: they sign in on demand
+  and follow identity changes (riverpod retries a failed sign in, an
+  exception; `ref.invalidate` tries again after its retries).
+* Service account (admin credentials, the admin sdk: no current user ever):
+  the keeper acts as `TkCmsFbIdentityServiceAccount` only when created with
+  `allowServiceAccount: true` (a service account bypasses the firestore
+  rules, an app written for a user refuses it), and throws an
+  `UnsupportedError` otherwise (never retried); `currentUser()`,
+  `ensureSignedIn()` and `festenaoFirebaseSignedInUserProvider` always throw
+  it (a service account has no user): read the identity in an app that
+  supports both.
 * `festenaoUserProjectsSdbManagerOverride(factory:, app:, name:,
   identityBloc:)` builds the override of
   `festenaoUserProjectsSdbManagerProvider`: a `UserProjectsSdbManager` on
@@ -257,5 +284,10 @@ void main() {
 * Reading `festenaoSdbFactoryProvider` without a flavor override (its
   default sandbox path needs `festenaoAppFlavorContextProvider`).
 * Treating `festenaoFirebaseUserProvider` in `loading` as signed out.
+* Polling `festenaoFirebaseUserIdProvider` until a user shows up: await
+  `festenaoFirebaseSignedInUserProvider.future` (it signs in when needed).
+* A copy of an anonymous auth keeper in the app: use
+  `FestenaoFbIdentityAuthKeeper` (a stop during a sign in, a retry after
+  stop).
 * Creating a `UserProjectsSdbManager` by hand next to the override (two
   managers on one factory); let the override own it.
