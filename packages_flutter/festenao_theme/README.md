@@ -93,12 +93,14 @@ is live, fixed status and category colours.
 - `FestenaoThemePreset`: a named theme, light and dark; `themeData(brightness)`
   builds its `ThemeData` (each call builds a new one: keep it).
   `festenaoThemePresets` holds the hand made ones (Festenao, Basalte · Plein
-  jour, Arcade, Obsidian, Guinguette, Nocturne, Contraste, Papier, Ardoise)
-  and the seed ones (Violet, Teal, Coral, Forest, Ocean, Graphite, Lagon).
+  jour, Arcade, Obsidian, Guinguette, Nocturne, Contraste, Papier, Ardoise,
+  Minuit) and the seed ones (Violet, Teal, Coral, Forest, Ocean, Graphite, Lagon).
   - Contraste: black on white (white on black, yellow accent), for the sun
     or a low vision;
   - Papier: cream paper, brown ink, terracotta, for long reading;
-  - Ardoise: cool slate and teal, a calm tool (admin, dashboards).
+  - Ardoise: cool slate and teal, a calm tool (admin, dashboards);
+  - Minuit: midnight navy (#0F172A), discreet lines and a bright sky
+    accent, for what lights up on a dark canvas (a player, live data).
 - `festenaoThemePresetById('ardoise')`: one preset (the Festenao one for an
   unknown id); `festenaoThemePresetsByIds(['festenao', 'obsidian'])`: the
   presets of those ids, in that order, the list an app offers.

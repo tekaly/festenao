@@ -628,6 +628,71 @@ const festenaoThemeArdoise = FestenaoThemePreset(
   ),
 );
 
+/// Minuit: midnight navy surfaces, discreet lines and a bright sky accent,
+/// for the screens where things light up on a dark canvas (a player, live
+/// data, a dashboard at night).
+const festenaoThemeMinuit = FestenaoThemePreset(
+  id: 'minuit',
+  name: 'Minuit',
+  description: 'Bleu nuit, lignes discrètes, un accent ciel qui brille',
+  light: FestenaoPalette(
+    brightness: Brightness.light,
+    paper: Color(0xFFF1F5F9),
+    card: Color(0xFFFFFFFF),
+    sunk: Color(0xFFE2E8F0),
+    line: Color(0xFFD5DDE8),
+    lineStrong: Color(0xFFA3B1C4),
+    ink: Color(0xFF0F172A),
+    ink2: Color(0xFF334155),
+    ink3: Color(0xFF64748B),
+    accent: Color(0xFF0369A1),
+    onAccent: Color(0xFFFFFFFF),
+    accentText: Color(0xFF075985),
+    secondary: Color(0xFF4338CA),
+    ok: Color(0xFF15803D),
+    warn: Color(0xFFA16207),
+    bad: Color(0xFFB91C1C),
+    info: Color(0xFF1D4ED8),
+    muted: Color(0xFF64748B),
+    categories: [
+      Color(0xFF0369A1),
+      Color(0xFF6D28D9),
+      Color(0xFFBE185D),
+      Color(0xFFA16207),
+      Color(0xFF047857),
+      Color(0xFFC2410C),
+    ],
+  ),
+  dark: FestenaoPalette(
+    brightness: Brightness.dark,
+    paper: Color(0xFF0F172A),
+    card: Color(0xFF162036),
+    sunk: Color(0xFF1E293B),
+    line: Color(0xFF263247),
+    lineStrong: Color(0xFF3E4C63),
+    ink: Color(0xFFE2E8F0),
+    ink2: Color(0xFFA9B6C8),
+    ink3: Color(0xFF7E8BA0),
+    accent: Color(0xFF38BDF8),
+    onAccent: Color(0xFF04263A),
+    accentText: Color(0xFF7DD3FC),
+    secondary: Color(0xFFA5B4FC),
+    ok: Color(0xFF6EE7A0),
+    warn: Color(0xFFFBBF24),
+    bad: Color(0xFFF87171),
+    info: Color(0xFF93C5FD),
+    muted: Color(0xFF8B98AC),
+    categories: [
+      Color(0xFF38BDF8),
+      Color(0xFFA78BFA),
+      Color(0xFFF472B6),
+      Color(0xFFFBBF24),
+      Color(0xFF34D399),
+      Color(0xFFFB923C),
+    ],
+  ),
+);
+
 /// Every preset, the hand made ones first, then the seed ones.
 final festenaoThemePresets = <FestenaoThemePreset>[
   festenaoThemeFestenao,
@@ -639,6 +704,7 @@ final festenaoThemePresets = <FestenaoThemePreset>[
   festenaoThemeContrast,
   festenaoThemePapier,
   festenaoThemeArdoise,
+  festenaoThemeMinuit,
   const FestenaoThemePreset.seed(
     id: 'violet',
     name: 'Violet',

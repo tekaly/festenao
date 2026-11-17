@@ -246,7 +246,10 @@ public material only:
   presets, 16 in all: **Contraste** (black on white, white on black with a
   yellow accent, heavier headings: accessibility), **Papier** (cream paper,
   brown ink, terracotta: long reading), **Ardoise** (cool slate and teal: a
-  calm tool), checked by the same contrast tests.
+  calm tool), checked by the same contrast tests. Then **Minuit**
+  (2026-11-17, 17 in all): midnight navy surfaces (#0F172A), discreet lines
+  and a bright sky accent, for what lights up on a dark canvas (a MIDI
+  player's notes, live data).
   `package:festenao_theme/switcher.dart`: `FestenaoThemeController` (the
   presets an app offers, `festenaoThemePresetsByIds` or its own presets; the
   chosen one and light, dark or system; `load` and a save on each change

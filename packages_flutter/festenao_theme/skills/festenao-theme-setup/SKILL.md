@@ -61,8 +61,8 @@ built on `material_ui`, the Material library that replaces
   under another name too. Do not declare these fonts in a `fonts:` section,
   nor use `TextStyle(package: 'festenao_theme')`.
 * Presets: `festenaoThemePresets` (Festenao, Basalte, Arcade, Obsidian,
-  Guinguette, Nocturne, Contraste `contrast`, Papier, Ardoise, then the seed
-  ones Violet, Teal, Coral, Forest, Ocean, Graphite, Lagon), each a
+  Guinguette, Nocturne, Contraste `contrast`, Papier, Ardoise, Minuit, then
+  the seed ones Violet, Teal, Coral, Forest, Ocean, Graphite, Lagon), each a
   `FestenaoThemePreset` with an `id` (stored in preferences), a `name`, a
   `description`. `preset.themeData(Brightness.light)` builds a new
   `ThemeData` on each call: build it once (a final field, or the
