@@ -42,6 +42,11 @@ dependencies:
     git:
       url: https://github.com/tekartik/firebase_ui.dart
       path: packages/firebase_ui_auth
+  # The type of the optional Storage service.
+  tekartik_firebase_storage:
+    git:
+      url: https://github.com/tekartik/firebase_storage.dart
+      path: storage
   tkcms_common:
     git:
       url: https://github.com/tekartikprj/tkcms.git

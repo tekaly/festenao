@@ -9,6 +9,7 @@ import 'package:tekartik_firebase_firestore_flutter/firestore_flutter.dart';
 import 'package:tekartik_firebase_flutter/firebase_flutter.dart';
 import 'package:tekartik_firebase_flutter_ui_auth/ui_auth.dart';
 import 'package:tekartik_firebase_functions_call_flutter/functions_call_flutter.dart';
+import 'package:tekartik_firebase_storage/storage.dart' show StorageService;
 import 'package:tkcms_common/tkcms_firebase.dart';
 
 /// True where flutterfire is set up (the web): elsewhere (desktop) an app
@@ -22,10 +23,16 @@ bool get firebaseAuthFirestoreFunctionsFlutterSupported => kIsWeb;
 /// The auth persists in indexed db, and the flutterfire sign in screens
 /// (`firebaseUiAuthServiceFlutter`) are set up on it: email, and Google
 /// with [googleWebClientId] when given.
+///
+/// [storageService] adds Storage (`storageServiceFlutter` of
+/// tekartik_firebase_storage_flutter, which the app depends on): an app
+/// storing files (synced media) passes it. The rest variant has Storage
+/// already.
 Future<FirebaseContext> initFirebaseAuthFirestoreFunctionsFlutter({
   required native.FirebaseOptions options,
   required String functionsCallRegion,
   String? googleWebClientId,
+  StorageService? storageService,
 }) async {
   var context = await FirebaseServicesContext(
     appOptions: firebaseFlutter.wrapOptions(options),
@@ -34,6 +41,7 @@ Future<FirebaseContext> initFirebaseAuthFirestoreFunctionsFlutter({
     authService: firebaseAuthServiceFlutter,
     functionsCallService: firebaseFunctionsCallServiceFlutter,
     functionsCallRegion: functionsCallRegion,
+    storageService: storageService,
   ).init();
   await context.auth.webSetIndexedDbPersistence();
   firebaseUiAuthServiceFlutter.configureProviders(
