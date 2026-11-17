@@ -4,11 +4,20 @@ import 'package:tekartik_common_utils/common_utils_import.dart';
 import 'package:tkcms_common/tkcms_server.dart';
 
 import '../src/data/storage/gdrive_api_service.dart';
+import 'festenao_object_storage_download_stream.dart';
+
+export 'festenao_object_storage_download_stream.dart';
 
 /// Options for Object storage handler.
 class FestenaoObjectStorageHandlerOptions {
   /// The delegate
   final ObjectStorage objectStorage;
+
+  /// When set, `gdrive/getDownloadUrl` answers the api's own stream url
+  /// (a token, served by [FestenaoObjectStorageDownloadStream]) instead of
+  /// the storage's url (drive's `webContentLink`, which a browser cannot
+  /// fetch).
+  final FestenaoObjectStorageDownloadStream? downloadStream;
 
   /// True to refuse the commands that write (upload, delete): a server that
   /// only reads the storage.
@@ -24,6 +33,7 @@ class FestenaoObjectStorageHandlerOptions {
     required this.objectStorage,
     this.readOnly = false,
     this.authenticatedCommands = const {},
+    this.downloadStream,
   });
 }
 
@@ -151,7 +161,11 @@ class FestenaoObjectStorageHandler implements FestenaoApiHandler {
   /// Handles the get download url command.
   Future<ApiResult> onGetDownloadUrlCommand(ApiRequest apiRequest) async {
     var query = apiRequest.query<GdriveApiGetDownloadUrlQuery>();
-    var url = await _objectStorage.getDownloadUrl(query.path.v!);
+    var path = query.path.v!;
+    var downloadStream = options.downloadStream;
+    var url = downloadStream != null
+        ? downloadStream.downloadUrl(path).toString()
+        : await _objectStorage.getDownloadUrl(path);
     return GdriveApiGetDownloadUrlResult()..url.v = url;
   }
 

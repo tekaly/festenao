@@ -68,6 +68,21 @@ Paths are posix relative paths inside the store (`songs/intro.mp3`); a
 * Large files: prefer `downloadStream` (a `Range` request per chunk on a
   url store, `downloadPart` otherwise) to `download`, and mind that
   `upload` takes the whole `Uint8List`.
+* A url a browser can fetch (play, download): drive's `webContentLink` has
+  no cors. Give the handler `downloadStream:
+  FestenaoObjectStorageDownloadStream(objectStorage:, commandUri: () => ...,
+  key: downloadTokenKeyFromSecret(...))`
+  (`server/festenao_object_storage_download_stream.dart`, exported by the
+  handler's library): `gdrive/getDownloadUrl` then answers
+  `<command>/gdrive/stream?token=` (aes token of the path, 1 hour), and the
+  https function serves it before the json commands with
+  `onDownloadStreamOrNull(method:, uri:, range:)` (`Range` gives 206),
+  sending it with `sendDownloadStream` on an express request. The key must
+  be the same on every instance (derived from the service account secret);
+  a random one (the default) is for a server of one process.
+* A pasted Drive link to an id: `driveIdFromText` (bare id, `/folders/`,
+  `/file/d/`, `?id=`), and back `driveFolderUrl`, `driveFileViewUrl`
+  (`package:festenao_common/data/gdrive_link.dart`).
 
 ## Examples
 
