@@ -247,7 +247,12 @@ class FestenaoThemeSettings extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 6),
-              Text(current.description, style: textTheme.bodySmall),
+              Text(
+                current.descriptionFor(
+                  Localizations.maybeLocaleOf(context)?.languageCode,
+                ),
+                style: textTheme.bodySmall,
+              ),
               const SizedBox(height: 16),
             ],
             Text(texts.appearance, style: textTheme.titleSmall),

@@ -183,6 +183,34 @@ void main() {
       expect(controller.mode, ThemeMode.system);
     });
 
+    testWidgets('the description of the preset in English', (tester) async {
+      var controller = FestenaoThemeController(
+        presets: festenaoThemePresetsByIds(['festenao', 'minuit']),
+      );
+      await tester.pumpWidget(_app(controller));
+      expect(find.text('Theme'), findsOneWidget);
+      expect(
+        find.text('Neutral paper, ink, a blue for action'),
+        findsOneWidget,
+      );
+      await tester.tap(find.widgetWithText(ChoiceChip, 'Minuit'));
+      await tester.pump();
+      expect(
+        find.text('Midnight blue, quiet lines, a glowing sky accent'),
+        findsOneWidget,
+      );
+      expect(find.text(festenaoThemeMinuit.description), findsNothing);
+    });
+
+    test('every preset described in French and in English', () {
+      for (var preset in festenaoThemePresets) {
+        expect(preset.descriptionFor('fr'), preset.description);
+        expect(preset.englishDescription, isNotNull, reason: preset.id);
+        expect(preset.descriptionFor('en'), preset.englishDescription);
+        expect(preset.descriptionFor(null), preset.englishDescription);
+      }
+    });
+
     testWidgets('a single preset: no preset choice', (tester) async {
       var controller = FestenaoThemeController(
         presets: [festenaoThemeObsidian],

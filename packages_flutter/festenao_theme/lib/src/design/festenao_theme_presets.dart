@@ -14,8 +14,16 @@ class FestenaoThemePreset {
   /// Name shown in a picker.
   final String name;
 
-  /// One line about the look.
+  /// One line about the look, in French.
   final String description;
+
+  /// The same line in English, null when none ([description] then).
+  final String? englishDescription;
+
+  /// The line about the look in the language [languageCode]: French for
+  /// `fr`, English otherwise (when there is one).
+  String descriptionFor(String? languageCode) =>
+      languageCode == 'fr' ? description : englishDescription ?? description;
 
   final FestenaoPalette? _light;
   final FestenaoPalette? _dark;
@@ -37,6 +45,7 @@ class FestenaoThemePreset {
     required this.id,
     required this.name,
     required this.description,
+    this.englishDescription,
     this._light,
     this._dark,
     this.radii = const FestenaoRadii(),
@@ -50,6 +59,7 @@ class FestenaoThemePreset {
     required this.id,
     required this.name,
     required this.description,
+    this.englishDescription,
     required Color this._seed,
     this._variant = DynamicSchemeVariant.tonalSpot,
     this.radii = const FestenaoRadii(),
@@ -98,6 +108,7 @@ final festenaoThemeFestenao = FestenaoThemePreset(
   id: 'festenao',
   name: 'Festenao',
   description: 'Papier neutre, encre, un bleu pour l\'action',
+  englishDescription: 'Neutral paper, ink, a blue for action',
   light: festenaoNeutralLight.copyWith(
     accent: const Color(0xFF3157D5),
     onAccent: const Color(0xFFFFFFFF),
@@ -116,6 +127,7 @@ const festenaoThemeBasalte = FestenaoThemePreset(
   id: 'basalte',
   name: 'Basalte · Plein jour',
   description: 'Safran sur basalte le soir, plein jour au soleil',
+  englishDescription: 'Saffron on basalt at night, daylight in the sun',
   light: FestenaoPalette(
     brightness: Brightness.light,
     paper: Color(0xFFEEF1F0),
@@ -180,6 +192,7 @@ const festenaoThemeArcade = FestenaoThemePreset(
   id: 'arcade',
   name: 'Arcade',
   description: 'Néo-arcade : jaune et rose sur presque noir',
+  englishDescription: 'Neo-arcade: yellow and pink on near black',
   headingWeight: FontWeight.w700,
   monoLabels: true,
   radii: FestenaoRadii(sheet: 24, card: 18, control: 14, pill: 10),
@@ -247,6 +260,7 @@ const festenaoThemeObsidian = FestenaoThemePreset(
   id: 'obsidian',
   name: 'Obsidian',
   description: 'Télémétrie : bleu développeur sur obsidienne',
+  englishDescription: 'Telemetry: developer blue on obsidian',
   monoLabels: true,
   radii: FestenaoRadii(sheet: 16, card: 10, control: 8, pill: 6),
   light: FestenaoPalette(
@@ -312,6 +326,7 @@ const festenaoThemeGuinguette = FestenaoThemePreset(
   id: 'guinguette',
   name: 'Guinguette',
   description: 'Terre cuite et sarcelle sur crème, un festival d\'été',
+  englishDescription: 'Terracotta and teal on cream, a summer festival',
   radii: FestenaoRadii(sheet: 28, card: 20, control: 14, pill: 999),
   light: FestenaoPalette(
     brightness: Brightness.light,
@@ -376,6 +391,7 @@ const festenaoThemeNocturne = FestenaoThemePreset(
   id: 'nocturne',
   name: 'Nocturne',
   description: 'Magenta et violet sur indigo profond, un festival de nuit',
+  englishDescription: 'Magenta and violet on deep indigo, a night festival',
   headingWeight: FontWeight.w700,
   light: FestenaoPalette(
     brightness: Brightness.light,
@@ -441,6 +457,7 @@ const festenaoThemeContrast = FestenaoThemePreset(
   id: 'contrast',
   name: 'Contraste',
   description: 'Noir sur blanc, contrastes renforcés (accessibilité)',
+  englishDescription: 'Black on white, stronger contrasts (accessibility)',
   headingWeight: FontWeight.w700,
   light: FestenaoPalette(
     brightness: Brightness.light,
@@ -506,6 +523,7 @@ const festenaoThemePapier = FestenaoThemePreset(
   id: 'papier',
   name: 'Papier',
   description: 'Papier crème, encre brune, terre cuite : pour lire longtemps',
+  englishDescription: 'Cream paper, brown ink, terracotta: for long reading',
   light: FestenaoPalette(
     brightness: Brightness.light,
     paper: Color(0xFFF7F1E5),
@@ -570,6 +588,7 @@ const festenaoThemeArdoise = FestenaoThemePreset(
   id: 'ardoise',
   name: 'Ardoise',
   description: 'Ardoise froide et sarcelle : un outil calme',
+  englishDescription: 'Cool slate and teal: a calm tool',
   light: FestenaoPalette(
     brightness: Brightness.light,
     paper: Color(0xFFEEF1F4),
@@ -635,6 +654,7 @@ const festenaoThemeMinuit = FestenaoThemePreset(
   id: 'minuit',
   name: 'Minuit',
   description: 'Bleu nuit, lignes discrètes, un accent ciel qui brille',
+  englishDescription: 'Midnight blue, quiet lines, a glowing sky accent',
   light: FestenaoPalette(
     brightness: Brightness.light,
     paper: Color(0xFFF1F5F9),
@@ -709,18 +729,21 @@ final festenaoThemePresets = <FestenaoThemePreset>[
     id: 'violet',
     name: 'Violet',
     description: 'Graine violette, la référence de firebase UI',
+    englishDescription: 'Violet seed, the firebase UI reference',
     seed: Color(0xFF5B4FE9),
   ),
   const FestenaoThemePreset.seed(
     id: 'teal',
     name: 'Teal',
     description: 'Graine sarcelle',
+    englishDescription: 'Teal seed',
     seed: Color(0xFF00897B),
   ),
   const FestenaoThemePreset.seed(
     id: 'coral',
     name: 'Coral',
     description: 'Graine corail, variante vibrante',
+    englishDescription: 'Coral seed, vibrant variant',
     seed: Color(0xFFE5533D),
     variant: DynamicSchemeVariant.vibrant,
   ),
@@ -728,6 +751,7 @@ final festenaoThemePresets = <FestenaoThemePreset>[
     id: 'forest',
     name: 'Forest',
     description: 'Graine forêt, variante fidèle',
+    englishDescription: 'Forest seed, fidelity variant',
     seed: Color(0xFF2E7D32),
     variant: DynamicSchemeVariant.fidelity,
   ),
@@ -735,6 +759,7 @@ final festenaoThemePresets = <FestenaoThemePreset>[
     id: 'ocean',
     name: 'Ocean',
     description: 'Graine océan, variante expressive',
+    englishDescription: 'Ocean seed, expressive variant',
     seed: Color(0xFF1565C0),
     variant: DynamicSchemeVariant.expressive,
   ),
@@ -742,6 +767,7 @@ final festenaoThemePresets = <FestenaoThemePreset>[
     id: 'graphite',
     name: 'Graphite',
     description: 'Graine graphite, monochrome',
+    englishDescription: 'Graphite seed, monochrome',
     seed: Color(0xFF607D8B),
     variant: DynamicSchemeVariant.monochrome,
   ),
@@ -749,6 +775,7 @@ final festenaoThemePresets = <FestenaoThemePreset>[
     id: 'lagon',
     name: 'Lagon',
     description: 'Le bleu lagon de playelio',
+    englishDescription: 'The lagoon blue of playelio',
     seed: Color(0xFF009EE0),
   ),
 ];
