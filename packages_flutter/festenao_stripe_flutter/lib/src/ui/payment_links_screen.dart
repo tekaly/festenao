@@ -3,10 +3,12 @@ import 'package:tekartik_stripe_api/stripe_api.dart';
 
 import '../format.dart';
 import '../service.dart';
+import 'paged_list_view.dart';
 import 'sales_screen.dart';
 import 'widgets.dart';
 
-/// The Payment Links, active or not.
+/// The Payment Links, active or not, read page by page (kept while the
+/// client stays selected, the refresh action reads them again).
 class StripeManagerPaymentLinksScreen extends StatefulWidget {
   /// The service.
   final StripeManagerService service;
@@ -22,15 +24,36 @@ class StripeManagerPaymentLinksScreen extends StatefulWidget {
 class _StripeManagerPaymentLinksScreenState
     extends State<StripeManagerPaymentLinksScreen> {
   var _active = true;
-  var _reloadCount = 0;
 
   StripeManagerService get service => widget.service;
 
+  Future<void> _open(StripeApiPaymentLink link) async {
+    var changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) =>
+            StripeManagerPaymentLinkScreen(service: service, paymentLink: link),
+      ),
+    );
+    if (changed ?? false) {
+      // Moved from a tab to the other.
+      service.pagedPaymentLinks(active: true).refresh().ignore();
+      service.pagedPaymentLinks(active: false).refresh().ignore();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    var list = service.pagedPaymentLinks(active: _active);
     return StripeManagerScaffold(
       client: service.client,
       title: 'Payment links',
+      actions: [
+        IconButton(
+          tooltip: 'Refresh',
+          onPressed: list.refresh,
+          icon: const Icon(Icons.refresh),
+        ),
+      ],
       body: Column(
         children: [
           Padding(
@@ -46,50 +69,40 @@ class _StripeManagerPaymentLinksScreenState
             ),
           ),
           Expanded(
-            child:
-                StripeManagerFutureView<
-                  StripeManagerList<StripeApiPaymentLink>
-                >(
-                  reloadKey: (_active, _reloadCount),
-                  load: () => service.listPaymentLinks(active: _active),
-                  builder: (context, list, reload) {
-                    if (list.items.isEmpty) {
-                      return const Center(child: Text('No payment link'));
-                    }
-                    return ListView(
-                      children: [
-                        for (var link in list.items)
-                          ListTile(
-                            title: Text(link.url.v ?? link.id.v ?? '?'),
-                            subtitle: Text(
-                              [
-                                link.id.v,
-                                if (link.metadata.v case var metadata?
-                                    when metadata.isNotEmpty)
-                                  metadata.entries
-                                      .map((e) => '${e.key}: ${e.value}')
-                                      .join(', '),
-                              ].join('\n'),
-                            ),
-                            onTap: () async {
-                              await Navigator.of(context).push<void>(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      StripeManagerPaymentLinkScreen(
-                                        service: service,
-                                        paymentLink: link,
-                                      ),
-                                ),
-                              );
-                              setState(() => _reloadCount++);
-                            },
-                          ),
-                        if (list.truncated)
-                          const ListTile(title: Text('More links exist')),
-                      ],
-                    );
-                  },
-                ),
+            child: StripeManagerPagedListView<StripeApiPaymentLink>(
+              key: ValueKey(_active),
+              list: list,
+              emptyText: 'No payment link',
+              itemsName: 'links',
+              itemBuilder: (context, link) {
+                var summary = StripeManagerPaymentLinkSummary(link);
+                var amount = summary.amount;
+                return ListTile(
+                  title: Text(summary.title ?? link.url.v ?? link.id.v ?? '?'),
+                  subtitle: Text(
+                    [
+                      [
+                        if (summary.date case var date?)
+                          stripeManagerFormatDateTime(date),
+                        ?summary.paidText,
+                        if (link.metadata.v case var metadata?
+                            when metadata.isNotEmpty)
+                          metadata.entries
+                              .map((e) => '${e.key}: ${e.value}')
+                              .join(', '),
+                      ].join(' · '),
+                      link.id.v ?? '',
+                    ].join('\n'),
+                  ),
+                  trailing: amount == null
+                      ? null
+                      : Text(
+                          stripeManagerFormatAmount(amount, summary.currency),
+                        ),
+                  onTap: () => _open(link),
+                );
+              },
+            ),
           ),
         ],
       ),
@@ -121,19 +134,22 @@ class StripeManagerPaymentLinkScreen extends StatelessWidget {
 
   Future<_LinkData> _load() async {
     var id = paymentLink.id.v!;
+    // The line items read with the list, else read now.
+    var expandedItems = paymentLink.lineItemList.v?.data.v;
     var results = await Future.wait<Object>([
-      service.listPaymentLinkLineItems(id),
+      if (expandedItems == null) service.listPaymentLinkLineItems(id),
       service.listPaymentLinkSessions(id),
     ]);
     return _LinkData(
-      results[0] as List<StripeApiLineItem>,
-      results[1] as List<StripeApiCheckoutSession>,
+      expandedItems ?? results.first as List<StripeApiLineItem>,
+      results.last as List<StripeApiCheckoutSession>,
     );
   }
 
   @override
   Widget build(BuildContext context) {
     var active = paymentLink.active.v ?? true;
+    var summary = StripeManagerPaymentLinkSummary(paymentLink);
     var limit = paymentLink.restrictions.v?.completedSessions.v?.limit.v;
     return StripeManagerScaffold(
       client: service.client,
@@ -141,6 +157,10 @@ class StripeManagerPaymentLinkScreen extends StatelessWidget {
       body: StripeManagerFutureView<_LinkData>(
         load: _load,
         builder: (context, data, reload) {
+          var date = StripeManagerPaymentLinkSummary(
+            paymentLink,
+            items: data.items,
+          ).date;
           return ListView(
             children: [
               StripeManagerInfoTile(
@@ -153,11 +173,18 @@ class StripeManagerPaymentLinkScreen extends StatelessWidget {
                 value: paymentLink.id.v,
                 copy: true,
               ),
+              if (date != null)
+                StripeManagerInfoTile(
+                  label:
+                      'Date (of its newest price, Stripe keeps no link date)',
+                  value: stripeManagerFormatDateTime(date),
+                ),
               StripeManagerInfoTile(
                 label: 'Status',
                 value: [
                   if (active) 'active' else 'inactive',
                   if (limit != null) 'at most $limit payment(s)',
+                  ?summary.paidText,
                 ].join(', '),
               ),
               if (paymentLink.metadata.v case var metadata?
@@ -230,7 +257,8 @@ class StripeManagerPaymentLinkScreen extends StatelessWidget {
                           false,
                         );
                       }, success: 'Link deactivated')) {
-                        navigator.pop();
+                        // Changed: the list reads its tabs again.
+                        navigator.pop(true);
                       }
                     },
                   ),

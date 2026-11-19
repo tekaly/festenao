@@ -12,6 +12,7 @@ library;
 export 'src/client.dart';
 export 'src/client_store.dart';
 export 'src/format.dart';
+export 'src/paged.dart';
 export 'src/service.dart';
 export 'src/ui/account_screen.dart'
     show StripeManagerAccountScreen, stripeManagerScheduleText;
@@ -19,6 +20,7 @@ export 'src/ui/clients_screen.dart' show StripeManagerClientsScreen;
 export 'src/ui/dashboard_screen.dart' show StripeManagerDashboardScreen;
 export 'src/ui/home_screen.dart'
     show StripeManagerScreen, StripeManagerServiceFactory, goToStripeManager;
+export 'src/ui/paged_list_view.dart' show StripeManagerPagedListView;
 export 'src/ui/payment_links_screen.dart'
     show StripeManagerPaymentLinksScreen, StripeManagerPaymentLinkScreen;
 export 'src/ui/payments_screen.dart'

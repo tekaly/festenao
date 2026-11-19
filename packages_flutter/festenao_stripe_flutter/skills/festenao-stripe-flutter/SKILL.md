@@ -45,3 +45,7 @@ description: >-
 * Pure helpers for scripts and tests: `stripeManagerComputePeriodStats`,
   `stripeManagerComputeSales`, `stripeManagerSalesCsv`,
   `stripeManagerReadAll` (pages of 100 up to `stripeManagerMaxPages`).
+* A long list (payment links): `StripeManagerPagedList` (read page by page
+  on demand, cached per client by `StripeManagerService.pagedList`) shown by
+  `StripeManagerPagedListView` (next page when its end comes into view, pull
+  or refresh to read again).

@@ -15,7 +15,10 @@ its account.
 - Sales: paid Checkout Sessions (Payment Links included) of a period, by
   product (sales, units, amount), one product only, csv to the clipboard.
 - Payments: charges, details, refunds.
-- Payment links: active or not, items, completed payments, deactivate.
+- Payment links: active or not, read page by page as you scroll (kept while
+  the client stays selected, refresh action), with the date of their newest
+  price (a link has no date of its own), title, amount and paid count;
+  items, completed payments, deactivate.
 - Payouts: list and the transactions each one paid out.
 - Account: id, name, country, payouts schedule (when the key may read it).
 

@@ -3,7 +3,7 @@ description: >-
   A small Stripe back office for Flutter (web included): dashboard, products,
   prices, sales, payments, payment links, payouts and account, for several
   Stripe keys ("clients") kept on the device (sdb).
-version: 0.1.0
+version: 0.1.1
 publish_to: none
 
 environment:
@@ -21,7 +21,7 @@ dependencies:
     git:
       url: https://github.com/alextekartik/http_apis.dart
       path: packages/stripe
-    version: '>=1.6.0'
+    version: '>=1.7.0'
 
 dev_dependencies:
   flutter_test:

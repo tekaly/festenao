@@ -3,6 +3,7 @@ import 'package:tekartik_stripe_api/stripe_api.dart';
 
 import 'client.dart';
 import 'format.dart';
+import 'paged.dart';
 
 /// The most pages a list reads (100 objects each).
 const stripeManagerMaxPages = 20;
@@ -162,8 +163,53 @@ class StripeManagerService {
          baseUri: baseUri,
        );
 
-  /// Closes the api.
-  Future<void> close() => api.close();
+  final _pagedLists = <String, StripeManagerPagedList<Object?>>{};
+
+  /// The paged list [key] of this client, kept while the service lives (the
+  /// client stays selected): [readPage] and [idOf] are used the first time.
+  StripeManagerPagedList<T> pagedList<T>(
+    String key, {
+    required StripeManagerPageReader<T> readPage,
+    required String? Function(T item) idOf,
+  }) =>
+      (_pagedLists[key] ??= StripeManagerPagedList<T>(
+            readPage: readPage,
+            idOf: idOf,
+          ))
+          as StripeManagerPagedList<T>;
+
+  /// Closes the api, forgets the paged lists.
+  Future<void> close() async {
+    for (var list in _pagedLists.values) {
+      list.dispose();
+    }
+    _pagedLists.clear();
+    await api.close();
+  }
+
+  /// The Payment Links, active ones or inactive ones ([active] false), read
+  /// page by page ([pageSize] a page, newest first) with their line items
+  /// (the only date of a link is the one of its prices), cached per [active].
+  StripeManagerPagedList<StripeApiPaymentLink> pagedPaymentLinks({
+    required bool active,
+    int pageSize = 50,
+  }) => pagedList<StripeApiPaymentLink>(
+    'payment_links:$active',
+    readPage: (startingAfter) async {
+      var list = await api.listPaymentLinks(
+        StripeApiPaymentLinkListOptions()
+          ..limit.v = pageSize
+          ..active.v = active
+          ..startingAfter.v = startingAfter
+          ..expand.v = ['data.line_items'],
+      );
+      return (
+        list.data.v ?? const <StripeApiPaymentLink>[],
+        list.hasMore.v ?? false,
+      );
+    },
+    idOf: (link) => link.id.v,
+  );
 
   /// The balance (a cheap call that checks the key too).
   Future<StripeApiBalance> getBalance() => api.getBalance();
@@ -558,4 +604,65 @@ String stripeManagerSalesCsv(
     }
   }
   return stripeManagerCsv(rows);
+}
+
+/// What a Payment Link list shows, from its expanded line items.
+class StripeManagerPaymentLinkSummary {
+  /// The link.
+  final StripeApiPaymentLink link;
+
+  final List<StripeApiLineItem>? _items;
+
+  /// A summary of [link], of its expanded line items unless [items] are
+  /// given (read apart).
+  StripeManagerPaymentLinkSummary(this.link, {this._items});
+
+  /// The line items (empty when neither expanded nor given).
+  List<StripeApiLineItem> get items =>
+      _items ?? link.lineItemList.v?.data.v ?? const <StripeApiLineItem>[];
+
+  /// The newest price date (unix seconds): a link has no date of its own,
+  /// a price made for the link gives its creation date.
+  int? get date {
+    int? newest;
+    for (var item in items) {
+      var created = item.price.v?.created.v;
+      if (created != null && (newest == null || created > newest)) {
+        newest = created;
+      }
+    }
+    return newest;
+  }
+
+  /// The first price nickname, else the first item description, `+n` for
+  /// the other items.
+  String? get title {
+    if (items.isEmpty) {
+      return null;
+    }
+    var first = items.first;
+    var text = first.price.v?.nickname.v ?? first.description.v ?? '?';
+    if (items.length > 1) {
+      text = '$text +${items.length - 1}';
+    }
+    return text;
+  }
+
+  /// The total of the items, cents.
+  int? get amount => items.isEmpty
+      ? null
+      : items.fold<int>(0, (sum, item) => sum + (item.amountTotal.v ?? 0));
+
+  /// The currency of the first item.
+  String? get currency => items.isEmpty ? null : items.first.currency.v;
+
+  /// `paid 1/1` for a link paid a limited number of times.
+  String? get paidText {
+    var sessions = link.restrictions.v?.completedSessions.v;
+    var limit = sessions?.limit.v;
+    if (limit == null) {
+      return null;
+    }
+    return 'paid ${sessions?.count.v ?? 0}/$limit';
+  }
 }
