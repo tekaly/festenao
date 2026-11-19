@@ -38,6 +38,7 @@ workspace:
   - packages_flutter/festenao_navigator_flutter
   - packages_flutter/festenao_screenshot
   - packages_flutter/festenao_kiosk
+  - packages_flutter/festenao_stripe_flutter
   - packages/festenao_dartff/festenao_firebase_api_context.dart
   - packages/festenao_dartff/festenao_firebase_full_api_context.dart
   - packages/festenao_dartff/festenao_firebase_standalone_context.dart
