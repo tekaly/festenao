@@ -549,12 +549,19 @@ class YtIframeBackend implements YtPlayerBackend {
       // the iframe element itself still takes every click, and the keyboard
       // focus with it. A transparent element of ours on top hands them back
       // to flutter, so the caller's gestures and shortcuts work over the
-      // video.
+      // video. Its child takes the hit inside flutter: both elements are
+      // platform views, opaque to the hit test, and a platform view in the
+      // path wins the gesture arena, so the caller's tap never fired.
       return Stack(
         fit: StackFit.expand,
         children: [
           player,
-          PointerInterceptor(child: const SizedBox.expand()),
+          PointerInterceptor(
+            child: const MetaData(
+              behavior: HitTestBehavior.opaque,
+              child: SizedBox.expand(),
+            ),
+          ),
         ],
       );
     },
