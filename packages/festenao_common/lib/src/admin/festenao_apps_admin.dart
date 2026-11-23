@@ -362,6 +362,55 @@ class FestenaoAppsAdmin {
     );
   }
 
+  /// The pending email invites of [entityId] of [entityAccess] (its
+  /// addressed invites, `invite/<type>/email_invite_id`), most recent first.
+  Future<List<TkCmsFsEmailInvite>> emailInvites(
+    TkCmsFirestoreDatabaseServiceEntityAccess entityAccess,
+    String entityId,
+  ) async {
+    var list = await entityAccess.listEntityEmailInvites(
+      entityId,
+      status: tkCmsEmailInviteStatusPending,
+    );
+    return [...list];
+  }
+
+  /// Invites [email] to [entityId] of [entityAccess] with [grant]: an
+  /// addressed invite, accepted by the user signing in with this verified
+  /// email through the api of the app (no email is sent from here). The
+  /// same pending invite is updated when the email was invited already.
+  ///
+  /// The entity document must exist (`app/<appId>` for an app). The invite
+  /// records [inviterUserId] as its inviter, [festenaoAdminInviterUserId] by
+  /// default (an admin build has no user of its own).
+  Future<String> inviteByEmail(
+    TkCmsFirestoreDatabaseServiceEntityAccess entityAccess,
+    String entityId,
+    String email, {
+    required FestenaoUserAccessGrant grant,
+    String inviterUserId = festenaoAdminInviterUserId,
+  }) async {
+    var userAccess = TkCmsCvUserAccess();
+    grant.applyTo(userAccess);
+    return await entityAccess.createEmailInviteEntity(
+      userId: inviterUserId,
+      entityId: entityId,
+      email: email,
+      userAccess: userAccess,
+      skipAccessCheck: true,
+    );
+  }
+
+  /// Deletes the email invite [inviteId] of [entityId] of [entityAccess].
+  Future<void> deleteEmailInvite(
+    TkCmsFirestoreDatabaseServiceEntityAccess entityAccess,
+    String entityId,
+    String inviteId,
+  ) => entityAccess.deleteEmailInviteEntity(
+    inviteId: inviteId,
+    entityId: entityId,
+  );
+
   /// Every access of [userId]: to the apps, then to the projects of each app
   /// in [appIds] (all the [apps] by default).
   Future<List<FestenaoAdminUserEntityAccess>> userEntityAccesses(
@@ -397,6 +446,10 @@ class FestenaoAppsAdmin {
     return result;
   }
 }
+
+/// The inviter recorded by [FestenaoAppsAdmin.inviteByEmail] by default: an
+/// admin build (a service account) has no user of its own.
+const festenaoAdminInviterUserId = 'festenao-admin';
 
 /// What a user access is listed as: its name, its email, or the user id.
 String festenaoAdminUserAccessLabel(TkCmsEditedFsUserAccess access) {

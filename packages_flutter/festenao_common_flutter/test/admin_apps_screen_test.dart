@@ -123,13 +123,33 @@ void main() {
     expect(find.text('Alice'), findsOneWidget);
     expect(find.text('alice@example.com · alice'), findsOneWidget);
 
-    // An unknown email is refused.
+    // An unknown user id is refused.
+    await tester.tap(find.text('Add a user'));
+    await _settle(tester);
+    await tester.enterText(find.byType(TextField), 'nobody');
+    await tester.tap(find.text('Give'));
+    await _settle(tester);
+    expect(find.text('Bad state: No user nobody'), findsOneWidget);
+
+    // An email without an account is invited, then the invite deleted.
     await tester.tap(find.text('Add a user'));
     await _settle(tester);
     await tester.enterText(find.byType(TextField), 'nobody@example.com');
     await tester.tap(find.text('Give'));
     await _settle(tester);
-    expect(find.text('Bad state: No user nobody@example.com'), findsOneWidget);
+    expect(find.text('Invite by email?'), findsOneWidget);
+    await tester.tap(find.text('Invite'));
+    await _settle(tester);
+    var invites = await admin.emailInvites(admin.appAccess, 'my-app');
+    expect(invites.single.email.v, 'nobody@example.com');
+    expect(find.text('Pending email invites'), findsOneWidget);
+    expect(find.text('nobody@example.com'), findsOneWidget);
+    await tester.tap(find.byTooltip('Delete the invite'));
+    await _settle(tester);
+    await tester.tap(find.text('Delete'));
+    await _settle(tester);
+    expect(await admin.emailInvites(admin.appAccess, 'my-app'), isEmpty);
+    expect(find.text('Pending email invites'), findsNothing);
 
     // Made a mere admin, then removed.
     await tester.tap(find.byType(PopupMenuButton<String>));

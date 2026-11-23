@@ -27,4 +27,5 @@ export '../src/admin/festenao_apps_admin.dart'
         FestenaoAppsAdmin,
         FestenaoUserAccessGrant,
         festenaoAdminFirebaseRest,
+        festenaoAdminInviterUserId,
         festenaoAdminUserAccessLabel;

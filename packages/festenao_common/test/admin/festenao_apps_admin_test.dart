@@ -228,4 +228,64 @@ void main() {
       [FestenaoUserAccessGrant.admin, FestenaoUserAccessGrant.write],
     );
   });
+
+  test('email invites of an app', () async {
+    // The app document: the invites need it.
+    await admin.appAccess
+        .fsEntityRef('app1')
+        .set(firestore, TkCmsFsApp()..name.v = 'App 1');
+    var inviteId = await admin.inviteByEmail(
+      admin.appAccess,
+      'app1',
+      ' Someone@Example.com ',
+      grant: FestenaoUserAccessGrant.admin,
+    );
+    // The same pending invite when invited again.
+    expect(
+      await admin.inviteByEmail(
+        admin.appAccess,
+        'app1',
+        'someone@example.com',
+        grant: FestenaoUserAccessGrant.admin,
+      ),
+      inviteId,
+    );
+    var invites = await admin.emailInvites(admin.appAccess, 'app1');
+    expect(invites.single.id, inviteId);
+    expect(invites.single.email.v, 'someone@example.com');
+    expect(invites.single.inviterUserId.v, festenaoAdminInviterUserId);
+    expect(invites.single.userAccess.v!.isAdmin, isTrue);
+    // Accepted by the user signing in with this email (the api of the app).
+    await admin.appAccess.acceptEmailInviteEntity(
+      userId: 'u1',
+      email: 'someone@example.com',
+      inviteId: inviteId,
+    );
+    expect(
+      (await admin.appAccess.fsEntityUserAccessRef('app1', 'u1').get(firestore))
+          .isAdmin,
+      isTrue,
+    );
+    expect(await admin.emailInvites(admin.appAccess, 'app1'), isEmpty);
+
+    inviteId = await admin.inviteByEmail(
+      admin.appAccess,
+      'app1',
+      'other@example.com',
+      grant: FestenaoUserAccessGrant.read,
+    );
+    await admin.deleteEmailInvite(admin.appAccess, 'app1', inviteId);
+    expect(await admin.emailInvites(admin.appAccess, 'app1'), isEmpty);
+
+    // No app document, no invite.
+    expect(
+      () => admin.inviteByEmail(
+        admin.appAccess,
+        'app2',
+        'someone@example.com',
+        grant: FestenaoUserAccessGrant.admin,
+      ),
+      throwsArgumentError,
+    );
+  });
 }

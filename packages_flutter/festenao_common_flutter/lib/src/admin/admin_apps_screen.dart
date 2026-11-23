@@ -481,10 +481,12 @@ class _AdminEntityUserAccessScreenState
     extends State<AdminEntityUserAccessScreen> {
   FestenaoAppsAdmin get admin => widget.admin;
 
-  late Future<List<TkCmsEditedFsUserAccess>> _loading = _load();
+  late Future<_EntityUsers> _loading = _load();
 
-  Future<List<TkCmsEditedFsUserAccess>> _load() =>
-      admin.userAccesses(widget.entityAccess, widget.entityId);
+  Future<_EntityUsers> _load() async => (
+    accesses: await admin.userAccesses(widget.entityAccess, widget.entityId),
+    invites: await admin.emailInvites(widget.entityAccess, widget.entityId),
+  );
 
   void _reload() => setState(() {
     _loading = _load();
@@ -564,11 +566,25 @@ class _AdminEntityUserAccessScreenState
       return;
     }
     var (query, grant) = result;
+    query = query.trim();
+    ({String userId, String? email, String? name}) user;
     try {
-      var user = await _findUser(widget.auth, query);
-      if (!mounted) {
-        return;
+      user = await _findUser(widget.auth, query);
+    } on StateError catch (e) {
+      // An email without an account: invited.
+      if (widget.auth != null && query.contains('@') && mounted) {
+        await _invite(query, grant);
+      } else if (mounted) {
+        _snack(context, '$e');
       }
+      return;
+    } catch (e) {
+      if (mounted) {
+        _snack(context, '$e');
+      }
+      return;
+    }
+    if (mounted) {
       await _set(
         user.userId,
         user.email ?? user.userId,
@@ -576,10 +592,59 @@ class _AdminEntityUserAccessScreenState
         email: user.email,
         name: user.name,
       );
-    } catch (e) {
-      if (mounted) {
-        _snack(context, '$e');
-      }
+    }
+  }
+
+  /// [email] has no account: invited by email once confirmed.
+  Future<void> _invite(String email, FestenaoUserAccessGrant grant) async {
+    var confirmed = await _confirm(
+      context,
+      title: 'Invite by email?',
+      message:
+          'No account for $email. Invite it as ${grant.label} of '
+          '${widget.entityId}? No email is sent from here: the app offers '
+          'the invite when $email signs in with this verified address.',
+      confirmText: 'Invite',
+    );
+    if (!confirmed || !mounted) {
+      return;
+    }
+    var done = await _run(
+      context,
+      () => admin.inviteByEmail(
+        widget.entityAccess,
+        widget.entityId,
+        email,
+        grant: grant,
+      ),
+      '$email invited',
+    );
+    if (done && mounted) {
+      _reload();
+    }
+  }
+
+  Future<void> _deleteInvite(TkCmsFsEmailInvite invite) async {
+    var confirmed = await _confirm(
+      context,
+      title: 'Delete the invite?',
+      message: '${invite.email.v} can no longer accept it.',
+      confirmText: 'Delete',
+    );
+    if (!confirmed || !mounted) {
+      return;
+    }
+    var done = await _run(
+      context,
+      () => admin.deleteEmailInvite(
+        widget.entityAccess,
+        widget.entityId,
+        invite.id,
+      ),
+      'Invite of ${invite.email.v} deleted',
+    );
+    if (done && mounted) {
+      _reload();
     }
   }
 
@@ -600,26 +665,62 @@ class _AdminEntityUserAccessScreenState
       icon: const Icon(Icons.person_add_alt),
       label: const Text('Add a user'),
     ),
-    body: FutureBuilder<List<TkCmsEditedFsUserAccess>>(
+    body: FutureBuilder<_EntityUsers>(
       future: _loading,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('${snapshot.error}'));
         }
-        var accesses = snapshot.data;
-        if (accesses == null) {
+        var users = snapshot.data;
+        if (users == null) {
           return const Center(child: CircularProgressIndicator());
         }
-        if (accesses.isEmpty) {
+        var (:accesses, :invites) = users;
+        if (accesses.isEmpty && invites.isEmpty) {
           return const Center(child: Text('No user has an access yet'));
         }
         return ListView(
           padding: const EdgeInsets.only(bottom: 80),
-          children: [for (var access in accesses) _buildTile(access)],
+          children: [
+            for (var access in accesses) _buildTile(access),
+            if (invites.isNotEmpty) ...[
+              const ListTile(title: Text('Pending email invites')),
+              for (var invite in invites) _buildInviteTile(invite),
+            ],
+          ],
         );
       },
     ),
   );
+
+  Widget _buildInviteTile(TkCmsFsEmailInvite invite) {
+    var access = invite.userAccess.v;
+    var grant = access == null ? null : FestenaoUserAccessGrant.of(access);
+    return ListTile(
+      leading: const Icon(Icons.mail_outline),
+      title: Row(
+        children: [
+          Flexible(
+            child: Text(invite.email.v ?? '', overflow: TextOverflow.ellipsis),
+          ),
+          const SizedBox(width: 8),
+          _grantChip(grant),
+        ],
+      ),
+      subtitle: Text(
+        [
+          'invited',
+          if (invite.timestamp.v case var timestamp?)
+            timestamp.toIso8601String().split('T').first,
+        ].join(' '),
+      ),
+      trailing: IconButton(
+        icon: const Icon(Icons.delete_outline, size: 20),
+        tooltip: 'Delete the invite',
+        onPressed: () => _deleteInvite(invite),
+      ),
+    );
+  }
 
   Widget _buildTile(TkCmsEditedFsUserAccess access) {
     var grant = FestenaoUserAccessGrant.of(access);
@@ -674,6 +775,12 @@ class _AdminEntityUserAccessScreenState
     );
   }
 }
+
+/// The users having an access to an entity and its pending email invites.
+typedef _EntityUsers = ({
+  List<TkCmsEditedFsUserAccess> accesses,
+  List<TkCmsFsEmailInvite> invites,
+});
 
 /// Every access of one user: to the apps and to their projects, changed or
 /// removed in place, and an app access given.
