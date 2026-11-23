@@ -87,6 +87,32 @@ void main() {
       expect(await bodyText(part), '234');
     });
 
+    test('no content-length above the max, sent chunked', () async {
+      var small = FestenaoObjectStorageDownloadStream(
+        objectStorage: storage,
+        commandUri: () => commandUri,
+        maxContentLength: 4,
+      );
+      var url = small.downloadUrl('folder/a.mid');
+      Future<DownloadStreamResponse> get({String? range}) async => (await small
+          .onDownloadStreamOrNull(method: 'GET', uri: url, range: range))!;
+
+      var whole = await get();
+      expect(whole.statusCode, 200);
+      expect(whole.headers.containsKey('content-length'), isFalse);
+      expect(await bodyText(whole), '0123456789');
+
+      var rest = await get(range: 'bytes=0-');
+      expect(rest.statusCode, 206);
+      expect(rest.headers.containsKey('content-length'), isFalse);
+      expect(rest.headers['content-range'], 'bytes 0-9/10');
+      expect(await bodyText(rest), '0123456789');
+
+      var part = await get(range: 'bytes=2-4');
+      expect(part.headers['content-length'], '3');
+      expect(await bodyText(part), '234');
+    });
+
     test('errors', () async {
       var url = stream.downloadUrl('folder/a.mid');
       Future<int> status(
@@ -119,6 +145,41 @@ void main() {
       );
       expect(await status(stream.downloadUrl('folder/missing.mid')), 404);
     });
+  });
+
+  test('the handler refuses a download above its max', () async {
+    var handler = FestenaoObjectStorageHandler(
+      options: FestenaoObjectStorageHandlerOptions(
+        objectStorage: storage,
+        readOnly: true,
+        maxDownloadSize: 4,
+      ),
+    );
+    Future<String> download({int? start, int? size}) async {
+      var request =
+          (GdriveApiDownloadQuery()
+                ..path.v = 'folder/a.mid'
+                ..start.v = start
+                ..size.v = size)
+              .request(GdriveApiService.downloadCommand);
+      var result =
+          await handler.onCommandOrNull(request) as GdriveApiDownloadResult;
+      return utf8.decode(base64Decode(result.content.v!));
+    }
+
+    Future<void> expectRefused(Future<void> Function() action) async {
+      try {
+        await action();
+        fail('should fail');
+      } on ApiException catch (e) {
+        expect(e.error?.code.v, HttpsErrorCode.invalidArgument);
+      }
+    }
+
+    // The whole file (10 bytes) and a part of 5 are too big.
+    await expectRefused(() => download());
+    await expectRefused(() => download(start: 0, size: 5));
+    expect(await download(start: 6, size: 4), '6789');
   });
 
   test('the handler answers the stream url when given one', () async {

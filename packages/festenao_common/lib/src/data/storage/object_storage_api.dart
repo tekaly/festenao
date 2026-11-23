@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:festenao_common/data/object_storage.dart';
 import 'package:festenao_common/festenao_http.dart';
@@ -52,6 +53,9 @@ class ObjectStorageApiClient extends ObjectStorage {
   late final GdriveApiService _api;
   final HttpClientFactory? _httpClientFactory;
 
+  /// The size of the parts [download] asks for.
+  final int downloadPartSize;
+
   /// Constructor.
   ///
   /// [httpClientFactory] is what the api is called with, and what a download
@@ -62,10 +66,14 @@ class ObjectStorageApiClient extends ObjectStorage {
   /// [callableApi] (the callable function of the same server) sends the
   /// commands with the signed in user, the https endpoint without: a server
   /// requiring a user for some commands needs it.
+  ///
+  /// [downloadPartSize]: the parts [download] asks for
+  /// ([objectStorageApiDownloadPartSize] by default).
   ObjectStorageApiClient({
     HttpClientFactory? httpClientFactory,
     required Uri httpsUri,
     FirebaseFunctionsCallable? callableApi,
+    this.downloadPartSize = objectStorageApiDownloadPartSize,
   }) : _httpClientFactory = httpClientFactory {
     _api = GdriveApiService(
       httpsApiUri: httpsUri,
@@ -83,10 +91,18 @@ class ObjectStorageApiClient extends ObjectStorage {
     await _api.delete(GdriveApiDeleteQuery()..path.v = path);
   }
 
+  /// In parts of [downloadPartSize] bytes: a server answers one
+  /// `gdrive/download` of [objectStorageApiDownloadMaxSize] bytes at most.
   @override
   Future<Uint8List> download(String path) async {
-    var result = await _api.download(GdriveApiDownloadQuery()..path.v = path);
-    return Uint8List.fromList(base64Decode(result.content.v!));
+    var builder = BytesBuilder(copy: false);
+    while (true) {
+      var part = await downloadPart(path, builder.length, downloadPartSize);
+      builder.add(part);
+      if (part.length < downloadPartSize) {
+        return builder.takeBytes();
+      }
+    }
   }
 
   @override

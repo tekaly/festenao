@@ -21,6 +21,10 @@ class MockObjectStorage extends ObjectStorage {
   /// client side handling of a server ignoring ranges.
   bool ignoreRange = false;
 
+  /// Answers a range with this many bytes at most (a short 206), to test the
+  /// client asking the rest.
+  int? maxRangeLength;
+
   /// [getDownloadUrl] returns null even when [supportDownloadUrl].
   bool noUrl = false;
 
@@ -69,6 +73,10 @@ class MockObjectStorage extends ObjectStorage {
       var end = parts[1].isEmpty ? data.length - 1 : int.parse(parts[1]);
       if (end >= data.length) {
         end = data.length - 1;
+      }
+      var maxRangeLength = this.maxRangeLength;
+      if (maxRangeLength != null && end - start + 1 > maxRangeLength) {
+        end = start + maxRangeLength - 1;
       }
       bytes = Uint8List.sublistView(data, start, end + 1);
       response.statusCode = 206;
@@ -295,6 +303,27 @@ void main() {
             .downloadStream(path, start: 2, size: 5, chunkSize: 2)
             .toList();
         expect(_concat(chunks), Uint8List.fromList([3, 4, 5, 6, 7]));
+      });
+
+      test('downloadStream of a part, server answering less', () async {
+        storage.maxRangeLength = 3;
+        var path = await uploadData();
+        var chunks = await storage
+            .downloadStream(path, start: 1, size: 7, chunkSize: 2)
+            .toList();
+        expect(_concat(chunks), Uint8List.fromList([2, 3, 4, 5, 6, 7, 8]));
+        // To the end, past what the file has.
+        storage.rangesReceived.clear();
+        chunks = await storage
+            .downloadStream(path, start: 2, size: 20, chunkSize: 2)
+            .toList();
+        expect(_concat(chunks), Uint8List.fromList([3, 4, 5, 6, 7, 8, 9, 10]));
+        storage.rangesReceived.clear();
+        chunks = await storage.downloadStream(path, start: 1).toList();
+        expect(_concat(chunks), Uint8List.fromList(data.sublist(1)));
+        if (supportDownloadUrl) {
+          expect(storage.rangesReceived, ['bytes=1-', 'bytes=4-', 'bytes=7-']);
+        }
       });
 
       test('downloadStream without a url falls back to the parts', () async {

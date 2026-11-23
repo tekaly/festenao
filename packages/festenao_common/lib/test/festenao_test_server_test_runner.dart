@@ -637,6 +637,16 @@ void testFestenaoServerGroup(
     var downloadedData = await objectStorageApiClient.download(filePath);
     expect(downloadedData, data);
 
+    // In parts, as a big file is: 2 + 2 + 1 bytes, then 5 + an empty one.
+    for (var partSize in [2, 5]) {
+      var inParts = ObjectStorageApiClient(
+        httpsUri: apiService.httpsApiUri!,
+        httpClientFactory: apiService.httpClientFactory,
+        downloadPartSize: partSize,
+      );
+      expect(await inParts.download(filePath), data);
+    }
+
     // List
     var listResult = await objectStorageApiClient.list('test');
     expect(listResult.items.map((e) => e.path), contains(filePath));

@@ -181,7 +181,10 @@ const objectStorageDefaultChunkSize = 1024 * 1024;
 ///
 /// One http request: a `Range` one when [start] or [size] is given. A server
 /// that ignores the range (a 200 with the whole content) is handled, the
-/// bytes outside the part are dropped. Any other non 2xx status throws.
+/// bytes outside the part are dropped. A server answering a range with less
+/// than asked (a 206 of a first part of it, its `content-range` giving the
+/// total) is asked the rest, as many times as needed. Any other non 2xx
+/// status throws.
 Stream<Uint8List> objectStorageDownloadUrlStream(
   String url, {
   required HttpClientFactory httpClientFactory,
@@ -192,56 +195,79 @@ Stream<Uint8List> objectStorageDownloadUrlStream(
   var chunkLimit = chunkSize ?? objectStorageDefaultChunkSize;
   var rangeStart = start ?? 0;
   var partial = rangeStart > 0 || size != null;
+  // The last byte wanted, null for the end of the content.
+  var rangeEnd = size == null ? null : rangeStart + size - 1;
+  // The next byte to get.
+  var next = rangeStart;
+  var remaining = size;
+  var pending = BytesBuilder(copy: false);
   var client = httpClientFactory.newClient();
   try {
-    var request = http.Request('GET', Uri.parse(url));
-    if (partial) {
-      var rangeEnd = size == null ? '' : '${rangeStart + size - 1}';
-      request.headers['Range'] = 'bytes=$rangeStart-$rangeEnd';
-    }
-    var response = await client.send(request);
-    var statusCode = response.statusCode;
-    if (statusCode < 200 || statusCode >= 300) {
-      var body = await response.stream.bytesToString();
-      throw Exception(
-        'Download of $url failed (HTTP $statusCode'
-        '${body.isEmpty ? '' : ': $body'})',
-      );
-    }
-    // The range was ignored (200, the whole content): drop the bytes before
-    // the part. A 206 starts at the part.
-    var toSkip = partial && statusCode != 206 ? rangeStart : 0;
-    var remaining = size;
-    var pending = BytesBuilder(copy: false);
-    await for (var data in response.stream) {
-      var bytes = data is Uint8List ? data : Uint8List.fromList(data);
-      if (toSkip > 0) {
-        if (bytes.length <= toSkip) {
-          toSkip -= bytes.length;
-          continue;
-        }
-        bytes = Uint8List.sublistView(bytes, toSkip);
-        toSkip = 0;
+    while (true) {
+      var request = http.Request('GET', Uri.parse(url));
+      // The whole content is asked without a range, the rest of it after a
+      // short answer with one.
+      var ranged = partial || next > rangeStart;
+      if (ranged) {
+        request.headers['Range'] = 'bytes=$next-${rangeEnd ?? ''}';
       }
-      if (remaining != null) {
-        if (bytes.length > remaining) {
-          bytes = Uint8List.sublistView(bytes, 0, remaining);
-        }
-        remaining -= bytes.length;
+      var response = await client.send(request);
+      var statusCode = response.statusCode;
+      if (statusCode < 200 || statusCode >= 300) {
+        var body = await response.stream.bytesToString();
+        throw Exception(
+          'Download of $url failed (HTTP $statusCode'
+          '${body.isEmpty ? '' : ': $body'})',
+        );
       }
-      pending.add(bytes);
-      if (pending.length >= chunkLimit) {
-        var all = pending.takeBytes();
-        var offset = 0;
-        while (all.length - offset >= chunkLimit) {
-          yield Uint8List.sublistView(all, offset, offset + chunkLimit);
-          offset += chunkLimit;
+      // The range was ignored (200, the whole content): drop the bytes
+      // before the part. A 206 starts at the part.
+      var toSkip = ranged && statusCode != 206 ? next : 0;
+      var received = 0;
+      await for (var data in response.stream) {
+        var bytes = data is Uint8List ? data : Uint8List.fromList(data);
+        if (toSkip > 0) {
+          if (bytes.length <= toSkip) {
+            toSkip -= bytes.length;
+            continue;
+          }
+          bytes = Uint8List.sublistView(bytes, toSkip);
+          toSkip = 0;
         }
-        if (offset < all.length) {
-          pending.add(Uint8List.sublistView(all, offset));
+        if (remaining != null) {
+          if (bytes.length > remaining) {
+            bytes = Uint8List.sublistView(bytes, 0, remaining);
+          }
+          remaining -= bytes.length;
+        }
+        received += bytes.length;
+        pending.add(bytes);
+        if (pending.length >= chunkLimit) {
+          var all = pending.takeBytes();
+          var offset = 0;
+          while (all.length - offset >= chunkLimit) {
+            yield Uint8List.sublistView(all, offset, offset + chunkLimit);
+            offset += chunkLimit;
+          }
+          if (offset < all.length) {
+            pending.add(Uint8List.sublistView(all, offset));
+          }
+        }
+        if (remaining == 0) {
+          break;
         }
       }
-      if (remaining == 0) {
+      next += received;
+      if (statusCode != 206 || received == 0 || remaining == 0) {
+        break;
+      }
+      // A 206: all of what was asked, or a first part of it.
+      var total = _contentRangeTotal(response.headers['content-range']);
+      if (total == null) {
+        break;
+      }
+      var last = (rangeEnd == null || rangeEnd >= total) ? total - 1 : rangeEnd;
+      if (next > last) {
         break;
       }
     }
@@ -251,4 +277,17 @@ Stream<Uint8List> objectStorageDownloadUrlStream(
   } finally {
     client.close();
   }
+}
+
+/// The total of a `content-range` (`bytes 0-99/1000`), null when unknown
+/// (`*`) or not one.
+int? _contentRangeTotal(String? contentRange) {
+  if (contentRange == null) {
+    return null;
+  }
+  var slash = contentRange.lastIndexOf('/');
+  if (slash < 0) {
+    return null;
+  }
+  return int.tryParse(contentRange.substring(slash + 1).trim());
 }

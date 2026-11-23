@@ -260,11 +260,13 @@ class ObjectStorageGdrive extends ObjectStorage {
               downloadOptions: gd.DownloadOptions.fullMedia,
             )
             as gd.Media;
-    var bytes = <int>[];
+    // Not a List<int>: 8 bytes per byte, a 51 MiB file took 410 MiB and the
+    // function was killed (256 MiB, 2026-11-23).
+    var builder = BytesBuilder(copy: false);
     await for (var chunk in media.stream) {
-      bytes.addAll(chunk);
+      builder.add(chunk);
     }
-    return Uint8List.fromList(bytes);
+    return builder.takeBytes();
   }
 
   /// One request to the Drive api with the access of the [gdrive] client

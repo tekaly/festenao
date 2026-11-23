@@ -115,6 +115,16 @@ class GdriveApiUploadResult extends ApiResult {
   late final CvFields fields = [item];
 }
 
+/// The most a `gdrive/download` answers at once (16 MiB): the content comes
+/// back base64 in json, a few copies of it on the server (a function of
+/// 256 MiB was killed by a 51 MiB file, 2026-11-23) and over the
+/// 32 MiB a Cloud Run response may declare. A bigger file is downloaded in
+/// parts ([objectStorageApiDownloadPartSize]).
+const objectStorageApiDownloadMaxSize = 16 * 1024 * 1024;
+
+/// The size of the parts the api client downloads a file in (4 MiB).
+const objectStorageApiDownloadPartSize = 4 * 1024 * 1024;
+
 /// GDrive download query.
 class GdriveApiDownloadQuery extends ApiQuery {
   /// Path.

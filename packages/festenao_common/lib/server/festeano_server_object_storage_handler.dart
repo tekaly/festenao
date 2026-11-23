@@ -28,12 +28,18 @@ class FestenaoObjectStorageHandlerOptions {
   /// comes with the callable transport.
   final Set<String> authenticatedCommands;
 
+  /// The most `gdrive/download` answers at once, a whole file or a part
+  /// ([objectStorageApiDownloadMaxSize] by default): more is refused
+  /// (`invalid-argument`) rather than taken in memory.
+  final int maxDownloadSize;
+
   /// Creates a new [FestenaoObjectStorageHandlerOptions] with [objectStorage] delegate.
   const FestenaoObjectStorageHandlerOptions({
     required this.objectStorage,
     this.readOnly = false,
     this.authenticatedCommands = const {},
     this.downloadStream,
+    this.maxDownloadSize = objectStorageApiDownloadMaxSize,
   });
 }
 
@@ -147,13 +153,30 @@ class FestenaoObjectStorageHandler implements FestenaoApiHandler {
   /// Handles the download command.
   Future<ApiResult> onDownloadCommand(ApiRequest apiRequest) async {
     var query = apiRequest.query<GdriveApiDownloadQuery>();
+    var path = query.path.v!;
     var start = query.start.v;
     var size = query.size.v;
+    var max = options.maxDownloadSize;
+    Never tooBig(String what) => throw ApiException(
+      error: ApiError()
+        ..code.v = HttpsErrorCode.invalidArgument
+        ..noRetry.v = true
+        ..message.v =
+            '$what, more than the $max bytes of a download: '
+            'ask for parts (start, size)',
+    );
     Uint8List data;
     if (start != null && size != null) {
-      data = await _objectStorage.downloadPart(query.path.v!, start, size);
+      if (size > max) {
+        tooBig('A part of $size bytes');
+      }
+      data = await _objectStorage.downloadPart(path, start, size);
     } else {
-      data = await _objectStorage.download(query.path.v!);
+      var total = (await _objectStorage.getItem(path)).size;
+      if (total != null && total > max) {
+        tooBig('A file of $total bytes');
+      }
+      data = await _objectStorage.download(path);
     }
     return GdriveApiDownloadResult()..content.v = base64Encode(data);
   }

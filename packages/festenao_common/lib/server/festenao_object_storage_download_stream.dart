@@ -48,6 +48,15 @@ String randomDownloadTokenKey() {
 /// How long a download url stays valid.
 const downloadTokenLifetime = Duration(hours: 1);
 
+/// The largest response the stream endpoint declares the length of (16 MiB).
+///
+/// Cloud Run refuses an http/1 response declaring more than 32 MiB ("Response
+/// size was too large", a 500 to the client: a 51 MiB wav,
+/// 2026-11-23); a chunked one, with no `content-length`, is streamed
+/// whatever its size. Above this, the content goes chunked (its size is
+/// still in the `content-range` of a 206).
+const downloadStreamMaxContentLength = 16 * 1024 * 1024;
+
 /// The path of the stream endpoint below the command function.
 const downloadStreamPathSegments = ['gdrive', 'stream'];
 
@@ -190,6 +199,10 @@ class FestenaoObjectStorageDownloadStream {
 
   final Uri Function() _commandUri;
 
+  /// Above this size a response has no `content-length` (sent chunked), see
+  /// [downloadStreamMaxContentLength].
+  final int maxContentLength;
+
   /// The absolute url of the command function, what the download urls are
   /// built on (read at each url: a local server sets its own once
   /// started).
@@ -200,6 +213,7 @@ class FestenaoObjectStorageDownloadStream {
     required this.objectStorage,
     required this._commandUri,
     String? key,
+    this.maxContentLength = downloadStreamMaxContentLength,
   }) : key = key ?? randomDownloadTokenKey() {
     assert(this.key.length == downloadTokenKeyLength);
   }
@@ -254,7 +268,7 @@ class FestenaoObjectStorageDownloadStream {
     // Streamed from the meta path: the file itself, a shortcut's target.
     var part = parseRangeHeader(range, total: total);
     if (part == null) {
-      if (total != null) {
+      if (total != null && total <= maxContentLength) {
         headers['content-length'] = '$total';
       }
       return DownloadStreamResponse.content(
@@ -267,7 +281,7 @@ class FestenaoObjectStorageDownloadStream {
       return DownloadStreamResponse.error(416, 'Range not satisfiable');
     }
     var size = part.size;
-    if (size != null) {
+    if (size != null && size <= maxContentLength) {
       headers['content-length'] = '$size';
     }
     var end = size == null ? '' : '${part.start + size - 1}';
