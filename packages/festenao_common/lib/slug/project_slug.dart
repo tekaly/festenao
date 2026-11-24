@@ -92,23 +92,35 @@ extension FestenaoFirestoreDatabaseSlugExt on FestenaoFirestoreDatabase {
     String slug, {
     FestenaoSlugOptions options = festenaoSlugOptionsDefault,
   }) async {
-    var registry = slugRegistry(options: options);
-    await firestore.cvRunTransaction((txn) async {
-      var project = await _txnGetProject(txn, projectId);
-      await registry.txnClaim(
-        txn,
-        slug: slug,
-        entityType: festenaoProjectSlugEntityType,
-        entityId: projectId,
-        previousSlug: project.slug.v,
-      );
-      _txnSetProjectSlugs(
-        txn,
-        projectId,
-        slug: slug,
-        slugs: [slug, ...project.urlSlugs.where((other) => other != slug)],
-      );
-    });
+    await firestore.cvRunTransaction(
+      (txn) => txnSetProjectSlug(txn, projectId, slug, options: options),
+    );
+  }
+
+  /// [setProjectSlug] in the transaction [txn] of the caller (the server
+  /// counting the slugs of a user in the same transaction). It reads the
+  /// project and the registry first, then writes them: the caller's reads
+  /// come before it.
+  Future<void> txnSetProjectSlug(
+    CvFirestoreTransaction txn,
+    String projectId,
+    String slug, {
+    FestenaoSlugOptions options = festenaoSlugOptionsDefault,
+  }) async {
+    var project = await _txnGetProject(txn, projectId);
+    await slugRegistry(options: options).txnClaim(
+      txn,
+      slug: slug,
+      entityType: festenaoProjectSlugEntityType,
+      entityId: projectId,
+      previousSlug: project.slug.v,
+    );
+    _txnSetProjectSlugs(
+      txn,
+      projectId,
+      slug: slug,
+      slugs: [slug, ...project.urlSlugs.where((other) => other != slug)],
+    );
   }
 
   /// Give the project [projectId] the extra url [slug], its current one
@@ -333,6 +345,36 @@ extension FestenaoFirestoreDatabaseSlugExt on FestenaoFirestoreDatabase {
     } catch (_) {
       return segment;
     }
+  }
+
+  /// Takes every slug of the project [projectId] back, in the transaction
+  /// [txn] of the caller (its public address ends, the project stays): the
+  /// registry entries pointing to it deleted, its slugs cleared; its reads
+  /// first. Returns the slugs released.
+  Future<List<String>> txnReleaseProjectSlugs(
+    CvFirestoreTransaction txn,
+    String projectId,
+  ) async {
+    var project = await _txnGetProject(txn, projectId);
+    var registry = slugRegistry();
+    var released = <String>[];
+    for (var slug in project.urlSlugs) {
+      if (!registry.options.isValid(slug)) {
+        continue;
+      }
+      var existing = await txn.refGet(registry.ref(slug));
+      if (existing.exists &&
+          existing.isEntity(festenaoProjectSlugEntityType, projectId)) {
+        released.add(slug);
+      }
+    }
+    for (var slug in released) {
+      txn.refDelete(registry.ref(slug));
+    }
+    if (project.urlSlugs.isNotEmpty) {
+      _txnSetProjectSlugs(txn, projectId, slug: null, slugs: const []);
+    }
+    return released;
   }
 
   /// Release the slugs of [projectId] (the project is being deleted): its

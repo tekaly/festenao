@@ -4,10 +4,11 @@ How many entities (projects, playlists...) a user creates through the api,
 and how an app admin changes that limit or blocks a user. Server side, opt
 in, generic on the entity type.
 
-**Status (2026-11-03).** Written in festenao_common, tested on the memory
-server (`test/festenao_user_plan_test.dart`, six tests). Not yet used by a
-deployed app at the time of writing; a private app on festenao was the first
-one wired.
+**Status (2026-11-03, the site plan 2026-11-24).** Written in
+festenao_common, tested on the memory server
+(`test/festenao_user_plan_test.dart`, thirteen tests). Not yet used by a
+deployed app at the time of writing; a private app on festenao was the
+first one wired.
 
 ## Pieces
 
@@ -35,6 +36,41 @@ one wired.
   `user-plan/get` (own, or anyone's for an app admin) and `user-plan/set`
   (app admins; only the fields set change, a null `createLimits` entry goes
   back to the default). Client: `FestenaoUserPlanApiClient`.
+- **The site plan** (2026-11-24): the same record holds what a user's
+  public sites get, free or paid:
+  - `slugLimit` (the projects with a public address, a slug), `granted` (a
+    paid plan given by an app admin, no end), `ads` (null: ads on the free
+    plan only), set by `user-plan/set`;
+  - `paidUntil` and `subscriptionId`, set by the server for a payment
+    (`FestenaoUserPlanHandler.recordPayment`, the payment webhook) or by an
+    app admin (`paidUntil` only).
+
+  `festenaoSitePlanOf` (`FsFestenaoUserPlan.sitePlan`) gives the plan in
+  effect: paid when granted or before `paidUntil` plus a grace period,
+  the slug limit set or the policy's of the plan, none for an app admin.
+  `FestenaoSitePlanPolicy` holds the defaults (proposals until decided: 1
+  free address with ads, 10 paid ones without, 14 days of grace), given to
+  the handler (`sitePlanPolicy`). `user-plan/get` answers the plan in
+  effect too (`paid`, `inGrace`, `effectiveSlugLimit`, `effectiveAds`,
+  `slugProjectCount`, `canClaimSlug`).
+- **The counted public addresses**: `user-plan/claim-project-slug`
+  (`FestenaoUserPlanApiClient.claimProjectSlug`, the admin of the project
+  only) gives a project a slug in one transaction with its count:
+  - the project is held by the user who claimed it first,
+    `app/<app>/slug_project/<projectId>` (`userId`), and listed in their
+    usage, `app/<app>/user_usage/<userId>` (`slugProjects`), both
+    server-only;
+  - a project counts once whatever its slugs and whichever of its admins
+    changes it (its old slug an alias, as `setProjectSlug`);
+  - refused: `invalid-argument` (an invalid slug, checked first),
+    `resource-exhausted` (past the limit), `already-exists` (taken).
+
+  `user-plan/release-project-slug` takes the slugs of a project back and
+  frees its place. A server handler (the publish command of a festival)
+  calls `claimProjectSlug`/`releaseProjectSlug` of the handler directly,
+  after its own access check. The handler needs the server's `database`
+  for these (`unimplemented` without it). On the free plan again, the
+  addresses already held stay; none more until under the limit.
 - **Blocked users**: `FestenaoUserPlanHandler.requireNotBlocked` refuses
   every command of a blocked user with `permission-denied` (`User blocked`),
   for the apps the handler serves; an app admin is never blocked. One read
@@ -80,7 +116,14 @@ shows the limit on `resource-exhausted`.
   flag of their entities directly frees places. Closing that is a rule
   change of the app.
 - Two creations at once may both pass the count (no transaction around the
-  count and the creation).
+  count and the creation). The slug claims have one: two at once take one
+  place.
+- The slug limit counts the claims through the server only: a client the
+  rules let write the slug registry (the `slug` role) is not counted, and a
+  server serving public sites trusts a counted project only (its holder
+  document), never the registry alone.
+- A project deleted with a slug keeps it, and its place, until released:
+  nothing releases the slugs of a deleted project yet.
 - A blocked user keeps the direct Firestore access the rules give them; the
   server commands only are refused. Disabling the auth account would block
   them in every app of the Firebase project.
