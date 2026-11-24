@@ -261,76 +261,89 @@ void testFestenaoSetUserAccessGroup(
     }
   }, skip: skip);
 
-  test('roles: held by the caller, or an app super admin', () async {
-    await signInOwner();
-    TkCmsCvUserAccess withRole(String role) => TkCmsCvUserAccess()
-      ..grantAdminAccess()
-      ..role.v = role;
-    // The owner holds no role: none granted, by access or invite.
-    var message = await expectApiError(
-      () => set(email: memberEmail, userAccess: withRole(roleSuperAdmin)),
-      'permission-denied',
-    );
-    expect(message, contains(roleSuperAdmin));
-    await expectApiError(
-      () => client.sendEntityEmailInvite(
-        entityId: entityId,
-        email: 'invitee@festenao-test.local',
-        fsUserAccess: TkCmsFsUserAccess()..copyAccessFrom(withRole('slug')),
-      ),
-      'permission-denied',
-    );
-
-    // An app super admin grants it.
-    var docApiService = apiService.docApiService;
-    var appAdminRef = fsDatabase.appDb.fsEntityUserAccessRef(
-      fsDatabase.app,
-      strangerUserId,
-    );
-    await docApiService.cvSetDoc(appAdminRef.cv()..grantSuperAdminAccess());
-    try {
-      await signIn(strangerEmail);
-      var result = await set(
-        email: memberEmail,
-        userAccess: withRole(roleSuperAdmin),
-      );
-      expect(result.hasSuperAdminRole, isTrue);
-      expect(
-        (await accessOfAsOwner(
-          signInOwner,
-          accessOf,
-          memberUserId,
-        ))!.hasSuperAdminRole,
-        isTrue,
-      );
-
-      // A role held already is kept by a plain entity admin: the member
-      // gets a role, then is made an editor keeping it.
-      await signIn(strangerEmail);
-      await set(email: readerEmail, userAccess: withRole('slug'));
+  test(
+    'super admin: by a super admin only, other roles by any admin',
+    () async {
       await signInOwner();
-      var reader = await set(
+      TkCmsCvUserAccess withRole(String role) => TkCmsCvUserAccess()
+        ..grantAdminAccess()
+        ..role.v = role;
+      // An app role (a volunteer, the slug role): any admin of the entity.
+      var volunteer = await set(
         email: readerEmail,
         userAccess: TkCmsCvUserAccess()
-          ..write.v = true
-          ..role.v = 'slug'
+          ..read.v = true
+          ..role.v = 'volunteer'
           ..fixAccess(),
       );
-      expect(reader.isWrite, isTrue);
-      expect(reader.isAdmin, isFalse);
-      expect(reader.roles, ['slug']);
-
-      // A plain entity admin no longer changes it.
-      await signInOwner();
-      await expectApiError(
-        () => set(userId: memberUserId, userAccess: write()),
+      expect(volunteer.roles, ['volunteer']);
+      // The owner is no super admin: none made, by access or invite.
+      var message = await expectApiError(
+        () => set(email: memberEmail, userAccess: withRole(roleSuperAdmin)),
         'permission-denied',
       );
-    } finally {
-      await signInOwner();
-      await docApiService.cvDeleteDoc(appAdminRef);
-    }
-  }, skip: skip);
+      expect(message, contains(roleSuperAdmin));
+      await expectApiError(
+        () => client.sendEntityEmailInvite(
+          entityId: entityId,
+          email: 'invitee@festenao-test.local',
+          fsUserAccess: TkCmsFsUserAccess()
+            ..copyAccessFrom(withRole(roleSuperAdmin)),
+        ),
+        'permission-denied',
+      );
+
+      // An app super admin grants it.
+      var docApiService = apiService.docApiService;
+      var appAdminRef = fsDatabase.appDb.fsEntityUserAccessRef(
+        fsDatabase.app,
+        strangerUserId,
+      );
+      await docApiService.cvSetDoc(appAdminRef.cv()..grantSuperAdminAccess());
+      try {
+        await signIn(strangerEmail);
+        var result = await set(
+          email: memberEmail,
+          userAccess: withRole(roleSuperAdmin),
+        );
+        expect(result.hasSuperAdminRole, isTrue);
+        expect(
+          (await accessOfAsOwner(
+            signInOwner,
+            accessOf,
+            memberUserId,
+          ))!.hasSuperAdminRole,
+          isTrue,
+        );
+
+        // A super admin kept as is by a plain entity admin is no grant: the
+        // reader made a super admin, then given a role by the owner.
+        await signIn(strangerEmail);
+        await set(email: readerEmail, userAccess: withRole(roleSuperAdmin));
+        await signInOwner();
+        await expectApiError(
+          () => set(
+            email: readerEmail,
+            userAccess: TkCmsCvUserAccess()
+              ..grantSuperAdminAccess()
+              ..role.v = '$roleSuperAdmin,volunteer',
+          ),
+          'permission-denied',
+        );
+
+        // A plain entity admin no longer changes it.
+        await signInOwner();
+        await expectApiError(
+          () => set(userId: memberUserId, userAccess: write()),
+          'permission-denied',
+        );
+      } finally {
+        await signInOwner();
+        await docApiService.cvDeleteDoc(appAdminRef);
+      }
+    },
+    skip: skip,
+  );
 }
 
 /// [accessOf] read signed in as the owner ([signInOwner]).

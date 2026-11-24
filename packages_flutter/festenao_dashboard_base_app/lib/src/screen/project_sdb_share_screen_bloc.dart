@@ -325,12 +325,19 @@ class ProjectSdbShareScreenBloc
       ..read.v = read
       ..write.v = write
       ..admin.v = admin;
-    var inviteId = await fsDb.createInviteEntity(
-      userId: userId,
-      entityId: projectId,
-      userAccess: userAccess,
-      entity: fsProject,
-    );
+    // Through the api when there is one (the server checks the access
+    // given), written in firestore otherwise (an app without a backend).
+    var inviteId = emailInvitesSupported
+        ? await _apiClient.createEntityInvite(
+            entityId: projectId,
+            fsUserAccess: TkCmsFsUserAccess()..copyAccessFrom(userAccess),
+          )
+        : await fsDb.createInviteEntity(
+            userId: userId,
+            entityId: projectId,
+            userAccess: userAccess,
+            entity: fsProject,
+          );
 
     audiDispose(_inviteSubscription);
     _inviteSubscription = audiAddStreamSubscription(

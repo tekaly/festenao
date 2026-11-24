@@ -66,6 +66,10 @@ class FestenaoEntityHandlerOptions {
   final FestenaoEntityCreateLimit? createLimit;
 }
 
+/// The roles only a holder (or an app super admin) grants through the api:
+/// `super_admin`.
+const festenaoPrivilegedAccessRoles = [roleSuperAdmin];
+
 /// Entity handler for Festenao entities.
 class FestenaoEntityHandler<T extends TkCmsFsEntity>
     implements FestenaoApiHandler {
@@ -662,11 +666,13 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     return access.exists && access.isAdmin && access.hasSuperAdminRole;
   }
 
-  /// [userId] may grant every role of [userAccess] on [entityId] (the ones
-  /// [current] does not hold already): an app super admin any, anyone else
-  /// only the roles it holds on the entity (an admin of the app entity is
-  /// not made a super admin by a plain admin); `permission-denied`
-  /// otherwise.
+  /// [userId] may grant every privileged role
+  /// ([festenaoPrivilegedAccessRoles]) of [userAccess] on [entityId] (the
+  /// ones [current] does not hold already): an app super admin any, anyone
+  /// else only the ones it holds on the entity (an admin of the app entity
+  /// is not made a super admin by a plain admin); `permission-denied`
+  /// otherwise. The other roles (an app role: volunteer, slug) are given by
+  /// any admin of the entity.
   Future<void> _requireRolesGrantable(
     String entityId,
     String userId,
@@ -674,7 +680,11 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     TkCmsCvUserAccessCommon? current,
   }) async {
     var roles = userAccess.roles
-        .where((role) => role.isNotEmpty && !(current?.hasRole(role) ?? false))
+        .where(
+          (role) =>
+              festenaoPrivilegedAccessRoles.contains(role) &&
+              !(current?.hasRole(role) ?? false),
+        )
         .toList();
     if (roles.isEmpty || await _isAppSuperAdmin(userId)) {
       return;

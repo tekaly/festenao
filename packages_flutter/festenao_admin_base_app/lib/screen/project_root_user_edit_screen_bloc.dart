@@ -124,7 +124,29 @@ class AdminProjectUserEditScreenBloc
     }();
   }
 
+  /// The api client of the entity, null without an api service (an app
+  /// without a backend writes the access in firestore itself).
+  FestenaoApiFsEntityClient<TkCmsFsEntity>? get _apiClient {
+    var apiService = _apiService;
+    if (apiService == null) {
+      return null;
+    }
+    return FestenaoApiFsEntityClient<TkCmsFsEntity>(
+      apiService: apiService,
+      entityAccess: _fsDb,
+    );
+  }
+
   Future<void> delete(String userId) async {
+    // Through the api when there is one: the server checks who removes whom.
+    if (_apiClient case var client?) {
+      await client.setEntityUserAccess(
+        entityId: projectId,
+        userId: userId,
+        userAccess: TkCmsCvUserAccess(),
+      );
+      return;
+    }
     var fsDb = _fsDb;
     await fsDb.leaveEntity(projectId, userId: userId);
   }
@@ -136,6 +158,17 @@ class AdminProjectUserEditScreenBloc
     var userAccess = data.user;
     userAccess.fixAccess();
 
+    // Through the api when there is one: the server checks the rights given
+    // (a super admin by a super admin only), the name and the email are the
+    // account's.
+    if (_apiClient case var client?) {
+      await client.setEntityUserAccess(
+        entityId: projectId,
+        userId: userId,
+        userAccess: userAccess,
+      );
+      return;
+    }
     await fsDb.setEntityUserAccess(
       entityId: projectId,
       userId: userId,

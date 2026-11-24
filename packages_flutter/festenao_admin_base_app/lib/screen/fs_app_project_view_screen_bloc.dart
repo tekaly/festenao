@@ -1,6 +1,9 @@
 import 'package:festenao_admin_base_app/firebase/firestore_database.dart';
 import 'package:festenao_admin_base_app/screen/fs_app_view_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/fs_apps_screen_bloc.dart';
+import 'package:festenao_common/api/festenao_api_client.dart'
+    show globalFestenaoApiServiceOrNull;
+import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 import 'package:festenao_common/data/src/import.dart';
 import 'package:festenao_common/festenao_firestore.dart';
 import 'package:tekartik_common_utils/stream/stream_join.dart';
@@ -108,9 +111,30 @@ class FsAppProjectViewScreenBloc
     await ffdb.projectDb.fsEntityRef(projectId).delete(firestore);
   }
 
+  /// The api client of the projects when the app has an api, null otherwise
+  /// (a service account writes the access directly).
+  FestenaoApiFsEntityClient<TkCmsFsEntity>? get _projectApiClient {
+    var apiService = globalFestenaoApiServiceOrNull;
+    if (apiService == null) {
+      return null;
+    }
+    return FestenaoApiFsEntityClient<TkCmsFsEntity>(
+      apiService: apiService,
+      entityAccess: ffdb.projectDb,
+    );
+  }
+
   Future<void> joinProject(String projectId) async {
     var ffdb = this.ffdb;
     var userId = this.userId!;
+    if (_projectApiClient case var client?) {
+      await client.joinEntity(
+        entityId: projectId,
+        fsUserAccess: TkCmsFsUserAccess.superAdmin(),
+      );
+      refresh();
+      return;
+    }
     await ffdb.projectDb.joinEntity(
       userId: userId,
       entityId: projectId,
@@ -120,6 +144,11 @@ class FsAppProjectViewScreenBloc
   }
 
   Future<void> leaveProject(String projectId) async {
+    if (_projectApiClient case var client?) {
+      await client.leaveEntity(entityId: projectId);
+      refresh();
+      return;
+    }
     var userId = this.userId!;
     var ffdb = this.ffdb;
     await ffdb.projectDb.leaveEntity(projectId, userId: userId);

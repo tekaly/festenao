@@ -1,5 +1,8 @@
 import 'package:festenao_admin_base_app/screen/fs_app_view_screen_bloc.dart';
 import 'package:festenao_admin_base_app/screen/project_root_user_edit_screen_bloc.dart';
+import 'package:festenao_common/api/festenao_api_client.dart'
+    show globalFestenaoApiServiceOrNull;
+import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 
 import 'package:tkcms_common/tkcms_firestore.dart';
 
@@ -71,6 +74,19 @@ class FsAppUserEditScreenBloc
     var userAccess = data.user;
     userAccess.fixAccess();
 
+    // Through the api of the app when it has one (the server checks the
+    // rights given); written directly otherwise (a service account).
+    if (globalFestenaoApiServiceOrNull case var apiService?) {
+      await FestenaoApiFsEntityClient<TkCmsFsEntity>(
+        apiService: apiService,
+        entityAccess: fsDb,
+      ).setEntityUserAccess(
+        entityId: entityId,
+        userId: userId,
+        userAccess: userAccess,
+      );
+      return;
+    }
     await fsDb.setEntityUserAccess(
       entityId: entityId,
       userId: userId,
