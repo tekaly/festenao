@@ -465,6 +465,30 @@ abstract class AppLocalizations {
   /// **'Invite saved for {email}: the person sees it in the app once signed in with that address'**
   String projectEmailInviteSaved(String email);
 
+  /// Button giving the access to the email right away, when it has an account (no invite)
+  ///
+  /// In en, this message translates to:
+  /// **'Add now'**
+  String get projectEmailAddNow;
+
+  /// How adding an email right away differs from inviting it
+  ///
+  /// In en, this message translates to:
+  /// **'Add now gives the access right away when the address already has an account; otherwise send the invite.'**
+  String get projectEmailAddInformation;
+
+  /// Message once an email with an account was given the access right away
+  ///
+  /// In en, this message translates to:
+  /// **'{email} has access to the project now'**
+  String projectEmailAdded(String email);
+
+  /// Asked when adding an email right away: it has no account, invite it instead
+  ///
+  /// In en, this message translates to:
+  /// **'No account for {email} yet. Send an invite instead? The person sees it once signed in with that address.'**
+  String projectEmailNoAccount(String email);
+
   /// Email invite invalid address message
   ///
   /// In en, this message translates to:

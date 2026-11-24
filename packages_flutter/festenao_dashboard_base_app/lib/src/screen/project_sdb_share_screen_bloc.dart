@@ -260,6 +260,26 @@ class ProjectSdbShareScreenBloc
     add(state.value.withEmailInvites(invites));
   }
 
+  /// Give [email] the access right away when it has an account (no invite):
+  /// `not-found` (`HttpsErrorCode.notFound`) otherwise, then
+  /// [createEmailInvite].
+  Future<FsCmsEntitySetUserAccessApiResult<TkCmsFsEntity>> addUserByEmail({
+    required String email,
+    required bool admin,
+    required bool write,
+    required bool read,
+  }) async {
+    return await _apiClient.setEntityUserAccess(
+      entityId: projectId,
+      email: email,
+      userAccess: TkCmsCvUserAccess()
+        ..read.v = read
+        ..write.v = write
+        ..admin.v = admin
+        ..fixAccess(),
+    );
+  }
+
   /// Send an addressed email invite with the given access and refresh the
   /// list; the result says whether the invite mail went (`mailSent`, false
   /// when the app sends none: the invitee then finds the invite in the app).

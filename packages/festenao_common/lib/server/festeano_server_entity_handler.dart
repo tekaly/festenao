@@ -151,6 +151,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       return await onDiscardEmailInviteCommand(apiRequest);
     } else if (command == festenaoEntityGetUserInfoCommand(_entityType)) {
       return await onGetUserInfoCommand(apiRequest);
+    } else if (command == festenaoEntitySetUserAccessCommand(_entityType)) {
+      return await onSetUserAccessCommand(apiRequest);
     } else if (options.createLimit != null &&
         command == festenaoEntityGetCreateLimitCommand(_entityType)) {
       return await onGetCreateLimitCommand(apiRequest);
@@ -645,6 +647,46 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     return access.exists && access.isAdmin;
   }
 
+  /// True when [userId] is a super admin of the app entity of this server
+  /// (the admin flag and the `super_admin` role).
+  Future<bool> _isAppSuperAdmin(String userId) async {
+    var appId = _appId;
+    if (appId == null) {
+      return false;
+    }
+    var access = await _appEntityAccess
+        .fsEntityUserAccessRef(appId, userId)
+        .get(firestore);
+    return access.exists && access.isAdmin && access.hasSuperAdminRole;
+  }
+
+  /// [userId] may grant every role of [userAccess] on [entityId]: an app
+  /// super admin any, anyone else only the roles it holds on the entity (an
+  /// admin of the app entity is not made a super admin by a plain admin);
+  /// `permission-denied` otherwise.
+  Future<void> _requireRolesGrantable(
+    String entityId,
+    String userId,
+    TkCmsCvUserAccessCommon userAccess,
+  ) async {
+    var roles = userAccess.roles.where((role) => role.isNotEmpty).toList();
+    if (roles.isEmpty || await _isAppSuperAdmin(userId)) {
+      return;
+    }
+    var callerAccess = await entityAccess
+        .fsEntityUserAccessRef(entityId, userId)
+        .get(firestore);
+    for (var role in roles) {
+      if (!callerAccess.hasRole(role)) {
+        throw (ApiError()
+              ..code.v = HttpsErrorCode.permissionDenied
+              ..message.v = 'Not allowed to grant the role $role'
+              ..noRetry.v = true)
+            .exception();
+      }
+    }
+  }
+
   /// Only an admin of the entity or an app admin manages it (delete, purge,
   /// invites, email invites); `permission-denied` otherwise. Returns true for
   /// an app admin that is not an admin of the entity (the access escalation
@@ -778,6 +820,7 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     }
     var isAppAdmin = await _requireEntityOrAppAdmin(entityId, userId);
     var userAccess = TkCmsCvUserAccess()..copyAccessFrom(query);
+    await _requireRolesGrantable(entityId, userId, userAccess);
     var inviteId = await entityAccess.createEmailInviteEntity(
       userId: userId,
       entityId: entityId,
@@ -873,6 +916,93 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
       ..emailVerified.v = user.emailVerified
       ..disabled.v = user.disabled
       ..hasAccess.v = hasAccess;
+  }
+
+  /// Handles the set user access command (entity admin or app admin): gives
+  /// a user an access to the entity right away, or removes it (no read
+  /// access), without an invite.
+  ///
+  /// The user is found by id or, when none is given, by email: an email
+  /// without an account is `not-found` (the app then sends an email invite).
+  /// The caller cannot change its own access (`leave-entity` exists), grants
+  /// only the roles it may ([_requireRolesGrantable]) and changes a super
+  /// admin only when it holds that role too (or is an app super admin). The
+  /// name and the email of the account are written in the access (both
+  /// sides), for the admins listing it.
+  Future<FsCmsEntitySetUserAccessApiResult<T>> onSetUserAccessCommand(
+    ApiRequest apiRequest,
+  ) async {
+    var query = apiRequest.query<FsCmsEntitySetUserAccessApiQuery<T>>()
+      ..fromMap(apiRequest.data.v!);
+    var callerUserId = _requireUserId(apiRequest);
+    var entityId = _requireId(query.entityId);
+    await _requireEntityOrAppAdmin(entityId, callerUserId);
+    UserRecord user;
+    if (_optionalId(query.userId) case var userId?) {
+      user = await _requireUser(userId);
+    } else {
+      var email = tkCmsNormalizeInviteEmail(query.email.v);
+      if (email == null) {
+        throw (ApiError()
+              ..code.v = HttpsErrorCode.invalidArgument
+              ..message.v = 'Missing userId or email'
+              ..noRetry.v = true)
+            .exception();
+      }
+      var auth = app.firebaseContext.authOrNull;
+      var found = await auth?.getUserByEmail(email);
+      if (found == null) {
+        throw (ApiError()
+              ..code.v = HttpsErrorCode.notFound
+              ..message.v = 'No account for $email'
+              ..noRetry.v = true)
+            .exception();
+      }
+      user = found;
+    }
+    var userId = user.uid;
+    if (userId == callerUserId) {
+      throw (ApiError()
+            ..code.v = HttpsErrorCode.permissionDenied
+            ..message.v = 'Not allowed to change your own access'
+            ..noRetry.v = true)
+          .exception();
+    }
+    var userAccess = TkCmsCvUserAccess()..copyAccessFrom(query);
+    await _requireRolesGrantable(entityId, callerUserId, userAccess);
+    var current = await entityAccess
+        .fsEntityUserAccessRef(entityId, userId)
+        .cast<TkCmsEditedFsUserAccess>()
+        .get(firestore);
+    if (current.hasSuperAdminRole) {
+      await _requireRolesGrantable(
+        entityId,
+        callerUserId,
+        TkCmsCvUserAccess()..role.v = roleSuperAdmin,
+      );
+    }
+    var result = FsCmsEntitySetUserAccessApiResult<T>()
+      ..userId.v = userId
+      ..name.setValue(user.displayName)
+      ..email.setValue(user.email);
+    if (!userAccess.isRead) {
+      await entityAccess.setEntityUserAccess(
+        entityId: entityId,
+        userId: userId,
+        userAccess: null,
+      );
+      return result;
+    }
+    current
+      ..copyAccessFrom(userAccess)
+      ..name.setValue(user.displayName)
+      ..email.setValue(user.email);
+    await entityAccess.setEntityUserAccess(
+      entityId: entityId,
+      userId: userId,
+      userAccess: current,
+    );
+    return result..copyAccessFrom(current);
   }
 
   /// Handles the list email invites command (entity admin or app admin):

@@ -126,7 +126,10 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
                 ..email.setValue(email)
                 ..write.v = fsUserAccess.write.v
                 ..admin.v = fsUserAccess.admin.v
-                ..read.v = fsUserAccess.read.v,
+                ..read.v = fsUserAccess.read.v
+                // A role only when given (the server checks the inviter may
+                // grant it).
+                ..role.setValue(fsUserAccess.role.v),
             ),
         );
   }
@@ -175,6 +178,31 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
           ..entityId.setValue(entityId)
           ..userId.setValue(userId),
       ),
+    );
+  }
+
+  /// Gives the user [userId] or, when not set, the user whose account has
+  /// [email] the access [userAccess] to [entityId] right away (entity admin
+  /// or app admin), without an invite; no read access removes it.
+  ///
+  /// An email without an account fails with `not-found`
+  /// (`HttpsErrorCode.notFound`): invite it then
+  /// ([sendEntityEmailInvite]).
+  Future<FsCmsEntitySetUserAccessApiResult<T>> setEntityUserAccess({
+    required String entityId,
+    String? userId,
+    String? email,
+    required TkCmsCvUserAccessCommon userAccess,
+  }) async {
+    return await apiService.getApiResult<FsCmsEntitySetUserAccessApiResult<T>>(
+      ApiRequest(command: entityAccess.info.setUserAccessCommand)..setQuery(
+        FsCmsEntitySetUserAccessApiQuery<T>()
+          ..entityId.setValue(entityId)
+          ..userId.setValue(userId)
+          ..email.setValue(email)
+          ..copyAccessFrom(userAccess),
+      ),
+      noRetry: true,
     );
   }
 
@@ -309,3 +337,9 @@ class FestenaoApiFsEntityClient<T extends TkCmsFsEntity> {
     );
   }
 }
+
+/// True when [error] is a `not-found` api error (`HttpsErrorCode.notFound`):
+/// for [FestenaoApiFsEntityClient.setEntityUserAccess] by email, the address
+/// has no account yet (invite it instead).
+bool festenaoApiIsNotFoundError(Object error) =>
+    error is ApiException && error.error?.code.v == 'not-found';

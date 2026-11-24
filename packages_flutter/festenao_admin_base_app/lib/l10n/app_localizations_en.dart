@@ -209,6 +209,23 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get projectEmailAddNow => 'Add now';
+
+  @override
+  String get projectEmailAddInformation =>
+      'Add now gives the access right away when the address already has an account; otherwise send the invite.';
+
+  @override
+  String projectEmailAdded(String email) {
+    return '$email has access to the project now';
+  }
+
+  @override
+  String projectEmailNoAccount(String email) {
+    return 'No account for $email yet. Send an invite instead? The person sees it once signed in with that address.';
+  }
+
+  @override
   String get projectEmailInviteInvalidEmail => 'Enter a valid email address';
 
   @override

@@ -117,6 +117,15 @@ const festenaoGetUserInfoCommand = 'get-user-info';
 String festenaoEntityGetUserInfoCommand(String entityType) =>
     '${festenaoEntityCommandPrefix(entityType)}$festenaoGetUserInfoCommand';
 
+/// Command name for giving a user an access to an entity (or removing it),
+/// the user found by id or by email: added right away when the email has an
+/// account, `not-found` otherwise (then an email invite).
+const festenaoSetUserAccessCommand = 'set-user-access';
+
+/// Command name for giving a user an access to an entity.
+String festenaoEntitySetUserAccessCommand(String entityType) =>
+    '${festenaoEntityCommandPrefix(entityType)}$festenaoSetUserAccessCommand';
+
 /// Command name for reading how many entities of a type a user may create
 /// and created, served by an entity handler with a create limit.
 const festenaoGetCreateLimitCommand = 'get-create-limit';
@@ -149,6 +158,8 @@ void initFestenaoFsEntityApiBuilders<T extends TkCmsFsEntity>() {
     FsCmsEntityCheckEmailInvitesApiResult<T>.new,
     FsCmsEntityGetUserInfoApiQuery<T>.new,
     FsCmsEntityGetUserInfoApiResult<T>.new,
+    FsCmsEntitySetUserAccessApiQuery<T>.new,
+    FsCmsEntitySetUserAccessApiResult<T>.new,
     FsCmsEntityGetCreateLimitApiQuery<T>.new,
     FsCmsEntityGetCreateLimitApiResult<T>.new,
   ]);
@@ -215,6 +226,10 @@ extension FestenaoFirestoreDatabaseEntityCollectionInfoApiExt<
 
   /// Command for reading the account information of a user.
   String get getUserInfoCommand => festenaoEntityGetUserInfoCommand(entityType);
+
+  /// Command for giving a user an access, by id or email.
+  String get setUserAccessCommand =>
+      festenaoEntitySetUserAccessCommand(entityType);
 
   /// Command for reading the create limit of a user.
   String get getCreateLimitCommand =>
@@ -567,6 +582,43 @@ class FsCmsEntityGetUserInfoApiResult<T extends TkCmsFsEntity>
     disabled,
     hasAccess,
   ];
+}
+
+/// API query for giving a user an access to an entity
+/// ([festenaoEntitySetUserAccessCommand]): the user by [userId] or, when not
+/// set, by [email] (an account must exist, `not-found` otherwise); the access
+/// given replaces the current one, no read access removes it.
+class FsCmsEntitySetUserAccessApiQuery<T extends TkCmsFsEntity> extends ApiQuery
+    with TkCmsCvUserAccessMixin {
+  /// The entity ID.
+  final entityId = CvField<String>('entityId');
+
+  /// The user.
+  final userId = CvField<String>('userId');
+
+  /// Its email, when [userId] is not set.
+  final email = CvField<String>('email');
+
+  @override
+  late final CvFields fields = [entityId, userId, email, ...userAccessFields];
+}
+
+/// API result for giving a user an access: the user found and its access
+/// now (none when removed).
+class FsCmsEntitySetUserAccessApiResult<T extends TkCmsFsEntity>
+    extends ApiResult
+    with TkCmsCvUserAccessMixin {
+  /// The user.
+  final userId = CvField<String>('userId');
+
+  /// Its display name, null when none is set.
+  final name = CvField<String>('name');
+
+  /// Its email, null when none is set.
+  final email = CvField<String>('email');
+
+  @override
+  late final CvFields fields = [userId, name, email, ...userAccessFields];
 }
 
 /// API query for reading how many entities a user may create and created

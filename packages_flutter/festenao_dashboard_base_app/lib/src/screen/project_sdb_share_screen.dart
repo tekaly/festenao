@@ -1,6 +1,8 @@
 import 'package:barcode_widget/barcode_widget.dart';
 import 'package:festenao_admin_base_app/l10n/app_intl.dart';
 import 'package:festenao_admin_base_app/view/access_view.dart';
+import 'package:festenao_common/api/festenao_api_fs_entity_client.dart'
+    show festenaoApiIsNotFoundError;
 import 'package:festenao_common/data/festenao_projects_sdb.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_invite_view_screen.dart';
 import 'package:festenao_dashboard_base_app/src/screen/project_sdb_share_screen_bloc.dart';
@@ -182,6 +184,56 @@ class _ProjectSdbShareScreenState
       if (mounted) {
         setState(() => _busy = false);
       }
+    }
+  }
+
+  /// Gives the email the chosen role right away when it has an account;
+  /// otherwise proposes to send the invite.
+  Future<void> _addByEmail(
+    BuildContext context,
+    ProjectSdbShareScreenBloc bloc,
+  ) async {
+    var intl = festenaoAdminAppIntl(context);
+    var email = tkCmsNormalizeInviteEmail(_emailController.text);
+    if (email == null || !email.contains('@')) {
+      await muiSnack(context, intl.projectEmailInviteInvalidEmail);
+      return;
+    }
+    setState(() => _busy = true);
+    var flags = _role.flags;
+    var noAccount = false;
+    try {
+      await bloc.addUserByEmail(
+        email: email,
+        admin: flags.admin,
+        write: flags.write,
+        read: flags.read,
+      );
+      _emailController.clear();
+      if (context.mounted) {
+        await muiSnack(context, intl.projectEmailAdded(email));
+      }
+    } catch (e) {
+      if (festenaoApiIsNotFoundError(e)) {
+        noAccount = true;
+      } else if (context.mounted) {
+        await muiSnack(context, 'Error: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _busy = false);
+      }
+    }
+    if (noAccount &&
+        context.mounted &&
+        await _confirm(
+          context,
+          title: intl.projectEmailInviteTitle,
+          content: intl.projectEmailNoAccount(email),
+          action: intl.projectEmailInviteSend,
+        ) &&
+        context.mounted) {
+      await _sendEmailInvite(context, bloc);
     }
   }
 
@@ -440,6 +492,11 @@ class _ProjectSdbShareScreenState
               intl.projectEmailInviteInformation,
               style: text.bodyMedium?.copyWith(color: t.ink2),
             ),
+            const SizedBox(height: 4),
+            Text(
+              intl.projectEmailAddInformation,
+              style: text.bodySmall?.copyWith(color: t.ink2),
+            ),
             const SizedBox(height: 12),
             TextField(
               controller: _emailController,
@@ -455,10 +512,23 @@ class _ProjectSdbShareScreenState
                   : null,
             ),
             const SizedBox(height: 12),
-            FilledButton.icon(
-              onPressed: canSend ? () => _sendEmailInvite(context, bloc) : null,
-              icon: const Icon(Icons.send_outlined),
-              label: Text(intl.projectEmailInviteSend),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                FilledButton.icon(
+                  onPressed: canSend ? () => _addByEmail(context, bloc) : null,
+                  icon: const Icon(Icons.person_add_alt),
+                  label: Text(intl.projectEmailAddNow),
+                ),
+                OutlinedButton.icon(
+                  onPressed: canSend
+                      ? () => _sendEmailInvite(context, bloc)
+                      : null,
+                  icon: const Icon(Icons.send_outlined),
+                  label: Text(intl.projectEmailInviteSend),
+                ),
+              ],
             ),
           ],
         ),

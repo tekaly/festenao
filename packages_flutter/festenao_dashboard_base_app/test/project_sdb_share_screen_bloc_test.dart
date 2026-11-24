@@ -1,6 +1,8 @@
 import 'package:festenao_common/festenao_api.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
+import 'package:festenao_common/test/festenao_user_info_test_runner.dart'
+    show festenaoLocalAuthCreateUser;
 import 'package:festenao_dashboard_base_app/screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tkcms_common/tkcms_auth.dart';
@@ -94,6 +96,52 @@ void main() {
 
     await bloc.deleteEmailInvite(inviteId);
     expect(bloc.state.value.emailInvites, isEmpty);
+    bloc.dispose();
+
+    await context.projectApiClient.deleteEntity(entityId: entityId);
+    await context.projectApiClient.purgeEntity(entityId: entityId);
+  });
+  test('add by email: right away with an account, else not found', () async {
+    var entityId = (await context.projectApiClient.createEntity(
+      entity: FsProject()..name.v = 'Add test',
+    )).id;
+    var userId = await festenaoLocalAuthCreateUser(
+      context,
+      email: 'added@test.local',
+      displayName: 'Added User',
+    );
+    var bloc = ProjectSdbShareScreenBloc(
+      projectId: entityId,
+      entityAccess: context.fsDatabase.projectDb,
+      apiService: context.apiService,
+    );
+    await bloc.state.firstWhere((s) => s.project != null);
+
+    // An account: given right away, no invite.
+    var result = await bloc.addUserByEmail(
+      email: ' Added@Test.Local ',
+      admin: false,
+      write: true,
+      read: true,
+    );
+    expect(result.userId.v, userId);
+    expect(result.name.v, 'Added User');
+    expect(result.isWrite, isTrue);
+    expect(result.isAdmin, isFalse);
+    expect(bloc.state.value.emailInvites ?? [], isEmpty);
+
+    // No account: not found, the screen proposes the invite.
+    try {
+      await bloc.addUserByEmail(
+        email: 'nobody@test.local',
+        admin: false,
+        write: false,
+        read: true,
+      );
+      fail('should fail');
+    } catch (e) {
+      expect(festenaoApiIsNotFoundError(e), isTrue, reason: '$e');
+    }
     bloc.dispose();
 
     await context.projectApiClient.deleteEntity(entityId: entityId);

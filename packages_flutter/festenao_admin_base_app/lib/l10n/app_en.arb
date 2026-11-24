@@ -273,6 +273,34 @@
       }
     }
   },
+  "projectEmailAddNow": "Add now",
+  "@projectEmailAddNow": {
+    "description": "Button giving the access to the email right away, when it has an account (no invite)"
+  },
+  "projectEmailAddInformation": "Add now gives the access right away when the address already has an account; otherwise send the invite.",
+  "@projectEmailAddInformation": {
+    "description": "How adding an email right away differs from inviting it"
+  },
+  "projectEmailAdded": "{email} has access to the project now",
+  "@projectEmailAdded": {
+    "description": "Message once an email with an account was given the access right away",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "someone@example.com"
+      }
+    }
+  },
+  "projectEmailNoAccount": "No account for {email} yet. Send an invite instead? The person sees it once signed in with that address.",
+  "@projectEmailNoAccount": {
+    "description": "Asked when adding an email right away: it has no account, invite it instead",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "someone@example.com"
+      }
+    }
+  },
   "projectEmailInviteInvalidEmail": "Enter a valid email address",
   "@projectEmailInviteInvalidEmail": {
     "description": "Email invite invalid address message"
