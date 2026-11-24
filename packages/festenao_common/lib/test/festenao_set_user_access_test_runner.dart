@@ -304,6 +304,22 @@ void testFestenaoSetUserAccessGroup(
         isTrue,
       );
 
+      // A role held already is kept by a plain entity admin: the member
+      // gets a role, then is made an editor keeping it.
+      await signIn(strangerEmail);
+      await set(email: readerEmail, userAccess: withRole('slug'));
+      await signInOwner();
+      var reader = await set(
+        email: readerEmail,
+        userAccess: TkCmsCvUserAccess()
+          ..write.v = true
+          ..role.v = 'slug'
+          ..fixAccess(),
+      );
+      expect(reader.isWrite, isTrue);
+      expect(reader.isAdmin, isFalse);
+      expect(reader.roles, ['slug']);
+
       // A plain entity admin no longer changes it.
       await signInOwner();
       await expectApiError(

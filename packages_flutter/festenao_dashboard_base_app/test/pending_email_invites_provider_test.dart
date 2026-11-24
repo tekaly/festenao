@@ -1,4 +1,6 @@
+import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
 import 'package:festenao_common/firebase/firestore_database.dart';
+import 'package:festenao_common/server/festeano_server_entity_handler.dart';
 import 'package:festenao_common/test/festenao_email_invite_test_runner.dart';
 import 'package:festenao_common/test/festenao_test_server_test_runner.dart';
 import 'package:festenao_dashboard_base_app/provider.dart';
@@ -37,7 +39,10 @@ void main() {
     await context.close();
   });
 
-  ProviderContainer newContainer({bool withApi = true}) {
+  ProviderContainer newContainer({
+    bool withApi = true,
+    FestenaoAppEntity? appEntity,
+  }) {
     var container = ProviderContainer(
       overrides: [
         emailInviteApiServiceProvider.overrideWithValue(
@@ -46,6 +51,7 @@ void main() {
         currentEntityAccessProvider.overrideWithValue(
           context.fsDatabase.projectDb,
         ),
+        festenaoAppEntityProvider.overrideWithValue(appEntity),
       ],
     );
     addTearDown(container.dispose);
@@ -170,5 +176,100 @@ void main() {
       await client.deleteEntity(entityId: entityId);
       await client.purgeEntity(entityId: entityId);
     }
+  });
+  test('the invites of the app itself, this app only', () async {
+    var invitedEmail = 'app-invitee@festenao-test.local';
+    var fsDatabase = context.fsDatabase;
+    var firestore = context.clientContext.firestore!;
+    var appDb = fsDatabase.appDb;
+    // The server serves the app entity commands (a festenaoprv server does).
+    var server = context.serverApp!;
+    var appHandler = FestenaoEntityHandler<TkCmsFsApp>(
+      app: server,
+      entityAccess: appDb,
+    );
+    server.moduleApiHandlers.add(appHandler);
+    addTearDown(() => server.moduleApiHandlers.remove(appHandler));
+
+    // Two apps of the project, the owner admin of both (no rules in memory).
+    await signInOwner();
+    var ownerId = auth.currentUser!.uid;
+    const otherApp = 'other-app';
+    for (var app in [fsDatabase.app, otherApp]) {
+      await appDb.fsEntityRef(app).set(firestore, TkCmsFsApp()..name.v = app);
+      await appDb
+          .fsEntityUserAccessRef(app, ownerId)
+          .set(firestore, TkCmsFsUserAccess()..grantAdminAccess());
+    }
+    var appClient = FestenaoApiFsEntityClient<TkCmsFsApp>(
+      apiService: context.apiService,
+      entityAccess: appDb,
+    );
+    var inviteId = await appClient.createEntityEmailInvite(
+      entityId: fsDatabase.app,
+      email: invitedEmail,
+      fsUserAccess: TkCmsFsUserAccess()..grantAdminAccess(),
+    );
+    await appClient.createEntityEmailInvite(
+      entityId: otherApp,
+      email: invitedEmail,
+      fsUserAccess: TkCmsFsUserAccess()..grantAdminAccess(),
+    );
+
+    var container = newContainer(
+      appEntity: FestenaoAppEntity(
+        entityAccess: appDb,
+        entityId: fsDatabase.app,
+      ),
+    );
+    var invitedUserId = await festenaoLocalAuthSignInVerified(
+      context,
+      invitedEmail,
+    );
+    var state = await waitState(
+      container,
+      (state) => state.identity?.userId == invitedUserId,
+    );
+    // This app's invite only.
+    expect(state.invites.map((e) => e.inviteId.v), [inviteId]);
+    expect(state.invites.single.isAdmin, isTrue);
+
+    // Accepted through the app entity: an app admin now.
+    await container
+        .read(rpdPendingEmailInvitesProvider.notifier)
+        .accept(state.invites.single);
+    state = await container.read(rpdPendingEmailInvitesProvider.future);
+    expect(state.invites, isEmpty);
+    var access = await appDb
+        .fsEntityUserAccessRef(fsDatabase.app, invitedUserId)
+        .get(firestore);
+    expect(access.isAdmin, isTrue);
+    // Followed live by the app access of the user.
+    addTearDown(container.listen(rpdAppUserAccessProvider, (_, _) {}).close);
+    TkCmsFsUserAccess? appAccess;
+    for (var i = 0; i < 100 && !(appAccess?.isAdmin ?? false); i++) {
+      appAccess = await container.read(rpdAppUserAccessProvider.future);
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+    expect(appAccess!.isAdmin, isTrue);
+
+    // Without the app entity, its invites are not checked.
+    await signInOwner();
+    inviteId = await appClient.createEntityEmailInvite(
+      entityId: fsDatabase.app,
+      email: 'other-invitee@festenao-test.local',
+      fsUserAccess: TkCmsFsUserAccess()..grantAdminAccess(),
+    );
+    var plain = newContainer();
+    var otherUserId = await festenaoLocalAuthSignInVerified(
+      context,
+      'other-invitee@festenao-test.local',
+    );
+    state = await waitState(
+      plain,
+      (state) => state.identity?.userId == otherUserId,
+    );
+    expect(state.invites, isEmpty);
+    await signInOwner();
   });
 }

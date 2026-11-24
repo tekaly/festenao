@@ -227,6 +227,51 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get appAdminsTitle => 'Administrateurs de l\'application';
+
+  @override
+  String get appAdminsInformation =>
+      'Un administrateur de l\'application gère tous les festivals et leurs personnes ; un super administrateur nomme aussi des super administrateurs. Une adresse est ajoutée tout de suite si elle a un compte, invitée sinon.';
+
+  @override
+  String get appAdminsAdd => 'Ajouter un administrateur';
+
+  @override
+  String get appAdminsAdmin => 'Administrateur';
+
+  @override
+  String get appAdminsSuperAdmin => 'Super administrateur';
+
+  @override
+  String get appAdminsRemove => 'Retirer';
+
+  @override
+  String appAdminsRemoveConfirm(String name) {
+    return 'Retirer $name des administrateurs ?';
+  }
+
+  @override
+  String get appAdminsYou => 'vous';
+
+  @override
+  String appAdminsAdded(String email) {
+    return '$email est maintenant administrateur';
+  }
+
+  @override
+  String get appAdminsPending => 'Invitations en attente';
+
+  @override
+  String get appAdminsNone => 'Aucune';
+
+  @override
+  String get appAdminsEntry => 'Administrateurs de l\'application';
+
+  @override
+  String get appAdminsEntrySubtitle =>
+      'Qui gère l\'application, par e-mail ou invitation';
+
+  @override
   String get projectEmailInviteInvalidEmail =>
       'Saisissez une adresse e-mail valide';
 

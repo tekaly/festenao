@@ -10,6 +10,7 @@ library;
 
 import 'package:festenao_common/api/festenao_api_client.dart';
 import 'package:festenao_common/api/festenao_api_fs_entity_client.dart';
+import 'package:festenao_dashboard_base_app/src/provider/app_access_providers.dart';
 import 'package:festenao_dashboard_base_app/src/provider/project_access_providers.dart';
 import 'package:festenao_riverpod/festenao_riverpod.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -79,6 +80,11 @@ class PendingEmailInvitesState {
 /// The pending email invites of the signed in user, checked again on every
 /// identity change (the app start, each sign in and out) and on [refresh].
 class RpdPendingEmailInvites extends AsyncNotifier<PendingEmailInvitesState> {
+  /// The ids of the invites of the app entity
+  /// ([festenaoAppEntityProvider]) in the last state: accepted
+  /// and declined through its entity type.
+  var _appInviteIds = <String>{};
+
   /// The api client of the current entity type, null without an api service.
   FestenaoApiFsEntityClient<TkCmsFsEntity>? _clientOrNull(
     TkCmsApiServiceBaseV2? apiService,
@@ -92,8 +98,29 @@ class RpdPendingEmailInvites extends AsyncNotifier<PendingEmailInvitesState> {
     );
   }
 
-  FestenaoApiFsEntityClient<TkCmsFsEntity> get _client {
-    var client = _clientOrNull(ref.read(emailInviteApiServiceProvider));
+  /// The api client of the app entity, null without one or without an api
+  /// service.
+  FestenaoApiFsEntityClient<TkCmsFsEntity>? _appClientOrNull(
+    TkCmsApiServiceBaseV2? apiService,
+    FestenaoAppEntity? appEntity,
+  ) {
+    if (apiService == null || appEntity == null) {
+      return null;
+    }
+    return FestenaoApiFsEntityClient<TkCmsFsEntity>(
+      apiService: apiService,
+      entityAccess: appEntity.entityAccess,
+    );
+  }
+
+  /// The client of [invite]: the app entity one for an app invite.
+  FestenaoApiFsEntityClient<TkCmsFsEntity> _clientOf(
+    TkCmsCvEmailInvite invite,
+  ) {
+    var apiService = ref.read(emailInviteApiServiceProvider);
+    var client = _appInviteIds.contains(invite.inviteId.v)
+        ? _appClientOrNull(apiService, ref.read(festenaoAppEntityProvider))
+        : _clientOrNull(apiService);
     if (client == null) {
       throw StateError('No api service for the email invites');
     }
@@ -113,11 +140,34 @@ class RpdPendingEmailInvites extends AsyncNotifier<PendingEmailInvitesState> {
       );
     }
     var result = await client.checkEmailInvites();
+    var invites = [...?result.invites.v];
+    // The invites to administrate the app, this app only.
+    var appEntity = ref.watch(festenaoAppEntityProvider);
+    var appClient = _appClientOrNull(apiService, appEntity);
+    var appInviteIds = <String>{};
+    if (appClient != null && (result.emailVerified.v ?? false)) {
+      // Best effort: a server without the app entity commands (a demo) does
+      // not hide the invites of the projects.
+      try {
+        var appResult = await appClient.checkEmailInvites();
+        for (var invite
+            in appResult.invites.v ?? const <TkCmsCvEmailInvite>[]) {
+          if (invite.entityId.v == appEntity!.entityId) {
+            appInviteIds.add(invite.inviteId.v!);
+            invites.insert(0, invite);
+          }
+        }
+      } catch (e) {
+        // ignore: avoid_print
+        print('app email invites not checked: $e');
+      }
+    }
+    _appInviteIds = appInviteIds;
     return PendingEmailInvitesState(
       identity: identity,
       email: result.email.v,
       emailVerified: result.emailVerified.v ?? false,
-      invites: result.invites.v ?? const [],
+      invites: invites,
     );
   }
 
@@ -129,7 +179,7 @@ class RpdPendingEmailInvites extends AsyncNotifier<PendingEmailInvitesState> {
 
   /// Accepts [invite]: the user gets its access on the entity.
   Future<void> accept(TkCmsCvEmailInvite invite) async {
-    await _client.acceptEntityEmailInvite(
+    await _clientOf(invite).acceptEntityEmailInvite(
       entityId: invite.entityId.v!,
       inviteId: invite.inviteId.v!,
     );
@@ -138,7 +188,7 @@ class RpdPendingEmailInvites extends AsyncNotifier<PendingEmailInvitesState> {
 
   /// Declines [invite]: no access, it cannot be accepted any more.
   Future<void> discard(TkCmsCvEmailInvite invite) async {
-    await _client.discardEntityEmailInvite(
+    await _clientOf(invite).discardEntityEmailInvite(
       entityId: invite.entityId.v!,
       inviteId: invite.inviteId.v!,
     );

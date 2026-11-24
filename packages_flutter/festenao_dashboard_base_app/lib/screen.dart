@@ -1,6 +1,8 @@
 /// Reusable dashboard screens.
 library;
 
+export 'src/screen/app_admins_screen.dart'
+    show DashboardAppAdminsScreen, goToDashboardAppAdminsScreen;
 export 'src/screen/blog_demo_screen.dart';
 export 'src/screen/content_demo_screen.dart';
 export 'src/screen/content_image_edit_screen.dart';

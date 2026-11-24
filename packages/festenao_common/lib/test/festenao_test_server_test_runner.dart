@@ -173,6 +173,10 @@ class FestenaoTestServerContext
   /// Firebase context.
   late final FirebaseContext ffContext;
 
+  /// The in memory server, null for a remote one: a test adds a handler
+  /// (an app entity one, see `moduleApiHandlers`).
+  FestenaoServerAppTest? serverApp;
+
   /// Test server context.
   FestenaoTestServerContext({
     required this.clientContext,
@@ -291,7 +295,8 @@ initFestenaoTestServerContextAllMemory() async {
     )
     ..projectApiClient = projectApiClient
     ..fsDatabase = fsDatabase
-    ..ffContext = ffContext;
+    ..ffContext = ffContext
+    ..serverApp = ffServerApp;
 }
 
 Future<void> main() async {

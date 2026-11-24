@@ -489,6 +489,84 @@ abstract class AppLocalizations {
   /// **'No account for {email} yet. Send an invite instead? The person sees it once signed in with that address.'**
   String projectEmailNoAccount(String email);
 
+  /// Title of the screen of the app admins
+  ///
+  /// In en, this message translates to:
+  /// **'App admins'**
+  String get appAdminsTitle;
+
+  /// How the app admins screen works
+  ///
+  /// In en, this message translates to:
+  /// **'An admin of the app manages every festival and its people; a super admin also makes super admins. An email is added right away when it has an account, invited otherwise.'**
+  String get appAdminsInformation;
+
+  /// Button opening the dialog adding an admin by email
+  ///
+  /// In en, this message translates to:
+  /// **'Add an admin'**
+  String get appAdminsAdd;
+
+  /// The admin access of the app
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get appAdminsAdmin;
+
+  /// The super admin access of the app
+  ///
+  /// In en, this message translates to:
+  /// **'Super admin'**
+  String get appAdminsSuperAdmin;
+
+  /// Removes the access of an admin
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get appAdminsRemove;
+
+  /// Asked before removing an admin
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name} from the admins?'**
+  String appAdminsRemoveConfirm(String name);
+
+  /// Marks the signed in user in the admins list
+  ///
+  /// In en, this message translates to:
+  /// **'you'**
+  String get appAdminsYou;
+
+  /// Message once an email with an account was made an admin
+  ///
+  /// In en, this message translates to:
+  /// **'{email} is an admin now'**
+  String appAdminsAdded(String email);
+
+  /// Title of the pending invites of the app admins screen
+  ///
+  /// In en, this message translates to:
+  /// **'Pending invites'**
+  String get appAdminsPending;
+
+  /// No pending invite
+  ///
+  /// In en, this message translates to:
+  /// **'None'**
+  String get appAdminsNone;
+
+  /// Entry opening the app admins screen
+  ///
+  /// In en, this message translates to:
+  /// **'App admins'**
+  String get appAdminsEntry;
+
+  /// Subtitle of the entry opening the app admins screen
+  ///
+  /// In en, this message translates to:
+  /// **'Who manages the app, by email or invite'**
+  String get appAdminsEntrySubtitle;
+
   /// Email invite invalid address message
   ///
   /// In en, this message translates to:

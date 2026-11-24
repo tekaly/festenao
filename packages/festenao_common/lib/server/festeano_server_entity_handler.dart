@@ -106,6 +106,8 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     this.options = const FestenaoEntityHandlerOptions(),
     this.appId,
   }) {
+    // The api models of this entity type (its queries are decoded here).
+    initFestenaoFsEntityApiBuilders<T>();
     // The plans and the creators read with a create limit, whether a user
     // plan handler is set or not.
     initFestenaoUserPlanApiBuilders();
@@ -660,16 +662,20 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
     return access.exists && access.isAdmin && access.hasSuperAdminRole;
   }
 
-  /// [userId] may grant every role of [userAccess] on [entityId]: an app
-  /// super admin any, anyone else only the roles it holds on the entity (an
-  /// admin of the app entity is not made a super admin by a plain admin);
-  /// `permission-denied` otherwise.
+  /// [userId] may grant every role of [userAccess] on [entityId] (the ones
+  /// [current] does not hold already): an app super admin any, anyone else
+  /// only the roles it holds on the entity (an admin of the app entity is
+  /// not made a super admin by a plain admin); `permission-denied`
+  /// otherwise.
   Future<void> _requireRolesGrantable(
     String entityId,
     String userId,
-    TkCmsCvUserAccessCommon userAccess,
-  ) async {
-    var roles = userAccess.roles.where((role) => role.isNotEmpty).toList();
+    TkCmsCvUserAccessCommon userAccess, {
+    TkCmsCvUserAccessCommon? current,
+  }) async {
+    var roles = userAccess.roles
+        .where((role) => role.isNotEmpty && !(current?.hasRole(role) ?? false))
+        .toList();
     if (roles.isEmpty || await _isAppSuperAdmin(userId)) {
       return;
     }
@@ -969,11 +975,17 @@ class FestenaoEntityHandler<T extends TkCmsFsEntity>
           .exception();
     }
     var userAccess = TkCmsCvUserAccess()..copyAccessFrom(query);
-    await _requireRolesGrantable(entityId, callerUserId, userAccess);
     var current = await entityAccess
         .fsEntityUserAccessRef(entityId, userId)
         .cast<TkCmsEditedFsUserAccess>()
         .get(firestore);
+    // The roles added only: one the user holds is kept by anyone.
+    await _requireRolesGrantable(
+      entityId,
+      callerUserId,
+      userAccess,
+      current: current,
+    );
     if (current.hasSuperAdminRole) {
       await _requireRolesGrantable(
         entityId,

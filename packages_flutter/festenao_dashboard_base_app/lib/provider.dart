@@ -3,6 +3,7 @@ library;
 
 export 'package:festenao_riverpod/festenao_riverpod.dart';
 
+export 'src/provider/app_access_providers.dart';
 export 'src/provider/auth.dart';
 export 'src/provider/auth_rpd.dart';
 export 'src/provider/auth_screen.dart';

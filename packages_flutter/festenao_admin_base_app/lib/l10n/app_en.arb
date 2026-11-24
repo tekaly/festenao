@@ -301,6 +301,70 @@
       }
     }
   },
+  "appAdminsTitle": "App admins",
+  "@appAdminsTitle": {
+    "description": "Title of the screen of the app admins"
+  },
+  "appAdminsInformation": "An admin of the app manages every festival and its people; a super admin also makes super admins. An email is added right away when it has an account, invited otherwise.",
+  "@appAdminsInformation": {
+    "description": "How the app admins screen works"
+  },
+  "appAdminsAdd": "Add an admin",
+  "@appAdminsAdd": {
+    "description": "Button opening the dialog adding an admin by email"
+  },
+  "appAdminsAdmin": "Admin",
+  "@appAdminsAdmin": {
+    "description": "The admin access of the app"
+  },
+  "appAdminsSuperAdmin": "Super admin",
+  "@appAdminsSuperAdmin": {
+    "description": "The super admin access of the app"
+  },
+  "appAdminsRemove": "Remove",
+  "@appAdminsRemove": {
+    "description": "Removes the access of an admin"
+  },
+  "appAdminsRemoveConfirm": "Remove {name} from the admins?",
+  "@appAdminsRemoveConfirm": {
+    "description": "Asked before removing an admin",
+    "placeholders": {
+      "name": {
+        "type": "String",
+        "example": "someone@example.com"
+      }
+    }
+  },
+  "appAdminsYou": "you",
+  "@appAdminsYou": {
+    "description": "Marks the signed in user in the admins list"
+  },
+  "appAdminsAdded": "{email} is an admin now",
+  "@appAdminsAdded": {
+    "description": "Message once an email with an account was made an admin",
+    "placeholders": {
+      "email": {
+        "type": "String",
+        "example": "someone@example.com"
+      }
+    }
+  },
+  "appAdminsPending": "Pending invites",
+  "@appAdminsPending": {
+    "description": "Title of the pending invites of the app admins screen"
+  },
+  "appAdminsNone": "None",
+  "@appAdminsNone": {
+    "description": "No pending invite"
+  },
+  "appAdminsEntry": "App admins",
+  "@appAdminsEntry": {
+    "description": "Entry opening the app admins screen"
+  },
+  "appAdminsEntrySubtitle": "Who manages the app, by email or invite",
+  "@appAdminsEntrySubtitle": {
+    "description": "Subtitle of the entry opening the app admins screen"
+  },
   "projectEmailInviteInvalidEmail": "Enter a valid email address",
   "@projectEmailInviteInvalidEmail": {
     "description": "Email invite invalid address message"

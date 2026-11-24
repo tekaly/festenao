@@ -226,6 +226,51 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get appAdminsTitle => 'App admins';
+
+  @override
+  String get appAdminsInformation =>
+      'An admin of the app manages every festival and its people; a super admin also makes super admins. An email is added right away when it has an account, invited otherwise.';
+
+  @override
+  String get appAdminsAdd => 'Add an admin';
+
+  @override
+  String get appAdminsAdmin => 'Admin';
+
+  @override
+  String get appAdminsSuperAdmin => 'Super admin';
+
+  @override
+  String get appAdminsRemove => 'Remove';
+
+  @override
+  String appAdminsRemoveConfirm(String name) {
+    return 'Remove $name from the admins?';
+  }
+
+  @override
+  String get appAdminsYou => 'you';
+
+  @override
+  String appAdminsAdded(String email) {
+    return '$email is an admin now';
+  }
+
+  @override
+  String get appAdminsPending => 'Pending invites';
+
+  @override
+  String get appAdminsNone => 'None';
+
+  @override
+  String get appAdminsEntry => 'App admins';
+
+  @override
+  String get appAdminsEntrySubtitle =>
+      'Who manages the app, by email or invite';
+
+  @override
   String get projectEmailInviteInvalidEmail => 'Enter a valid email address';
 
   @override
