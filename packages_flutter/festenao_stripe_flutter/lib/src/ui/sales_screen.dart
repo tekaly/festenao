@@ -3,6 +3,7 @@ import 'package:tekartik_stripe_api/stripe_api.dart';
 
 import '../format.dart';
 import '../service.dart';
+import 'products_screen.dart';
 import 'widgets.dart';
 
 class _SalesData {
@@ -165,6 +166,7 @@ class _StripeManagerSalesScreenState extends State<StripeManagerSalesScreen> {
                       _SessionTile(
                         session: session,
                         productNames: data.productNames,
+                        service: service,
                       ),
                     const SizedBox(height: 32),
                   ],
@@ -181,8 +183,13 @@ class _StripeManagerSalesScreenState extends State<StripeManagerSalesScreen> {
 class _SessionTile extends StatelessWidget {
   final StripeApiCheckoutSession session;
   final Map<String, String> productNames;
+  final StripeManagerService service;
 
-  const _SessionTile({required this.session, required this.productNames});
+  const _SessionTile({
+    required this.session,
+    required this.productNames,
+    required this.service,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -205,17 +212,76 @@ class _SessionTile extends StatelessWidget {
       trailing: Text(
         stripeManagerFormatAmount(session.amountTotal.v, session.currency.v),
       ),
-      onTap: () => showStripeManagerSession(context, session, productNames),
+      onTap: () => showStripeManagerSession(
+        context,
+        session,
+        productNames,
+        service: service,
+      ),
     );
   }
 }
 
-/// Shows the details of a Checkout [session].
+/// A line of a sale: its product (name, id), the quantity and amounts, the
+/// nickname of its price; a tap opens the product when [service] is given.
+class _LineItemTile extends StatelessWidget {
+  final StripeApiLineItem item;
+  final Map<String, String> productNames;
+  final StripeManagerService? service;
+
+  const _LineItemTile({
+    required this.item,
+    required this.productNames,
+    required this.service,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var price = item.price.v;
+    var productId = price?.productId.v;
+    var currency = item.currency.v;
+    var amounts =
+        '${item.quantity.v ?? 1} × '
+        '${stripeManagerFormatAmount(price?.amount.v, currency)} = '
+        '${stripeManagerFormatAmount(item.amountTotal.v, currency)}';
+    VoidCallback? onTap;
+    if ((service, productId) case (var service?, var productId?)) {
+      onTap = () => Navigator.of(context).push<void>(
+        MaterialPageRoute(
+          builder: (_) => StripeManagerProductScreen(
+            service: service,
+            productId: productId,
+          ),
+        ),
+      );
+    }
+    return ListTile(
+      dense: true,
+      title: Text(
+        productNames[productId] ?? item.description.v ?? productId ?? '?',
+      ),
+      subtitle: Text(
+        [
+          amounts,
+          if (productId != null) 'Product $productId',
+          if (price?.nickname.v case var nickname? when nickname.isNotEmpty)
+            'Price $nickname',
+        ].join('\n'),
+      ),
+      trailing: onTap != null ? const Icon(Icons.chevron_right) : null,
+      onTap: onTap,
+    );
+  }
+}
+
+/// Shows the details of a Checkout [session], its product lines opening
+/// the product when [service] is given.
 Future<void> showStripeManagerSession(
   BuildContext context,
   StripeApiCheckoutSession session,
-  Map<String, String> productNames,
-) => showModalBottomSheet<void>(
+  Map<String, String> productNames, {
+  StripeManagerService? service,
+}) => showModalBottomSheet<void>(
   context: context,
   isScrollControlled: true,
   builder: (context) {
@@ -244,15 +310,10 @@ Future<void> showStripeManagerSession(
           ),
           StripeManagerInfoTile(label: 'Phone', value: details?.phone.v),
           for (var item in items)
-            StripeManagerInfoTile(
-              label:
-                  productNames[item.price.v?.productId.v] ??
-                  item.description.v ??
-                  '?',
-              value:
-                  '${item.quantity.v ?? 1} × '
-                  '${stripeManagerFormatAmount(item.price.v?.amount.v, item.currency.v)}'
-                  ' = ${stripeManagerFormatAmount(item.amountTotal.v, item.currency.v)}',
+            _LineItemTile(
+              item: item,
+              productNames: productNames,
+              service: service,
             ),
           if (session.metadata.v case var metadata? when metadata.isNotEmpty)
             StripeManagerInfoTile(

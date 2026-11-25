@@ -226,8 +226,12 @@ class StripeManagerPaymentLinkScreen extends StatelessWidget {
                       session.currency.v,
                     ),
                   ),
-                  onTap: () =>
-                      showStripeManagerSession(context, session, const {}),
+                  onTap: () => showStripeManagerSession(
+                    context,
+                    session,
+                    const {},
+                    service: service,
+                  ),
                 ),
               if (active)
                 Padding(

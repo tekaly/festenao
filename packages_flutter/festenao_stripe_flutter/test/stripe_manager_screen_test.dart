@@ -84,4 +84,94 @@ void main() {
 
     await tester.runAsync(store.close);
   });
+
+  testWidgets('a sale shows its product, a tap opens it', (tester) async {
+    var stripe = FakeStripe();
+    stripe.answers['/v1/products'] = (_) => {
+      'has_more': false,
+      'data': [
+        {'id': 'prod_1', 'name': 'Membership 2026', 'active': true},
+      ],
+    };
+    stripe.answers['/v1/checkout/sessions'] = (_) => {
+      'has_more': false,
+      'data': [
+        {
+          'id': 'cs_1',
+          'status': 'complete',
+          'payment_status': 'paid',
+          'amount_total': 2550,
+          'currency': 'eur',
+          'created': 1763500000,
+          'customer_details': {'email': 'jo@example.com', 'name': 'Jo'},
+          'line_items': {
+            'has_more': false,
+            'data': [
+              {
+                'id': 'li_1',
+                'description': 'Cotisation',
+                'quantity': 1,
+                'amount_total': 2550,
+                'currency': 'eur',
+                'price': {
+                  'id': 'price_1',
+                  'product': 'prod_1',
+                  'unit_amount': 2550,
+                  'nickname': 'Cotisation Doe Jo',
+                },
+              },
+            ],
+          },
+        },
+      ],
+    };
+    stripe.answers['/v1/products/prod_1'] = (_) => {
+      'id': 'prod_1',
+      'name': 'Membership 2026',
+      'active': true,
+    };
+    stripe.answers['/v1/prices'] = (_) => {
+      'has_more': false,
+      'data': <Object?>[],
+    };
+    var service = StripeManagerService(
+      client: StripeManagerClient(
+        id: 'test',
+        name: 'Sandbox',
+        secretKey: 'sk_test_0123456789abcdefTEST',
+      ),
+      httpClient: stripe.client,
+      baseUri: Uri.parse('http://localhost:1/v1'),
+    );
+    await tester.pumpWidget(
+      MaterialApp(home: StripeManagerSalesScreen(service: service)),
+    );
+    // The product name, not the line description.
+    await pumpUntilFound(tester, find.text('1 × Membership 2026'));
+
+    // The sale: its line shows the product name, id and price nickname.
+    await tester.tap(find.text('1 × Membership 2026'));
+    // The sheet slides in (its animation starts on the next frame).
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    var productLine = find.textContaining('Product prod_1');
+    expect(productLine, findsOneWidget);
+    expect(find.textContaining('Price Cotisation Doe Jo'), findsOneWidget);
+
+    await tester.ensureVisible(productLine);
+    await tester.pump();
+    await tester.tap(productLine);
+    await pumpUntilFound(tester, find.byType(StripeManagerProductScreen));
+    await pumpUntilFound(
+      tester,
+      find.descendant(
+        of: find.byType(StripeManagerProductScreen),
+        matching: find.text('Membership 2026'),
+      ),
+    );
+    expect(
+      stripe.requests.map((request) => request.url.path),
+      contains('/v1/products/prod_1'),
+    );
+  });
 }
