@@ -71,7 +71,7 @@ void main() {
     expect(stripe.requests.single.url.path, '/v1/products');
     expect(
       stripe.requests.single.headers['authorization'],
-      startsWith('Basic '),
+      startsWith('Bearer '),
     );
 
     // Back home, switch to the live client: the banner shows.
