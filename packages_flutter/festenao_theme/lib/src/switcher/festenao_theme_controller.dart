@@ -106,6 +106,13 @@ class _FestenaoThemeStoreMemory implements FestenaoThemeStore {
   void write(String value) => _value = value;
 }
 
+/// Builds the theme of [preset] in [brightness]
+/// ([FestenaoThemeController.themeBuilder]).
+typedef FestenaoThemeBuilderFunction = ThemeData Function(
+  FestenaoThemePreset preset,
+  Brightness brightness,
+);
+
 /// The theme of an app: the [presets] it offers, its own default
 /// ([defaultPreset]: an app may put its own preset first, the festenao ones
 /// after it, the neutral one always among them), the one chosen, light,
@@ -140,17 +147,23 @@ class FestenaoThemeController extends ValueNotifier<FestenaoThemeChoice> {
 
   final _themes = <(String, Brightness), ThemeData>{};
 
+  /// How the app builds the theme of a preset, [FestenaoThemePreset.themeData]
+  /// by default: an app adds its own theme extensions, or builds the theme
+  /// of its own presets by hand (the previews of the picker show it too).
+  final FestenaoThemeBuilderFunction? themeBuilder;
+
   /// The id of [defaultPreset].
   final String _defaultId;
 
   /// The [presets] the app offers (every festenao preset by default), the
   /// [initial] one, the app's default (the first of [presets] by default),
-  /// in [mode].
+  /// in [mode]; [themeBuilder] the theme of a preset, when the app builds it.
   FestenaoThemeController({
     List<FestenaoThemePreset>? presets,
     FestenaoThemePreset? initial,
     ThemeMode mode = ThemeMode.system,
     this.store,
+    this.themeBuilder,
   }) : presets = _checkPresets(presets ?? festenaoThemePresets),
        _defaultId = (initial ?? _checkPresets(presets).first).id,
        super(
@@ -196,9 +209,12 @@ class FestenaoThemeController extends ValueNotifier<FestenaoThemeChoice> {
   /// The dark theme of the chosen preset.
   ThemeData get darkTheme => themeOf(preset, Brightness.dark);
 
-  /// The theme of [preset] in [brightness], built once.
+  /// The theme of [preset] in [brightness] ([themeBuilder] or
+  /// [FestenaoThemePreset.themeData]), built once.
   ThemeData themeOf(FestenaoThemePreset preset, Brightness brightness) =>
-      _themes[(preset.id, brightness)] ??= preset.themeData(brightness);
+      _themes[(preset.id, brightness)] ??=
+          themeBuilder?.call(preset, brightness) ??
+          preset.themeData(brightness);
 
   /// Reads the [store]: a stored preset that is not offered (any more) is
   /// replaced by the app's default ([defaultPreset]).

@@ -98,6 +98,28 @@ void main() {
     expect(controller.preset.id, isNot(first.id));
     expect(find.text('Thème actuel'), findsOneWidget);
   });
+  testWidgets('the theme builder of the app, in the picker too', (
+    tester,
+  ) async {
+    var built = <String>[];
+    var controller = FestenaoThemeController(
+      presets: festenaoThemePresets.take(2).toList(),
+      themeBuilder: (preset, brightness) {
+        built.add('${preset.id}|${brightness.name}');
+        return preset
+            .themeData(brightness)
+            .copyWith(scaffoldBackgroundColor: const Color(0xFF123456));
+      },
+    );
+    expect(controller.theme.scaffoldBackgroundColor, const Color(0xFF123456));
+    // Built once.
+    expect(controller.theme, same(controller.theme));
+    await tester.pumpWidget(_app(controller));
+    await tester.tap(find.byKey(const ValueKey('festenao_theme_tile')));
+    await tester.pumpAndSettle();
+    expect(built, contains('${controller.presets[1].id}|light'));
+  });
+
   group('the app default', () {
     var presets = festenaoThemePresets.take(4).toList();
     var appDefault = presets[2];
