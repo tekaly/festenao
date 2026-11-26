@@ -106,8 +106,10 @@ class _FestenaoThemeStoreMemory implements FestenaoThemeStore {
   void write(String value) => _value = value;
 }
 
-/// The theme of an app: the [presets] it offers, the one chosen, light, dark
-/// or the system one; written to its [store] on each change.
+/// The theme of an app: the [presets] it offers, its own default
+/// ([defaultPreset]: an app may put its own preset first, the festenao ones
+/// after it, the neutral one always among them), the one chosen, light,
+/// dark or the system one; written to its [store] on each change.
 ///
 /// ```dart
 /// var controller = FestenaoThemeController(
@@ -138,20 +140,37 @@ class FestenaoThemeController extends ValueNotifier<FestenaoThemeChoice> {
 
   final _themes = <(String, Brightness), ThemeData>{};
 
+  /// The id of [defaultPreset].
+  final String _defaultId;
+
   /// The [presets] the app offers (every festenao preset by default), the
-  /// [initial] one (the first of [presets] by default) in [mode].
+  /// [initial] one, the app's default (the first of [presets] by default),
+  /// in [mode].
   FestenaoThemeController({
     List<FestenaoThemePreset>? presets,
     FestenaoThemePreset? initial,
     ThemeMode mode = ThemeMode.system,
     this.store,
   }) : presets = _checkPresets(presets ?? festenaoThemePresets),
+       _defaultId = (initial ?? _checkPresets(presets).first).id,
        super(
          FestenaoThemeChoice(
            presetId: (initial ?? _checkPresets(presets).first).id,
            mode: mode,
          ),
        );
+
+  /// The app's default preset: the [initial] one given, else the first
+  /// offered (when it is not offered, the first).
+  FestenaoThemePreset get defaultPreset =>
+      presets.where((preset) => preset.id == _defaultId).firstOrNull ??
+      presets.first;
+
+  /// True when [preset] is the app's default.
+  bool isDefault(FestenaoThemePreset preset) => preset.id == defaultPreset.id;
+
+  /// Back to the app's default preset (the mode kept).
+  void resetToDefault() => selectPreset(defaultPreset);
 
   static List<FestenaoThemePreset> _checkPresets(
     List<FestenaoThemePreset>? presets,
@@ -163,10 +182,10 @@ class FestenaoThemeController extends ValueNotifier<FestenaoThemeChoice> {
     return List.unmodifiable(presets);
   }
 
-  /// The chosen preset, the first offered when the choice is not offered.
+  /// The chosen preset, the app's default when the choice is not offered.
   FestenaoThemePreset get preset =>
       presets.where((preset) => preset.id == value.presetId).firstOrNull ??
-      presets.first;
+      defaultPreset;
 
   /// Light, dark or the system one.
   ThemeMode get mode => value.mode;
@@ -182,7 +201,7 @@ class FestenaoThemeController extends ValueNotifier<FestenaoThemeChoice> {
       _themes[(preset.id, brightness)] ??= preset.themeData(brightness);
 
   /// Reads the [store]: a stored preset that is not offered (any more) is
-  /// replaced by the first offered.
+  /// replaced by the app's default ([defaultPreset]).
   Future<void> load() async {
     var choice = FestenaoThemeChoice.decode(await store?.read());
     if (choice == null) {
@@ -192,7 +211,7 @@ class FestenaoThemeController extends ValueNotifier<FestenaoThemeChoice> {
       choice.copyWith(
         presetId: presets.any((preset) => preset.id == choice.presetId)
             ? choice.presetId
-            : presets.first.id,
+            : defaultPreset.id,
       ),
       save: false,
     );

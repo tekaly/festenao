@@ -19,6 +19,21 @@ class FestenaoThemeSwitcherTexts {
   /// "Dark".
   final String dark;
 
+  /// "Choose a theme" (the settings tile, to the full screen picker).
+  final String chooseTheme;
+
+  /// "Next theme" (the tile's button cycling through the themes).
+  final String nextTheme;
+
+  /// "Use this theme" (the carousel's button).
+  final String useTheme;
+
+  /// "Current theme" (the carousel's button on the theme in use).
+  final String current;
+
+  /// "Default" (the mark of the app's own default theme).
+  final String defaultTheme;
+
   /// The words.
   const FestenaoThemeSwitcherTexts({
     required this.theme,
@@ -26,6 +41,11 @@ class FestenaoThemeSwitcherTexts {
     required this.system,
     required this.light,
     required this.dark,
+    this.chooseTheme = 'Choose a theme',
+    this.nextTheme = 'Next theme',
+    this.useTheme = 'Use this theme',
+    this.current = 'Current theme',
+    this.defaultTheme = 'Default',
   });
 
   /// English.
@@ -44,6 +64,11 @@ class FestenaoThemeSwitcherTexts {
     system: 'Système',
     light: 'Clair',
     dark: 'Sombre',
+    chooseTheme: 'Choisir un thème',
+    nextTheme: 'Thème suivant',
+    useTheme: 'Utiliser ce thème',
+    current: 'Thème actuel',
+    defaultTheme: 'Par défaut',
   );
 
   /// French for a French locale, English otherwise.
